@@ -187,7 +187,7 @@ def load_characters_and_houses(world_dir: Path) -> dict:
                     "gender": fm.get("gender", ""),
                     "house": house,
                     "parents": [clean_wikilink(p) for p in parents if p],
-                    "fuzzy_parents": fuzzy_parents,
+                    "fuzzy_parents": sorted(fuzzy_parents),
                     "spouses": [clean_wikilink(s) for s in spouses if s],
                     "children": [clean_wikilink(c) for c in children if c],
                     "born": born,
@@ -268,7 +268,7 @@ def validate_genealogy(chars: dict) -> list:
 
         # Parent vs Child birth dates
         for p_name in c["parents"]:
-            if p_name in c.get("fuzzy_parents", set()):
+            if p_name in c.get("fuzzy_parents", ()):
                 continue
             if p_name in chars:
                 p = chars[p_name]
@@ -684,7 +684,7 @@ def main():
         house = args.house
         lineage = get_house_lineage(chars, house)
         if args.json:
-            print(json.dumps({"house": house, "members": lineage, "findings": findings}, indent=2))
+            print(json.dumps({"house": house, "members": lineage, "findings": findings}, indent=2, default=lambda o: list(o) if isinstance(o, (set, tuple)) else str(o)))
         else:
             print(f"\n\033[1;33m=== Dynastic Succession Lineage: {house} ===\033[0m")
             if not lineage:
