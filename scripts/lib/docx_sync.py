@@ -453,7 +453,7 @@ def convert_docx_to_markdown(docx_path: Path) -> str:
         if b"<!ENTITY" in doc_xml_bytes or b"<!DOCTYPE" in doc_xml_bytes:
             raise ValueError("Unsafe XML entity/DOCTYPE declaration detected in DOCX document.xml")
             
-        root = ET.fromstring(doc_xml_bytes)  # noqa: S314
+        root = ET.fromstring(doc_xml_bytes)  # nosec B314  # noqa: S314
         ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
         
         md_paragraphs = []

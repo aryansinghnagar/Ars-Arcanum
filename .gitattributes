@@ -15,4 +15,5 @@ debian/* text eol=lf
 .gitattributes text eol=lf
 *.patch text eol=lf
 *.txt text eol=lf
+*.js text eol=lf
 

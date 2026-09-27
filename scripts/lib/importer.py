@@ -53,7 +53,7 @@ def extract_docx_text(docx_path: Path) -> str:
     if b"<!ENTITY" in doc_xml_bytes or b"<!DOCTYPE" in doc_xml_bytes:
         raise ValueError(f"Unsafe DOCTYPE/ENTITY detected in {docx_path.name}")
 
-    root = ET.fromstring(doc_xml_bytes)  # noqa: S314
+    root = ET.fromstring(doc_xml_bytes)  # nosec B314  # noqa: S314
     ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
 
     paragraphs = []

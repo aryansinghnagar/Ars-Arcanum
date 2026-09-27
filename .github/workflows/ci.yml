@@ -22,12 +22,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
 
@@ -37,7 +37,7 @@ jobs:
           sudo apt-get install -y shellcheck desktop-file-utils pandoc libxml2-utils xvfb gir1.2-gtk-3.0 gir1.2-adw-1 python3-gi
 
       - name: Set up Typst
-        uses: typst-community/setup-typst@f97d94d65e19b033e103c69cb1f27b56dfbb040f # v4.0.1
+        uses: typst-community/setup-typst@40d32bb6ccb235bd7f5164cb47cfd40a5ea3a314 # v5.2.0
         with:
           # DEP-01: exact pin matching dependencies.lock + setup_arcanum.sh (0.14.2).
           typst-version: '0.14.2'
@@ -52,7 +52,7 @@ jobs:
           desktop-file-validate --version
 
       - name: Gitleaks secret scanning
-        uses: gitleaks/gitleaks-action@f586c14365d4643c6aa59d472ae6e984bf47bb34 # v2.3.8
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -203,7 +203,7 @@ jobs:
           apt-get update
           apt-get install -y git python3 bash tar ca-certificates
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run Python unit tests in container (${{ matrix.container }})
         run: |
           python3 -m unittest discover -s tests -p "test_*.py" -v

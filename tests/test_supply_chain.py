@@ -43,7 +43,7 @@ class TestSupplyChainIntegrity(unittest.TestCase):
                 main_js_path.is_file(),
                 f"Vendored main.js missing for plugin '{plugin_name}' at {main_js_path}"
             )
-            data = main_js_path.read_bytes()
+            data = main_js_path.read_bytes().replace(b"\r\n", b"\n")
             actual_sha = hashlib.sha256(data).hexdigest()
             self.assertEqual(
                 actual_sha,
