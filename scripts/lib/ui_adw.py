@@ -1,15 +1,11 @@
-#!/usr/bin/env python3
-"""
-Ars Arcanum Modern GTK 4 / Libadwaita Presentation Layer (scripts/lib/ui_adw.py)
-Implements adaptive modern desktop views, system dark-mode synchronization,
-and responsive controls for GNOME / modern Linux desktops.
-"""
+from __future__ import annotations
 
 import logging
 import subprocess
 import sys
 import threading
 from pathlib import Path
+from typing import Any
 
 try:
     import lib._bootstrap  # noqa: F401
@@ -28,13 +24,20 @@ except ImportError:
 logger = logging.getLogger("arcanum.ui_adw")
 
 HAS_ADW = False
+Adw: Any = None
+GLib: Any = None
+Gtk: Any = None
+
 try:
     import gi
     gi.require_version('Gtk', '4.0')
     gi.require_version('Adw', '1')
-    from gi.repository import Adw, GLib, Gtk
+    from gi.repository import Adw as _Adw
+    from gi.repository import GLib as _GLib
+    from gi.repository import Gtk as _Gtk
+    Adw, GLib, Gtk = _Adw, _GLib, _Gtk
     HAS_ADW = True
-except (ImportError, ValueError):
+except Exception:
     HAS_ADW = False
 
 HOME_DIR = Path.home()

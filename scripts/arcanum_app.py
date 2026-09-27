@@ -51,9 +51,9 @@ def fallback_zenity(active_tab: str | None = None) -> int:
         res = subprocess.run(args)
         return res.returncode
     try:
-        from lib.studio_hub import run_studio_hub
+        from lib.studio_hub import start_studio_hub_server
         print("[i] PyGObject / GTK is not installed. Launching browser-based Studio Hub...", file=sys.stderr)
-        run_studio_hub(open_browser=True)
+        start_studio_hub_server(open_browser=True)
         return 0
     except Exception as e:
         logger.error("Failed to launch Studio Hub fallback: %s", e)

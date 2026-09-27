@@ -34,7 +34,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y shellcheck desktop-file-utils pandoc libxml2-utils xvfb gir1.2-gtk-3.0 gir1.2-adw-1 python3-gi
+          sudo apt-get install -y shellcheck desktop-file-utils pandoc libxml2-utils xvfb gir1.2-gtk-3.0 gir1.2-gtk-4.0 gir1.2-adw-1 libadwaita-1-0 python3-gi
 
       - name: Set up Typst
         uses: typst-community/setup-typst@40d32bb6ccb235bd7f5164cb47cfd40a5ea3a314 # v5.2.0
@@ -181,7 +181,7 @@ jobs:
 
       - name: Headless GUI smoke test (GTK 4 / Libadwaita)
         run: |
-          G_DEBUG=fatal-criticals timeout 10 xvfb-run -a python3 scripts/arcanum_app.py --adw || [ $? -eq 124 ]
+          PYTHONPATH="/usr/lib/python3/dist-packages:${PYTHONPATH:-}" G_DEBUG=fatal-criticals timeout 10 xvfb-run -a python3 scripts/arcanum_app.py --adw || [ $? -eq 124 ]
           echo "  OK GTK4/Libadwaita GUI started cleanly without fatal warnings"
 
   distro-matrix:
