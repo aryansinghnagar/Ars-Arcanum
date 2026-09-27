@@ -1007,8 +1007,8 @@ PYEOF
         fi
         if command -v typst &>/dev/null; then
             local typst_src="${temp_work_dir}/manuscript.typ"
-            cat << 'EOF' > "${typst_src}"
-#set page(paper: "us-trade", margin: (x: 1.8cm, top: 2.2cm, bottom: 2.2cm))
+            cat << EOF > "${typst_src}"
+#set page(paper: "${paper_size}", margin: (x: 1.8cm, top: 2.2cm, bottom: 2.2cm))
 #set text(font: "Linux Libertine O", size: 10.5pt)
 #set par(justify: true, leading: 0.72em, first-line-indent: 1.25em)
 EOF
