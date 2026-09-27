@@ -1024,9 +1024,19 @@ PYEOF
         fi
         if command -v typst &>/dev/null; then
             local typst_src="${temp_work_dir}/manuscript.typ"
+            local page_w="6in"
+            local page_h="9in"
+            case "${paper_size}" in
+                trade) page_w="5.5in"; page_h="8.5in" ;;
+                pocket) page_w="5in"; page_h="8in" ;;
+                a4) page_w="210mm"; page_h="297mm" ;;
+                a5) page_w="148mm"; page_h="210mm" ;;
+                letter|us-letter) page_w="8.5in"; page_h="11in" ;;
+                *) page_w="6in"; page_h="9in" ;;
+            esac
             cat << EOF > "${typst_src}"
-#set page(paper: "${paper_size}", margin: (x: 1.8cm, top: 2.2cm, bottom: 2.2cm))
-#set text(font: "Linux Libertine O", size: 10.5pt)
+#set page(width: ${page_w}, height: ${page_h}, margin: (x: 1.8cm, top: 2.2cm, bottom: 2.2cm))
+#set text(font: ("Linux Libertine", "Libertinus Serif", "EB Garamond", "DejaVu Serif"), size: 10.5pt)
 #set par(justify: true, leading: 0.72em, first-line-indent: 1.25em)
 EOF
             if command -v pandoc &>/dev/null; then
