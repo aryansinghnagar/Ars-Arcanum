@@ -858,6 +858,15 @@ cmd_restore() {
         esac
     done
 
+    if [ -n "${target_name}" ]; then
+        local test_alnum
+        test_alnum="$(printf '%s' "${target_name}" | tr -cd 'A-Za-z0-9')"
+        if [ -z "${test_alnum}" ]; then
+            echo "Error: Invalid restore target name '${target_name}'." >&2
+            return 2
+        fi
+    fi
+
     if [ -z "${archive_input}" ] || [ ! -f "${archive_input}" ]; then
         echo "Error: Archive file not found: '${archive_input}'." >&2; return 1
     fi
@@ -960,8 +969,12 @@ cmd_restore() {
 
     local orig_name
     orig_name="$(basename "${extracted_dir}")"
-    local final_name="${target_name:-${orig_name}}"
-    final_name="$(printf '%s' "${final_name}" | tr ' ' '-' | tr -cd 'A-Za-z0-9_-' | cut -c1-64)"
+    local final_name=""
+    if [ -n "${target_name}" ]; then
+        final_name="$(printf '%s' "${target_name}" | tr ' ' '_' | tr -cd 'A-Za-z0-9_-' | cut -c1-64)"
+    else
+        final_name="${orig_name}"
+    fi
     if [ -z "${final_name}" ] || [ "${final_name}" = "." ] || [ "${final_name}" = ".." ]; then
         echo "Error: Invalid restore target name." >&2; return 1
     fi
