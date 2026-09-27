@@ -641,6 +641,18 @@ EOF
     ts="$(date '+%Y-%m-%d %H:%M')"
     [ -z "${note}" ] && note="Snapshot: ${ts}"
 
+    for sub in "${selected}"/*; do
+        if [ -d "${sub}/.git" ]; then
+            (
+                cd "${sub}"
+                git -c advice.addEmbeddedRepo=false add -A
+                if ! git diff --cached --quiet; then
+                    git_commit_safe "${note}" || true
+                fi
+            )
+        fi
+    done
+
     git -c advice.addEmbeddedRepo=false add -A
     if git diff --cached --quiet; then
         echo "No uncommitted changes in '${target_name}' since last snapshot."
