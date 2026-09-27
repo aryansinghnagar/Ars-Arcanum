@@ -207,6 +207,61 @@ resolve_universe_dir() {
 }
 
 # resolve_world_dir TARGET [UNIVERSE] -> absolute world path (or empty)
+# _find_world_matches TARGET UNIVERSE OUT_VARNAME
+# Helper to populate OUT_VARNAME with matching world directories in a single pass.
+_find_world_matches() {
+    local target="$1"
+    local universe="${2:-}"
+    local u_base="${UNIVERSES_BASE:-${HOME}/Universes}"
+    local leg_base="${LEGACY_WORLDS_BASE:-${HOME}/Worlds}"
+    local -n __out_matches="$3"
+    __out_matches=()
+
+    [ -z "${target}" ] && return 0
+
+    if [ -n "${universe}" ]; then
+        if [ -d "${u_base}/${universe}/${target}" ]; then
+            __out_matches+=("$(cd "${u_base}/${universe}/${target}" && pwd)")
+        elif [ -d "${u_base}/${universe}/Worlds/${target}" ]; then
+            __out_matches+=("$(cd "${u_base}/${universe}/Worlds/${target}" && pwd)")
+        fi
+        return 0
+    fi
+
+    # 1. Search direct ~/Universes/<Universe>/<World>
+    local w
+    while IFS= read -r -d '' w; do
+        [ -d "$w" ] || continue
+        local bname
+        bname="$(basename "$w")"
+        if [ "$bname" = "Worlds" ] || [ "$bname" = ".git" ]; then
+            continue
+        fi
+        if [ "$bname" = "${target}" ]; then
+            __out_matches+=("$(cd "$w" && pwd)")
+        fi
+    done < <(find "${u_base}" -mindepth 2 -maxdepth 2 -type d ! -name '.*' -print0 2>/dev/null | sort -z)
+
+    # 2. Search legacy subfolder ~/Universes/<Universe>/Worlds/<World>
+    while IFS= read -r -d '' w; do
+        [ -d "$w" ] || continue
+        local bname
+        bname="$(basename "$w")"
+        if [ "$bname" = ".git" ]; then
+            continue
+        fi
+        if [ "$bname" = "${target}" ]; then
+            __out_matches+=("$(cd "$w" && pwd)")
+        fi
+    done < <(find "${u_base}" -mindepth 3 -maxdepth 3 -type d -path '*/Worlds/*' ! -name '.*' -print0 2>/dev/null | sort -z)
+
+    # 3. Search legacy root ~/Worlds/<World>
+    if [ -d "${leg_base}/${target}" ]; then
+        __out_matches+=("$(cd "${leg_base}/${target}" && pwd)")
+    fi
+}
+
+# resolve_world_dir TARGET [UNIVERSE] -> absolute world path (or empty)
 # RES-01: ambiguous names fail closed. When TARGET matches worlds in more
 # than one universe and no explicit UNIVERSE filter was given, prints all
 # conflicting paths to stderr and returns empty so callers exit 2 instead
@@ -214,50 +269,14 @@ resolve_universe_dir() {
 resolve_world_dir() {
     local target="${1:-}"
     local universe="${2:-}"
-    local u_base="${UNIVERSES_BASE:-${HOME}/Universes}"
-    local leg_base="${LEGACY_WORLDS_BASE:-${HOME}/Worlds}"
-    local w resolved=""
+    local resolved=""
     local -a __matches=()
 
     if [ -n "${target}" ]; then
         if [ -d "${target}" ]; then
             resolved="$(cd "${target}" && pwd)"
-        elif [ -n "${universe}" ] && [ -d "${u_base}/${universe}/${target}" ]; then
-            resolved="$(cd "${u_base}/${universe}/${target}" && pwd)"
-        elif [ -n "${universe}" ] && [ -d "${u_base}/${universe}/Worlds/${target}" ]; then
-            resolved="$(cd "${u_base}/${universe}/Worlds/${target}" && pwd)"
         else
-            # 1. Search direct ~/Universes/<Universe>/<World>
-            while IFS= read -r -d '' w; do
-                [ -d "$w" ] || continue
-                local bname
-                bname="$(basename "$w")"
-                if [ "$bname" = "Worlds" ] || [ "$bname" = ".git" ]; then
-                    continue
-                fi
-                if [ "$bname" = "${target}" ]; then
-                    __matches+=("$(cd "$w" && pwd)")
-                fi
-            done < <(find "${u_base}" -mindepth 2 -maxdepth 2 -type d ! -name '.*' -print0 2>/dev/null | sort -z)
-
-            # 2. Search legacy subfolder ~/Universes/<Universe>/Worlds/<World>
-            while IFS= read -r -d '' w; do
-                [ -d "$w" ] || continue
-                local bname
-                bname="$(basename "$w")"
-                if [ "$bname" = ".git" ]; then
-                    continue
-                fi
-                if [ "$bname" = "${target}" ]; then
-                    __matches+=("$(cd "$w" && pwd)")
-                fi
-            done < <(find "${u_base}" -mindepth 3 -maxdepth 3 -type d -path '*/Worlds/*' ! -name '.*' -print0 2>/dev/null | sort -z)
-
-            # 3. Search legacy root ~/Worlds/<World>
-            if [ -d "${leg_base}/${target}" ]; then
-                __matches+=("$(cd "${leg_base}/${target}" && pwd)")
-            fi
-
+            _find_world_matches "${target}" "${universe}" __matches
             if [ ${#__matches[@]} -eq 1 ]; then
                 resolved="${__matches[0]}"
             elif [ ${#__matches[@]} -gt 1 ]; then
@@ -322,14 +341,12 @@ resolve_manuscript_dir() {
 # Resolves a target name or path into an absolute path for a world lore vault,
 # manuscript project, or universe directory. RES-01: command substitutions
 # run resolvers in subshells, so ambiguity cannot propagate via globals.
-# Instead, when no universe filter is given, pre-count world basename
-# matches here: if >1, resolve_world_dir already printed the conflict list
-# to stderr, and we return empty without falling through to a manuscript
-# or universe with the same basename.
+# Uses single-pass match discovery to eliminate redundant filesystem traversals.
 resolve_target_dir() {
     local target="${1:-}"
     local universe="${2:-}"
     local resolved=""
+    local -a __world_matches=()
 
     if [ -n "${target}" ]; then
         if [ -d "${target}" ]; then
@@ -343,30 +360,22 @@ resolve_target_dir() {
                 resolved="$(resolve_manuscript_dir "${target}")"
             fi
             if { [ -z "${resolved}" ] || [ ! -d "${resolved}" ]; } && [ -z "${universe}" ]; then
-                # Ambiguity pre-check: count world matches without resolving.
-                local __u_base="${UNIVERSES_BASE:-${HOME}/Universes}"
-                local __leg_base="${LEGACY_WORLDS_BASE:-${HOME}/Worlds}"
-                local __n=0 __w
-                while IFS= read -r -d '' __w; do
-                    [ -d "$__w" ] || continue
-                    [ "$(basename "$__w")" = "Worlds" ] && continue
-                    [ "$(basename "$__w")" = ".git" ] && continue
-                    [ "$(basename "$__w")" = "${target}" ] && __n=$((__n+1))
-                done < <(find "${__u_base}" -mindepth 2 -maxdepth 2 -type d ! -name '.*' -print0 2>/dev/null | sort -z)
-                while IFS= read -r -d '' __w; do
-                    [ -d "$__w" ] || continue
-                    [ "$(basename "$__w")" = ".git" ] && continue
-                    [ "$(basename "$__w")" = "${target}" ] && __n=$((__n+1))
-                done < <(find "${__u_base}" -mindepth 3 -maxdepth 3 -type d -path '*/Worlds/*' ! -name '.*' -print0 2>/dev/null | sort -z)
-                [ -d "${__leg_base}/${target}" ] && __n=$((__n+1))
-                if [ "${__n}" -gt 1 ]; then
-                    resolved="$(resolve_world_dir "${target}" "${universe}")"
+                _find_world_matches "${target}" "" __world_matches
+                if [ ${#__world_matches[@]} -eq 1 ]; then
+                    resolved="${__world_matches[0]}"
+                elif [ ${#__world_matches[@]} -gt 1 ]; then
+                    {
+                        echo "Error: Ambiguous world name '${target}' matches ${#__world_matches[@]} projects:"
+                        for w in "${__world_matches[@]}"; do
+                            echo "  - ${w}"
+                        done
+                        echo "Re-run with an explicit universe (e.g. --universe <Name>) or an absolute path."
+                    } >&2
+                    resolved=""
+                    ARCANUM_RESOLVE_AMBIGUOUS=1
                     printf '%s' "${resolved}"
                     return 0
                 fi
-            fi
-            if [ -z "${resolved}" ] || [ ! -d "${resolved}" ]; then
-                resolved="$(resolve_world_dir "${target}" "${universe}")"
             fi
             if [ -z "${resolved}" ] || [ ! -d "${resolved}" ]; then
                 resolved="$(resolve_universe_dir "${target}")"

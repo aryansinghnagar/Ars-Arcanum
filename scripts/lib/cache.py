@@ -50,6 +50,39 @@ TAG_REGEXES = {
     "time": re.compile(r"^@(?:time|date|era):\s*(.+)$", re.IGNORECASE | re.MULTILINE),
 }
 
+TAG_KEY_MAP = {
+    "pov": "pov",
+    "char": "characters",
+    "chars": "characters",
+    "character": "characters",
+    "characters": "characters",
+    "location": "location",
+    "loc": "location",
+    "setting": "location",
+    "thread": "thread",
+    "subplot": "thread",
+    "plot": "thread",
+    "status": "status",
+    "state": "status",
+    "time": "time",
+    "date": "time",
+    "era": "time",
+}
+
+TAG_LINE_REGEX = re.compile(r"^@([A-Za-z0-9_-]+):\s*(.+)$", re.MULTILINE)
+
+
+def extract_tags(content: str) -> dict[str, list[str]]:
+    """Extract novelWriter and Arcanum metadata tags in a single linear pass."""
+    tags: dict[str, list[str]] = {}
+    for match in TAG_LINE_REGEX.finditer(content):
+        tag_key = match.group(1).lower()
+        tag_val = match.group(2).strip()
+        canonical_key = TAG_KEY_MAP.get(tag_key)
+        if canonical_key and tag_val:
+            tags.setdefault(canonical_key, []).append(tag_val)
+    return tags
+
 WIKILINK_REGEX = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]")
 FRONTMATTER_REGEX = re.compile(r"^---\s*\r?\n(.*?)\r?\n---\s*(?:\r?\n|$)", re.DOTALL)
 FENCED_CODE_REGEX = re.compile(r"```.*?```", re.DOTALL)
@@ -147,11 +180,7 @@ def parse_markdown_file(file_path: Path) -> dict:
         words = count_words(content)
 
         # Extract tags
-        tags = {}
-        for tag_name, rx in TAG_REGEXES.items():
-            matches = rx.findall(content)
-            if matches:
-                tags[tag_name] = [m.strip() for m in matches]
+        tags = extract_tags(content)
 
         # Extract wikilinks
         wikilinks = sorted(list(set(WIKILINK_REGEX.findall(content))))
