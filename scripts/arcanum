@@ -988,10 +988,24 @@ cmd_export() {
     touch "${combined_md}"
 
     if [ "${volume}" = "all" ] || [ "${volume}" = "omnibus" ]; then
-        for md_file in $(find "${target_dir}" -type f -name "*.md" ! -path "*/Exports/*" ! -path "*/04-Publishing/*" ! -path "*/05-Backups/*" ! -path "*/Backups/*" ! -path "*/Draft-*" ! -name ".*" | sort); do
-            sed -E '/^@[A-Za-z0-9_-]+:/d; /^%/d' "${md_file}" >> "${combined_md}"
-            printf "\n\n" >> "${combined_md}"
-        done
+        local book_vols=()
+        while IFS= read -r -d '' bdir; do
+            book_vols+=("${bdir}")
+        done < <(find "${target_dir}" -mindepth 1 -maxdepth 1 -type d -name "Book-*" -print0 2>/dev/null | sort -zV)
+
+        if [ ${#book_vols[@]} -gt 0 ]; then
+            for bvol in "${book_vols[@]}"; do
+                for md_file in $(find "${bvol}" -type f -name "*.md" ! -path "*/Draft-*" ! -name ".*" | sort); do
+                    sed -E '/^@[A-Za-z0-9_-]+:/d; /^%/d' "${md_file}" >> "${combined_md}"
+                    printf "\n\n" >> "${combined_md}"
+                done
+            done
+        else
+            for md_file in $(find "${target_dir}" -type f -name "*.md" ! -path "*/Exports/*" ! -path "*/04-Publishing/*" ! -path "*/05-Backups/*" ! -path "*/Backups/*" ! -path "*/Draft-*" ! -path "*/Outlines/*" ! -name ".*" | sort); do
+                sed -E '/^@[A-Za-z0-9_-]+:/d; /^%/d' "${md_file}" >> "${combined_md}"
+                printf "\n\n" >> "${combined_md}"
+            done
+        fi
     else
         local search_dir="${target_dir}/${volume}"
         [ ! -d "${search_dir}" ] && search_dir="${target_dir}"
