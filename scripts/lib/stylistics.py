@@ -582,8 +582,8 @@ def main():
     p_rhy.add_argument("target", help="File or manuscript path")
     p_rhy.add_argument("--json", action="store_true", help="Output JSON results")
 
-        # idiom
-    p_idiom = subparsers.add_parser("idiom", help="Earth-Eponym Scanner & Idiom De-Immersion Engine")
+    # idiom
+    p_idiom = subparsers.add_parser("idiom", aliases=["idioms", "eponyms", "immersion"], help="Earth-Eponym Scanner & Idiom De-Immersion Engine")
     p_idiom.add_argument("target", help="File or manuscript path", nargs="?")
     p_idiom.add_argument("-m", "--manuscript", dest="ms_flag", help="Manuscript draft directory")
     p_idiom.add_argument("--config", help="Path to custom idioms.json config file")
@@ -607,6 +607,46 @@ def main():
             sys.exit(0)
         parser.print_help()
         sys.exit(0)
+
+    if args.command in ("idiom", "idioms", "eponyms", "immersion"):
+        raw_ms = getattr(args, "ms_flag", None) or getattr(args, "target", None)
+        ms_dir_str = resolve_manuscript_dir(raw_ms)
+        if not ms_dir_str or not Path(ms_dir_str).is_dir():
+            print("Error: No valid Manuscript directory specified or discovered.", file=sys.stderr)
+            sys.exit(2)
+
+        ms_path = Path(ms_dir_str)
+        cfg = load_idioms_config(Path(args.config) if args.config else None)
+        findings = audit_manuscript_idioms(ms_path, config=cfg, custom_whitelist=args.whitelist)
+
+        audit_data = {
+            "manuscript": ms_path.name,
+            "findings_count": len(findings),
+            "findings": findings,
+        }
+
+        if args.json:
+            print(json.dumps(audit_data, indent=2))
+        else:
+            print("\n\033[1;36m=== Ars Arcanum Earth Idiom & Immersion Audit ===\033[0m")
+            print(f"Manuscript: \033[1m{ms_path.name}\033[0m | Potential Immersion Leaks: \033[1m{len(findings)}\033[0m\n")
+
+            if not findings:
+                print("\033[32m[OK] No Earth-specific eponyms or immersion clichés detected in manuscript.\033[0m\n")
+            else:
+                for fd in findings:
+                    print(f"\033[33m[{fd['id']}]\033[0m \033[1m{fd['phrase']}\033[0m ({fd['category']})")
+                    print(f"  Origin    : {fd['origin']}")
+                    print(f"  Suggestion: \033[32m{fd['suggestion']}\033[0m")
+                    print(f"  Location  : {fd['file']}:{fd['line']}")
+                    print(f"  Snippet   : \"{fd['snippet']}\"\n")
+
+        if args.html:
+            out_p = Path(args.html)
+            generate_idioms_html_report(audit_data, out_p)
+            print(f"Interactive HTML report written to: {out_p}")
+
+        sys.exit(1 if len(findings) > 0 else 0)
 
     target_path = Path(args.target)
     if not target_path.exists():
@@ -659,46 +699,6 @@ def main():
                 print(f"Staccato Clusters (Strings of <=5 word sentences): {len(r['staccato_clusters'])}")
                 for sc in r['staccato_clusters'][:3]:
                     print(f"  Sentences {sc['start_sentence']}-{sc['end_sentence']}: {sc['snippet'][:70]}...")
-
-    elif args.command == "idiom":
-        raw_ms = getattr(args, "ms_flag", None) or getattr(args, "target", None)
-        ms_dir_str = resolve_manuscript_dir(raw_ms)
-        if not ms_dir_str or not Path(ms_dir_str).is_dir():
-            print("Error: No valid Manuscript directory specified or discovered.", file=sys.stderr)
-            sys.exit(2)
-
-        ms_path = Path(ms_dir_str)
-        cfg = load_idioms_config(Path(args.config) if args.config else None)
-        findings = audit_manuscript_idioms(ms_path, config=cfg, custom_whitelist=args.whitelist)
-
-        audit_data = {
-            "manuscript": ms_path.name,
-            "findings_count": len(findings),
-            "findings": findings,
-        }
-
-        if args.json:
-            print(json.dumps(audit_data, indent=2))
-        else:
-            print("\n\033[1;36m=== Ars Arcanum Earth Idiom & Immersion Audit ===\033[0m")
-            print(f"Manuscript: \033[1m{ms_path.name}\033[0m | Potential Immersion Leaks: \033[1m{len(findings)}\033[0m\n")
-
-            if not findings:
-                print("\033[32m[OK] No Earth-specific eponyms or immersion clichéss detected in manuscript.\033[0m\n")
-            else:
-                for fd in findings:
-                    print(f"\033[33m[{fd['id']}]\033[0m \033[1m{fd['phrase']}\033[0m ({fd['category']})")
-                    print(f"  Origin    : {fd['origin']}")
-                    print(f"  Suggestion: \033[32m{fd['suggestion']}\033[0m")
-                    print(f"  Location  : {fd['file']}:{fd['line']}")
-                    print(f"  Snippet   : \\\"{fd['snippet']}\\\"\\n")
-
-        if args.html:
-            out_p = Path(args.html)
-            generate_idioms_html_report(audit_data, out_p)
-            print(f"Interactive HTML report written to: {out_p}")
-
-        sys.exit(1 if len(findings) > 0 else 0)
 
     elif args.command == "scan":
         report = scan_text_or_path(target_path)
