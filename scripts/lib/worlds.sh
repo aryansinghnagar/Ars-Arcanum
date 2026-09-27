@@ -209,6 +209,7 @@ resolve_universe_dir() {
 # resolve_world_dir TARGET [UNIVERSE] -> absolute world path (or empty)
 # _find_world_matches TARGET UNIVERSE OUT_VARNAME
 # Helper to populate OUT_VARNAME with matching world directories in a single pass.
+# shellcheck disable=SC2034
 _find_world_matches() {
     local target="$1"
     local universe="${2:-}"

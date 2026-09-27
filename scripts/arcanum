@@ -1443,7 +1443,7 @@ case "${COMMAND}" in
     branch|branching|narrative-threads|subway-map)
         exec python3 "${PROJECT_ROOT}/scripts/lib/branching_graph.py" "$@"
         ;;
-    hub|dashboard|gui-web|studio-hub)
+    hub|gui-web|studio-hub|web-hub)
         exec python3 "${PROJECT_ROOT}/scripts/lib/studio_hub.py" "$@"
         ;;
     canvas|corkboard)
