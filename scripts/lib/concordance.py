@@ -469,14 +469,16 @@ def main(argv: list[str] | None = None) -> int:
         prog="concordance",
     )
     parser.add_argument("target", nargs="?", help="World Lore Vault or Manuscript directory")
+    parser.add_argument("book_pos", nargs="?", help="Target book volume (positional alternative)")
     parser.add_argument("-m", "--manuscript", help="Manuscript project directory")
     parser.add_argument("-w", "--world", help="World Lore Vault directory")
-    parser.add_argument("-b", "--book", default="all", help="Target book volume (default: all)")
+    parser.add_argument("-b", "--book", default=None, help="Target book volume (default: all)")
 
     args = parser.parse_args(argv)
 
     world_dir = args.world or os.environ.get("BIBLE_DIR")
     ms_dir = args.manuscript or os.environ.get("MANUSCRIPT_DIR")
+    target_book = args.book or args.book_pos or "all"
 
     if not world_dir and args.target:
         p = Path(args.target)
@@ -497,7 +499,7 @@ def main(argv: list[str] | None = None) -> int:
         res = generate_concordance(
             bible_dir=Path(world_dir),
             ms_dir=Path(ms_dir),
-            target_book=args.book,
+            target_book=target_book,
         )
         print(f"[✓] Concordance generated across {res['volumes_updated']} volume(s).")
         print(f"    Characters: {res['characters_count']}, Factions: {res['factions_count']}, Artifacts: {res['artifacts_count']}")
