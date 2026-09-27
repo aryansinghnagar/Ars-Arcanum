@@ -388,6 +388,14 @@ Exports/
 EOF
 
     if command -v git &>/dev/null; then
+        if [ -d "${target_dir}/Book-01" ]; then
+            (
+                cd "${target_dir}/Book-01"
+                git init -q
+                git add .
+                git_commit_safe "Initial volume repository: Book-01"
+            ) || true
+        fi
         (
             cd "${target_dir}"
             git init -q
@@ -453,18 +461,17 @@ Begin writing ${vol_name} here...
 EOF
 
     if command -v git &>/dev/null; then
+        (
+            cd "${target_vol}"
+            git init -q
+            git add .
+            git_commit_safe "Initial volume repository: ${vol_name}"
+        ) || true
         if git -C "${resolved_ms}" rev-parse --is-inside-work-tree &>/dev/null; then
             (
                 cd "${resolved_ms}"
                 git add "${vol_name}"
                 git_commit_safe "Add volume: ${vol_name}"
-            ) || true
-        else
-            (
-                cd "${target_vol}"
-                git init -q
-                git add .
-                git_commit_safe "Initial volume repository: ${vol_name}"
             ) || true
         fi
     fi
@@ -963,7 +970,11 @@ cmd_export() {
     mkdir -p "${pub_dir}"
 
     local safe_stem
-    safe_stem="$(sanitize_name "${title}_${volume}" "novel")"
+    if [ "${volume}" = "all" ] || [ "${volume}" = "omnibus" ]; then
+        safe_stem="$(sanitize_name "${title}" "novel")"
+    else
+        safe_stem="$(sanitize_name "${title}_${volume}" "novel")"
+    fi
     local pdf_out="${pub_dir}/${safe_stem}.pdf"
     local epub_out="${pub_dir}/${safe_stem}.epub"
     local docx_out="${pub_dir}/${safe_stem}_Submission.docx"
@@ -976,13 +987,19 @@ cmd_export() {
     local combined_md="${temp_work_dir}/manuscript_combined.md"
     touch "${combined_md}"
 
-    local search_dir="${target_dir}/${volume}"
-    [ ! -d "${search_dir}" ] && search_dir="${target_dir}"
-
-    for md_file in $(find "${search_dir}" -type f -name "*.md" ! -name ".*" | sort); do
-        cat "${md_file}" >> "${combined_md}"
-        printf "\n\n" >> "${combined_md}"
-    done
+    if [ "${volume}" = "all" ] || [ "${volume}" = "omnibus" ]; then
+        for md_file in $(find "${target_dir}" -type f -name "*.md" ! -path "*/Exports/*" ! -path "*/04-Publishing/*" ! -path "*/05-Backups/*" ! -path "*/Backups/*" ! -path "*/Draft-*" ! -name ".*" | sort); do
+            sed -E '/^@[A-Za-z0-9_-]+:/d; /^%/d' "${md_file}" >> "${combined_md}"
+            printf "\n\n" >> "${combined_md}"
+        done
+    else
+        local search_dir="${target_dir}/${volume}"
+        [ ! -d "${search_dir}" ] && search_dir="${target_dir}"
+        for md_file in $(find "${search_dir}" -type f -name "*.md" ! -path "*/Draft-*" ! -name ".*" | sort); do
+            sed -E '/^@[A-Za-z0-9_-]+:/d; /^%/d' "${md_file}" >> "${combined_md}"
+            printf "\n\n" >> "${combined_md}"
+        done
+    fi
 
     if [ "${export_fmt}" = "submission" ] || [ "${export_fmt}" = "docx" ] || [ "${export_fmt}" = "all" ]; then
         if command -v python3 &>/dev/null && [ -f "${PROJECT_ROOT}/scripts/lib/docx_sync.py" ]; then
