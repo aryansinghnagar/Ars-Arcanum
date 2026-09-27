@@ -1020,7 +1020,7 @@ PYEOF
 
     if [ "${export_fmt}" = "book" ] || [ "${export_fmt}" = "all" ]; then
         if command -v pandoc &>/dev/null; then
-            pandoc "${combined_md}" -o "${epub_out}" --metadata title="${title}" --metadata author="${author}" 2>/dev/null && echo "[✓] EPUB generated: ${epub_out}" || true
+            pandoc -f markdown-citations+smart "${combined_md}" -o "${epub_out}" --metadata title="${title}" --metadata author="${author}" 2>/dev/null && echo "[✓] EPUB generated: ${epub_out}" || true
         fi
         if command -v typst &>/dev/null; then
             local typst_src="${temp_work_dir}/manuscript.typ"
@@ -1029,7 +1029,12 @@ PYEOF
 #set text(font: "Linux Libertine O", size: 10.5pt)
 #set par(justify: true, leading: 0.72em, first-line-indent: 1.25em)
 EOF
-            cat "${combined_md}" >> "${typst_src}"
+            if command -v pandoc &>/dev/null; then
+                pandoc -f markdown-citations+smart "${combined_md}" -t typst >> "${typst_src}" 2>/dev/null || \
+                sed -E -e 's/^#### +(.*)/==== \1/' -e 's/^### +(.*)/=== \1/' -e 's/^## +(.*)/== \1/' -e 's/^# +(.*)/= \1/' "${combined_md}" >> "${typst_src}"
+            else
+                sed -E -e 's/^#### +(.*)/==== \1/' -e 's/^### +(.*)/=== \1/' -e 's/^## +(.*)/== \1/' -e 's/^# +(.*)/= \1/' "${combined_md}" >> "${typst_src}"
+            fi
             typst compile "${typst_src}" "${pdf_out}" 2>/dev/null && echo "[✓] Print PDF generated: ${pdf_out}" || true
         fi
     fi
