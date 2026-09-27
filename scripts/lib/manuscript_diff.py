@@ -891,6 +891,10 @@ def main():
     else:
         # 3 arguments: ms_dir, draft_b, draft_a
         ms_dir = Path(args.paths[0]).expanduser().resolve()
+        if not ms_dir.exists():
+            cand = Path.home() / "Manuscripts" / args.paths[0]
+            if cand.is_dir():
+                ms_dir = cand
         d_b_name = args.paths[1]
         d_a_name = args.paths[2]
         
