@@ -18,12 +18,12 @@ MS_DIR="${HOME}/Manuscripts/${MS_NAME}"
 SECURE_DEST="${HOME}/SecureBackups"
 
 echo "=== Stage 1: Scaffold Initial Manuscript Project ==="
-bash "${SCRIPT_DIR}/scripts/init_manuscript.sh" "${MS_NAME}" --author "Test Author"
+bash "${SCRIPT_DIR}/scripts/arcanum" manuscript "${MS_NAME}" --author "Test Author"
 [ -d "${MS_DIR}/Book-01" ] || { echo "FAIL: Book-01 missing in ${MS_NAME}"; exit 1; }
 [ -f "${MS_DIR}/manuscript.yaml" ] || { echo "FAIL: manuscript.yaml missing"; exit 1; }
 echo "[✓] Initial manuscript project scaffolded."
 
-echo "=== Stage 2: Initialize Discrete Drafts with init_draft.sh ==="
+echo "=== Stage 2: Initialize Discrete Drafts with arcanum draft ==="
 # Populate baseline chapter prose in Book-01
 mkdir -p "${MS_DIR}/Book-01/01_Act_I"
 cat << 'EOF' > "${MS_DIR}/Book-01/01_Act_I/01_Chapter_01.md"
@@ -37,7 +37,7 @@ The countdown began in the quiet hangar. Kaelen tightened his flight gloves and 
 EOF
 
 # Initialize Draft-02
-bash "${SCRIPT_DIR}/scripts/init_draft.sh" "${MS_NAME}" "Draft-02" -b "Book-01"
+bash "${SCRIPT_DIR}/scripts/arcanum" draft "${MS_NAME}" "Draft-02" -b "Book-01"
 [ -d "${MS_DIR}/Book-01/Draft-02/01_Act_I" ] || { echo "FAIL: Draft-02 act folder not created"; exit 1; }
 [ -f "${MS_DIR}/Book-01/Draft-02/01_Act_I/01_Chapter_01.md" ] || { echo "FAIL: Draft-02 chapter not copied"; exit 1; }
 
@@ -57,21 +57,21 @@ The quiet countdown echoed throughout the massive subterranean hangar. Kaelen se
 EOF
 
 # Initialize Draft-03 auto-incrementing
-bash "${SCRIPT_DIR}/scripts/init_draft.sh" "${MS_NAME}" -b "Book-01"
+bash "${SCRIPT_DIR}/scripts/arcanum" draft "${MS_NAME}" -b "Book-01"
 [ -d "${MS_DIR}/Book-01/Draft-03" ] || { echo "FAIL: Draft-03 auto-increment failed"; exit 1; }
 grep -q 'active_draft: "Draft-03"' "${MS_DIR}/manuscript.yaml" || { echo "FAIL: manuscript.yaml active_draft not set to Draft-03"; exit 1; }
 echo "[✓] Draft-03 auto-incremented successfully."
 
-echo "=== Stage 3: Manuscript Comparison & Redline Diff with compare_drafts.sh ==="
+echo "=== Stage 3: Manuscript Comparison & Redline Diff with arcanum compare ==="
 # Test Terminal ANSI comparison
-bash "${SCRIPT_DIR}/scripts/compare_drafts.sh" "${MS_NAME}" "Draft-02" "Draft-01" --terminal > "${TEST_DIR}/terminal_diff.txt"
+bash "${SCRIPT_DIR}/scripts/arcanum" compare "${MS_NAME}" "Draft-02" "Draft-01" --terminal > "${TEST_DIR}/terminal_diff.txt"
 grep -q "Ars Arcanum Manuscript Revision Comparison" "${TEST_DIR}/terminal_diff.txt" || { echo "FAIL: Terminal diff banner missing"; exit 1; }
 grep -q "Chapter 1" "${TEST_DIR}/terminal_diff.txt" || { echo "FAIL: Chapter 1 missing from terminal diff"; exit 1; }
 echo "[✓] Terminal ANSI comparison executed successfully."
 
 # Test JSON metrics output
 JSON_OUT="${TEST_DIR}/diff_metrics.json"
-bash "${SCRIPT_DIR}/scripts/compare_drafts.sh" "${MS_NAME}" "Draft-02" "Draft-01" --json > "${JSON_OUT}"
+bash "${SCRIPT_DIR}/scripts/arcanum" compare "${MS_NAME}" "Draft-02" "Draft-01" --json > "${JSON_OUT}"
 python3 -c '
 import sys, json
 with open(sys.argv[1]) as f:
@@ -87,7 +87,7 @@ echo "[✓] JSON metrics output validated."
 
 # Test Standalone HTML Redline report generation
 HTML_OUT="${TEST_DIR}/redline_report.html"
-bash "${SCRIPT_DIR}/scripts/compare_drafts.sh" "${MS_NAME}" "Draft-02" "Draft-01" --html "${HTML_OUT}"
+bash "${SCRIPT_DIR}/scripts/arcanum" compare "${MS_NAME}" "Draft-02" "Draft-01" --html "${HTML_OUT}"
 [ -f "${HTML_OUT}" ] || { echo "FAIL: HTML redline report not generated"; exit 1; }
 grep -q "<!DOCTYPE html>" "${HTML_OUT}" || { echo "FAIL: Invalid HTML doctype"; exit 1; }
 grep -q 'class="diff-ins"' "${HTML_OUT}" || { echo "FAIL: Missing diff-ins tags in HTML"; exit 1; }
@@ -109,7 +109,7 @@ if p1.as_posix().lower() != p2.as_posix().lower() and not p1.samefile(p2):
 ' "${GET_DEST}" "${SECURE_DEST}" || [ "${GET_DEST}" = "${SECURE_DEST}" ] || { echo "FAIL: backup-dest get mismatch: '${GET_DEST}' != '${SECURE_DEST}'"; exit 1; }
 
 # Execute backup on manuscript
-bash "${SCRIPT_DIR}/scripts/backup_world.sh" "${MS_NAME}"
+bash "${SCRIPT_DIR}/scripts/arcanum" backup "${MS_NAME}"
 
 # Verify local archive exists
 LOCAL_BACKUPS="${MS_DIR}/Backups"

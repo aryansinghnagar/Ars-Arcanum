@@ -68,7 +68,7 @@ cat > "${MS_PATH}/Book-01/01_Act_I/01_Clean.md" << 'EOF4'
 The [[Iron Citadel]] stood firm.
 EOF4
 
-DOC_CLEAN="$(bash scripts/world_doctor.sh "${WORLD_PATH}" --manuscript "${MS_PATH}" --json || true)"
+DOC_CLEAN="$(bash scripts/arcanum world-doctor "${WORLD_PATH}" --manuscript "${MS_PATH}" --json || true)"
 printf '%s' "${DOC_CLEAN}" | python3 -c '
 import json, sys
 d = json.load(sys.stdin)
@@ -87,7 +87,7 @@ cat > "${MS_PATH}/Book-01/01_Act_I/02_Drift.md" << 'EOF5'
 They walked toward [[DanglingSanctuary]].
 EOF5
 
-DOC_DRIFT="$(bash scripts/world_doctor.sh "${WORLD_PATH}" --manuscript "${MS_PATH}" --json || true)"
+DOC_DRIFT="$(bash scripts/arcanum world-doctor "${WORLD_PATH}" --manuscript "${MS_PATH}" --json || true)"
 printf '%s' "${DOC_DRIFT}" | python3 -c '
 import json, sys
 d = json.load(sys.stdin)
@@ -102,11 +102,11 @@ assert "Kaelen" not in missing_names, "Valid character wrongly flagged"
 echo "  OK Manuscript name drift correctly caught across tags and wikilinks"
 rm -f "${MS_PATH}/Book-01/01_Act_I/02_Drift.md"
 
-echo "=== 4. Testing export_book.sh --format submission / --docx Flags ==="
-bash scripts/export_book.sh "${MS_PATH}" --format submission --book Book-01 --title "Test Novel" > "${TMP_DIR}/export_sub.log" 2>&1 || true
-bash scripts/export_book.sh "${MS_PATH}" --docx --book Book-01 --title "Test Novel" > "${TMP_DIR}/export_docx.log" 2>&1 || true
-bash scripts/export_book.sh "${MS_PATH}" --format all --book Book-01 --title "Test Novel" > "${TMP_DIR}/export_all.log" 2>&1 || true
-echo "  OK export_book --format submission/docx/all accepted"
+echo "=== 4. Testing arcanum export --format submission / --docx Flags ==="
+bash scripts/arcanum export "${MS_PATH}" --format submission --book Book-01 --title "Test Novel" > "${TMP_DIR}/export_sub.log" 2>&1 || true
+bash scripts/arcanum export "${MS_PATH}" --docx --book Book-01 --title "Test Novel" > "${TMP_DIR}/export_docx.log" 2>&1 || true
+bash scripts/arcanum export "${MS_PATH}" --format all --book Book-01 --title "Test Novel" > "${TMP_DIR}/export_all.log" 2>&1 || true
+echo "  OK export --format submission/docx/all accepted"
 
 echo "=== 5. Testing Multi-Volume EPUB Selection Logic ==="
 python3 - << 'PYEOF2'

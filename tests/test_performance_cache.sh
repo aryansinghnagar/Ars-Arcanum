@@ -88,9 +88,9 @@ if [ "${UPDATED_WC}" -le "${INITIAL_WC}" ]; then
 fi
 echo "PASS: Test 3 passed"
 
-echo "=== Test 4: world_doctor.sh --fast parity ==="
-OUT_STD="$(bash "${SCRIPT_DIR}/scripts/world_doctor.sh" "${WORLD_DIR}" -m "${MS_DIR}" --json)"
-OUT_FAST="$(bash "${SCRIPT_DIR}/scripts/world_doctor.sh" "${WORLD_DIR}" -m "${MS_DIR}" --fast --json)"
+echo "=== Test 4: arcanum world-doctor --fast parity ==="
+OUT_STD="$(bash "${SCRIPT_DIR}/scripts/arcanum" world-doctor "${WORLD_DIR}" -m "${MS_DIR}" --json)"
+OUT_FAST="$(bash "${SCRIPT_DIR}/scripts/arcanum" world-doctor "${WORLD_DIR}" -m "${MS_DIR}" --fast --json)"
 
 # DOC-01: --fast reports its own cache observability fields; strip them and
 # require the diagnostic payload itself to be identical. --fast must also

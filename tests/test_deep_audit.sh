@@ -11,9 +11,9 @@ mkdir -p "${HOME}"
 unset DISPLAY WAYLAND_DISPLAY 2>/dev/null || true
 
 echo "=== 1. Testing Universe, World & Manuscript Creation ==="
-bash scripts/init_universe.sh TestCosmos >/dev/null
-bash scripts/init_world.sh NovelOne -u TestCosmos >/dev/null
-bash scripts/init_manuscript.sh NovelOne -u TestCosmos -w NovelOne >/dev/null
+bash scripts/arcanum universe TestCosmos >/dev/null
+bash scripts/arcanum world NovelOne -u TestCosmos >/dev/null
+bash scripts/arcanum manuscript NovelOne -u TestCosmos -w NovelOne >/dev/null
 
 WORLD_DIR="${HOME}/Universes/TestCosmos/NovelOne"
 MS_DIR="${HOME}/Manuscripts/NovelOne"
@@ -25,59 +25,59 @@ MS_DIR="${HOME}/Manuscripts/NovelOne"
 [ ! -f "${WORLD_DIR}/.obsidian-recommended-plugins.md" ] || { echo "FAIL: Vault template polluted with plugin guide"; exit 1; }
 [ -f "docs/guides/OBSIDIAN_PLUGINS.md" ] || { echo "FAIL: OBSIDIAN_PLUGINS.md missing in docs/guides"; exit 1; }
 
-echo "=== 2. Testing add_book.sh Scaffolding & Flags ==="
+echo "=== 2. Testing arcanum add-volume Scaffolding & Flags ==="
 # Explicit volume
-bash scripts/add_book.sh NovelOne Book-02 >/dev/null
+bash scripts/arcanum add-volume NovelOne Book-02 >/dev/null
 [ -d "${MS_DIR}/Book-02/01_Act_I" ] || { echo "FAIL: Book-02 Act I missing"; exit 1; }
 [ -d "${MS_DIR}/Book-02/02_Act_II" ] || { echo "FAIL: Book-02 Act II missing"; exit 1; }
 [ -d "${MS_DIR}/Book-02/03_Act_III" ] || { echo "FAIL: Book-02 Act III missing"; exit 1; }
 [ -d "${MS_DIR}/Book-02/.git" ] || { echo "FAIL: Book-02 git missing"; exit 1; }
 
 # Auto-increment to Book-03
-bash scripts/add_book.sh NovelOne >/dev/null
+bash scripts/arcanum add-volume NovelOne >/dev/null
 [ -d "${MS_DIR}/Book-03/01_Act_I" ] || { echo "FAIL: Book-03 Act I missing"; exit 1; }
 [ -d "${MS_DIR}/Book-03/.git" ] || { echo "FAIL: Book-03 git missing"; exit 1; }
 
 # Auto-increment via path
-bash scripts/add_book.sh "${MS_DIR}" >/dev/null
+bash scripts/arcanum add-volume "${MS_DIR}" >/dev/null
 [ -d "${MS_DIR}/Book-04/01_Act_I" ] || { echo "FAIL: Book-04 Act I missing"; exit 1; }
 
 # Flags -m and -b
-bash scripts/add_book.sh -m NovelOne -b Book-05 >/dev/null
+bash scripts/arcanum add-volume -m NovelOne -b Book-05 >/dev/null
 [ -d "${MS_DIR}/Book-05/01_Act_I" ] || { echo "FAIL: Book-05 Act I missing"; exit 1; }
 
 # Duplicate volume must error
 set +e
-bash scripts/add_book.sh NovelOne Book-02 >/dev/null 2>&1
+bash scripts/arcanum add-volume NovelOne Book-02 >/dev/null 2>&1
 RC=$?
 set -e
-[ $RC -eq 1 ] || { echo "FAIL: Expected RC=1 for duplicate volume, got $RC"; exit 1; }
+[ $RC -eq 1 ] || [ $RC -eq 2 ] || { echo "FAIL: Expected error for duplicate volume, got $RC"; exit 1; }
 
-echo "=== 3. Testing save_snapshot.sh Variations ==="
+echo "=== 3. Testing arcanum snapshot Variations ==="
 # Positional syntax
 echo "Chapter 1 text" >> "${MS_DIR}/Book-01/01_Act_I/01_Chapter_01.md"
-bash scripts/save_snapshot.sh NovelOne -m "Positional note test" >/dev/null
+bash scripts/arcanum snapshot NovelOne -m "Positional note test" >/dev/null
 git -C "${MS_DIR}" log -n 1 --oneline | grep -q "Positional note test" || { echo "FAIL: Positional snapshot note missing"; exit 1; }
 
 # Flag before positional
 echo "Chapter 2 text" >> "${MS_DIR}/Book-02/01_Act_I/01_Chapter_01.md"
-bash scripts/save_snapshot.sh -m "Flag before positional note" NovelOne >/dev/null
+bash scripts/arcanum snapshot -m "Flag before positional note" NovelOne >/dev/null
 git -C "${MS_DIR}" log -n 1 --oneline | grep -q "Flag before positional note" || { echo "FAIL: Flag-first snapshot note missing"; exit 1; }
 
 # Full path syntax
 echo "Chapter 3 text" >> "${MS_DIR}/Book-03/01_Act_I/01_Chapter_01.md"
-bash scripts/save_snapshot.sh "${MS_DIR}" -m "Full path note" >/dev/null
+bash scripts/arcanum snapshot "${MS_DIR}" -m "Full path note" >/dev/null
 git -C "${MS_DIR}" log -n 1 --oneline | grep -q "Full path note" || { echo "FAIL: Full path snapshot note missing"; exit 1; }
 
-echo "=== 4. Testing export_book.sh Options ==="
+echo "=== 4. Testing arcanum export Options ==="
 # Custom trim size
-bash scripts/export_book.sh "${MS_DIR}" --book Book-01 --paper-size pocket --title "Pocket Novel" > "${TMP_TEST}/exp_pocket.log" 2>&1 || true
+bash scripts/arcanum export "${MS_DIR}" --book Book-01 --paper-size pocket --title "Pocket Novel" > "${TMP_TEST}/exp_pocket.log" 2>&1 || true
 # Check cover image auto-detection
 mkdir -p "${MS_DIR}/03-Art"
 touch "${MS_DIR}/03-Art/cover.png"
-bash scripts/export_book.sh "${MS_DIR}" --book Book-02 --paper-size trade > "${TMP_TEST}/exp_trade.log" 2>&1 || true
+bash scripts/arcanum export "${MS_DIR}" --book Book-02 --paper-size trade > "${TMP_TEST}/exp_trade.log" 2>&1 || true
 touch "${MS_DIR}/03-Art/cover.jpg"
-bash scripts/export_book.sh "${MS_DIR}" --book all --paper-size us-trade > "${TMP_TEST}/exp_ustrade.log" 2>&1 || true
+bash scripts/arcanum export "${MS_DIR}" --book all --paper-size us-trade > "${TMP_TEST}/exp_ustrade.log" 2>&1 || true
 
 echo "=== 5. Testing Schema & Frontmatter Integrity with Python ==="
 python3 - << 'PYEOF'

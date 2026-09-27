@@ -51,13 +51,13 @@ echo "[Test 4] Export book options (--paper-size and cover auto-detection)..."
 mkdir -p "${MS_PATH}/03-Art"
 touch "${MS_PATH}/03-Art/cover.png"
 # Run export with custom paper size
-bash scripts/export_book.sh "${MS_PATH}" --book Book-02 --paper-size pocket --title "Echoes" --author "Tester" > "${TMP_DIR}/export.log" 2>&1 || true
+bash scripts/arcanum export "${MS_PATH}" --book Book-02 --paper-size pocket --title "Echoes" --author "Tester" > "${TMP_DIR}/export.log" 2>&1 || true
 grep -q "Auto-detected EPUB cover image" "${TMP_DIR}/export.log" || true
 echo "  OK Test 4 passed: Export options processed"
 
 echo "[Test 5] World Doctor diagnostics on new schemas..."
-bash scripts/world_doctor.sh "${WORLD_PATH}" >/dev/null || true
-DOC_JSON="$(bash scripts/world_doctor.sh "${WORLD_PATH}" --json || true)"
+python3 scripts/lib/world_doctor.py "${WORLD_PATH}" >/dev/null || true
+DOC_JSON="$(python3 scripts/lib/world_doctor.py "${WORLD_PATH}" --json || true)"
 printf '%s' "${DOC_JSON}" | python3 -c "import json, sys; d = json.load(sys.stdin); assert d['notes'] >= 0"
 echo "  OK Test 5 passed: World doctor completed without runtime exceptions"
 
@@ -88,7 +88,7 @@ bash scripts/arcanum concordance "${WORLD_PATH}" --manuscript "${MS_PATH}" --boo
 grep -q "Aurelius" "${MS_PATH}/Book-01/04_Back_Matter/01_Dramatis_Personae.md"
 grep -q "Solaris" "${MS_PATH}/Book-01/04_Back_Matter/02_Glossary_and_Concordance.md"
 
-DOC_MULTI_JSON="$(bash scripts/world_doctor.sh "${WORLD_PATH}" --json || true)"
+DOC_MULTI_JSON="$(python3 scripts/lib/world_doctor.py "${WORLD_PATH}" --json || true)"
 printf '%s' "${DOC_MULTI_JSON}" | python3 -c "import json, sys; d = json.load(sys.stdin); assert len(d['timeline_errors']) == 0"
 echo "  OK Test 6 passed: Concordance generated & multi-era dates validated"
 
@@ -97,20 +97,20 @@ echo "[Test 7] Legacy-root deprecation nudge on auto-selected worlds (N-03)..."
 # invocation auto-selects it and MUST print the deprecation nudge.
 LEGACY_HOME="${TMP_DIR}/legacy-home"
 mkdir -p "${LEGACY_HOME}"
-HOME="${LEGACY_HOME}" bash scripts/init_world.sh OnlyWorld --legacy-worlds-dir >/dev/null
-LEGACY_ERR="$(HOME="${LEGACY_HOME}" bash scripts/world_doctor.sh 2>&1 >/dev/null || true)"
+HOME="${LEGACY_HOME}" bash scripts/arcanum world OnlyWorld --legacy-worlds-dir >/dev/null
+LEGACY_ERR="$(HOME="${LEGACY_HOME}" bash scripts/arcanum world-doctor 2>&1 >/dev/null || true)"
 [[ "${LEGACY_ERR}" == *"legacy ~/Worlds root"* ]] || { echo "  FAIL: auto-selected legacy world was not nudged" >&2; exit 1; }
 # Control: exactly one canonical world — auto-select must stay silent.
 CANON_HOME="${TMP_DIR}/canon-home"
 mkdir -p "${CANON_HOME}"
-HOME="${CANON_HOME}" bash scripts/init_world.sh OnlyWorld --universe SoloUni >/dev/null
-CANON_ERR="$(HOME="${CANON_HOME}" bash scripts/world_doctor.sh 2>&1 >/dev/null || true)"
+HOME="${CANON_HOME}" bash scripts/arcanum world OnlyWorld --universe SoloUni >/dev/null
+CANON_ERR="$(HOME="${CANON_HOME}" bash scripts/arcanum world-doctor 2>&1 >/dev/null || true)"
 [[ "${CANON_ERR}" != *"legacy ~/Worlds root"* ]] || { echo "  FAIL: canonical world was wrongly nudged" >&2; exit 1; }
 echo "  OK Test 7 passed: nudge fires for legacy auto-select only"
 
 echo "[Test 8] Ars Arcanum doctor -m, --manuscript option forwarding (DEV-01)..."
 set +e
-bash scripts/arcanum_doctor.sh --world "${WORLD_PATH}" --manuscript "${MS_PATH}" > "${TMP_DIR}/doc.log" 2>&1
+bash scripts/arcanum doctor --world "${WORLD_PATH}" --manuscript "${MS_PATH}" > "${TMP_DIR}/doc.log" 2>&1
 DOC_RC=$?
 set -e
 [ "${DOC_RC}" -eq 0 ] || [ "${DOC_RC}" -eq 1 ] || { echo "  FAIL arcanum_doctor exited with ${DOC_RC}:"; cat "${TMP_DIR}/doc.log"; exit 1; }
@@ -119,15 +119,15 @@ echo "  OK Test 8 passed: arcanum_doctor accepts and forwards --manuscript"
 echo "[Test 9] Save snapshot with 0 worlds and 1 manuscript (DEV-03)..."
 ZERO_WORLD_HOME="${TMP_DIR}/zero-world-home"
 mkdir -p "${ZERO_WORLD_HOME}"
-HOME="${ZERO_WORLD_HOME}" bash scripts/init_manuscript.sh SoloNovel >/dev/null
+HOME="${ZERO_WORLD_HOME}" bash scripts/arcanum manuscript SoloNovel >/dev/null
 echo "Solo prose" >> "${ZERO_WORLD_HOME}/Manuscripts/SoloNovel/Book-01/01_Act_I/01_Chapter_01.md"
-HOME="${ZERO_WORLD_HOME}" bash scripts/save_snapshot.sh -m "Solo manuscript snapshot" >/dev/null
+HOME="${ZERO_WORLD_HOME}" bash scripts/arcanum snapshot -m "Solo manuscript snapshot" >/dev/null
 SOLO_LOG="$(git -C "${ZERO_WORLD_HOME}/Manuscripts/SoloNovel" log -n 1 --oneline)"
 [[ "${SOLO_LOG}" == *"Solo manuscript snapshot"* ]] || { echo "  FAIL: snapshot failed for 0-world user"; exit 1; }
 echo "  OK Test 9 passed: save_snapshot works with 0 worlds and 1 manuscript"
 
 echo "[Test 10] World doctor validates World-Bible-Index without false positives (WLD-01)..."
-DOC_WLD_JSON="$(bash scripts/world_doctor.sh "${WORLD_PATH}" --json || true)"
+DOC_WLD_JSON="$(python3 scripts/lib/world_doctor.py "${WORLD_PATH}" --json || true)"
 set +e
 PY_ERR=$(printf '%s' "${DOC_WLD_JSON}" | python3 -c '
 import json, sys
@@ -143,12 +143,8 @@ set -e
 [ $PY_RC -eq 0 ] || { echo "  FAIL Python assertion in Test 10: ${PY_ERR}"; exit 1; }
 echo "  OK Test 10 passed: World-Bible-Index validated and template exclusions verified"
 
-echo "[Test 11] Standardize CLI usage error exit code 2 across all scripts (CQA-01)..."
-for s in scripts/add_book.sh scripts/backup_world.sh scripts/export_book.sh \
-         scripts/generate_concordance.sh scripts/init_manuscript.sh scripts/init_universe.sh \
-         scripts/init_world.sh scripts/restore_world.sh scripts/save_snapshot.sh \
-         scripts/arcanum_doctor.sh scripts/setup_arcanum.sh \
-         scripts/uninstall_arcanum.sh scripts/world_doctor.sh scripts/wordcount_report.sh; do
+echo "[Test 11] Standardize CLI usage error exit code 2 across entrypoints (CQA-01)..."
+for s in scripts/arcanum scripts/ars-arcanum scripts/scriptorium scripts/setup_arcanum.sh; do
     set +e
     bash "$s" --nonexistent-option >/dev/null 2>&1
     RC=$?
@@ -160,7 +156,7 @@ bash scripts/arcanum invalid-command >/dev/null 2>&1
 FACADE_RC=$?
 set -e
 [ $FACADE_RC -eq 2 ] || { echo "  FAIL: arcanum facade exited with $FACADE_RC on unknown command (expected 2)"; exit 1; }
-echo "  OK Test 11 passed: All 15 scripts exit 2 on CLI usage/option errors"
+echo "  OK Test 11 passed: All entrypoint scripts exit 2 on CLI usage/option errors"
 
 echo "[Test 12] Standardize launcher Categories to Office;WordProcessor;Publishing; (UX-01)..."
 for lf in launchers/*.desktop; do
@@ -240,7 +236,7 @@ A temporal anomaly.
 EOF
 
 set +e
-DOC_OUT=$(bash scripts/world_doctor.sh "$DOC_TMP" 2>&1)
+DOC_OUT=$(python3 scripts/lib/world_doctor.py "$DOC_TMP" 2>&1)
 DOC_RC=$?
 set -e
 [ $DOC_RC -eq 1 ] || { echo "  FAIL: world_doctor failed to detect ISO date chronological paradox (RC=$DOC_RC, OUT=$DOC_OUT)"; exit 1; }
@@ -259,7 +255,7 @@ death_date: 1899-03-14
 # Paradox Person
 A mortal life.
 EOF
-bash scripts/world_doctor.sh "$DOC_TMP" >/dev/null 2>&1 || {
+python3 scripts/lib/world_doctor.py "$DOC_TMP" >/dev/null 2>&1 || {
     echo "  FAIL: world_doctor errored on valid chronological ISO dates"; exit 1;
 }
 rm -rf "$DOC_TMP"
@@ -304,7 +300,7 @@ Kaelen reviewed the [[Master-Outline]] before setting out.
 EOF
 
 # Should pass with no findings
-bash scripts/world_doctor.sh "$MS_TMP/World" --manuscript "$MS_TMP/Manuscript" >/dev/null 2>&1 || {
+python3 scripts/lib/world_doctor.py "$MS_TMP/World" --manuscript "$MS_TMP/Manuscript" >/dev/null 2>&1 || {
     echo "  FAIL: world_doctor flagged intra-manuscript outline wikilink as lore drift"; exit 1;
 }
 
@@ -318,7 +314,7 @@ Kaelen walked through [[UnknownMythicRealm]].
 EOF
 
 set +e
-DRIFT_OUT=$(bash scripts/world_doctor.sh "$MS_TMP/World" --manuscript "$MS_TMP/Manuscript" 2>&1)
+DRIFT_OUT=$(python3 scripts/lib/world_doctor.py "$MS_TMP/World" --manuscript "$MS_TMP/Manuscript" 2>&1)
 DRIFT_RC=$?
 set -e
 [ $DRIFT_RC -eq 1 ] || { echo "  FAIL: world_doctor did not flag true manuscript lore drift"; exit 1; }
@@ -330,18 +326,18 @@ echo "  OK Test 17 passed: Manuscript outline wikilinks and lore drift detection
 
 echo "[Test 18] Restore rejects punctuation-only target names (SEC-01)..."
 bash scripts/arcanum manuscript RestoreVictim --universe TestUni --world TestWorld >/dev/null
-bash scripts/backup_world.sh --manuscript RestoreVictim --dest "${TMP_DIR}" >/dev/null
+bash scripts/arcanum backup --manuscript RestoreVictim --dest "${TMP_DIR}" >/dev/null
 ARCHIVE="$(ls -t "${TMP_DIR}"/RestoreVictim-backup-*.tar.gz | head -n 1)"
 set +e
-bash scripts/restore_world.sh "${ARCHIVE}" --target '!!!' --force >"${TMP_DIR}/sec01.log" 2>&1
+bash scripts/arcanum restore "${ARCHIVE}" --target '!!!' --force >"${TMP_DIR}/sec01.log" 2>&1
 SEC01_RC=$?
 set -e
 [ "${SEC01_RC}" -ne 0 ] || { echo "  FAIL: restore accepted empty sanitized target '!!!'"; exit 1; }
-grep -qi "invalid target name" "${TMP_DIR}/sec01.log" || { echo "  FAIL: missing validation message"; cat "${TMP_DIR}/sec01.log"; exit 1; }
+grep -qi "invalid target name\|invalid restore target" "${TMP_DIR}/sec01.log" || { echo "  FAIL: missing validation message"; cat "${TMP_DIR}/sec01.log"; exit 1; }
 [ -d "${HOME}/Manuscripts/RestoreVictim" ] || { echo "  FAIL: valid project missing after rejected restore"; exit 1; }
 for bad in '///' '...' '   '; do
     set +e
-    bash scripts/restore_world.sh "${ARCHIVE}" --target "${bad}" --force >/dev/null 2>&1
+    bash scripts/arcanum restore "${ARCHIVE}" --target "${bad}" --force >/dev/null 2>&1
     [ $? -ne 0 ] || { echo "  FAIL: restore accepted target '${bad}'"; exit 1; }
     set -e
 done
@@ -351,12 +347,12 @@ echo "[Test 19] Restore requires checksum sidecar by default (REL-03)..."
 NOMETADIR="$(mktemp -d)"
 cp "${ARCHIVE}" "${NOMETADIR}/nocheck.tar.gz"
 set +e
-bash scripts/restore_world.sh "${NOMETADIR}/nocheck.tar.gz" --target NoCheckRestore >"${TMP_DIR}/rel03.log" 2>&1
+bash scripts/arcanum restore "${NOMETADIR}/nocheck.tar.gz" --target NoCheckRestore >"${TMP_DIR}/rel03.log" 2>&1
 REL03_RC=$?
 set -e
 [ "${REL03_RC}" -ne 0 ] || { echo "  FAIL: restore proceeded without .sha256"; exit 1; }
 set +e
-bash scripts/restore_world.sh "${NOMETADIR}/nocheck.tar.gz" --target NoCheckRestore --skip-checksum --dest "${TMP_DIR}/restore-dest" >/dev/null 2>&1
+bash scripts/arcanum restore "${NOMETADIR}/nocheck.tar.gz" --target NoCheckRestore --skip-checksum --dest "${TMP_DIR}/restore-dest" >/dev/null 2>&1
 REL03B_RC=$?
 set -e
 [ "${REL03B_RC}" -eq 0 ] || { echo "  FAIL: --skip-checksum did not permit explicitly-acknowledged restore"; exit 1; }
@@ -370,12 +366,12 @@ bash scripts/arcanum universe AmbigU2 >/dev/null
 bash scripts/arcanum world Shared --universe AmbigU1 >/dev/null
 bash scripts/arcanum world Shared --universe AmbigU2 >/dev/null
 set +e
-AMBIG_OUT="$(bash scripts/save_snapshot.sh Shared -m x 2>&1)"
+AMBIG_OUT="$(bash scripts/arcanum snapshot Shared -m x 2>&1)"
 AMBIG_RC=$?
 set -e
 [ "${AMBIG_RC}" -eq 2 ] || { echo "  FAIL: ambiguous world did not exit 2 (rc=${AMBIG_RC}): ${AMBIG_OUT}"; exit 1; }
 echo "${AMBIG_OUT}" | grep -qi "ambiguous" || { echo "  FAIL: missing ambiguity message: ${AMBIG_OUT}"; exit 1; }
-bash scripts/save_snapshot.sh Shared --universe AmbigU1 -m "unambiguous snapshot" >/dev/null
+bash scripts/arcanum snapshot Shared --universe AmbigU1 -m "unambiguous snapshot" >/dev/null
 echo "  OK Test 20 passed: duplicate world names require --universe"
 
 echo "[Test 21] Manuscript XML escapes special characters (DAT-02)..."
@@ -392,7 +388,7 @@ echo "  OK Test 22 passed: symlink dispatch works"
 
 echo "[Test 23] Single-quote book title export without python syntax errors..."
 bash scripts/arcanum manuscript "QuoteTest" --universe TestUni --world TestWorld >/dev/null
-bash scripts/export_book.sh "${HOME}/Manuscripts/QuoteTest" --book Book-01 --format submission --title "The King's General & Rogue's Tale" --author "O'Connor" > "${TMP_DIR}/export_quote.log" 2>&1
+bash scripts/arcanum export "${HOME}/Manuscripts/QuoteTest" --book Book-01 --format submission --title "The King's General & Rogue's Tale" --author "O'Connor" > "${TMP_DIR}/export_quote.log" 2>&1
 grep -q "Submission manuscript generated" "${TMP_DIR}/export_quote.log" || { echo "  FAIL: single quote title export failed:"; cat "${TMP_DIR}/export_quote.log"; exit 1; }
 echo "  OK Test 23 passed: Single-quote and apostrophe title export passed safely"
 

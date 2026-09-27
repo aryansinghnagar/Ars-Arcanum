@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Scriptorium - CLI Alias Wrapper
+# ==============================================================================
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec "$SCRIPT_DIR/arcanum" "$@"

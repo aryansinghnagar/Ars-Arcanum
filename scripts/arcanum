@@ -779,6 +779,7 @@ cmd_restore() {
     local archive_input=""
     local target_name=""
     local dest_cli=""
+    local universe_cli=""
     local force=0
     local passphrase=""
     local skip_checksum=0
@@ -787,11 +788,12 @@ cmd_restore() {
             -a|--archive) archive_input="$2"; shift 2 ;;
             -t|--target) target_name="$2"; shift 2 ;;
             -d|--dest) dest_cli="$2"; shift 2 ;;
+            -u|--universe) universe_cli="$2"; shift 2 ;;
             -f|--force) force=1; shift ;;
             --allow-unverified|--skip-checksum) skip_checksum=1; shift ;;
             --passphrase) passphrase="$2"; shift 2 ;;
             -h|--help)
-                echo "Usage: arcanum restore <ARCHIVE.tar.gz> [--target NAME] [--dest DEST] [--force] [--allow-unverified] [--passphrase PASS]"
+                echo "Usage: arcanum restore <ARCHIVE.tar.gz> [--target NAME] [--universe UNIVERSE] [--dest DEST] [--force] [--allow-unverified] [--passphrase PASS]"
                 return 0 ;;
             *)
                 if [ -z "${archive_input}" ]; then archive_input="$1"; fi
@@ -907,10 +909,16 @@ cmd_restore() {
         echo "Error: Invalid restore target name." >&2; return 1
     fi
 
+    if [ -n "${universe_cli}" ]; then
+        universe_cli="$(printf '%s' "${universe_cli}" | tr ' ' '-' | tr -cd 'A-Za-z0-9_-' | cut -c1-64)"
+    fi
+
     local dest_parent="${dest_cli}"
     if [ -z "${dest_parent}" ]; then
         if [ -f "${extracted_dir}/manuscript.yaml" ] || [ -d "${extracted_dir}/Book-01" ]; then
             dest_parent="${MANUSCRIPTS_BASE}"
+        elif [ -n "${universe_cli}" ]; then
+            dest_parent="${UNIVERSES_BASE}/${universe_cli}"
         else
             dest_parent="${UNIVERSES_BASE}/Default-Universe"
         fi
@@ -929,6 +937,70 @@ cmd_restore() {
 
     mv "${extracted_dir}" "${final_target}"
     echo "[✓] Project successfully restored to: ${final_target}"
+}
+
+cmd_uninstall() {
+    local dry_run=0
+    local force=0
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --dry-run) dry_run=1; shift ;;
+            -f|--force) force=1; shift ;;
+            -h|--help)
+                echo "Usage: arcanum uninstall [--dry-run] [--force]"
+                return 0 ;;
+            *)
+                shift ;;
+        esac
+    done
+
+    echo "============================================================"
+    echo "  Ars Arcanum — Automated System Uninstaller"
+    if [ "${dry_run}" -eq 1 ]; then
+        echo "  [MODE: DRY-RUN SIMULATION — No files will be removed]"
+    fi
+    echo "============================================================"
+
+    local desktop_dir="${XDG_DESKTOP_DIR:-${HOME}/Desktop}"
+    [ -d "${desktop_dir}" ] || desktop_dir="${HOME}/Desktop"
+
+    local app_dir="${HOME}/.local/share/applications"
+    local bin_dir="${HOME}/.local/bin"
+    local systemd_dir="${HOME}/.config/systemd/user"
+
+    if [ "${dry_run}" -eq 1 ]; then
+        echo "  [DRY-RUN] Would remove desktop launchers from ${app_dir} and ${desktop_dir}"
+        echo "  [DRY-RUN] Would remove CLI symlinks from ${bin_dir}"
+        echo "  [DRY-RUN] Would disable and remove backup systemd user timer"
+        echo "  [DRY-RUN COMPLETE] All simulated uninstall checks passed."
+        return 0
+    fi
+
+    if [ "${force}" -eq 0 ]; then
+        echo "Warning: This will remove Ars Arcanum desktop launchers and CLI symlinks."
+        echo "Your creative manuscripts and world lore vaults will NOT be deleted."
+        read -r -p "Proceed with uninstallation? [y/N] " confirm
+        if [[ ! "${confirm}" =~ ^[Yy]$ ]]; then
+            echo "Uninstallation cancelled."
+            return 0
+        fi
+    fi
+
+    # Remove launchers
+    rm -f "${app_dir}/arcanum-"*.desktop "${app_dir}/ars-arcanum-"*.desktop "${app_dir}/scriptorium-"*.desktop "${app_dir}/init-"*.desktop "${app_dir}/export-book.desktop" "${app_dir}/save-snapshot.desktop" 2>/dev/null || true
+    rm -f "${desktop_dir}/arcanum-"*.desktop "${desktop_dir}/ars-arcanum-"*.desktop "${desktop_dir}/scriptorium-"*.desktop "${desktop_dir}/init-"*.desktop "${desktop_dir}/export-book.desktop" "${desktop_dir}/save-snapshot.desktop" 2>/dev/null || true
+
+    # Remove CLI symlinks
+    rm -f "${bin_dir}/arcanum" "${bin_dir}/ars-arcanum" "${bin_dir}/scriptorium" 2>/dev/null || true
+
+    # Stop and remove systemd timer if exists
+    if command -v systemctl &>/dev/null; then
+        systemctl --user stop arcanum-backup.timer 2>/dev/null || true
+        systemctl --user disable arcanum-backup.timer 2>/dev/null || true
+    fi
+    rm -f "${systemd_dir}/arcanum-backup.service" "${systemd_dir}/arcanum-backup.timer" 2>/dev/null || true
+
+    echo "[✓] Ars Arcanum launchers and symlinks uninstalled successfully."
 }
 
 cmd_export() {
@@ -1626,6 +1698,9 @@ case "${COMMAND}" in
     setup)
         exec bash "${PROJECT_ROOT}/scripts/setup_arcanum.sh" "$@"
         ;;
+    uninstall)
+        cmd_uninstall "$@"
+        ;;
 
     # --- Global Flags ---
     -v|--version|version)
@@ -1655,7 +1730,7 @@ known_commands = [
     "calc", "magic-check", "magic-report", "genealogy", "lineage", "conlang",
     "faction", "economy", "causality", "ecology", "climate", "idioms", "senses",
     "prophecy", "audit", "pace", "tension", "voice", "calendar", "journey",
-    "gui", "control-center", "menu", "interactive", "verify", "setup", "version", "help",
+    "gui", "control-center", "menu", "interactive", "verify", "setup", "uninstall", "version", "help",
     "cast", "dramatis-personae", "dramatis", "characters-cast", "corpus", "rag", "canvas", "timeline", "omnibus",
     "doc", "studio", "zen", "resonance", "tip", "import", "hub"
 ]

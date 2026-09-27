@@ -628,6 +628,9 @@ def main(argv: list[str] | None = None) -> int:
     if cmd == "setup":
         return dispatch_script("setup_arcanum.sh", rest)
 
+    if cmd in ("uninstall", "remove"):
+        return dispatch_script("arcanum", ["uninstall", *rest])
+
     known_commands = [
         "write", "open", "new", "create", "save", "snapshot", "publish", "export",
         "preflight", "matter", "query", "polish", "typography",

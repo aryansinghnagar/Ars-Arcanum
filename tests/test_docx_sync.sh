@@ -18,8 +18,8 @@ trap 'rm -rf "${TEST_DIR}"' EXIT
 export HOME="${TEST_DIR}/home"
 mkdir -p "${HOME}/Manuscripts" "${HOME}/.config/ars-arcanum"
 
-echo "=== Test 1: init_manuscript.sh automatic DOCX generation ==="
-bash "${SCRIPT_DIR}/scripts/init_manuscript.sh" "The-Lost-Tome"
+echo "=== Test 1: arcanum manuscript automatic DOCX generation ==="
+bash "${SCRIPT_DIR}/scripts/arcanum" manuscript "The-Lost-Tome"
 MS_DIR="${HOME}/Manuscripts/The-Lost-Tome"
 
 if [ ! -f "${MS_DIR}/Book-01/01_Act_I/01_Chapter_01.docx" ]; then
@@ -32,8 +32,8 @@ if [ ! -f "${MS_DIR}/Book-01/Draft-01_Manuscript.docx" ]; then
 fi
 echo "PASS: Test 1 passed (Initial DOCX files generated)"
 
-echo "=== Test 2: init_draft.sh automatic DOCX generation on draft fork ==="
-bash "${SCRIPT_DIR}/scripts/init_draft.sh" "${MS_DIR}" "Draft-02" -b "Book-01"
+echo "=== Test 2: arcanum draft automatic DOCX generation on draft fork ==="
+bash "${SCRIPT_DIR}/scripts/arcanum" draft "${MS_DIR}" "Draft-02" -b "Book-01"
 
 if [ ! -f "${MS_DIR}/Book-01/Draft-02/01_Act_I/01_Chapter_01.docx" ]; then
     echo "FAIL: Draft-02 01_Chapter_01.docx not generated on draft fork" >&2
