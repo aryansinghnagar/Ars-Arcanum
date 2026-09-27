@@ -52,7 +52,7 @@ has_gui() {
 # sanitize_name NAME [FALLBACK] -> safe token for filenames and labels
 sanitize_name() {
     local safe
-    safe="$(printf '%s' "${1:-}" | tr -cd 'A-Za-z0-9_-')"
+    safe="$(printf '%s' "${1:-}" | tr ' ' '_' | tr -cd 'A-Za-z0-9_-')"
     [ -z "${safe}" ] && safe="${2:-}"
     printf '%s' "${safe}"
 }
