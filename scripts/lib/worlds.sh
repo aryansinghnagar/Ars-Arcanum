@@ -41,7 +41,8 @@ MANUSCRIPTS_BASE="${MANUSCRIPTS_BASE:-${HOME}/Manuscripts}"
 LEGACY_WORLDS_BASE="${LEGACY_WORLDS_BASE:-${HOME}/Worlds}"
 # RES-01: set to 1 by resolvers when a name is ambiguous, so
 # resolve_target_dir does not fall through to a different project type.
-ARCANUM_RESOLVE_AMBIGUOUS=0
+# shellcheck disable=SC2034
+export ARCANUM_RESOLVE_AMBIGUOUS=0
 
 # GUI detection works on both X11 and Wayland
 has_gui() {
@@ -289,6 +290,7 @@ resolve_world_dir() {
                     echo "Re-run with an explicit universe (e.g. --universe <Name>) or an absolute path."
                 } >&2
                 resolved=""
+                # shellcheck disable=SC2034
                 ARCANUM_RESOLVE_AMBIGUOUS=1
             fi
         fi
@@ -330,6 +332,7 @@ resolve_manuscript_dir() {
                     echo "Re-run with an absolute path."
                 } >&2
                 resolved=""
+                # shellcheck disable=SC2034
                 ARCANUM_RESOLVE_AMBIGUOUS=1
             fi
         fi
@@ -373,6 +376,7 @@ resolve_target_dir() {
                         echo "Re-run with an explicit universe (e.g. --universe <Name>) or an absolute path."
                     } >&2
                     resolved=""
+                    # shellcheck disable=SC2034
                     ARCANUM_RESOLVE_AMBIGUOUS=1
                     printf '%s' "${resolved}"
                     return 0
