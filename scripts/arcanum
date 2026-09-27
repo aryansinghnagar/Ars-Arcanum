@@ -1605,6 +1605,9 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/diagnostics.py" "$@"
         ;;
     doctor|check)
+        if [ $# -gt 0 ] && [ -d "$1" ]; then
+            exec python3 "${PROJECT_ROOT}/scripts/lib/world_doctor.py" "$@"
+        fi
         exec python3 "${PROJECT_ROOT}/scripts/lib/diagnostics.py" "$@"
         ;;
     engines|plugins)

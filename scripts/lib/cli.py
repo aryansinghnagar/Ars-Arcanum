@@ -593,6 +593,8 @@ def main(argv: list[str] | None = None) -> int:
 
     # --- System Health & Diagnostics ---
     if cmd in ("doctor", "check", "diagnostics"):
+        if rest and not rest[0].startswith("-") and os.path.isdir(rest[0]):
+            return dispatch_subcommand("lib.world_doctor", rest)
         return dispatch_subcommand("lib.diagnostics", rest)
 
     if cmd in ("world-doctor", "doctor-world"):
