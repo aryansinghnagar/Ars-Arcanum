@@ -376,6 +376,29 @@ world: "${wname:-}"
 created_at: "$(date +%Y-%m-%d)"
 EOF
 
+    if [ -f "${target_dir}/nwProject.nwx" ] && command -v python3 &>/dev/null; then
+        python3 - "${target_dir}/nwProject.nwx" "${mname}" "${author}" << 'PYEOF'
+import sys, re
+from xml.sax.saxutils import escape
+
+path, title, author = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    esc_title = escape(title, {'"': '&quot;'})
+    esc_author = escape(author, {'"': '&quot;'})
+
+    content = re.sub(r'<title>.*?</title>', f'<title>{esc_title}</title>', content)
+    content = re.sub(r'<author>.*?</author>', f'<author>{esc_author}</author>', content)
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+except Exception:
+    pass
+PYEOF
+    fi
+
     cat << 'EOF' > "${target_dir}/.gitignore"
 *.bak
 *.tmp
