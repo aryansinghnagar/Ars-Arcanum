@@ -566,6 +566,10 @@ cmd_draft() {
     echo "[✓] Draft '${draft_name}' created at: ${target_draft}"
 }
 
+cmd_compare() {
+    exec python3 "${PROJECT_ROOT}/scripts/lib/manuscript_diff.py" "$@"
+}
+
 cmd_snapshot() {
     local target_input=""
     local note=""

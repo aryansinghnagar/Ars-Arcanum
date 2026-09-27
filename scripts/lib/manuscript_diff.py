@@ -870,8 +870,7 @@ class ManuscriptComparator:
 
 def main():
     parser = argparse.ArgumentParser(description="Ars Arcanum Manuscript Diff & Redline Generator")
-    parser.add_argument("path_a", help="Base / Older draft directory or file (e.g. Book-01/Draft-01)")
-    parser.add_argument("path_b", help="Target / Newer draft directory or file (e.g. Book-01/Draft-02)")
+    parser.add_argument("paths", nargs="+", help="Draft directories/files to compare (path_a path_b OR ms_dir draft_b draft_a)")
     parser.add_argument("--label-a", default="", help="Display label for Draft A (default: folder name)")
     parser.add_argument("--label-b", default="", help="Display label for Draft B (default: folder name)")
     parser.add_argument("--html", help="Path to write standalone HTML Redline report")
@@ -881,8 +880,27 @@ def main():
 
     args = parser.parse_args()
 
-    p_a = Path(args.path_a).expanduser().resolve()
-    p_b = Path(args.path_b).expanduser().resolve()
+    if len(args.paths) == 1:
+        print("Error: At least two draft paths or a manuscript project with two drafts are required.", file=sys.stderr)
+        sys.exit(2)
+    elif len(args.paths) == 2:
+        p_a = Path(args.paths[0]).expanduser().resolve()
+        p_b = Path(args.paths[1]).expanduser().resolve()
+        label_a = args.label_a or p_a.name
+        label_b = args.label_b or p_b.name
+    else:
+        # 3 arguments: ms_dir, draft_b, draft_a
+        ms_dir = Path(args.paths[0]).expanduser().resolve()
+        d_b_name = args.paths[1]
+        d_a_name = args.paths[2]
+        
+        # Check Book-01
+        book_dir = ms_dir / "Book-01" if (ms_dir / "Book-01").is_dir() else ms_dir
+        
+        p_a = book_dir / d_a_name if (book_dir / d_a_name).is_dir() else book_dir
+        p_b = book_dir / d_b_name if (book_dir / d_b_name).is_dir() else book_dir
+        label_a = args.label_a or d_a_name
+        label_b = args.label_b or d_b_name
 
     if not p_a.exists():
         print(f"Error: Path A does not exist: {p_a}", file=sys.stderr)
@@ -890,9 +908,6 @@ def main():
     if not p_b.exists():
         print(f"Error: Path B does not exist: {p_b}", file=sys.stderr)
         sys.exit(2)
-
-    label_a = args.label_a or p_a.name
-    label_b = args.label_b or p_b.name
 
     comparator = ManuscriptComparator(p_a, p_b, label_a, label_b)
     comparator.compare()
