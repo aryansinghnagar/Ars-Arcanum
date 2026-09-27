@@ -385,8 +385,8 @@ class BranchingNarrativeEngine:
 
     def export_playable_html(self) -> str:
         """Generates a standalone, offline interactive HTML5 playable gamebook application."""
-        nodes_json = json.dumps({nid: n.to_dict() for nid, n in self.nodes.items()}, ensure_ascii=False)
-        root_id = self.root_node_id or (next(iter(self.nodes.keys())) if self.nodes else "")
+        nodes_json = json.dumps({nid: n.to_dict() for nid, n in self.nodes.items()}, ensure_ascii=False).replace("</", "<\\/")
+        root_id = html.escape(self.root_node_id or (next(iter(self.nodes.keys())) if self.nodes else ""))
 
         return f"""<!DOCTYPE html>
 <html lang="en">
@@ -556,11 +556,15 @@ class BranchingNarrativeEngine:
                 endingBox.innerHTML = '<div class="ending-card ending-death"><h2>💀 GAME OVER</h2><p>Your journey ends in darkness.</p><button class="restart-btn" onclick="renderNode(ROOT_ID)">Try Again</button></div>';
             }} else if (node.is_ending || (!node.choices || node.choices.length === 0)) {{
                 endingBox.innerHTML = '<div class="ending-card ending-neutral"><h2>🏁 THE END</h2><p>You have concluded this narrative branch.</p><button class="restart-btn" onclick="renderNode(ROOT_ID)">Start Over</button></div>';
-            }} else {{
                 node.choices.forEach(ch => {{
                     const btn = document.createElement('button');
                     btn.className = 'choice-btn';
-                    btn.innerHTML = '<span>' + ch.text + '</span> <span>→</span>';
+                    const spanText = document.createElement('span');
+                    spanText.textContent = ch.text;
+                    const spanArrow = document.createElement('span');
+                    spanArrow.textContent = '→';
+                    btn.appendChild(spanText);
+                    btn.appendChild(spanArrow);
                     btn.onclick = () => renderNode(ch.target_id);
                     choicesBox.appendChild(btn);
                 }});
@@ -575,7 +579,7 @@ class BranchingNarrativeEngine:
 
     def export_subway_html(self) -> str:
         """Generates a Multi-POV Narrative Thread & Convergence Subway Map engine HTML visualization."""
-        nodes_json = json.dumps({nid: n.to_dict() for nid, n in self.nodes.items()}, ensure_ascii=False)
+        nodes_json = json.dumps({nid: n.to_dict() for nid, n in self.nodes.items()}, ensure_ascii=False).replace("</", "<\\/")
         
         # Determine all POVs for color coding
         all_povs = set()
@@ -587,7 +591,7 @@ class BranchingNarrativeEngine:
         for i, p in enumerate(sorted(all_povs)):
             pov_colors[p] = colors[i % len(colors)]
         
-        povs_json = json.dumps(pov_colors)
+        povs_json = json.dumps(pov_colors).replace("</", "<\\/")
         
         return f"""<!DOCTYPE html>
 <html lang="en">
@@ -643,7 +647,9 @@ class BranchingNarrativeEngine:
             }}
         }});
         
-        while (queue.length > 0) {{
+        let iterations = 0;
+        while (queue.length > 0 && iterations < 1000) {{
+            iterations++;
             const curr = queue.shift();
             const node = nodes[curr];
             if (!node) continue;

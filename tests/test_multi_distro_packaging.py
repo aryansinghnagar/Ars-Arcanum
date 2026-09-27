@@ -40,7 +40,7 @@ class TestMultiDistroPackaging(unittest.TestCase):
 
         content = pkgbuild.read_text(encoding="utf-8")
         self.assertIn("pkgname=ars-arcanum", content)
-        self.assertIn("pkgver=1.6.1", content)
+        self.assertIn("pkgver=4.2.1", content)
         self.assertIn("python-gobject", content)
         self.assertIn("package()", content)
         self.assertIn("arcanum-backup.service", content)
@@ -51,7 +51,7 @@ class TestMultiDistroPackaging(unittest.TestCase):
 
         content = spec_file.read_text(encoding="utf-8")
         self.assertIn("Name:           ars-arcanum", content)
-        self.assertIn("Version:        1.6.1", content)
+        self.assertIn("Version:        4.2.1", content)
         self.assertIn("Requires:       python3-gobject", content)
         self.assertIn("%install", content)
         self.assertIn("%files", content)

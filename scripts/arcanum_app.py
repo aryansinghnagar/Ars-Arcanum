@@ -25,7 +25,7 @@ def try_launch_adw(active_tab: str | None = None) -> bool:
         if HAS_ADW:
             return run_adw_app(active_tab=active_tab) == 0
     except Exception as e:
-        logger.debug("Failed to launch Libadwaita / GTK 4 UI: %s", e)
+        logger.error("Failed to launch Libadwaita / GTK 4 UI: %s", e)
     return False
 
 
@@ -36,12 +36,12 @@ def try_launch_gtk3(active_tab: str | None = None) -> bool:
         if HAS_GTK:
             return run_gtk3_app(active_tab=active_tab)
     except Exception as e:
-        logger.debug("Failed to launch GTK 3 UI: %s", e)
+        logger.error("Failed to launch GTK 3 UI: %s", e)
     return False
 
 
 def fallback_zenity(active_tab: str | None = None) -> int:
-    """Invokes lightweight Zenity dialog control dashboard."""
+    """Invokes lightweight Zenity dialog control dashboard or browser Studio Hub."""
     zenity_script = SCRIPT_DIR / "control_center.sh"
     if zenity_script.is_file():
         import subprocess
@@ -50,8 +50,15 @@ def fallback_zenity(active_tab: str | None = None) -> int:
             args.extend(["--tab", active_tab])
         res = subprocess.run(args)
         return res.returncode
+    try:
+        from lib.studio_hub import run_studio_hub
+        print("[i] PyGObject / GTK is not installed. Launching browser-based Studio Hub...", file=sys.stderr)
+        run_studio_hub(open_browser=True)
+        return 0
+    except Exception as e:
+        logger.error("Failed to launch Studio Hub fallback: %s", e)
     print("[!] PyGObject / GTK is not installed in the current Python environment.", file=sys.stderr)
-    print("[i] Run 'bash scripts/control_center.sh' for the graphical Zenity dashboard.", file=sys.stderr)
+    print("[i] Run 'python scripts/lib/studio_hub.py' or 'bash scripts/arcanum' for CLI operations.", file=sys.stderr)
     return 2
 
 

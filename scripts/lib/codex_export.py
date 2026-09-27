@@ -135,10 +135,10 @@ def build_single_file_codex(categories: dict[str, list[dict]], world_name: str, 
     total_articles = 0
 
     for tax, items in categories.items():
-        sidebar_links.append(f"<div class='tax-header'>{tax} ({len(items)})</div>")
+        sidebar_links.append(f"<div class='tax-header'>{html.escape(tax)} ({len(items)})</div>")
         for it in items:
             total_articles += 1
-            sidebar_links.append(f"<a href='#{it['id']}' class='nav-link' onclick='showArticle(\"{it['id']}\")'>{html.escape(it['title'])}</a>")
+            sidebar_links.append(f"<a href='#{html.escape(it['id'])}' class='nav-link' onclick='showArticle(\"{html.escape(it['id'])}\")'>{html.escape(it['title'])}</a>")
             search_index.append({
                 "id": it["id"],
                 "title": it["title"],
@@ -160,8 +160,8 @@ def build_single_file_codex(categories: dict[str, list[dict]], world_name: str, 
             """ if infobox_rows else ""
 
             entry = f"""
-            <article id="{it['id']}" class="codex-article" style="display: none;">
-              <span class="tax-badge">{it['taxonomy']}</span>
+            <article id="{html.escape(it['id'])}" class="codex-article" style="display: none;">
+              <span class="tax-badge">{html.escape(it['taxonomy'])}</span>
               <h1>{html.escape(it['title'])}</h1>
               {infobox_html}
               <div class="article-body">
@@ -171,7 +171,7 @@ def build_single_file_codex(categories: dict[str, list[dict]], world_name: str, 
             """
             entries_html.append(entry)
 
-    search_json = json.dumps(search_index).replace("<", "\\u003c").replace(">", "\\u003e")
+    search_json = json.dumps(search_index).replace("<", "\\u003c").replace(">", "\\u003e").replace("</", "<\\/")
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">

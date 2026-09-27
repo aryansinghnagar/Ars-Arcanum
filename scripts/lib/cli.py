@@ -20,7 +20,7 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
-VERSION = "4.1.0"
+VERSION = "4.2.1"
 
 # Add scripts directory to path
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent
@@ -518,20 +518,21 @@ def main(argv: list[str] | None = None) -> int:
     if cmd == "lineage":
         return dispatch_subcommand("lib.genealogy", ["lineage", *rest])
 
-    if cmd in ("conlang", "lexicon"):
+    if cmd in ("conlang", "lexicon", "family-tree"):
+        if cmd == "family-tree":
+            return dispatch_subcommand("lib.conlang", ["family-tree", *rest])
         return dispatch_subcommand("lib.conlang", rest)
-
 
     if cmd in ("calendar", "moons"):
         return dispatch_subcommand("lib.calendar", rest)
 
     if cmd in ("calc", "calculator"):
         if not rest:
-            print("Usage: arcanum calc <transit|time-dilation|orbit|comms|journey|battle|logistics|climate|trade> [args...]", file=sys.stderr)
+            print("Usage: arcanum calc <transit|time-dilation|orbit|comms|habitability|system-dossier|journey|battle|logistics|climate|trade> [args...]", file=sys.stderr)
             return 2
         sub = rest[0].lower()
         sub_args = rest[1:]
-        if sub in ("transit", "time-dilation", "orbit", "comms", "habitability", "astro", "astrophysics"):
+        if sub in ("transit", "time-dilation", "orbit", "comms", "habitability", "astro", "astrophysics", "system-dossier", "dossier"):
             if sub in ("astro", "astrophysics"):
                 return dispatch_subcommand("lib.astrophysics", sub_args)
             return dispatch_subcommand("lib.astrophysics", [sub, *sub_args])
@@ -546,7 +547,7 @@ def main(argv: list[str] | None = None) -> int:
         elif sub in ("trade", "arbitrage", "ppp"):
             return dispatch_subcommand("lib.economy", ["trade", *sub_args])
         else:
-            print(f"Unknown calc mode '{sub}'. Choose: transit, time-dilation, orbit, comms, journey, battle, logistics, climate, trade.", file=sys.stderr)
+            print(f"Unknown calc mode '{sub}'. Choose: transit, time-dilation, orbit, comms, habitability, system-dossier, journey, battle, logistics, climate, trade.", file=sys.stderr)
             return 2
 
     if cmd == "audit":

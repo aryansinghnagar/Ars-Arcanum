@@ -22,7 +22,8 @@ from lib.config import (
 from lib.docx_sync import (
     parse_markdown_to_paragraphs, strip_scene_tags_and_frontmatter,
     build_docx_package, convert_docx_to_markdown,
-    build_manuscript_docx, sync_manuscript_docx, escape_xml
+    build_manuscript_docx, sync_manuscript_docx, escape_xml,
+    get_file_sha256
 )
 
 
@@ -274,6 +275,72 @@ The trees shouted loudly in the wild tempest.
         conflict_files = list(draft_dir.glob("01_Chapter_01.conflict_*.md"))
         self.assertEqual(len(conflict_files), 1)
         self.assertIn("Modified in MS Word independently.", conflict_files[0].read_text(encoding="utf-8"))
+
+    def test_frontmatter_preservation_on_reverse_sync(self):
+        """Verify YAML frontmatter block is strictly preserved during reverse DOCX -> MD sync."""
+        ms_dir = self.root / "FmPreserveNovel"
+        draft_dir = ms_dir / "01-Manuscript" / "Book-01" / "Draft-01" / "01_Act_I"
+        draft_dir.mkdir(parents=True, exist_ok=True)
+
+        (ms_dir / "manuscript.yaml").write_text("title: \"FM Novel\"\nauthor: \"Writer\"\nactive_draft: \"Draft-01\"\n", encoding="utf-8")
+
+        scene = draft_dir / "01_Chapter_01.md"
+        scene.write_text("""---
+title: "The Archon's Keep"
+status: draft
+pov: Kaelen
+---
+@location: High Citadel
+% Internal note
+
+# Chapter 1: The Inciting Spark
+
+Original prose here.
+""", encoding="utf-8")
+
+        # Initial build & sync
+        build_manuscript_docx(ms_dir)
+        sync_manuscript_docx(ms_dir)
+
+        # Update DOCX
+        ch_docx = draft_dir / "01_Chapter_01.docx"
+        new_md = """# Chapter 1: The Inciting Spark
+
+Updated prose from word editor.
+"""
+        paragraphs = parse_markdown_to_paragraphs(new_md)
+        build_docx_package(ch_docx, paragraphs, get_docx_config(), title="FM Novel", author="Writer")
+        future_time = scene.stat().st_mtime + 5.0
+        os.utime(ch_docx, (future_time, future_time))
+
+        # Reverse sync
+        res_sync = sync_manuscript_docx(ms_dir)
+        self.assertIn("01-Manuscript/Book-01/Draft-01/01_Act_I/01_Chapter_01.md", res_sync["docx_to_md"])
+
+        updated_text = scene.read_text(encoding="utf-8")
+        self.assertIn('title: "The Archon\'s Keep"', updated_text)
+        self.assertIn("status: draft", updated_text)
+        self.assertIn("pov: Kaelen", updated_text)
+        self.assertIn("@location: High Citadel", updated_text)
+        self.assertIn("% Internal note", updated_text)
+        self.assertIn("Updated prose from word editor.", updated_text)
+        self.assertNotIn("Original prose here.", updated_text)
+
+    def test_deterministic_docx_generation(self):
+        """Verify identical source markdown produces byte-identical DOCX packages."""
+        p1 = self.root / "d1.docx"
+        p2 = self.root / "d2.docx"
+        md = "# Chapter 1\n\nDeterministic content testing."
+        paras = parse_markdown_to_paragraphs(md)
+        cfg = get_docx_config()
+        mtime_fixed = 1700000000.0
+
+        build_docx_package(p1, paras, cfg, title="Determinism", author="Author", source_mtime=mtime_fixed)
+        build_docx_package(p2, paras, cfg, title="Determinism", author="Author", source_mtime=mtime_fixed)
+
+        h1 = get_file_sha256(p1)
+        h2 = get_file_sha256(p2)
+        self.assertEqual(h1, h2)
 
 
 if __name__ == "__main__":

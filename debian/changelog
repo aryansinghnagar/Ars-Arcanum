@@ -1,3 +1,14 @@
+ars-arcanum (4.2.1-1) unstable; urgency=high
+
+  * Critical Data Safety, Security & Hardening Release.
+  * Preserved full YAML frontmatter in bidirectional DOCX sync and deterministic mtimes.
+  * Hardened archive restoration with member inspection and unsafe path traversal rejection.
+  * Fixed GTK3 widget creation, Studio Hub HTML script consolidation, and Stored XSS defense.
+  * Corrected Lanchester combat models, draft logistics, tidal locking, conlang lookarounds.
+  * Synchronized version parity to v4.2.1 across all 10 surfaces.
+
+ -- Aryan Singh Nagar <aryansinghnagar@users.noreply.github.com>  Sun, 27 Sep 2026 12:00:00 +0530
+
 ars-arcanum (4.1.0-1) unstable; urgency=medium
 
   * The Sovereign Cohesive Ecosystem & Creative Freedom Milestone — Phase 21.

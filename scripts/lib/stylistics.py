@@ -106,7 +106,7 @@ def count_syllables(word: str) -> int:
         return 1
     if len(w) <= 3:
         return 1
-    w = re.sub(r'(?:[^laeiouy]|ed|es|e)$', '', w)
+    w = re.sub(r'(?:[^laeiouy]e|ed|es)$', '', w)
     w = re.sub(r'^y', '', w)
     matches = re.findall(r'[aeiouy]{1,2}', w)
     return max(1, len(matches))

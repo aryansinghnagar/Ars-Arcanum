@@ -56,8 +56,10 @@ def normalize_typography_text(text: str) -> tuple[str, dict]:
 
     lines = text.splitlines(keepends=True)
     new_lines = []
+    in_frontmatter = False
+    in_codeblock = False
 
-    for line in lines:
+    for idx, line in enumerate(lines):
 
         # 1. Trailing whitespace
         newline_char = "\r\n" if line.endswith("\r\n") else "\n" if line.endswith("\n") else ""
@@ -67,8 +69,23 @@ def normalize_typography_text(text: str) -> tuple[str, dict]:
             stats["trailing_spaces_removed"] += 1
         line = clean_end
 
-        # Do not modify frontmatter or codeblocks
-        if line.startswith(("---", "```", "    ")):
+        # Handle frontmatter block (--- ... ---) at start of file
+        if idx == 0 and line.startswith("---"):
+            in_frontmatter = True
+            new_lines.append(line + newline_char)
+            continue
+        if in_frontmatter:
+            if line.startswith("---"):
+                in_frontmatter = False
+            new_lines.append(line + newline_char)
+            continue
+
+        # Handle fenced codeblocks (``` ... ```)
+        if line.startswith("```"):
+            in_codeblock = not in_codeblock
+            new_lines.append(line + newline_char)
+            continue
+        if in_codeblock or line.startswith("    "):
             new_lines.append(line + newline_char)
             continue
 

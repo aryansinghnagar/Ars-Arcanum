@@ -4,6 +4,29 @@ All notable changes to Ars Arcanum are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Scope decisions
 behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## [4.2.1] - 2026-09-27
+
+### Fixed & Hardened (Critical Data Safety, Forensic Hardening & Quality Gate Stabilization)
+- **Data Safety & Reverse-Sync (`docx_sync.py`)**:
+  - Fixed `strip_scene_tags_and_frontmatter` to preserve full YAML frontmatter blocks and novelWriter `%` comments across reverse-sync cycles.
+  - Made OpenXML packages deterministic by generating timestamps from source file modification times.
+- **Archive Extraction & Security (`scripts/arcanum`)**:
+  - Added strict tar member inspection (`tar -tzf`) in `cmd_restore` to reject path traversals (`..`), absolute paths, and dangerous non-sample `.git/hooks/*` files.
+  - Enforced fail-closed SHA-256 sidecar validation with `--allow-unverified` bypass.
+  - Resolved nested `git init` bug in `cmd_volume`.
+- **Desktop GUI & Web Cockpit Fixes**:
+  - Implemented `create_stat_card` widget helper in `DialogHelpersMixin` (`scripts/lib/ui_gtk3/common.py`).
+  - Consolidated Studio Hub HTML `<script>` block and resolved single-threaded server blocking with `ThreadingHTTPServer`.
+  - Eliminated Stored XSS vectors across HTML/SVG generators.
+- **Scientific & Linguistic Accuracy**:
+  - Corrected Lanchester combat linear law and removed draft fodder calculation omissions in `factions.py`.
+  - Added stellar mass scaling to tidally-locked planetary rotation in `astrophysics.py`.
+  - Implemented overlapping environment support in conlang sound change rules (`conlang.py`).
+  - Added Unicode-aware word tokenizers in `pacing.py` and `voice.py`.
+- **Packaging & Accessibility**:
+  - Standardized version `4.2.1` across all 10 project surfaces and aligned Flatpak license to `MIT`.
+  - WCAG 2.1 AA color contrast compliance verified across all themes.
+
 ## [4.1.0] - 2026-09-26
 
 ### Added (The Sovereign Cohesive Ecosystem & Creative Freedom Architecture — Phase 21)

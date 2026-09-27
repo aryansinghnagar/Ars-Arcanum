@@ -106,6 +106,9 @@ sound_changes:
         res2 = mutate_text("pata", rules, vowels, consonants)
         self.assertEqual(res2, "pata")
 
+        res3 = mutate_text("apapapa", rules, vowels, consonants)
+        self.assertEqual(res3, "abababa")
+
     def test_sound_change_palatalization(self) -> None:
         """k > ch before front vowels e/i (_[e,i]) mutates keli to cheli but keeps kora."""
         vowels = ["a", "e", "i", "o", "u"]

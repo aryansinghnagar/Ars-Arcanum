@@ -108,10 +108,13 @@ def strip_scene_tags_and_frontmatter(text: str) -> tuple:
     fm_match = FRONTMATTER_REGEX.match(text)
     if fm_match:
         fm_content = fm_match.group(1)
+        header_lines.append("---")
         for line in fm_content.splitlines():
+            header_lines.append(line)
             if ":" in line:
                 k, v = line.split(":", 1)
                 metadata[k.strip().lower()] = v.strip().strip("\"'")
+        header_lines.append("---")
         clean_text = FRONTMATTER_REGEX.sub("", text, count=1)
 
     prose_lines = []
@@ -298,7 +301,7 @@ def generate_docx_xml_body(parsed_paragraphs: list, config: dict, is_full_manusc
     return "".join(body_xml_parts)
 
 
-def build_docx_package(output_path: Path, parsed_paragraphs: list, config: dict, title: str = "", author: str = "", is_full_manuscript: bool = False) -> bool:
+def build_docx_package(output_path: Path, parsed_paragraphs: list, config: dict, title: str = "", author: str = "", is_full_manuscript: bool = False, source_mtime: float | None = None) -> bool:
     """Builds a fully compliant OpenXML .docx file package."""
     font_family = config.get("font_family", "Times New Roman")
     font_size_pt = float(config.get("font_size_pt", 12.0))
@@ -367,7 +370,13 @@ def build_docx_package(output_path: Path, parsed_paragraphs: list, config: dict,
   </w:style>
 </w:styles>"""
 
-    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    if source_mtime is not None:
+        created_dt = datetime.fromtimestamp(source_mtime, tz=timezone.utc)
+    else:
+        created_dt = datetime(2026, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+    now_iso = created_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    zip_dt_tuple = created_dt.timetuple()[:6]
+
     core_props_xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <dc:title>{escape_xml(title)}</dc:title>
@@ -397,13 +406,19 @@ def build_docx_package(output_path: Path, parsed_paragraphs: list, config: dict,
         tmp_zip = output_path.with_suffix(".docx.tmp")
         
         with zipfile.ZipFile(tmp_zip, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-            zf.writestr("[Content_Types].xml", content_types_xml)
-            zf.writestr("_rels/.rels", root_rels_xml)
-            zf.writestr("word/_rels/document.xml.rels", word_rels_xml)
-            zf.writestr("word/document.xml", document_xml)
-            zf.writestr("word/styles.xml", styles_xml)
-            zf.writestr("docProps/core.xml", core_props_xml)
-            zf.writestr("docProps/app.xml", app_props_xml)
+            entries = [
+                ("[Content_Types].xml", content_types_xml),
+                ("_rels/.rels", root_rels_xml),
+                ("word/_rels/document.xml.rels", word_rels_xml),
+                ("word/document.xml", document_xml),
+                ("word/styles.xml", styles_xml),
+                ("docProps/core.xml", core_props_xml),
+                ("docProps/app.xml", app_props_xml),
+            ]
+            for entry_name, entry_data in entries:
+                zinfo = zipfile.ZipInfo(filename=entry_name, date_time=zip_dt_tuple)
+                zinfo.compress_type = zipfile.ZIP_DEFLATED
+                zf.writestr(zinfo, entry_data.encode("utf-8") if isinstance(entry_data, str) else entry_data)
             
         if tmp_zip.is_file():
             tmp_zip.replace(output_path)
@@ -576,7 +591,8 @@ def build_manuscript_docx(manuscript_dir: Path, draft_name: str | None = None, p
                 
             # 1. Build individual chapter .docx
             ch_docx_path = scene_file.with_suffix(".docx")
-            if build_docx_package(ch_docx_path, parsed, config, title=title, author=author, is_full_manuscript=False):
+            scene_mtime = scene_file.stat().st_mtime
+            if build_docx_package(ch_docx_path, parsed, config, title=title, author=author, is_full_manuscript=False, source_mtime=scene_mtime):
                 results["chapters_built"].append(str(ch_docx_path.relative_to(mpath)).replace("\\", "/"))
                 
             # Accumulate for consolidated draft manuscript
@@ -592,8 +608,9 @@ def build_manuscript_docx(manuscript_dir: Path, draft_name: str | None = None, p
         draft_label = draft_dir.name if draft_dir.name.startswith("Draft-") else "Draft-01"
         consolidated_docx_name = f"{draft_label}_Manuscript.docx"
         consolidated_path = draft_dir / consolidated_docx_name
+        max_mtime = max((f.stat().st_mtime for f in valid_scenes), default=None)
         
-        if build_docx_package(consolidated_path, consolidated_paragraphs, config, title=title, author=author, is_full_manuscript=True):
+        if build_docx_package(consolidated_path, consolidated_paragraphs, config, title=title, author=author, is_full_manuscript=True, source_mtime=max_mtime):
             results["consolidated_built"] = str(consolidated_path.relative_to(mpath)).replace("\\", "/")
             
     return results
@@ -666,7 +683,7 @@ def sync_manuscript_docx(manuscript_dir: Path, draft_name: str | None = None) ->
                 if not any(p["type"] == "heading1" for p in parsed):
                     clean_title = re.sub(r"^\d+\s*", "", md_path.stem.replace("_", " ").replace("-", " "))
                     parsed.insert(0, {"type": "heading1", "text": clean_title})
-                if build_docx_package(target_docx, parsed, config, title=mpath.name, is_full_manuscript=False):
+                if build_docx_package(target_docx, parsed, config, title=mpath.name, is_full_manuscript=False, source_mtime=md_path.stat().st_mtime):
                     sync_report["md_to_docx"].append(str(target_docx.relative_to(mpath)).replace("\\", "/"))
                     state[stem] = {
                         "md_sha256": get_file_sha256(md_path),
@@ -762,7 +779,7 @@ def sync_manuscript_docx(manuscript_dir: Path, draft_name: str | None = None) ->
                     if not any(p["type"] == "heading1" for p in parsed):
                         clean_title = re.sub(r"^\d+\s*", "", md_path.stem.replace("_", " ").replace("-", " "))
                         parsed.insert(0, {"type": "heading1", "text": clean_title})
-                    if build_docx_package(docx_path, parsed, config, title=mpath.name, is_full_manuscript=False):
+                    if build_docx_package(docx_path, parsed, config, title=mpath.name, is_full_manuscript=False, source_mtime=md_path.stat().st_mtime):
                         state[stem] = {
                             "md_sha256": cur_md_hash,
                             "docx_sha256": get_file_sha256(docx_path),

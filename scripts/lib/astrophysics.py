@@ -471,8 +471,10 @@ def calc_planetary_dossier(
     )
     
     if planet_type == "tidally-locked":
-        # Rough approximation of orbital period in hours assuming 1 solar mass
-        rotation_hours = math.sqrt(semi_major_axis_au ** 3) * 365.25 * 24
+        # Orbital period accounting for stellar mass via main-sequence mass-luminosity scaling (L ~ M^3.5)
+        l_solar = max(1e-6, star_luminosity_watts / SOLAR_LUMINOSITY)
+        star_mass_solar = max(0.08, l_solar ** (1.0 / 3.5))
+        rotation_hours = math.sqrt((semi_major_axis_au ** 3) / star_mass_solar) * 365.25 * 24.0
     
     climate_circ = calc_atmospheric_circulation(rotation_period_hours=rotation_hours)
 

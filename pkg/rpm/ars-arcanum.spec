@@ -1,5 +1,5 @@
 Name:           ars-arcanum
-Version:        1.6.1
+Version:        4.2.1
 Release:        1%{?dist}
 Summary:        Sovereign 100% offline writing and speculative worldbuilding studio for fiction authors
 

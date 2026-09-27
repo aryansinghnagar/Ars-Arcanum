@@ -21,7 +21,7 @@ if [ ! -f "${PROJECT_ROOT}/scripts/verify.sh" ] && [ -f "${SCRIPT_DIR}/verify.sh
     fi
 fi
 
-VERSION="4.1.0"
+VERSION="4.2.1"
 
 # Source shared worlds discovery library
 # shellcheck source=scripts/lib/worlds.sh
@@ -242,6 +242,13 @@ cmd_world() {
         echo "Error: Invalid world name." >&2; return 1
     fi
 
+    if [ -n "${uname}" ]; then
+        uname="$(printf '%s' "${uname}" | tr ' ' '-' | tr -cd 'A-Za-z0-9_-' | cut -c1-64)"
+        if [ -z "${uname}" ] || [ "${uname}" = "." ] || [ "${uname}" = ".." ]; then
+            echo "Error: Invalid universe name." >&2; return 1
+        fi
+    fi
+
     local dest_parent=""
     if [ "${legacy_root}" -eq 1 ]; then
         dest_parent="${LEGACY_WORLDS_BASE}"
@@ -327,6 +334,20 @@ cmd_manuscript() {
     mname="$(printf '%s' "${mname}" | tr ' ' '-' | tr -cd 'A-Za-z0-9_-' | cut -c1-64)"
     if [ -z "${mname}" ] || [ "${mname}" = "." ] || [ "${mname}" = ".." ]; then
         echo "Error: Invalid manuscript name." >&2; return 1
+    fi
+
+    if [ -n "${uname}" ]; then
+        uname="$(printf '%s' "${uname}" | tr ' ' '-' | tr -cd 'A-Za-z0-9_-' | cut -c1-64)"
+        if [ -z "${uname}" ] || [ "${uname}" = "." ] || [ "${uname}" = ".." ]; then
+            echo "Error: Invalid universe name." >&2; return 1
+        fi
+    fi
+
+    if [ -n "${wname}" ]; then
+        wname="$(printf '%s' "${wname}" | tr ' ' '-' | tr -cd 'A-Za-z0-9_-' | cut -c1-64)"
+        if [ -z "${wname}" ] || [ "${wname}" = "." ] || [ "${wname}" = ".." ]; then
+            echo "Error: Invalid world name." >&2; return 1
+        fi
     fi
 
     local target_dir="${MANUSCRIPTS_BASE}/${mname}"
@@ -432,12 +453,20 @@ Begin writing ${vol_name} here...
 EOF
 
     if command -v git &>/dev/null; then
-        (
-            cd "${target_vol}"
-            git init -q
-            git add .
-            git_commit_safe "Initial volume repository: ${vol_name}"
-        ) || true
+        if git -C "${resolved_ms}" rev-parse --is-inside-work-tree &>/dev/null; then
+            (
+                cd "${resolved_ms}"
+                git add "${vol_name}"
+                git_commit_safe "Add volume: ${vol_name}"
+            ) || true
+        else
+            (
+                cd "${target_vol}"
+                git init -q
+                git add .
+                git_commit_safe "Initial volume repository: ${vol_name}"
+            ) || true
+        fi
     fi
 
     echo "[✓] Volume '${vol_name}' scaffolded at: ${target_vol}"
@@ -580,22 +609,43 @@ cmd_backup() {
     local encrypted=0
     local passphrase=""
     local universe_cli=""
+    local all_targets=0
     while [ $# -gt 0 ]; do
         case "$1" in
             -w|--world|-m|--manuscript) target_input="$2"; shift 2 ;;
             -u|--universe) universe_cli="$2"; shift 2 ;;
             -d|--dest) dest_cli="$2"; shift 2 ;;
+            --all) all_targets=1; shift ;;
             --no-local) no_local=1; shift ;;
             --symmetric|--encrypted) encrypted=1; shift ;;
             --passphrase) passphrase="$2"; shift 2 ;;
             -h|--help)
-                echo "Usage: arcanum backup [TARGET] [-d DEST] [--no-local] [--symmetric] [--passphrase PASS]"
+                echo "Usage: arcanum backup [TARGET|--all] [-d DEST] [--no-local] [--symmetric] [--passphrase PASS]"
                 return 0 ;;
             *)
                 if [ -z "${target_input}" ]; then target_input="$1"; fi
                 shift ;;
         esac
     done
+
+    if [ "${all_targets}" -eq 1 ]; then
+        discover_worlds WORLDS
+        discover_manuscripts MANUSCRIPTS
+        local total_backed=0
+        local all_t=("${MANUSCRIPTS[@]}" "${WORLDS[@]}")
+        for t in "${all_t[@]}"; do
+            [ -d "${t}" ] || continue
+            echo "--- Backing up: $(basename "${t}") ---"
+            cmd_backup "${t}" ${dest_cli:+-d "${dest_cli}"} ${no_local:+--no-local} ${encrypted:+--encrypted} ${passphrase:+--passphrase "${passphrase}"}
+            total_backed=$((total_backed + 1))
+        done
+        echo "[✓] Completed backup of ${total_backed} projects."
+        return 0
+    fi
+
+    if [ -n "${universe_cli}" ]; then
+        universe_cli="$(printf '%s' "${universe_cli}" | tr ' ' '-' | tr -cd 'A-Za-z0-9_-' | cut -c1-64)"
+    fi
 
     local world_dir
     world_dir="$(resolve_target_dir "${target_input}" "${universe_cli}")"
@@ -702,6 +752,20 @@ with open(sys.argv[9], "w", encoding="utf-8") as f:
     echo "    Archive:  ${final_archive}"
     echo "    SHA-256:  ${actual_sha}"
     echo "    Metadata: ${meta_file}"
+
+    # Secondary replication
+    local sec_dest="${dest_cli}"
+    if [ -z "${sec_dest}" ]; then
+        sec_dest="$(python3 -c 'from lib.config import get_backup_dest; print(get_backup_dest())' 2>/dev/null || true)"
+    fi
+    if [ -n "${sec_dest}" ] && [ "${sec_dest}" != "${primary_backup_dir}" ]; then
+        mkdir -p "${sec_dest}"
+        if [ -d "${sec_dest}" ]; then
+            echo "Replicating backup archive to secondary destination: ${sec_dest} ..."
+            cp "${final_archive}" "${checksum_file}" "${meta_file}" "${sec_dest}/"
+            echo "[✓] Secondary replication complete: ${sec_dest}/${final_archive_name}"
+        fi
+    fi
 }
 
 cmd_restore() {
@@ -717,10 +781,10 @@ cmd_restore() {
             -t|--target) target_name="$2"; shift 2 ;;
             -d|--dest) dest_cli="$2"; shift 2 ;;
             -f|--force) force=1; shift ;;
-            --skip-checksum) skip_checksum=1; shift ;;
+            --allow-unverified|--skip-checksum) skip_checksum=1; shift ;;
             --passphrase) passphrase="$2"; shift 2 ;;
             -h|--help)
-                echo "Usage: arcanum restore <ARCHIVE.tar.gz> [--target NAME] [--dest DEST] [--force] [--passphrase PASS]"
+                echo "Usage: arcanum restore <ARCHIVE.tar.gz> [--target NAME] [--dest DEST] [--force] [--allow-unverified] [--passphrase PASS]"
                 return 0 ;;
             *)
                 if [ -z "${archive_input}" ]; then archive_input="$1"; fi
@@ -749,7 +813,15 @@ cmd_restore() {
         sha_file="${archive_dir}/${archive_file}.sha256"
     fi
 
-    if [ "${skip_checksum}" -eq 0 ] && [ -n "${sha_file}" ]; then
+    if [ -z "${sha_file}" ]; then
+        if [ "${skip_checksum}" -eq 1 ]; then
+            echo "Warning: No SHA-256 checksum sidecar found. Proceeding due to explicit unverified flag." >&2
+        else
+            echo "Error: Missing SHA-256 checksum sidecar file (${base_no_tar}.sha256). Restoration aborted for safety." >&2
+            echo "To bypass, pass --allow-unverified or --skip-checksum." >&2
+            return 1
+        fi
+    elif [ "${skip_checksum}" -eq 0 ]; then
         local expected_sha
         expected_sha="$(head -n 1 "${sha_file}" | cut -d' ' -f1)"
         local actual_sha
@@ -775,6 +847,41 @@ cmd_restore() {
             echo "Error: GPG decryption failed." >&2; return 1
         fi
         target_tar="${dec_tar}"
+    fi
+
+    # Security: Inspect tar archive members before extraction
+    local tar_members
+    if ! tar_members="$(tar -tzf "${target_tar}")"; then
+        echo "Error: Cannot inspect archive contents or archive is corrupted." >&2
+        return 1
+    fi
+
+    while IFS= read -r member; do
+        [ -z "${member}" ] && continue
+        if [[ "${member}" =~ ^/ ]]; then
+            echo "Security Error: Archive member contains absolute path: '${member}'" >&2
+            return 1
+        fi
+        if [[ "${member}" =~ (\.\./|/\.\.|^\.\.$) ]]; then
+            echo "Security Error: Archive member contains path traversal (..): '${member}'" >&2
+            return 1
+        fi
+        if [[ "${member}" =~ \.git/hooks/[^/]+$ ]] && [[ ! "${member}" =~ \.sample$ ]]; then
+            echo "Security Error: Archive member contains dangerous executable git hook: '${member}'" >&2
+            return 1
+        fi
+    done <<< "${tar_members}"
+
+    local tar_verbose
+    if tar_verbose="$(tar -tvzf "${target_tar}")"; then
+        while IFS= read -r line; do
+            [ -z "${line}" ] && continue
+            local type_char="${line:0:1}"
+            if [ "${type_char}" = "p" ] || [ "${type_char}" = "c" ] || [ "${type_char}" = "b" ]; then
+                echo "Security Error: Archive contains unsafe special file node: ${line}" >&2
+                return 1
+            fi
+        done <<< "${tar_verbose}"
     fi
 
     tar -xzf "${target_tar}" -C "${staging_dir}" --no-same-owner --no-same-permissions
@@ -1267,6 +1374,21 @@ case "${COMMAND}" in
         ;;
 
     # --- Manuscripts & Drafting ---
+    doc|docs|explain|guide|craft-docs)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" doc "$@"
+        ;;
+    studio|zen|zen-studio|editor)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/zen_studio.py" "$@"
+        ;;
+    resonance|mesh|cascade|spark|bridge|ecosystem|synergy)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/resonance.py" "$@"
+        ;;
+    tip|tips|craft-tip|wisdom|hint|hints)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/tips.py" "$@"
+        ;;
+    import|importer|import-manuscript)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/importer.py" "$@"
+        ;;
     manuscript|init-manuscript|novel)
         cmd_manuscript "$@"
         ;;
@@ -1349,7 +1471,22 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/migrate.py" "$@"
         ;;
     report|wordcount|words|count|stats)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/diagnostics.py" words "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cache.py" wordcounts "$@"
+        ;;
+    doc|docs|explain|guide|craft-docs)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" doc "$@"
+        ;;
+    studio|zen|zen-studio|editor)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/zen_studio.py" "$@"
+        ;;
+    resonance|mesh|cascade|spark|bridge)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/resonance.py" "$@"
+        ;;
+    tip|tips|craft-tip|wisdom|hint|hints)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/tips.py" "$@"
+        ;;
+    import|importer|import-manuscript)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/importer.py" "$@"
         ;;
     pace|pacing)
         exec python3 "${PROJECT_ROOT}/scripts/lib/pacing.py" pace "$@"
@@ -1485,7 +1622,8 @@ known_commands = [
     "faction", "economy", "causality", "ecology", "climate", "idioms", "senses",
     "prophecy", "audit", "pace", "tension", "voice", "calendar", "journey",
     "gui", "control-center", "menu", "interactive", "verify", "setup", "version", "help",
-    "cast", "dramatis-personae", "dramatis", "characters-cast", "corpus", "rag", "canvas", "timeline", "omnibus"
+    "cast", "dramatis-personae", "dramatis", "characters-cast", "corpus", "rag", "canvas", "timeline", "omnibus",
+    "doc", "studio", "zen", "resonance", "tip", "import", "hub"
 ]
 
 matches = difflib.get_close_matches(cmd, known_commands, n=1, cutoff=0.55)

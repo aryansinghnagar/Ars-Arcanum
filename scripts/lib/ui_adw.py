@@ -213,14 +213,14 @@ class ArcanumAppAdw:
         row_new_ms = make_action_row("Create New Manuscript", "Scaffold 3-Act novelWriter & Markdown workspace")
         btn_ms = Gtk.Button(label="New Manuscript")
         btn_ms.set_valign(Gtk.Align.CENTER)
-        btn_ms.connect("clicked", lambda x: self._run_script_dialog("init_manuscript.sh", "Manuscript Name:"))
+        btn_ms.connect("clicked", lambda x: self._run_bg(["bash", str(SCRIPT_DIR / "arcanum"), "new", "manuscript", "My-Novel"], "Manuscript created"))
         row_new_ms.add_suffix(btn_ms)
         group.add(row_new_ms)
 
         row_add_vol = make_action_row("Add Book / Volume", "Add auto-incremented volume to existing manuscript")
         btn_vol = Gtk.Button(label="Add Volume")
         btn_vol.set_valign(Gtk.Align.CENTER)
-        btn_vol.connect("clicked", lambda x: self._run_script_dialog("add_book.sh", "Target Manuscript:"))
+        btn_vol.connect("clicked", lambda x: self._run_bg(["bash", str(SCRIPT_DIR / "arcanum"), "volume", str(MANUSCRIPTS_DIR), "Book-02"], "Volume added"))
         row_add_vol.add_suffix(btn_vol)
         group.add(row_add_vol)
 
@@ -429,9 +429,6 @@ class ArcanumAppAdw:
         else:
             self._show_toast("Continuity engine module not found.")
 
-    def _run_script_dialog(self, script_name: str, prompt: str):
-        cmd = str(SCRIPT_DIR / script_name)
-        self._run_bg([cmd], f"Executed {script_name}")
 
     def _run_bg(self, cmd: list, success_msg: str):
         def worker():

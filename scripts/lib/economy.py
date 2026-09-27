@@ -112,6 +112,7 @@ TECH_ERA_DICTIONARY = {
     "automobile": "victorian",
     "internal combustion": "victorian",
     "airship": "victorian",
+    "zeppelin": "victorian",
     "zepplin": "victorian",
     "radio": "victorian",
     "telephone": "victorian",
@@ -127,6 +128,7 @@ TECH_ERA_DICTIONARY = {
     "transistor": "modern_20th",
     "nuclear reactor": "modern_20th",
     "atomic bomb": "modern_20th",
+    "satellite": "modern_20th",
 
     # Information Age+
     "microchip": "information_age",
@@ -136,7 +138,6 @@ TECH_ERA_DICTIONARY = {
     "gps": "information_age",
     "fiber optic": "information_age",
     "lithium battery": "information_age",
-    "satellite": "information_age",
 
     # Interstellar / Far Future+
     "fusion drive": "interstellar",

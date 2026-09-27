@@ -91,7 +91,7 @@ def extract_character_dialogue(text: str) -> dict[str, list[str]]:
             continue
 
         # Check post-quote tag: "Dialogue," said Character. / "Dialogue," Character whispered.
-        post_m = re.finditer(r'["“]([^"”]+)["”][,\s]+(?:said|asked|whispered|murmured|replied|shouted|muttered|cried|screamed|called|growled|snapped)\s+([A-Z][a-zA-Z]{1,20})', clean_line)
+        post_m = re.finditer(r'["“]([^"”]+)["”][,\s]+(?:said|asked|whispered|murmured|replied|shouted|muttered|cried|screamed|called|growled|snapped)\s+([^\W\d_]\w{1,25})', clean_line)
         found_post = False
         for m in post_m:
             dlg = m.group(1).strip()
@@ -101,7 +101,7 @@ def extract_character_dialogue(text: str) -> dict[str, list[str]]:
                 found_post = True
 
         # Check pre-quote tag: Character said, "Dialogue"
-        pre_m = re.finditer(r'\b([A-Z][a-zA-Z]{1,20})\s+(?:said|asked|whispered|murmured|replied|shouted|muttered|cried|screamed|called|growled|snapped)[,\s]+["“]([^"”]+)["”]', clean_line)
+        pre_m = re.finditer(r'\b([^\W\d_]\w{1,25})\s+(?:said|asked|whispered|murmured|replied|shouted|muttered|cried|screamed|called|growled|snapped)[,\s]+["“]([^"”]+)["”]', clean_line)
         found_pre = False
         for m in pre_m:
             char = m.group(1).strip()
@@ -149,7 +149,7 @@ def compute_voice_profile(utterances: list[str], all_characters_corpus: dict[str
     dashes = 0
 
     for u in utterances:
-        words = re.findall(r'\b[A-Za-z\']+\b', u)
+        words = re.findall(r"\b\w+(?:['\u2019-]\w+)*\b", u)
         u_len = len(words)
         total_words += u_len
         utterance_lengths.append(u_len)

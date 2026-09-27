@@ -299,16 +299,31 @@ def compile_sound_rule(rule_str: str, vowels: list, consonants: list):
     else:
         src_re = re.escape(source)
 
-    full_pattern = f"(?i)({left_re})({src_re})({right_re})"
-
     try:
-        compiled_re = re.compile(full_pattern)
+        re.compile(src_re, re.IGNORECASE)
+        if left_re:
+            re.compile(f"({left_re})$", re.IGNORECASE)
+        if right_re:
+            re.compile(f"^{right_re}", re.IGNORECASE)
     except re.error as e:
         logger.warning("Failed to compile sound change rule '%s': %s", rule_str, e)
         return lambda w: w
 
     def apply_rule(word: str) -> str:
-        return compiled_re.sub(lambda m: (m.group(1) or "") + target + (m.group(3) or ""), word)
+        res = []
+        i = 0
+        while i < len(word):
+            m_src = re.match(src_re, word[i:], re.IGNORECASE)
+            if m_src:
+                m_left = re.search(f"({left_re})$", word[:i], re.IGNORECASE) if left_re else True
+                m_right = re.match(f"^{right_re}", word[i + len(m_src.group(0)):], re.IGNORECASE) if right_re else True
+                if m_left and m_right:
+                    res.append(target)
+                    i += len(m_src.group(0))
+                    continue
+            res.append(word[i])
+            i += 1
+        return "".join(res)
 
     return apply_rule
 

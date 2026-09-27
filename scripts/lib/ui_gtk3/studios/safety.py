@@ -99,6 +99,7 @@ class SafetyStudioMixin:
         scrolled_hist.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.tree_history = Gtk.TreeView()
         self.model_history = Gtk.ListStore(str, str, str)  # Hash, Date, Message
+        self.history_store = self.model_history
         self.tree_history.set_model(self.model_history)
 
         col_hash = Gtk.TreeViewColumn("Hash", Gtk.CellRendererText(), text=0)

@@ -76,7 +76,7 @@ def analyze_chapter_text(text: str) -> dict:
             prose_lines.append(clean)
 
     full_prose = "\n\n".join(prose_lines)
-    words = re.findall(r"\b[A-Za-z0-9'-]+\b", full_prose)
+    words = re.findall(r"\b\w+(?:[-']\w+)*\b", full_prose)
     word_count = len(words)
 
     if word_count == 0:
@@ -94,13 +94,13 @@ def analyze_chapter_text(text: str) -> dict:
 
     # Dialogue extraction
     dialogue_matches = DIALOGUE_REGEX.findall(full_prose)
-    dialogue_words = sum(len(re.findall(r"\b[A-Za-z0-9'-]+\b", m)) for m in dialogue_matches)
+    dialogue_words = sum(len(re.findall(r"\b\w+(?:[-']\w+)*\b", m)) for m in dialogue_matches)
     dialogue_ratio = dialogue_words / word_count if word_count > 0 else 0.0
 
     # Sentence length metrics
     sentences = [s.strip() for s in SENTENCE_REGEX.split(full_prose) if s.strip()]
     sentence_count = len(sentences)
-    sent_lengths = [len(re.findall(r"\b[A-Za-z0-9'-]+\b", s)) for s in sentences if s]
+    sent_lengths = [len(re.findall(r"\b\w+(?:[-']\w+)*\b", s)) for s in sentences if s]
 
     if sent_lengths:
         mean_len = sum(sent_lengths) / len(sent_lengths)

@@ -126,8 +126,8 @@ class CosmosStudioMixin:
 
         if res == Gtk.ResponseType.OK and uni_name:
             def _worker():
-                cmd = [PROJECT_ROOT / "scripts" / "init_universe.sh", "--name", uni_name]
-                subprocess.run(["bash", str(cmd)], capture_output=True, text=True)
+                cmd = ["bash", str(PROJECT_ROOT / "scripts" / "arcanum"), "universe", uni_name]
+                subprocess.run(cmd, capture_output=True, text=True)
                 if HAS_GTK and GLib is not None:
                     GLib.idle_add(self.refresh_all_discovery)
             self._start_worker(_worker)

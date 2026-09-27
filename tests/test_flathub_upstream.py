@@ -39,7 +39,7 @@ class TestFlathubUpstream(unittest.TestCase):
 
         project_lic = root.find("project_license")
         self.assertIsNotNone(project_lic, "Missing <project_license> tag")
-        self.assertIn("GPL", project_lic.text or "")
+        self.assertIn("MIT", project_lic.text or "")
 
         name_elem = root.find("name")
         self.assertIsNotNone(name_elem, "Missing <name> tag")

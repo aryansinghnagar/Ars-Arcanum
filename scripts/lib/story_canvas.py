@@ -160,9 +160,9 @@ def generate_story_canvas_html(
     except Exception as e:
         logger.debug("Story canvas tips extraction skipped: %s", e)
 
-    cards_json = json.dumps(cards)
-    paradigms_json = json.dumps(PARADIGMS)
-    tips_json = json.dumps(tips_data)
+    cards_json = json.dumps(cards).replace("</", "<\\/")
+    paradigms_json = json.dumps(PARADIGMS).replace("</", "<\\/")
+    tips_json = json.dumps(tips_data).replace("</", "<\\/")
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">

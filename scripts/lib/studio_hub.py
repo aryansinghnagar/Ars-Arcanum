@@ -19,7 +19,6 @@ import http.server
 import json
 import logging
 import re
-import socketserver
 import sys
 import threading
 import time
@@ -41,7 +40,7 @@ except ImportError:
 
 logger = logging.getLogger("arcanum.studio_hub")
 
-HUB_VERSION = "4.1.0"
+HUB_VERSION = "4.2.1"
 FRONTMATTER_REGEX = re.compile(r"^---\s*\r?\n(.*?)\r?\n---\s*(?:\r?\n|$)", re.DOTALL)
 
 
@@ -443,7 +442,7 @@ def collect_studio_hub_data(project_dir: Path | None = None) -> dict[str, Any]:
 
 def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> str:
     """Generates the single-file offline responsive Studio Hub cockpit."""
-    data_json = json.dumps(data, indent=2)
+    data_json = json.dumps(data, indent=2).replace("</", "<\\/")
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -460,12 +459,12 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     --bg-sidebar: #13161f;
     --text-primary: #f0f2f5;
     --text-secondary: #9aa2b1;
-    --text-muted: #5e6676;
+    --text-muted: #8892b0;
     --accent-gold: #d4af37;
     --accent-gold-glow: rgba(212, 175, 55, 0.25);
     --accent-cyan: #38bdf8;
     --accent-emerald: #10b981;
-    --accent-crimson: #ef4444;
+    --accent-crimson: #f87171;
     --accent-purple: #a855f7;
     --border-color: #272c3d;
     --radius-sm: 6px;
@@ -482,9 +481,9 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     --bg-sidebar: #eee3cb;
     --text-primary: #3c3226;
     --text-secondary: #6e5e4d;
-    --text-muted: #9e8e7a;
+    --text-muted: #5a4c3e;
     --border-color: #d8c8b0;
-    --accent-gold: #b38600;
+    --accent-gold: #7c5200;
   }}
 
   body.theme-light {{
@@ -494,7 +493,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     --bg-sidebar: #f1f5f9;
     --text-primary: #0f172a;
     --text-secondary: #475569;
-    --text-muted: #94a3b8;
+    --text-muted: #556987;
     --border-color: #e2e8f0;
     --accent-gold: #b45309;
   }}
@@ -1271,7 +1270,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
             </tr>
           </thead>
           <tbody>
-            {"".join(f"<tr><td>{c['sequence']}</td><td><strong>{c['title']}</strong></td><td>{c['pov']}</td><td>{c['words']}</td><td>{c['reading_time_min']}m</td><td><span class='tag'>{c['status']}</span></td></tr>" for c in data['chapters'][:6])}
+            {"".join(f"<tr><td>{c['sequence']}</td><td><strong>{html.escape(str(c['title']))}</strong></td><td>{html.escape(str(c['pov']))}</td><td>{c['words']}</td><td>{c['reading_time_min']}m</td><td><span class='tag'>{html.escape(str(c['status']))}</span></td></tr>" for c in data['chapters'][:6])}
           </tbody>
         </table>
       </div>
@@ -1281,7 +1280,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
           <h3>World Lore Distribution</h3>
         </div>
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          {"".join(f"<div class='metric-card' style='flex:1; min-width: 140px;'><span class='metric-label'>{k}</span><span class='metric-value'>{v}</span></div>" for k, v in data['metrics']['lore_breakdown'].items())}
+          {"".join(f"<div class='metric-card' style='flex:1; min-width: 140px;'><span class='metric-label'>{html.escape(str(k))}</span><span class='metric-value'>{v}</span></div>" for k, v in data['metrics']['lore_breakdown'].items())}
         </div>
       </div>
     </div>
@@ -1306,7 +1305,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
             </tr>
           </thead>
           <tbody>
-            {"".join(f"<tr><td>{c['sequence']}</td><td><code>{c['file']}</code></td><td>{c['title']}</td><td>{c['pov']}</td><td>{c['words']}</td><td>{c['choices_count']} choices / {c['states_count']} states</td><td><span class='tag'>{c['status']}</span></td></tr>" for c in data['chapters'])}
+            {"".join(f"<tr><td>{c['sequence']}</td><td><code>{html.escape(str(c['file']))}</code></td><td>{html.escape(str(c['title']))}</td><td>{html.escape(str(c['pov']))}</td><td>{c['words']}</td><td>{c['choices_count']} choices / {c['states_count']} states</td><td><span class='tag'>{html.escape(str(c['status']))}</span></td></tr>" for c in data['chapters'])}
           </tbody>
         </table>
       </div>
@@ -1825,13 +1824,6 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     box.innerHTML = mutated.join(' | ');
   }}
 
-
-  </div>
-</main>
-
-<script>
-  const HUB_DATA = {data_json};
-  const IS_API_MODE = {"true" if api_mode else "false"};
   let CURRENT_TAB = 'tab-overview';
   const ALL_TIPS = (HUB_DATA && HUB_DATA.tips && HUB_DATA.tips.tips) ? HUB_DATA.tips.tips : [];
   let TIPS_ENABLED = (HUB_DATA && HUB_DATA.tips && typeof HUB_DATA.tips.enabled === 'boolean') ? HUB_DATA.tips.enabled : true;
@@ -2111,12 +2103,24 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
     data: dict[str, Any] = {}
     project_dir: Path = Path.cwd()
 
+    def _validate_host(self) -> bool:
+        host_header = self.headers.get("Host", "")
+        host_name = host_header.split(":")[0].strip().lower()
+        if host_name in ("localhost", "127.0.0.1", ""):
+            return True
+        self.send_error(403, "Forbidden: Invalid Host header")
+        return False
+
     def do_HEAD(self) -> None:
+        if not self._validate_host():
+            return
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.end_headers()
 
     def do_GET(self) -> None:
+        if not self._validate_host():
+            return
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
@@ -2161,6 +2165,8 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(404, "Endpoint not found")
 
     def do_POST(self) -> None:
+        if not self._validate_host():
+            return
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
@@ -2267,8 +2273,8 @@ def start_studio_hub_server(
     SovereignStudioHandler.data = data
     SovereignStudioHandler.project_dir = root
 
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer((host, port), SovereignStudioHandler) as httpd:
+    http.server.ThreadingHTTPServer.allow_reuse_address = True
+    with http.server.ThreadingHTTPServer((host, port), SovereignStudioHandler) as httpd:
         actual_port = httpd.server_address[1]
         url = f"http://{host}:{actual_port}/"
         print(f"⚡ Ars Arcanum Sovereign Studio Hub v{HUB_VERSION} active at: {url}")

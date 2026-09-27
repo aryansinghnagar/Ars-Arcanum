@@ -62,7 +62,7 @@ except ImportError:
             return data
 
 
-VERSION = "4.1.0"
+VERSION = "4.2.1"
 CSP_HEADER = "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;\">"
 
 
@@ -897,10 +897,10 @@ class ResonanceMesh:
         sparks_data = [s.to_dict() for s in self.generate_sparks(count=6)]
         violations_data = [v.to_dict() for v in self.audit_coherence()]
 
-        nodes_json = json.dumps(nodes_data)
-        edges_json = json.dumps(edges_data)
-        sparks_json = json.dumps(sparks_data)
-        violations_json = json.dumps(violations_data)
+        nodes_json = json.dumps(nodes_data).replace("</", "<\\/")
+        edges_json = json.dumps(edges_data).replace("</", "<\\/")
+        sparks_json = json.dumps(sparks_data).replace("</", "<\\/")
+        violations_json = json.dumps(violations_data).replace("</", "<\\/")
 
         return f"""<!DOCTYPE html>
 <html lang="en">

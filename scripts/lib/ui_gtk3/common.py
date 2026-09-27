@@ -163,6 +163,27 @@ def toggle_high_contrast() -> bool:
 class DialogHelpersMixin:
     """Standard dialog shell construction and execution mixin."""
 
+    def create_stat_card(self, title: str, count: str, subtitle: str):
+        """Creates a stylized statistics card widget for dashboards."""
+        if not HAS_GTK:
+            return None
+        card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        card.set_border_width(8)
+        if hasattr(card, "get_style_context"):
+            card.get_style_context().add_class("card-box")
+
+        lbl_title = Gtk.Label(label=f"<b>{title}</b>", use_markup=True, xalign=0)
+        lbl_count = Gtk.Label(label=f"<span size='x-large' weight='bold'>{count}</span>", use_markup=True, xalign=0)
+        if hasattr(lbl_count, "get_style_context"):
+            lbl_count.get_style_context().add_class("stat-value")
+        card.val_label = lbl_count
+        lbl_sub = Gtk.Label(label=f"<small>{subtitle}</small>", use_markup=True, xalign=0)
+
+        card.pack_start(lbl_title, False, False, 0)
+        card.pack_start(lbl_count, False, False, 0)
+        card.pack_start(lbl_sub, False, False, 0)
+        return card
+
     def _create_dialog_shell(self, title: str, width: int = 680, height: int = 480):
         if not HAS_GTK:
             return None, None

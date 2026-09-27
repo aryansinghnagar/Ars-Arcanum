@@ -2,7 +2,7 @@
 <component type="desktop-application">
   <id>org.arsarcanum.ArsArcanum</id>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>GPL-3.0-or-later</project_license>
+  <project_license>MIT</project_license>
   <name>Ars Arcanum</name>
   <summary>Sovereign speculative fiction writing and worldbuilding operating system</summary>
   
@@ -55,6 +55,11 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="4.2.1" date="2026-09-27">
+      <description>
+        <p>Release v4.2.1 — Critical Data Safety, Security &amp; Craft Stabilization: Full YAML frontmatter preservation in bidirectional DOCX sync, hardened archive restoration security, GTK3 desktop widget constructor fixes, Studio Hub HTML consolidation, Stored XSS defense across generators, Lanchester linear law combat modeling, tidal locking stellar mass scaling, and conlang overlapping environment rules.</p>
+      </description>
+    </release>
     <release version="4.0.0" date="2026-09-26">
       <description>
         <p>Phase 20 Release — Sovereign Modernization, Trimming &amp; Craft Architecture v4.0.0: Consolidated zero-dependency craft engines, Multi-POV Narrative Thread Subway Map (arcanum branch --subway), Universal Structured Corpus Exporter &amp; Vault Restore (arcanum corpus), Custom Planetary &amp; Non-Standard Astrophysics Configurations (arcanum calc astro), Invariant Multi-Calendar Chronology Engine (arcanum calendar), Interactive Vector Cartography &amp; Coordinate Landmark Editor (arcanum map), and 21-Stage Grand Tour Master Integration Lifecycle Harness.</p>

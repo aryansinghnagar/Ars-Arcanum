@@ -412,7 +412,7 @@ def calc_campaign_logistics(
     and the theoretical operational 'Wagon Radius' (point of self-starvation).
     """
     total_soldiers = infantry + cavalry + support
-    total_mounts = cavalry + (draft_horses_per_wagon * 0) # Base mounts
+    total_mounts = cavalry  # Base cavalry mounts
 
     # Daily consumption
     daily_food_kg = total_soldiers * ration_kg_soldier * (1.0 - forage_pct)
