@@ -718,11 +718,6 @@ def main():
             print(f"HTML report written to: {out_p}")
 
 
-if __name__ == "__main__":
-    main()
-
-
-# --- Idioms Integration ---
 
 
 
@@ -958,5 +953,10 @@ def resolve_manuscript_dir(target_str: str | None = None) -> str:
         print("Error: Multiple manuscripts discovered — specify one explicitly.", file=sys.stderr)
         sys.exit(2)
     return ""
+
+
+if __name__ == "__main__":
+    main()
+
 
 
