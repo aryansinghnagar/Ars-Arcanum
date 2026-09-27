@@ -1233,7 +1233,7 @@ paragraphs = parse_markdown_to_paragraphs(md_text)
 config = get_docx_config()
 build_docx_package(Path(docx_output), paragraphs, config, title=book_title, author=author_name, is_full_manuscript=True)
 PYEOF
-            [ -s "${docx_out}" ] && echo "[✓] Standard Submission DOCX generated: ${docx_out}"
+            [ -s "${docx_out}" ] && echo "[✓] Standard Submission manuscript generated: ${docx_out}"
         fi
     fi
 
