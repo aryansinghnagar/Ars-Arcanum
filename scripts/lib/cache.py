@@ -283,10 +283,12 @@ def compute_wordcounts(project_dir: str) -> dict:
         folder = os.path.dirname(rel_path) or "(root)"
         by_folder[folder] = by_folder.get(folder, 0) + wc
 
+    file_count = len(cache.get("files", {}))
     return {
         "project": os.path.basename(project_dir),
         "total_words": total_words,
-        "total_files": len(cache.get("files", {})),
+        "total_files": file_count,
+        "chapter_count": file_count,
         "by_folder": by_folder,
     }
 
@@ -302,6 +304,7 @@ def main():
     wc_cmd = subparsers.add_parser("wordcounts", help="Get aggregated word counts")
     wc_cmd.add_argument("path", help="Project directory path")
     wc_cmd.add_argument("--json", action="store_true", help="Output JSON format")
+    wc_cmd.add_argument("--md", "--markdown", dest="markdown", action="store_true", help="Output Markdown table format")
 
     clear_cmd = subparsers.add_parser("clear", help="Clear cache file")
     clear_cmd.add_argument("path", help="Project directory path")
@@ -318,6 +321,13 @@ def main():
         res = compute_wordcounts(args.path)
         if args.json:
             print(json.dumps(res, indent=2))
+        elif args.markdown:
+            print(f"# Wordcount Report: {res['project']}\n")
+            print(f"**Total Word Count**: {res['total_words']:,} words across {res['total_files']} files\n")
+            print("| Section / Folder | Word Count |")
+            print("| :--- | :--- |")
+            for folder, count in sorted(res["by_folder"].items()):
+                print(f"| `{folder}` | {count:,} |")
         else:
             print(f"Project: {res['project']}")
             print(f"Total Word Count: {res['total_words']:,} words across {res['total_files']} files\n")
