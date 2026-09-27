@@ -807,8 +807,8 @@ with open(sys.argv[9], "w", encoding="utf-8") as f:
 
     # Secondary replication
     local sec_dest="${dest_cli}"
-    if [ -z "${sec_dest}" ]; then
-        sec_dest="$(python3 -c 'from lib.config import get_backup_dest; print(get_backup_dest())' 2>/dev/null || true)"
+    if [ -z "${sec_dest}" ] && [ -f "${PROJECT_ROOT}/scripts/lib/config.py" ]; then
+        sec_dest="$(python3 "${PROJECT_ROOT}/scripts/lib/config.py" backup-dest get 2>/dev/null || true)"
     fi
     if [ -n "${sec_dest}" ] && [ "${sec_dest}" != "${primary_backup_dir}" ]; then
         mkdir -p "${sec_dest}"
