@@ -1482,12 +1482,6 @@ case "${COMMAND}" in
     resonance|mesh|cascade|spark|bridge)
         exec python3 "${PROJECT_ROOT}/scripts/lib/resonance.py" "$@"
         ;;
-    tip|tips|craft-tip|wisdom|hint|hints)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/tips.py" "$@"
-        ;;
-    import|importer|import-manuscript)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/importer.py" "$@"
-        ;;
     pace|pacing)
         exec python3 "${PROJECT_ROOT}/scripts/lib/pacing.py" pace "$@"
         ;;
