@@ -272,10 +272,11 @@ def scan_project(project_dir: str, force: bool = False) -> dict:
     return cache
 
 
-def compute_wordcounts(project_dir: str) -> dict:
+def compute_wordcounts(project_dir: str, include_pov: bool = False) -> dict:
     cache = scan_project(project_dir)
     total_words = 0
     by_folder = {}
+    pov_dist = {}
 
     for rel_path, data in cache.get("files", {}).items():
         wc = data.get("word_count", 0)
@@ -283,14 +284,27 @@ def compute_wordcounts(project_dir: str) -> dict:
         folder = os.path.dirname(rel_path) or "(root)"
         by_folder[folder] = by_folder.get(folder, 0) + wc
 
+        pov = (
+            data.get("tags", {}).get("pov")
+            or data.get("frontmatter", {}).get("pov")
+            or "Unspecified"
+        )
+        if isinstance(pov, list):
+            pov = pov[0] if pov else "Unspecified"
+        pov = str(pov).strip()
+        pov_dist[pov] = pov_dist.get(pov, 0) + wc
+
     file_count = len(cache.get("files", {}))
-    return {
+    res = {
         "project": os.path.basename(project_dir),
         "total_words": total_words,
         "total_files": file_count,
         "chapter_count": file_count,
         "by_folder": by_folder,
     }
+    if include_pov:
+        res["pov_distribution"] = pov_dist
+    return res
 
 
 def main():
@@ -305,6 +319,7 @@ def main():
     wc_cmd.add_argument("path", help="Project directory path")
     wc_cmd.add_argument("--json", action="store_true", help="Output JSON format")
     wc_cmd.add_argument("--md", "--markdown", dest="markdown", action="store_true", help="Output Markdown table format")
+    wc_cmd.add_argument("--pov", action="store_true", help="Include POV distribution metrics")
 
     clear_cmd = subparsers.add_parser("clear", help="Clear cache file")
     clear_cmd.add_argument("path", help="Project directory path")
@@ -318,7 +333,7 @@ def main():
         sys.exit(0)
 
     elif args.command == "wordcounts":
-        res = compute_wordcounts(args.path)
+        res = compute_wordcounts(args.path, include_pov=getattr(args, "pov", False))
         if args.json:
             print(json.dumps(res, indent=2))
         elif args.markdown:
