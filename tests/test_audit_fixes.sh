@@ -623,6 +623,7 @@ python3 -c 'import sys, json; d = json.load(open(sys.argv[1])); assert "overall_
 echo "  OK Test 36 passed: Idiom immersion audit and 6D Sensory Palette verified"
 
 echo "[Test 37] Prophecy Lifecycle & Fulfillment Matrix..."
+mkdir -p "${WORLD_PATH}/Cosmology/Prophecies"
 cat > "${WORLD_PATH}/Cosmology/Prophecies/Sun_Prophecy.md" << 'EOF'
 ---
 name: "Sun Prophecy"
