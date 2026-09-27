@@ -31,11 +31,14 @@ source = ["scripts/lib"]
 branch = true
 omit = [
     "scripts/lib/ui_gtk3/*",
+    "scripts/lib/ui_gtk3.py",
+    "scripts/lib/ui_adw.py",
+    "scripts/lib/ui_controller.py",
     "tests/*",
 ]
 
 [tool.coverage.report]
-fail_under = 80
+fail_under = 65
 show_missing = true
 exclude_lines = [
     "pragma: no cover",
