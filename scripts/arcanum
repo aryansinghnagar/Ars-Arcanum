@@ -1473,15 +1473,6 @@ case "${COMMAND}" in
     report|wordcount|words|count|stats)
         exec python3 "${PROJECT_ROOT}/scripts/lib/cache.py" wordcounts "$@"
         ;;
-    doc|docs|explain|guide|craft-docs)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" doc "$@"
-        ;;
-    studio|zen|zen-studio|editor)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/zen_studio.py" "$@"
-        ;;
-    resonance|mesh|cascade|spark|bridge)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/resonance.py" "$@"
-        ;;
     pace|pacing)
         exec python3 "${PROJECT_ROOT}/scripts/lib/pacing.py" pace "$@"
         ;;
