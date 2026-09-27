@@ -1060,6 +1060,46 @@ cmd_uninstall() {
     echo "[✓] Ars Arcanum launchers and symlinks uninstalled successfully."
 }
 
+cmd_world_doctor() {
+    local target_input=""
+    local json_flag=""
+    local fast_flag=""
+    local ms_arg=""
+    local other_args=()
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --json) json_flag="--json"; shift ;;
+            --fast) fast_flag="--fast"; shift ;;
+            -m|--manuscript) ms_arg="$2"; shift 2 ;;
+            -h|--help)
+                exec python3 "${PROJECT_ROOT}/scripts/lib/world_doctor.py" --help ;;
+            -*)
+                other_args+=("$1"); shift ;;
+            *)
+                if [ -z "${target_input}" ]; then target_input="$1"; else other_args+=("$1"); fi
+                shift ;;
+        esac
+    done
+
+    local selected=""
+    if [ -n "${target_input}" ]; then
+        selected="$(resolve_world_dir "${target_input}")"
+        [ -z "${selected}" ] && selected="$(resolve_target_dir "${target_input}")"
+    else
+        discover_worlds WORLDS
+        if [ ${#WORLDS[@]} -eq 1 ]; then
+            selected="${WORLDS[0]}"
+            warn_if_legacy_root "${selected}"
+        fi
+    fi
+
+    if [ -n "${selected}" ]; then
+        exec python3 "${PROJECT_ROOT}/scripts/lib/world_doctor.py" "${selected}" ${json_flag} ${fast_flag} ${ms_arg:+-m "${ms_arg}"} "${other_args[@]}"
+    else
+        exec python3 "${PROJECT_ROOT}/scripts/lib/world_doctor.py" "$@"
+    fi
+}
+
 cmd_export() {
     local target_input=""
     local title=""
@@ -1476,7 +1516,7 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/prophecy.py" "$@"
         ;;
     world-doctor|lore-doctor)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/world_doctor.py" "$@"
+        cmd_world_doctor "$@"
         ;;
     magic-check)
         exec python3 "${PROJECT_ROOT}/scripts/lib/magic_system.py" check "$@"
