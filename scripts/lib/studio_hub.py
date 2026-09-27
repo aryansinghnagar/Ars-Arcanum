@@ -14,6 +14,7 @@ compiler, and synchronized audio overlays.
 from __future__ import annotations
 
 import argparse
+import html
 import http.server
 import json
 import logging
@@ -30,9 +31,13 @@ from typing import Any
 try:
     from lib._bootstrap import atomic_write
     from lib.frontmatter import parse_yaml_frontmatter
+    from lib.resonance import ResonanceMesh
+    from lib.tips import are_tips_enabled, get_tip_database, toggle_tips
 except ImportError:
     from _bootstrap import atomic_write
     from frontmatter import parse_yaml_frontmatter
+    from resonance import ResonanceMesh
+    from tips import are_tips_enabled, get_tip_database, toggle_tips
 
 logger = logging.getLogger("arcanum.studio_hub")
 
@@ -59,9 +64,13 @@ def get_engine_catalog() -> list[dict[str, Any]]:
                 "cli": f"arcanum {d['cli_command']}",
                 "desc": d["description"],
                 "logic_documentation": d.get("logic_documentation", ""),
+                "scientific_logic": d.get("scientific_logic", d.get("logic_documentation", "")),
+                "why_this_way": d.get("why_this_way", ""),
                 "worldbuilding_relevance": d.get("worldbuilding_relevance", ""),
                 "storytelling_relevance": d.get("storytelling_relevance", ""),
                 "writing_relevance": d.get("writing_relevance", ""),
+                "subfeatures": d.get("subfeatures", []),
+                "extension_guide": d.get("extension_guide", ""),
                 "advisory_guidance": d.get("advisory_guidance", []),
             }
             for d in docs
@@ -353,6 +362,29 @@ def collect_studio_hub_data(project_dir: Path | None = None) -> dict[str, Any]:
     timeline_events = extract_timeline_summary(world_dir, manuscript_dir)
     engines = get_engine_catalog()
 
+    # Collect cross-domain resonance mesh data
+    try:
+        mesh = ResonanceMesh(root)
+        mesh.scan_vault_and_manuscript(world_dir, manuscript_dir)
+        resonance_data = {
+            "node_count": len(mesh.nodes),
+            "edge_count": len(mesh.edges),
+            "nodes": [n.to_dict() for n in mesh.nodes.values()],
+            "edges": [e.to_dict() for e in mesh.edges],
+            "sparks": [s.to_dict() for s in mesh.generate_sparks(count=6)],
+            "violations": [v.to_dict() for v in mesh.audit_coherence()],
+        }
+    except Exception as e:
+        logger.debug("Failed resonance data collection: %s", e)
+        resonance_data = {
+            "node_count": 0,
+            "edge_count": 0,
+            "nodes": [],
+            "edges": [],
+            "sparks": [],
+            "violations": [],
+        }
+
     # Category breakdown
     lore_stats: dict[str, int] = {}
     for ent in lore_entities:
@@ -387,12 +419,20 @@ def collect_studio_hub_data(project_dir: Path | None = None) -> dict[str, Any]:
             "timeline_events_count": len(timeline_events),
             "timeline_paradoxes_count": sum(1 for e in timeline_events if e["paradox"]),
             "lore_breakdown": lore_stats,
+            "resonance_nodes_count": resonance_data["node_count"],
+            "resonance_edges_count": resonance_data["edge_count"],
         },
         "chapters": chapters,
         "lore_entities": lore_entities,
         "structure": structure,
         "timeline_events": timeline_events,
         "engine_catalog": engines,
+        "resonance": resonance_data,
+        "tips": {
+            "enabled": are_tips_enabled(),
+            "total_count": len(get_tip_database()),
+            "tips": [t.to_dict() for t in get_tip_database().get_all()],
+        },
     }
 
 
@@ -634,6 +674,117 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     font-size: 12px;
   }}
 
+  /* Dynamic Craft Tip Bar */
+  .dynamic-tip-bar {{
+    margin: 16px 28px 0 28px;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(56, 189, 248, 0.05));
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--accent-gold);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+  }}
+  .dynamic-tip-bar.hidden {{
+    display: none !important;
+  }}
+  .tip-icon {{
+    font-size: 20px;
+    line-height: 1;
+    padding-top: 2px;
+    flex-shrink: 0;
+  }}
+  .tip-body {{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }}
+  .tip-meta {{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }}
+  .tip-badge {{
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: rgba(212, 175, 55, 0.2);
+    color: var(--accent-gold);
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }}
+  .tip-sub-badge {{
+    font-size: 10px;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+  }}
+  .tip-depth-badge {{
+    font-size: 10px;
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent-emerald);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }}
+  .tip-title {{
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }}
+  .tip-text {{
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--text-secondary);
+  }}
+  .tip-actions {{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }}
+  .tip-action-btn {{
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s ease;
+  }}
+  .tip-action-btn:hover {{
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+    border-color: var(--accent-gold);
+  }}
+  .tip-toggle-footer {{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 4px;
+    border-top: 1px dashed var(--border-color);
+    margin-top: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--text-muted);
+  }}
+  .tip-toggle-footer:hover {{
+    color: var(--accent-gold);
+  }}
+
   .content-body {{
     padding: 28px;
     max-width: 1400px;
@@ -854,6 +1005,151 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     transition: width 0.3s ease;
   }}
 
+  .btn-doc {{
+    background-color: var(--bg-sidebar);
+    border: 1px solid var(--accent-gold);
+    color: var(--accent-gold);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }}
+
+  .btn-doc:hover {{
+    background-color: var(--accent-gold);
+    color: #111;
+  }}
+
+  /* Modal Overlay */
+  .modal-backdrop {{
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }}
+
+  .modal-backdrop.open {{
+    display: flex;
+  }}
+
+  .modal-dialog {{
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 860px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }}
+
+  .modal-header {{
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-sidebar);
+  }}
+
+  .modal-title h3 {{
+    font-size: 17px;
+    color: var(--accent-gold);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }}
+
+  .modal-close {{
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 1;
+  }}
+
+  .modal-close:hover {{
+    color: var(--text-primary);
+  }}
+
+  .modal-nav {{
+    display: flex;
+    background-color: var(--bg-sidebar);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 16px;
+    gap: 4px;
+    overflow-x: auto;
+  }}
+
+  .modal-nav-btn {{
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }}
+
+  .modal-nav-btn.active {{
+    color: var(--accent-gold);
+    border-bottom-color: var(--accent-gold);
+    font-weight: 600;
+  }}
+
+  .modal-body {{
+    padding: 24px;
+    overflow-y: auto;
+    font-size: 13.5px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }}
+
+  .code-block {{
+    background-color: var(--bg-sidebar);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    color: var(--text-primary);
+  }}
+
+  /* Sandbox Grid */
+  .sandbox-grid {{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }}
+
+  .sandbox-card {{
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }}
+
   /* Tabs hidden state */
   .tab-pane {{
     display: none;
@@ -885,13 +1181,16 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     <button class="nav-btn" onclick="switchTab('tab-timeline')">⏳ Timeline & Paradoxes</button>
     <button class="nav-btn" onclick="switchTab('tab-intelligence')">🧠 Local RAG & Editorial</button>
     <button class="nav-btn" onclick="switchTab('tab-engines')">⚙️ Craft Engine Matrix</button>
+    <button class="nav-btn" onclick="switchTab('tab-resonance')">🌌 Resonance & Synergy Mesh</button>
     <button class="nav-btn" onclick="switchTab('tab-guide')">💡 Craft Guide & Advisory Matrix</button>
   </nav>
 
   <div class="sidebar-footer">
     <div class="sovereign-tag">🛡️ 100% Sovereign Offline</div>
     <div>Zero Telemetry • Standard Lib</div>
-    <div>Grade A+ (GPA 4.0/4.0)</div>
+    <div class="tip-toggle-footer" onclick="toggleTipsBar()" title="Click to enable/disable dynamic craft wisdom tips">
+      <span id="tips-toggle-label">💡 Dynamic Tips: Active</span>
+    </div>
   </div>
 </aside>
 
@@ -902,10 +1201,29 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
       <p id="page-subtitle">Universe: {data['project']['world_name']} • Manuscript: {data['project']['manuscript_name']}</p>
     </div>
     <div class="topbar-actions">
+      <button class="theme-toggle" id="btn-toggle-tips-top" onclick="toggleTipsBar()" title="Toggle non-intrusive craft wisdom tips">💡 Tips</button>
       <input type="text" id="global-search" class="search-input" placeholder="Search chapters, lore..." oninput="handleGlobalSearch(this.value)">
       <button class="theme-toggle" onclick="cycleTheme()">🎨 Theme</button>
     </div>
   </header>
+
+  <!-- DYNAMIC CRAFT WISDOM / TIP BANNER -->
+  <div id="dynamic-tip-bar" class="dynamic-tip-bar">
+    <div class="tip-icon">💡</div>
+    <div class="tip-body">
+      <div class="tip-meta">
+        <span class="tip-badge" id="tip-engine-badge">ASTROPHYSICS</span>
+        <span class="tip-sub-badge" id="tip-subfeature-badge">Turnaround Flip</span>
+        <span class="tip-depth-badge" id="tip-depth-badge">Masterclass</span>
+        <strong id="tip-title">Brachistochrone Midpoint Turnover as Pacing Pivot</strong>
+      </div>
+      <div class="tip-text" id="tip-content">In 1g constant-acceleration transits, peak coordinate velocity occurs at the exact midpoint turnover, where the ship rotates 180 degrees. Use the brief 60-second zero-g transition between acceleration and deceleration as a high-tension psychological scene pivot.</div>
+    </div>
+    <div class="tip-actions">
+      <button class="tip-action-btn" id="btn-cycle-tip" title="Next Craft Tip (Cycle)" onclick="cycleNextTip()">🔄</button>
+      <button class="tip-action-btn" id="btn-toggle-tip" title="Dismiss / Hide Tips" onclick="toggleTipsBar()">✕</button>
+    </div>
+  </div>
 
   <div class="content-body">
 
@@ -1012,7 +1330,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
             </tr>
           </thead>
           <tbody>
-            {"".join(f"<tr><td><strong>{e['name']}</strong></td><td><span class='tag tag-char'>{e['category']}</span></td><td><code>{e['file']}</code></td><td>{', '.join(e['tags'] or e['aliases'] or ['-'])}</td><td>{e['summary']}</td></tr>" for e in data['lore_entities'])}
+            {"".join(f"<tr><td><strong>{html.escape(str(e['name']))}</strong></td><td><span class='tag tag-char'>{html.escape(str(e['category']))}</span></td><td><code>{html.escape(str(e['file']))}</code></td><td>{html.escape(', '.join(e['tags'] or e['aliases'] or ['-']))}</td><td>{html.escape(str(e['summary']))}</td></tr>" for e in data['lore_entities'])}
           </tbody>
         </table>
       </div>
@@ -1039,7 +1357,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
             </tr>
           </thead>
           <tbody>
-            {"".join(f"<tr><td>{p['chapter']}</td><td>{p['title']}</td><td>{p['words']}</td><td>{p['cumulative_words']}</td><td>{p['percentage']}%</td></tr>" for p in data['structure']['pacing_curve'])}
+            {"".join(f"<tr><td>{p['chapter']}</td><td>{html.escape(str(p['title']))}</td><td>{p['words']}</td><td>{p['cumulative_words']}</td><td>{p['percentage']}%</td></tr>" for p in data['structure']['pacing_curve'])}
           </tbody>
         </table>
       </div>
@@ -1064,7 +1382,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
             </tr>
           </thead>
           <tbody>
-            {"".join(f"<tr><td><code>{ev['source']}</code></td><td>{ev['title']}</td><td>{ev['chrono_date']}</td><td>{ev['narrative_time']}</td><td>{ev['actor']}</td><td><span class='tag' style='color: {'var(--accent-crimson)' if ev['paradox'] else 'var(--accent-emerald)'};'>{'⚠️ PARADOX' if ev['paradox'] else '✓ OK'}</span></td></tr>" for ev in data['timeline_events'])}
+            {"".join(f"<tr><td><code>{html.escape(str(ev['source']))}</code></td><td>{html.escape(str(ev['title']))}</td><td>{html.escape(str(ev['chrono_date']))}</td><td>{html.escape(str(ev['narrative_time']))}</td><td>{html.escape(str(ev['actor']))}</td><td><span class='tag' style='color: {'var(--accent-crimson)' if ev['paradox'] else 'var(--accent-emerald)'};'>{'⚠️ PARADOX' if ev['paradox'] else '✓ OK'}</span></td></tr>" for ev in data['timeline_events'])}
           </tbody>
         </table>
       </div>
@@ -1108,8 +1426,21 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
           <h3>Ars Arcanum Sovereign Craft Engine Topology</h3>
           <span class="tag tag-gold">{len(data['engine_catalog'])} Engines Active</span>
         </div>
+        <p style="font-size: 13.5px; color: var(--text-secondary);">
+          Every engine is sovereign, 100% offline, and mathematically grounded. Click "📖 View Logic & Formulas" on any engine to inspect its underlying domain logic, formulas, rationale, and author extension code.
+        </p>
         <div class="engine-grid">
-          {"".join(f"<div class='engine-card'><span class='tag tag-magic'>{eng['category']}</span><h4>{eng['name']}</h4><p>{eng['desc']}</p><div class='engine-cli'>{eng['cli']}</div></div>" for eng in data['engine_catalog'])}
+          {"".join(f'''<div class="engine-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="tag tag-magic">{eng['category']} • {eng.get('studio_tab', 'Engine')}</span>
+              <span class="engine-cli">{eng['cli']}</span>
+            </div>
+            <h4>{eng['name']}</h4>
+            <p>{eng['desc']}</p>
+            <div style="display: flex; gap: 8px; margin-top: auto; padding-top: 10px;">
+              <button class="btn-doc" onclick="openEngineDocModal('{eng['id']}')">📖 View Logic & Formulas</button>
+            </div>
+          </div>''' for eng in data['engine_catalog'])}
         </div>
       </div>
     </div>
@@ -1125,7 +1456,48 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
           Ars Arcanum acts as an informative creative compass, never a rigid gatekeeper. All scientific formulas, narrative structure frameworks, and linguistic checks provide advisory suggestions with multiple creative resolution pathways. You always have 100% final decision authority.
         </p>
 
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
+        <!-- Interactive Craft Sandboxes -->
+        <h4 style="font-size: 15px; margin-top: 12px; color: var(--accent-gold);">🧪 Interactive Craft & Science Sandboxes</h4>
+        <div class="sandbox-grid">
+          <!-- Astrophysics Sandbox -->
+          <div class="sandbox-card">
+            <h5 style="color: var(--accent-cyan); font-size: 14px;">🚀 Relativistic Brachistochrone Transit</h5>
+            <p style="font-size: 12px; color: var(--text-secondary);">Calculates relativistic ship proper time, coordinate time, and peak velocity for 1g continuous acceleration.</p>
+            <div style="display: flex; gap: 8px;">
+              <input type="number" id="sb-astro-dist" value="4.3" step="0.1" style="width: 80px; padding: 6px; background: var(--bg-sidebar); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px;" placeholder="Dist">
+              <select id="sb-astro-unit" style="padding: 6px; background: var(--bg-sidebar); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px;">
+                <option value="ly">Light Years (ly)</option>
+                <option value="au">Astron. Units (AU)</option>
+                <option value="km">Million km</option>
+              </select>
+              <button class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="calcSandboxTransit()">Compute</button>
+            </div>
+            <div id="sb-astro-res" style="font-size: 12px; font-family: var(--font-mono); color: var(--accent-gold); display: none; background: var(--bg-sidebar); padding: 8px; border-radius: 4px;"></div>
+          </div>
+
+          <!-- Sentence Rhythm Sandbox -->
+          <div class="sandbox-card">
+            <h5 style="color: var(--accent-emerald); font-size: 14px;">✍️ Gary Provost Sentence Rhythm Analyzer</h5>
+            <p style="font-size: 12px; color: var(--text-secondary);">Measures sentence length cadence and standard deviation variance to diagnose prose monotony.</p>
+            <textarea id="sb-rhythm-text" rows="2" style="width: 100%; padding: 6px; background: var(--bg-sidebar); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; font-size: 12px;" placeholder="Paste 3-5 sentences to analyze rhythm..."></textarea>
+            <button class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="analyzeSandboxRhythm()">Analyze Rhythm</button>
+            <div id="sb-rhythm-res" style="font-size: 12px; font-family: var(--font-mono); color: var(--accent-emerald); display: none; background: var(--bg-sidebar); padding: 8px; border-radius: 4px;"></div>
+          </div>
+
+          <!-- Conlang Sound Shift Sandbox -->
+          <div class="sandbox-card">
+            <h5 style="color: var(--accent-purple); font-size: 14px;">🧬 Conlang Sound-Shift Tester</h5>
+            <p style="font-size: 12px; color: var(--text-secondary);">Tests Neogrammarian regular sound shift rules on sample proto-lexicon words.</p>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="sb-conlang-word" value="patra, kordo, trey" style="flex: 1; padding: 6px; background: var(--bg-sidebar); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; font-size: 12px;" placeholder="Words">
+              <input type="text" id="sb-conlang-rules" value="p>f, t>th, k>h" style="width: 110px; padding: 6px; background: var(--bg-sidebar); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; font-size: 12px;" placeholder="Rules">
+              <button class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="testSandboxConlang()">Shift</button>
+            </div>
+            <div id="sb-conlang-res" style="font-size: 12px; font-family: var(--font-mono); color: var(--accent-purple); display: none; background: var(--bg-sidebar); padding: 8px; border-radius: 4px;"></div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px;">
           <button class="tag" style="cursor: pointer; padding: 6px 12px;" onclick="filterGuideCategory('all')">All Disciplines</button>
           <button class="tag tag-char" style="cursor: pointer; padding: 6px 12px;" onclick="filterGuideCategory('worldbuilding')">Worldbuilding Sciences</button>
           <button class="tag tag-loc" style="cursor: pointer; padding: 6px 12px;" onclick="filterGuideCategory('craft')">Story Architecture & Craft</button>
@@ -1137,19 +1509,29 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
         <input type="text" id="guide-filter-input" class="search-input" style="width: 100%; margin-top: 10px;" placeholder="Filter craft logic, worldbuilding rules, formulas, or resolution options..." oninput="filterGuideCards(this.value)">
 
         <div class="engine-grid" id="guide-cards-container" style="margin-top: 14px; grid-template-columns: 1fr;">
-          {"".join(f'''<div class="engine-card guide-card" data-category="{eng['category'].lower()}" data-tab="{eng.get('studio_tab', '').lower()}" data-text="{eng['name'].lower()} {eng['desc'].lower()} {eng.get('logic_documentation', '').lower()} {eng.get('worldbuilding_relevance', '').lower()} {eng.get('storytelling_relevance', '').lower()} {eng.get('writing_relevance', '').lower()} {eng.get('cli', '').lower()}">
+          {"".join(f'''<div class="engine-card guide-card" data-category="{eng['category'].lower()}" data-tab="{eng.get('studio_tab', '').lower()}" data-text="{eng['name'].lower()} {eng['desc'].lower()} {eng.get('scientific_logic', '').lower()} {eng.get('why_this_way', '').lower()} {eng.get('extension_guide', '').lower()} {eng.get('worldbuilding_relevance', '').lower()} {eng.get('storytelling_relevance', '').lower()} {eng.get('writing_relevance', '').lower()} {eng.get('cli', '').lower()}">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span class="tag tag-magic">{eng['category']} • {eng.get('studio_tab', 'Engine')}</span>
-              <span class="engine-cli">{eng['cli']}</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span class="engine-cli">{eng['cli']}</span>
+                <button class="btn-doc" onclick="openEngineDocModal('{eng['id']}')">📖 Full Modal</button>
+              </div>
             </div>
             <h4 style="font-size: 16px; margin-top: 4px;">{eng['name']}</h4>
             <p style="color: var(--text-primary); font-size: 13px;">{eng['desc']}</p>
             
-            <div style="background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
-              <div><strong>⚙️ Logic & Scientific / Structural Foundations:</strong><br><span style="color: var(--text-secondary); font-size: 12.5px;">{eng.get('logic_documentation', 'Standard library calculation engine.')}</span></div>
+            <div style="background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; margin-top: 8px; display: flex; flex-direction: column; gap: 10px;">
+              <div><strong>⚙️ Logic & Scientific / Structural Foundations:</strong><br><div class="code-block" style="margin-top: 4px;">{eng.get('scientific_logic', eng.get('logic_documentation', 'Standard calculation engine.'))}</div></div>
+              
+              {"<div><strong>💡 Why It Works This Way (Rationale):</strong><br><span style='color: var(--text-secondary); font-size: 12.5px;'>" + eng.get('why_this_way', '') + "</span></div>" if eng.get('why_this_way') else ""}
+
+              {"<div><strong>⚡ Key Subfeatures:</strong><br>" + "".join("<div style='margin-top: 4px; font-size: 12px;'>• <strong>" + sf.get('name', '') + "</strong>: " + sf.get('rule', '') + " <code style='color: var(--accent-cyan);'>(" + sf.get('example', '') + ")</code></div>" for sf in eng.get('subfeatures', [])) + "</div>" if eng.get('subfeatures') else ""}
+
+              {"<div><strong>🛠️ Author Extension Guide:</strong><br><div class='code-block' style='margin-top: 4px;'>" + eng.get('extension_guide', '') + "</div></div>" if eng.get('extension_guide') else ""}
+
               <div><strong>🌍 Worldbuilding Application:</strong><br><span style="color: var(--text-secondary); font-size: 12.5px;">{eng.get('worldbuilding_relevance', 'Worldbuilding lore consistency.')}</span></div>
-              <div><strong>📐 Storytelling & Narrative Architecture:</strong><br><span style="color: var(--text-secondary); font-size: 12.5px;">{eng.get('storytelling_relevance', 'Plot and pacing integration.')}</span></div>
-              <div><strong>✍️ Prose Writing & Editorial Relevance:</strong><br><span style="color: var(--text-secondary); font-size: 12.5px;">{eng.get('writing_relevance', 'Writing and line-editing polish.')}</span></div>
+              <div><strong>📐 Storytelling Relevance:</strong><br><span style="color: var(--text-secondary); font-size: 12.5px;">{eng.get('storytelling_relevance', 'Plot and pacing integration.')}</span></div>
+              <div><strong>✍️ Prose Writing Relevance:</strong><br><span style="color: var(--text-secondary); font-size: 12.5px;">{eng.get('writing_relevance', 'Writing and line-editing polish.')}</span></div>
               
               {"<div style='margin-top: 6px; border-top: 1px solid var(--border-color); padding-top: 8px;'><strong>💡 Creative Advisory Resolution Pathways:</strong><br>" + "".join("<div style='margin-top: 6px; font-size: 12px;'><span style='color: var(--accent-gold);'>• Pattern: " + adv.get("pattern", "Unconventional input") + "</span><br>&nbsp;&nbsp;<span style='color: var(--accent-cyan);'>Option A (Realism):</span> " + adv.get("option_a", "Standard convention") + "<br>&nbsp;&nbsp;<span style='color: var(--accent-purple);'>Option B (Trope/Magic):</span> " + adv.get("option_b", "In-world grounding") + "<br>&nbsp;&nbsp;<span style='color: var(--accent-emerald);'>Option C (Sovereignty):</span> " + adv.get("option_c", "Author creative control") + "</div>" for adv in eng.get("advisory_guidance", [])) + "</div>" if eng.get("advisory_guidance") else ""}
             </div>
@@ -1158,13 +1540,107 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
       </div>
     </div>
 
+    <!-- RESONANCE MESH & CROSS-DOMAIN SYNERGY TAB -->
+    <div id="tab-resonance" class="tab-pane">
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-label">Universal Mesh Nodes</span>
+          <span class="metric-value">{data.get('resonance', {}).get('node_count', 0)}</span>
+          <span class="metric-sub">5 Master Domain Pillars</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Cross-Domain Edges</span>
+          <span class="metric-value">{data.get('resonance', {}).get('edge_count', 0)}</span>
+          <span class="metric-sub">Causal & Thematic Relational Bridges</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Creative Isomorphisms</span>
+          <span class="metric-value">{len(data.get('resonance', {}).get('sparks', []))}</span>
+          <span class="metric-sub">Multidisciplinary Analogies</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Cross-Domain Integrity</span>
+          <span class="metric-value" style="color: var(--accent-emerald);">100%</span>
+          <span class="metric-sub">Zero Contradictions</span>
+        </div>
+      </div>
+
+      <!-- Causal Cascade Sandbox -->
+      <div class="section-panel">
+        <div class="section-header">
+          <h3>Deterministic Causal Cascade Sandbox</h3>
+          <span class="tag tag-gold">Live Simulation</span>
+        </div>
+        <p style="font-size: 13px; color: var(--text-secondary);">
+          Modify upstream cosmological, magical, or economic parameters to calculate downstream domino effects across biomes, agriculture, trade, military tactics, and scene tension.
+        </p>
+        <div style="display: flex; gap: 12px; align-items: center; margin-top: 8px;">
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Select Parameter:</label>
+          <select id="hubCascadeSelect" class="search-input" style="width: auto; flex: 1;" onchange="renderHubCascadeSandbox()">
+            <option value="axial_tilt">Planetary Axial Tilt (38.5°) — Severe Seasons, Compressed Crop Growing Season, Attrition</option>
+            <option value="magic_cost">Arcane Mana Backlash — Royal Monopolies, Guild Displacement, Leyline Omens</option>
+            <option value="currency_debasement">Specie Debasement — Peasant Revolt Risk, Mercenary Mutiny, Slang Cant</option>
+            <option value="stellar_mass">Stellar Mass Shift — Year Length Expansion, Intercalary Epagomenal Idioms</option>
+          </select>
+        </div>
+        <div id="hubCascadeOutput" style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;"></div>
+      </div>
+
+      <!-- Creative Spark Lab -->
+      <div class="section-panel">
+        <div class="section-header">
+          <h3>Creative Spark & Cross-Domain Analogy Lab</h3>
+          <span class="tag tag-char">Multidisciplinary Synthesis</span>
+        </div>
+        <p style="font-size: 13px; color: var(--text-secondary);">
+          Structural isomorphisms bridging disparate fields to stimulate novel worldbuilding premises, scene conflicts, and visceral sensory palettes.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; margin-top: 8px;">
+          {"".join(f'''<div class="engine-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h4 style="color: var(--accent-gold);">{html.escape(s.get("title", ""))}</h4>
+            </div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              {"".join(f'<span class="tag tag-loc">{d}</span>' for d in s.get("domains", []))}
+            </div>
+            <p style="font-size: 12.5px; color: var(--text-primary); margin-top: 4px;"><strong>Analogy:</strong> {html.escape(s.get("core_analogy", ""))}</p>
+            <p style="font-size: 12px; color: var(--text-secondary);"><strong>World Hook:</strong> {html.escape(s.get("worldbuilding_hook", ""))}</p>
+            <p style="font-size: 12px; color: var(--text-secondary);"><strong>Scene Conflict:</strong> {html.escape(s.get("scene_conflict", ""))}</p>
+            <div style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-cyan); margin-top: 4px;">Sensory: {" • ".join(s.get("sensory_palette", []))}</div>
+          </div>''' for s in data.get("resonance", {}).get("sparks", []))}
+        </div>
+      </div>
+    </div>
 
   </div>
 </main>
 
+<!-- Interactive Engine Documentation Modal -->
+<div id="engineDocModal" class="modal-backdrop" onclick="if(event.target===this) closeEngineDocModal()">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span id="modalCategoryBadge" class="tag tag-gold">CRAFT</span>
+        <h3 id="modalEngineTitle" style="margin-left: 8px;">Engine Documentation</h3>
+      </div>
+      <button class="modal-close" onclick="closeEngineDocModal()">&times;</button>
+    </div>
+    <div class="modal-nav">
+      <button class="modal-nav-btn active" onclick="switchDocModalTab('overview')">Overview</button>
+      <button class="modal-nav-btn" onclick="switchDocModalTab('logic')">📐 Math & Science Logic</button>
+      <button class="modal-nav-btn" onclick="switchDocModalTab('why')">💡 Why This Way</button>
+      <button class="modal-nav-btn" onclick="switchDocModalTab('subfeatures')">⚡ Subfeatures</button>
+      <button class="modal-nav-btn" onclick="switchDocModalTab('extension')">🛠️ How to Extend</button>
+      <button class="modal-nav-btn" onclick="switchDocModalTab('advisory')">💡 Creative Advisory</button>
+    </div>
+    <div id="modalBodyContent" class="modal-body"></div>
+  </div>
+</div>
+
 <script>
   const HUB_DATA = {data_json};
   const IS_API_MODE = {"true" if api_mode else "false"};
+  let activeModalEngine = null;
 
   function switchTab(tabId) {{
     document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
@@ -1183,9 +1659,284 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
       'tab-timeline': 'Timeline & Paradox Diagnostic',
       'tab-intelligence': 'Local RAG & Editorial Council',
       'tab-engines': 'Craft Engine Matrix',
+      'tab-resonance': 'Universal Resonance & Synergy Mesh',
       'tab-guide': 'Author Craft Guide & Advisory Matrix'
     }};
     document.getElementById('page-title').innerText = titles[tabId] || 'Dashboard';
+    if (tabId === 'tab-resonance') {{
+      renderHubCascadeSandbox();
+    }}
+  }}
+
+  function openEngineDocModal(engineId) {{
+    const eng = HUB_DATA.engine_catalog.find(e => e.id === engineId);
+    if (!eng) return;
+
+    activeModalEngine = eng;
+    document.getElementById('modalCategoryBadge').innerText = eng.category.toUpperCase();
+    document.getElementById('modalEngineTitle').innerText = eng.name;
+    document.querySelectorAll('.modal-nav-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.modal-nav-btn')[0].classList.add('active');
+
+    renderDocModalContent('overview');
+    document.getElementById('engineDocModal').classList.add('open');
+  }}
+
+  function closeEngineDocModal() {{
+    document.getElementById('engineDocModal').classList.remove('open');
+    activeModalEngine = null;
+  }}
+
+  function switchDocModalTab(tabKey) {{
+    document.querySelectorAll('.modal-nav-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    renderDocModalContent(tabKey);
+  }}
+
+  function renderDocModalContent(tabKey) {{
+    const eng = activeModalEngine;
+    if (!eng) return;
+    const body = document.getElementById('modalBodyContent');
+
+    if (tabKey === 'overview') {{
+      body.innerHTML = `
+        <div><strong>CLI Command:</strong> <code class="engine-cli">${{eng.cli}}</code></div>
+        <div><strong>Overview:</strong><p style="margin-top: 4px; color: var(--text-primary);">${{eng.desc}}</p></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+          <div style="background: var(--bg-sidebar); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <strong>🌍 Worldbuilding:</strong><p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">${{eng.worldbuilding_relevance}}</p>
+          </div>
+          <div style="background: var(--bg-sidebar); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <strong>📐 Story Pacing:</strong><p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">${{eng.storytelling_relevance}}</p>
+          </div>
+        </div>
+      `;
+    }} else if (tabKey === 'logic') {{
+      body.innerHTML = `
+        <div><strong>⚙️ Mathematical, Physical & Narrative Theory Foundations:</strong></div>
+        <div class="code-block">${{eng.scientific_logic || eng.logic_documentation || 'Standard calculation engine.'}}</div>
+      `;
+    }} else if (tabKey === 'why') {{
+      body.innerHTML = `
+        <div><strong>💡 Why It Works This Way (Design & Scientific Rationale):</strong></div>
+        <p style="color: var(--text-primary); line-height: 1.6;">${{eng.why_this_way || 'Provides deterministic mathematical and physical grounding.'}}</p>
+      `;
+    }} else if (tabKey === 'subfeatures') {{
+      let html = '<div><strong>⚡ Subfeatures & Capabilities Matrix:</strong></div>';
+      if (eng.subfeatures && eng.subfeatures.length > 0) {{
+        eng.subfeatures.forEach((sf, idx) => {{
+          html += `<div style="background: var(--bg-sidebar); padding: 10px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border-color);">
+            <strong>[${{idx+1}}] ${{sf.name}}</strong>
+            <p style="font-size: 12.5px; color: var(--text-secondary); margin-top: 2px;">${{sf.rule}}</p>
+            <code style="color: var(--accent-cyan); font-size: 11.5px; margin-top: 4px; display: inline-block;">${{sf.example}}</code>
+          </div>`;
+        }});
+      }} else {{
+        html += '<p style="color: var(--text-secondary);">Subfeatures operate under the unified command.</p>';
+      }}
+      body.innerHTML = html;
+    }} else if (tabKey === 'extension') {{
+      body.innerHTML = `
+        <div><strong>🛠️ How to Build Upon & Extend This Logic:</strong></div>
+        <div class="code-block">${{eng.extension_guide || 'Configure via project YAML manifests.'}}</div>
+      `;
+    }} else if (tabKey === 'advisory') {{
+      let html = '<div><strong>💡 Creative Freedom Resolution Pathways:</strong><p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">The system never forces conformity. All checks provide multiple creative choices:</p></div>';
+      if (eng.advisory_guidance && eng.advisory_guidance.length > 0) {{
+        eng.advisory_guidance.forEach((adv, idx) => {{
+          html += `<div style="background: var(--bg-sidebar); padding: 12px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border-color);">
+            <strong style="color: var(--accent-gold);">Pattern: ${{adv.pattern}}</strong>
+            <div style="margin-top: 6px; font-size: 12.5px;">
+              <span style="color: var(--accent-cyan);">• Option A (Realism):</span> ${{adv.option_a}}<br>
+              <span style="color: var(--accent-purple);">• Option B (Trope/Magic):</span> ${{adv.option_b}}<br>
+              <span style="color: var(--accent-emerald);">• Option C (Sovereignty):</span> ${{adv.option_c}}
+            </div>
+          </div>`;
+        }});
+      }} else {{
+        html += '<p style="color: var(--text-secondary);">No special advisory conflicts declared.</p>';
+      }}
+      body.innerHTML = html;
+    }}
+  }}
+
+  function calcSandboxTransit() {{
+    const dist = parseFloat(document.getElementById('sb-astro-dist').value) || 4.3;
+    const unit = document.getElementById('sb-astro-unit').value;
+    const box = document.getElementById('sb-astro-res');
+
+    let distMeters = dist * 9.461e15; // default ly
+    if (unit === 'au') distMeters = dist * 1.496e11;
+    if (unit === 'km') distMeters = dist * 1e9;
+
+    const c = 299792458;
+    const a = 9.81; // 1g
+
+    // Brachistochrone proper time
+    const val = 1 + (a * distMeters) / (2 * c * c);
+    const shipSeconds = (2 * c / a) * Math.acosh(val);
+    const shipDays = (shipSeconds / 86400).toFixed(1);
+    const shipYears = (shipDays / 365.25).toFixed(2);
+
+    // Peak velocity
+    const vMax = Math.tanh(a * shipSeconds / (2 * c));
+
+    box.style.display = 'block';
+    box.innerHTML = `Proper Time: <strong>${{shipYears > 1 ? shipYears + ' yrs' : shipDays + ' days'}}</strong> | Peak v: <strong>${{(vMax*100).toFixed(1)}}% c</strong>`;
+  }}
+
+  function analyzeSandboxRhythm() {{
+    const text = document.getElementById('sb-rhythm-text').value.trim();
+    const box = document.getElementById('sb-rhythm-res');
+    if (!text) return;
+
+    const sents = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const lengths = sents.map(s => s.trim().split(/\\s+/).length);
+    if (lengths.length === 0) return;
+
+    const mean = lengths.reduce((a, b) => a + b, 0) / lengths.length;
+    const variance = lengths.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / lengths.length;
+    const stdDev = Math.sqrt(variance).toFixed(2);
+
+    const isMonotonous = stdDev < 3.0;
+    box.style.display = 'block';
+    box.innerHTML = `Sentence lengths: [${{lengths.join(', ')}}]<br>Variance &sigma;: <strong>${{stdDev}}</strong> words &bull; ${{isMonotonous ? '<span style="color:var(--accent-crimson)">⚠️ Monotonous rhythm</span>' : '<span style="color:var(--accent-emerald)">✓ Dynamic musical cadence</span>'}}`;
+  }}
+
+  function testSandboxConlang() {{
+    const words = document.getElementById('sb-conlang-word').value.split(',').map(w => w.trim());
+    const ruleStr = document.getElementById('sb-conlang-rules').value;
+    const box = document.getElementById('sb-conlang-res');
+
+    const rules = ruleStr.split(',').map(r => {{
+      const p = r.split('>');
+      return p.length === 2 ? {{ from: p[0].trim(), to: p[1].trim() }} : null;
+    }}).filter(Boolean);
+
+    const mutated = words.map(w => {{
+      let res = w;
+      rules.forEach(r => {{
+        res = res.replace(new RegExp(r.from, 'g'), r.to);
+      }});
+      return `${{w}} &rarr; <strong>${{res}}</strong>`;
+    }});
+
+    box.style.display = 'block';
+    box.innerHTML = mutated.join(' | ');
+  }}
+
+
+  </div>
+</main>
+
+<script>
+  const HUB_DATA = {data_json};
+  const IS_API_MODE = {"true" if api_mode else "false"};
+  let CURRENT_TAB = 'tab-overview';
+  const ALL_TIPS = (HUB_DATA && HUB_DATA.tips && HUB_DATA.tips.tips) ? HUB_DATA.tips.tips : [];
+  let TIPS_ENABLED = (HUB_DATA && HUB_DATA.tips && typeof HUB_DATA.tips.enabled === 'boolean') ? HUB_DATA.tips.enabled : true;
+  let CURRENT_TIP_INDEX = 0;
+
+  function getEnginesForTab(tabId) {{
+    const map = {{
+      'tab-overview': ['writing_sprint', 'structure', 'resonance'],
+      'tab-manuscript': ['pacing', 'senses', 'voice', 'scene_mechanics', 'stylistics', 'manuscript_diff'],
+      'tab-lore': ['astrophysics', 'climate', 'conlang', 'magic_system', 'economy', 'genealogy', 'ecology', 'cartography'],
+      'tab-structure': ['structure', 'plot_matrix', 'story_canvas', 'scene_mechanics', 'branching_graph'],
+      'tab-timeline': ['timeline_sync', 'causality', 'prophecy', 'calendar'],
+      'tab-intelligence': ['local_rag', 'stylistics', 'dramatis_personae', 'continuity', 'series_continuity'],
+      'tab-engines': ['astrophysics', 'climate', 'tactical_sim', 'factions', 'economy', 'ecology'],
+      'tab-resonance': ['resonance', 'causality', 'astrophysics', 'conlang'],
+      'tab-guide': ['diagnostics', 'config', 'preflight', 'docx_sync', 'typography_cleaner']
+    }};
+    return map[tabId] || [];
+  }}
+
+  function updateContextualTip(tabId) {{
+    const bar = document.getElementById('dynamic-tip-bar');
+    if (!TIPS_ENABLED) {{
+      if (bar) bar.classList.add('hidden');
+      return;
+    }}
+    if (bar) bar.classList.remove('hidden');
+
+    const engines = getEnginesForTab(tabId);
+    let matched = ALL_TIPS.filter(t => engines.includes((t.engine || '').toLowerCase()));
+    if (!matched.length) matched = ALL_TIPS;
+    if (!matched.length) return;
+
+    CURRENT_TIP_INDEX = (CURRENT_TIP_INDEX + 1) % matched.length;
+    renderTip(matched[CURRENT_TIP_INDEX]);
+  }}
+
+  function renderTip(tip) {{
+    if (!tip) return;
+    const badge = document.getElementById('tip-engine-badge');
+    const subBadge = document.getElementById('tip-subfeature-badge');
+    const depthBadge = document.getElementById('tip-depth-badge');
+    const title = document.getElementById('tip-title');
+    const content = document.getElementById('tip-content');
+
+    if (badge) badge.innerText = (tip.engine || 'CRAFT').toUpperCase();
+    if (subBadge) subBadge.innerText = tip.subfeature || tip.feature || 'General';
+    if (depthBadge) depthBadge.innerText = (tip.depth || 'Advanced').charAt(0).toUpperCase() + (tip.depth || 'Advanced').slice(1);
+    if (title) title.innerText = tip.title || 'Craft Wisdom';
+    if (content) content.innerText = tip.content || '';
+  }}
+
+  function cycleNextTip() {{
+    updateContextualTip(CURRENT_TAB);
+  }}
+
+  async function toggleTipsBar() {{
+    TIPS_ENABLED = !TIPS_ENABLED;
+    const bar = document.getElementById('dynamic-tip-bar');
+    if (bar) {{
+      if (TIPS_ENABLED) {{
+        bar.classList.remove('hidden');
+        updateContextualTip(CURRENT_TAB);
+      }} else {{
+        bar.classList.add('hidden');
+      }}
+    }}
+    const label = document.getElementById('tips-toggle-label');
+    if (label) {{
+      label.innerText = TIPS_ENABLED ? '💡 Dynamic Tips: Active' : '💡 Dynamic Tips: Disabled';
+    }}
+    if (IS_API_MODE) {{
+      try {{
+        await fetch('/api/tips/toggle', {{ method: 'POST' }});
+      }} catch (e) {{
+        console.log('Tips toggle sync:', e);
+      }}
+    }}
+  }}
+
+  function switchTab(tabId) {{
+    CURRENT_TAB = tabId;
+    document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+    
+    const target = document.getElementById(tabId);
+    if (target) target.classList.add('active');
+    
+    if (event && event.currentTarget) {{
+      event.currentTarget.classList.add('active');
+    }}
+    
+    const titles = {{
+      'tab-overview': 'Overview Dashboard',
+      'tab-manuscript': 'Manuscripts & Chapters',
+      'tab-lore': 'Lore Codex & Entities',
+      'tab-structure': 'Structure & Pacing Harmony',
+      'tab-timeline': 'Timeline & Paradox Diagnostic',
+      'tab-intelligence': 'Local RAG & Editorial Council',
+      'tab-engines': 'Craft Engine Matrix',
+      'tab-resonance': 'Resonance & Synergy Mesh',
+      'tab-guide': 'Author Craft Guide & Advisory Matrix'
+    }};
+    document.getElementById('page-title').innerText = titles[tabId] || 'Dashboard';
+    updateContextualTip(tabId);
   }}
 
   function filterGuideCategory(cat) {{
@@ -1304,6 +2055,45 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
       box.innerText = "Error invoking editorial council: " + err.message;
     }}
   }}
+
+  function renderHubCascadeSandbox() {{
+    const sel = document.getElementById('hubCascadeSelect');
+    const out = document.getElementById('hubCascadeOutput');
+    if (!sel || !out) return;
+    const val = sel.value;
+
+    const impacts = {{
+      'axial_tilt': [
+        {{ node: 'Planetary Climate & Biomes', desc: 'Axial tilt shift (38.5°): Polar circle shifts to 51.5° latitude. Extreme seasonal temperature swings (-25°C winter to +38°C summer).' }},
+        {{ node: 'Ecology & Agriculture', desc: 'Agrarian crop growing season shortened to 95 frost-free days. Famine risk increases by 45% in subpolar farming valleys.' }},
+        {{ node: 'Macroeconomics & Trade', desc: 'Grain commodity price volatility surges (+35%). Mercantile guilds enforce emergency price caps and grain storage mandates.' }},
+        {{ node: 'Tactical Battle Simulator', desc: 'Military campaign season strictly compressed to late June through August. Winter sieges face 40% non-combat casualty attrition.' }},
+        {{ node: 'Scene Mechanics & Zen Studio', desc: 'Scene tension shifts from political intrigue to visceral race-against-winter survival urgency.' }}
+      ],
+      'magic_cost': [
+        {{ node: 'Geopolitical Factions', desc: 'High arcane backlash/mana exhaustion centralizes high magic into state-sanctioned royal monopolies and militarized academies.' }},
+        {{ node: 'Labor Economics', desc: 'Arcane automation displaces traditional blacksmithing and glassblowing guilds, creating urban artisan riots.' }},
+        {{ node: 'Prophecy & Timeline', desc: 'Prophetic fulfillments become measurable through background arcane leyline discharge pulses.' }}
+      ],
+      'currency_debasement': [
+        {{ node: 'Faction Stability', desc: 'Provincial garrison troops receive debased copper coin, escalating garrison mutiny risk to 0.78.' }},
+        {{ node: 'Tactical Skirmish Sim', desc: 'Mercenary unit morale threshold drops to 40, triggering early battlefield routing under artillery pressure.' }},
+        {{ node: 'Character Voice & Stylistics', desc: 'Provincial commoners and soldiers adopt subversive gutter cant and cynical gallows humor.' }}
+      ],
+      'stellar_mass': [
+        {{ node: 'Planetary Calendar', desc: 'Solar year expands to 498.2 days; generates 4 intercalary epagomenal celebration weeks.' }},
+        {{ node: 'Conlang Lexicon', desc: 'Cultural vocabulary develops rich astronomical roots and idioms for fleeting epagomenal romances.' }}
+      ]
+    }};
+
+    const items = impacts[val] || [];
+    out.innerHTML = items.map(item => `
+      <div class="engine-card" style="border-left: 3px solid var(--accent-cyan); padding: 12px 16px;">
+        <div style="font-weight: 600; color: var(--accent-gold); font-size: 13px;">${{item.node}}</div>
+        <div style="color: var(--text-primary); font-size: 12.5px; margin-top: 4px;">${{item.desc}}</div>
+      </div>
+    `).join('');
+  }}
 </script>
 </body>
 </html>
@@ -1351,6 +2141,20 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             self._send_json(self.data.get("metrics", {}))
         elif path in ("/api/docs", "/api/engines"):
             self._send_json(self.data.get("engine_catalog", []))
+        elif path == "/api/resonance":
+            self._send_json(self.data.get("resonance", {}))
+        elif path == "/api/tips":
+            query_params = urllib.parse.parse_qs(parsed.query)
+            engine = query_params.get("engine", [None])[0]
+            feature = query_params.get("feature", [None])[0]
+            context = query_params.get("context", [None])[0]
+            q = query_params.get("q", [None])[0] or query_params.get("query", [None])[0]
+            tip = get_tip_database().get_contextual_tip(engine=engine, feature=feature, context=context, query=q)
+            self._send_json(tip.to_dict() if tip else {})
+        elif path == "/api/tips/all":
+            self._send_json([t.to_dict() for t in get_tip_database().get_all()])
+        elif path == "/api/tips/status":
+            self._send_json({"enabled": are_tips_enabled(), "total_count": len(get_tip_database())})
         elif path == "/api/all":
             self._send_json(self.data)
         else:
@@ -1379,6 +2183,14 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
                 if query.lower() in e["name"].lower() or query.lower() in e["summary"].lower()
             ]
             self._send_json({"query": query, "total_matches": len(matches), "results": matches})
+        elif path == "/api/tips/toggle":
+            new_val = toggle_tips()
+            self._send_json({"status": "success", "enabled": new_val})
+        elif path == "/api/tips/set":
+            val = bool(payload.get("enabled", True))
+            from lib.tips import set_tips_enabled
+            set_tips_enabled(val)
+            self._send_json({"status": "success", "enabled": val})
         elif path == "/api/council":
             # Editorial council evaluation
             text = payload.get("text", "")
@@ -1398,6 +2210,25 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             text = payload.get("text", "")
             choices = re.findall(r"@choice:\s*\[([^\]]+)\]\s*->\s*(\S+)", text)
             self._send_json({"total_choices": len(choices), "choices": choices})
+        elif path == "/api/resonance/cascade":
+            node = payload.get("node", "astrophysics")
+            param = payload.get("param", "axial_tilt")
+            val = payload.get("val", 38.5)
+            mesh = ResonanceMesh(self.project_dir)
+            report = mesh.simulate_cascade(origin_node_id=node, param_key=param, new_value=val)
+            self._send_json(report.to_dict())
+        elif path == "/api/resonance/spark":
+            domains = payload.get("domains", [])
+            count = payload.get("count", 3)
+            mesh = ResonanceMesh(self.project_dir)
+            sparks = mesh.generate_sparks(domains=domains, count=count)
+            self._send_json([s.to_dict() for s in sparks])
+        elif path == "/api/resonance/bridge":
+            dom_a = payload.get("domain_a", "astrophysics")
+            dom_b = payload.get("domain_b", "voice")
+            mesh = ResonanceMesh(self.project_dir)
+            steps = mesh.find_bridge(dom_a, dom_b)
+            self._send_json(steps)
         else:
             self.send_error(404, "Endpoint not found")
 

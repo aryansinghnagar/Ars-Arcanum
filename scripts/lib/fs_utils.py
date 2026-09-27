@@ -24,18 +24,28 @@ def atomic_write(path: Path | str, data: str | bytes, encoding: str = "utf-8") -
     prefix = f".{target.name}."
     fd, tmp_path_str = tempfile.mkstemp(dir=target.parent, prefix=prefix, suffix=".tmp")
     tmp_path = Path(tmp_path_str)
+    fd_closed = False
 
     try:
-        if is_bytes:
-            with os.fdopen(fd, mode) as f:
-                f.write(data)
-                f.flush()
-                os.fsync(f.fileno())
-        else:
-            with os.fdopen(fd, mode, encoding=encoding, newline="") as f:
-                f.write(data)
-                f.flush()
-                os.fsync(f.fileno())
+        try:
+            if is_bytes:
+                with os.fdopen(fd, mode) as f:
+                    fd_closed = True
+                    f.write(data)
+                    f.flush()
+                    os.fsync(f.fileno())
+            else:
+                with os.fdopen(fd, mode, encoding=encoding, newline="") as f:
+                    fd_closed = True
+                    f.write(data)
+                    f.flush()
+                    os.fsync(f.fileno())
+        finally:
+            if not fd_closed:
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
 
         # Preserve permissions of the original file if it exists
         if target.exists():

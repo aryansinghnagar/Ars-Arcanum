@@ -545,7 +545,7 @@ def export_sqlite(scanner: CorpusScanner, db_path: Path) -> Path:
         scanner.total_words(),
         scanner.total_chunks(),
         len(unique_entities),
-        "1.9.0",
+        "2.0.0",
     ))
 
     # Insert documents & chunks
@@ -681,6 +681,20 @@ def export_markdown_summary(scanner: CorpusScanner, output_file: Path) -> Path:
     return output_file
 
 
+def _validate_safe_restore_path(target_dir: Path, rel_path_str: str) -> Path:
+    """Validates that a relative path from an archive does not escape target_dir."""
+    clean_rel = Path(rel_path_str.replace("\\", "/"))
+    if clean_rel.is_absolute() or ".." in clean_rel.parts:
+        raise ValueError(f"Path traversal detected in corpus dataset: '{rel_path_str}'")
+    out_file = (target_dir / clean_rel).resolve()
+    target_resolved = target_dir.resolve()
+    try:
+        out_file.relative_to(target_resolved)
+    except ValueError:
+        raise ValueError(f"Target file path '{out_file}' escapes target directory '{target_resolved}'") from None
+    return out_file
+
+
 def restore_corpus_from_jsonl(source_path: Path, target_dir: Path) -> None:
     """Restores corpus documents from a documents.jsonl file."""
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -710,7 +724,7 @@ def restore_corpus_from_jsonl(source_path: Path, target_dir: Path) -> None:
                 pass
             
             content = "\n".join(content_parts)
-            out_file = target_dir / doc["path"]
+            out_file = _validate_safe_restore_path(target_dir, doc["path"])
             out_file.parent.mkdir(parents=True, exist_ok=True)
             atomic_write(out_file, content)
 
@@ -722,7 +736,7 @@ def restore_corpus_from_sqlite(source_path: Path, target_dir: Path) -> None:
     cursor.execute("SELECT path, frontmatter_json, body FROM documents")
     for row in cursor.fetchall():
         path_str, fm_json, body = row
-        out_file = target_dir / path_str
+        out_file = _validate_safe_restore_path(target_dir, path_str)
         out_file.parent.mkdir(parents=True, exist_ok=True)
         
         fm = json.loads(fm_json) if fm_json else {}
@@ -833,7 +847,7 @@ def main():
         generated_files.append(str(summary_file))
 
     print("=" * 75)
-    print("  🏛️  Ars Arcanum Universal Corpus Exporter — v1.9.0")
+    print("  🏛️  Ars Arcanum Universal Corpus Exporter — v2.0.0")
     print("=" * 75)
     print(f"Target:          {target_path}")
     print(f"Total Documents: {len(scanner.documents)}")

@@ -226,6 +226,25 @@ class TestCausalityEngine(unittest.TestCase):
         codes = [f["id"] for f in findings]
         self.assertIn("CAU-105", codes)
 
+    def test_temporal_inversion_cau106(self):
+        """Cause occurring chronologically after effect without time-travel -> CAU-106."""
+        self._write(
+            self.ms_dir,
+            "scene-late-cause.md",
+            "@timeline: prime\n@time: 300\n@causes: scene-early-effect\n",
+        )
+        self._write(
+            self.ms_dir,
+            "scene-early-effect.md",
+            "@timeline: prime\n@time: 100\n",
+        )
+
+        events, timelines = extract_causal_nodes(self.world_dir, self.ms_dir)
+        findings = audit_causality(events, timelines)
+
+        codes = [f["id"] for f in findings]
+        self.assertIn("CAU-106", codes)
+
     # ------------------------------------------------------------------
     # 10. test_generate_causality_mermaid
     # ------------------------------------------------------------------

@@ -205,6 +205,7 @@ def scan_scene_magic_constraints(manuscript_dir: Path, magic_systems: dict, char
             active_pov = None
             active_chars = []
             scene_reagents = []
+            char_fatigue: dict[str, int] = {}
 
             for line_idx, line in enumerate(lines, 1):
                 clean_line = line.strip()
@@ -236,10 +237,12 @@ def scan_scene_magic_constraints(manuscript_dir: Path, magic_systems: dict, char
                         elif t_name in ("cast", "magic"):
                             # Format: @cast: Character, SpellName, tier=3, catalyst=Ruby, cost=30
                             parts = [p.strip() for p in t_val.split(",")]
-                            char_name = parts[0] if parts else active_pov
+                            char_name = parts[0] if parts else (active_pov or "")
                             spell_or_disc = parts[1] if len(parts) > 1 else "arcane"
                             
                             catalyst_req = None
+                            cast_tier = None
+                            cast_cost = None
 
                             for p in parts[1:]:
                                 if "=" in p:
@@ -248,16 +251,29 @@ def scan_scene_magic_constraints(manuscript_dir: Path, magic_systems: dict, char
                                     v = v.strip().strip("\"'")
                                     if k == "tier":
                                         try:
-                                            int(v)
+                                            cast_tier = int(v)
                                         except ValueError:
                                             pass
                                     elif k in ("catalyst", "reagent"):
                                         catalyst_req = v.lower()
                                     elif k in ("cost", "fatigue"):
                                         try:
-                                            int(v)
+                                            cast_cost = int(v)
                                         except ValueError:
                                             pass
+
+                            # 1. Check Magic Tier limit (MAG-101)
+                            if cast_tier is not None and char_name in char_profiles:
+                                char_tier = char_profiles[char_name].get("magic_tier", 1)
+                                if cast_tier > char_tier:
+                                    findings.append({
+                                        "id": "MAG-101",
+                                        "severity": "WARNING",
+                                        "character": char_name,
+                                        "file": rel_path,
+                                        "line": line_idx,
+                                        "message": f"Character '{char_name}' (Tier {char_tier}) attempted to cast Tier {cast_tier} spell '{spell_or_disc}'."
+                                    })
 
                             # 2. Check Catalyst requirement (MAG-102)
                             if catalyst_req:
@@ -270,6 +286,20 @@ def scan_scene_magic_constraints(manuscript_dir: Path, magic_systems: dict, char
                                         "file": rel_path,
                                         "line": line_idx,
                                         "message": f"Casting '{spell_or_disc}' requires catalyst '{catalyst_req}', but none was found in scene reagents or character inventory."
+                                    })
+
+                            # 3. Check Fatigue / Mana budget (MAG-104)
+                            if cast_cost is not None and char_name:
+                                char_fatigue[char_name] = char_fatigue.get(char_name, 0) + cast_cost
+                                max_fatigue = char_profiles.get(char_name, {}).get("max_fatigue", 100)
+                                if char_fatigue[char_name] > max_fatigue:
+                                    findings.append({
+                                        "id": "MAG-104",
+                                        "severity": "WARNING",
+                                        "character": char_name,
+                                        "file": rel_path,
+                                        "line": line_idx,
+                                        "message": f"Character '{char_name}' exceeded maximum fatigue capacity ({char_fatigue[char_name]}/{max_fatigue}) casting '{spell_or_disc}'."
                                     })
 
                 # Check prose lines for impossible magic / hard limitations (MAG-103)

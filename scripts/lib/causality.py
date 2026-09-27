@@ -15,7 +15,8 @@ Capabilities:
    - CAU-102: Unregistered Bootstrap / Ontological Information Loop.
    - CAU-103: Novikov Self-Consistency Violation.
    - CAU-104: Orphan / Abandoned Timeline Branch.
-   - CAU-105: Temporal Inversion (Cause occurs after effect in linear time without time-travel tag).
+   - CAU-105: Dangling Causal Origin (Event references nonexistent prerequisite origin).
+   - CAU-106: Temporal Inversion (Cause occurs after effect in linear time without time-travel tag).
 3. Visualizers:
    - Obsidian Mermaid.js gitGraph / flowchart TD note export (`--write-note`).
    - Standalone interactive HTML/SVG Causal DAG visualizer (`--html`).
@@ -280,7 +281,7 @@ def audit_causality(events: dict, timelines: dict) -> list:
                     "file": einfo["file"],
                 })
 
-    # 5. Check for Linear Temporal Inversions
+    # 5. Check for Linear Temporal Inversions (CAU-106)
     for src_id, targets in adj.items():
         src_ev = events.get(src_id)
         if not src_ev or src_ev.get("paradox_type"):
@@ -295,7 +296,7 @@ def audit_causality(events: dict, timelines: dict) -> list:
             tgt_yr = parse_numeric_year(tgt_ev.get("time_coord"))
             if tgt_yr is not None and src_yr > tgt_yr:
                 findings.append({
-                    "id": "CAU-105",
+                    "id": "CAU-106",
                     "severity": "WARNING",
                     "message": f"Temporal Inversion: Cause '{src_id}' (Coord: {src_ev['time_coord']}) occurs chronologically after effect '{tgt_id}' (Coord: {tgt_ev['time_coord']}) on timeline '{src_ev['timeline']}' without time-travel tag.",
                     "file": src_ev["file"],

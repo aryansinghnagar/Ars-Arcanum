@@ -26,6 +26,7 @@ Zero external dependencies; 100% offline privacy.
 import argparse
 import logging
 import math
+import os
 import random
 import struct
 import wave
@@ -117,13 +118,25 @@ def synthesize_wav(output_path: Path, duration_sec: int = 10, noise_type: str = 
 
         frames.extend(struct.pack("<hh", val_l, val_r))
 
-    with wave.open(str(output_path), "wb") as wf:
-        wf.setnchannels(2)
-        wf.setsampwidth(2)
-        wf.setframerate(SAMPLE_RATE)
-        wf.writeframes(frames)
+    out_p = Path(output_path).resolve()
+    out_p.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = out_p.with_name(f"{out_p.name}.tmp.{os.getpid()}")
 
-    return output_path
+    try:
+        with wave.open(str(temp_path), "wb") as wf:
+            wf.setnchannels(2)
+            wf.setsampwidth(2)
+            wf.setframerate(SAMPLE_RATE)
+            wf.writeframes(frames)
+        os.replace(str(temp_path), str(out_p))
+    finally:
+        if temp_path.exists():
+            try:
+                temp_path.unlink()
+            except OSError:
+                pass
+
+    return out_p
 
 
 def generate_ambient_html_synthesizer(output_path: Path) -> Path:
@@ -333,15 +346,16 @@ def main():
         prof = PROFILES.get(args.profile, {"noise": args.profile, "carrier": 216.0, "beat": 10.0, "type": "noise"})
         
         binaural_map = {"alpha": 10.0, "theta": 6.0, "beta": 18.0, "gamma": 40.0}
-        beat_freq = binaural_map.get(args.binaural, prof.get("beat", 10.0))
+        raw_beat = binaural_map.get(args.binaural, prof.get("beat", 10.0))
+        beat_freq = float(raw_beat) if raw_beat is not None else 10.0
 
         synthesize_wav(
             output_path=out_wav,
-            duration_sec=args.duration,
-            noise_type=prof.get("noise", "brown"),
+            duration_sec=int(args.duration),
+            noise_type=str(prof.get("noise", "brown")),
             binaural_beat=beat_freq,
-            carrier_freq=prof.get("carrier", 216.0),
-            ambient_mode=prof.get("type", "rain")
+            carrier_freq=float(prof.get("carrier", 216.0)),
+            ambient_mode=str(prof.get("type", "rain"))
         )
         print(f"Synthesized {args.duration}s stereo audio [{args.profile}]: {out_wav}")
 

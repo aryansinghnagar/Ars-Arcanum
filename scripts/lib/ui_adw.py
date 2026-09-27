@@ -13,8 +13,17 @@ from pathlib import Path
 
 try:
     import lib._bootstrap  # noqa: F401
+    from lib.tips import are_tips_enabled, get_tip_database
 except ImportError:
     import _bootstrap  # noqa: F401
+    try:
+        from tips import are_tips_enabled, get_tip_database
+    except ImportError:
+        def are_tips_enabled() -> bool:
+            return True
+
+        def get_tip_database():
+            return None
 
 logger = logging.getLogger("arcanum.ui_adw")
 
@@ -126,10 +135,36 @@ class ArcanumAppAdw:
         main_box.append(self.view_stack)
         main_box.append(view_switcher_bar)
 
+        self.view_stack.connect("notify::visible-child-name", self._on_view_changed)
+
         # Status Bar / Toast Overlay (Attach main_box as child of overlay, then overlay to window)
         self.toast_overlay = Adw.ToastOverlay()
         self.toast_overlay.set_child(main_box)
         self.window.set_content(self.toast_overlay)
+
+    def _on_view_changed(self, stack, param):
+        """Presents a brief contextual craft tip upon switching studios if tips are enabled."""
+        try:
+            if not are_tips_enabled():
+                return
+            name = stack.get_visible_child_name()
+            db = get_tip_database()
+            if not db or not name:
+                return
+            context_map = {
+                "cosmos": ("cosmos", "cartography"),
+                "drafting": ("drafting", "pacing"),
+                "worldbuilding": ("worldbuilding", "magic_system"),
+                "publishing": ("publishing", "codex_export"),
+                "safety": ("safety", "fs_utils"),
+                "diagnostics": ("diagnostics", "world_doctor"),
+            }
+            ctx, eng = context_map.get(name, ("drafting", "structure"))
+            tip = db.get_contextual_tip(engine=eng, context=ctx)
+            if tip:
+                self._show_toast(f"💡 {tip.title}: {tip.content[:90]}...")
+        except Exception as e:
+            logger.debug("Adw contextual tip display skipped: %s", e)
 
     def _show_toast(self, message: str):
         toast = Adw.Toast.new(message)

@@ -1,137 +1,143 @@
-# Universal Structured Corpus & RAG Dataset Exporter
-`scripts/lib/corpus_export.py` / `arcanum corpus export`
+# Universal Structured Corpus & RAG Dataset Exporter (`docs/CORPUS_EXPORT.md`)
+> **Domain F: Corpus Analytics, Diff, Continuity, RAG & Search** | **CLI:** `arcanum corpus export` / `arcanum dataset`
 
 ---
 
-## 1. Overview & Sovereign AI Philosophy
+## 1. Overview & Theoretical Rationale
 
-Modern authors and worldbuilders often wish to leverage **local, offline AI models** (e.g. Llama 3, Mistral, Gemma, Phi) or **local vector search/retrieval systems** (RAG) to query their expansive World Bibles, character arcs, and multi-volume manuscripts. However, uploading creative intellectual property or private manuscripts to third-party cloud APIs poses serious copyright, data privacy, and telemetry risks.
+The **Ars Arcanum Corpus Exporter** (`scripts/lib/corpus_export.py`) is an offline dataset compilation, relational SQLite database builder, JSON Lines vector preparation, and vault backup engine engineered for authors and AI researchers.
 
-**Ars Arcanum's Universal Structured Corpus Exporter** transforms your sovereign writing vaults into standardized, high-performance datasets with **zero external dependencies and 100% offline privacy**:
+Authors who wish to build custom local AI writing assistants or semantic search tools need structured, clean datasets extracted from their Markdown files. Hand-parsing folders of markdown notes often fails due to complex frontmatter formats, broken relative paths, unstandardized entity names, and inconsistent chunk boundaries.
 
-- **JSON Lines (`.jsonl`)**: Standard data interchange format for embeddings, vector databases, and fine-tuning pipelines.
-- **Relational SQLite Database (`.db`)**: Normalized schema with built-in **FTS5 full-text search**, foreign key relationships, and fast indexed queries.
-- **Executive Corpus Summary Digest (`_corpus_summary.md`)**: A consolidated markdown catalog summarizing document metrics, dramatis personae frequencies, and taxonomy distributions.
+The Corpus Exporter transforms messy directories of worldbuilding notes and manuscript chapters into normalized, production-grade JSONL datasets and indexed SQLite databases with built-in FTS5 virtual tables, cryptographic SHA-256 integrity checksums, and zero-loss vault restoration capabilities.
 
 ---
 
-## 2. CLI Usage
+## 2. Dataset Compilation Pipeline & Database Schema
 
-```bash
-# Export demo cosmos to both JSONL and SQLite in dist/corpus
-arcanum corpus export templates/demo-cosmos/Eldoria-Cosmos
-
-# Export with specific format and output directory
-arcanum corpus export ~/Universes/Cosmere --format sqlite -o dist/cosmere.db
-arcanum corpus export ~/Manuscripts/The-Silver-Chronicles --format jsonl -o dist/dataset
-
-# Dry-run inspection without writing files
-arcanum corpus export ~/Universes/Eldoria --dry-run
-arcanum corpus export ~/Universes/Eldoria --json
+```mermaid
+flowchart TD
+    Vault["Author Vault (World/ & Manuscripts/)"] --> Scanner["Recursive File Scanner & Frontmatter Parser"]
+    Scanner --> Normalizer["Entity Normalizer & Wikilink Extractor"]
+    
+    Normalizer --> ChunkEngine["Heading-Aware Semantic Chunking Engine (250 words)"]
+    
+    ChunkEngine --> JSONL["JSON Lines Exporter (documents.jsonl, chunks.jsonl, entities.jsonl)"]
+    ChunkEngine --> SQLite["Relational SQLite Exporter (corpus.db + FTS5 Virtual Index)"]
+    ChunkEngine --> Digest["Executive Markdown Digest (_corpus_summary.md)"]
 ```
 
-### Command Options
+### 2.1 Heading-Aware Chunking Strategy
+To avoid splitting sentences or isolating definitions from their headings, the chunking algorithm partitions text based on Markdown structural boundaries:
 
-| Option | Flag | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `--format` | `-f` | `both` | Export format: `jsonl`, `sqlite`, `summary`, `both`, `all`. |
-| `--output` | `-o` | `dist/corpus/<name>` | Target output directory or SQLite database file path. |
-| `--chunk-size` | | `250` | Target semantic chunk size in words. |
-| `--dry-run` | | `false` | Scan repository and display summary statistics without file I/O. |
-| `--json` | | `false` | Output metadata summary as JSON to `stdout`. |
+$$\text{Chunk Partitioning Priority}: \quad \texttt{\#\# Section} \implies \texttt{\#\#\# Subsection} \implies \texttt{\\n\\n (Paragraph)} \implies \texttt{. (Sentence)}$$
 
----
+- Target Chunk Size: $200 - 300\text{ words}$ ($250 - 400\text{ tokens}$).
+- Overlap: $25\text{ words}$ sliding context window to maintain semantic continuity across chunk borders.
 
-## 3. Structured Data Schema
+### 2.2 Relational SQLite Schema
+```sql
+-- Core Documents Table
+CREATE TABLE documents (
+    id TEXT PRIMARY KEY,
+    corpus_type TEXT NOT NULL,       -- 'lore' or 'manuscript'
+    category TEXT NOT NULL,          -- 'Characters', 'Locations', 'Chapters'
+    title TEXT NOT NULL,
+    path TEXT NOT NULL,
+    word_count INTEGER NOT NULL,
+    token_count_est INTEGER NOT NULL,
+    frontmatter_json TEXT,
+    body TEXT NOT NULL,
+    sha256 TEXT NOT NULL
+);
 
-### 3.1 JSON Lines Datasets
+-- Semantic Chunks Table with FTS5 Full-Text Virtual Index
+CREATE TABLE chunks (
+    id TEXT PRIMARY KEY,
+    doc_id TEXT NOT NULL REFERENCES documents(id),
+    doc_title TEXT NOT NULL,
+    doc_category TEXT NOT NULL,
+    corpus_type TEXT NOT NULL,
+    chunk_index INTEGER NOT NULL,
+    heading TEXT,
+    text TEXT NOT NULL,
+    word_count INTEGER NOT NULL,
+    token_count_est INTEGER NOT NULL,
+    entities_json TEXT
+);
 
-1. **`documents.jsonl`**:
-   Contains top-level documents (World Bible entries, chapters, scenes, index files).
-   ```json
-   {
-     "id": "eldoria-prime/characters/aeloria-vael",
-     "corpus_type": "lore",
-     "category": "Characters",
-     "title": "Aeloria Vael",
-     "path": "Eldoria-Prime/Characters/Aeloria-Vael.md",
-     "word_count": 142,
-     "token_count_est": 189,
-     "frontmatter": { "name": "Aeloria Vael", "type": "character", "aliases": ["The Silver Blade"], "faction": "[[Order-of-the-Silver-Dawn]]" },
-     "tags": { "pov": ["Aeloria-Vael"], "aliases": ["The Silver Blade"] },
-     "entities_referenced": ["Order-of-the-Silver-Dawn", "High-Sanctuary", "Whispering-Vale", "Aether-Weaving"],
-     "body": "..."
-   }
-   ```
-
-2. **`chunks.jsonl`**:
-   Semantic heading- and paragraph-aware chunks engineered for local vector embeddings:
-   ```json
-   {
-     "id": "eldoria-prime/characters/aeloria-vael#chunk_001",
-     "doc_id": "eldoria-prime/characters/aeloria-vael",
-     "doc_title": "Aeloria Vael",
-     "doc_category": "Characters",
-     "corpus_type": "lore",
-     "chunk_index": 1,
-     "heading": "Personality & Motivation",
-     "text": "Disciplined, observant, and fiercely loyal to the protection of [[High-Sanctuary]].",
-     "word_count": 12,
-     "token_count_est": 16,
-     "entities": ["High-Sanctuary"]
-   }
-   ```
-
-3. **`entities.jsonl`**:
-   Cross-referenced entity graph with aliases, outgoing links, and mention frequency:
-   ```json
-   {
-     "id": "aeloria_vael",
-     "name": "Aeloria Vael",
-     "entity_type": "character",
-     "doc_id": "eldoria-prime/characters/aeloria-vael",
-     "aliases": ["The Silver Blade", "Champion of the Spires"],
-     "metadata": { "status": "active", "eyes": "violet" },
-     "outgoing_references": ["Order-of-the-Silver-Dawn", "High-Sanctuary"],
-     "mention_count": 14
-   }
-   ```
+CREATE VIRTUAL TABLE chunks_fts USING fts5(
+    text, heading, doc_title, doc_category,
+    content='chunks', content_rowid='rowid'
+);
+```
 
 ---
 
-### 3.2 Relational SQLite Database (`corpus.db`)
+## 3. Subfeatures Matrix
 
-The SQLite export creates a fully indexed relational database:
-
-- `corpus_meta`: Vault metadata, timestamp, total document/word/entity counts.
-- `documents`: Primary document records with JSON frontmatter and clean text bodies.
-- `chunks`: Segmented chunks linked to parent documents via `FOREIGN KEY(doc_id)`.
-- `entities`: Deduplicated entities with alias arrays and metadata payloads.
-- `entity_mentions`: Specific mentions and links between source documents and entities.
-- `relationships`: Typed edges between entities (e.g. `faction`, `origin`, `mentor`).
-- `documents_fts` & `chunks_fts`: **SQLite FTS5 Full-Text Search** virtual tables for sub-millisecond keyword lookup:
-  ```sql
-  SELECT id, title FROM documents_fts WHERE documents_fts MATCH 'swordsman';
-  ```
+| Subfeature | Algorithmic Mechanism | Diagnostic Output / Rule | Narrative Significance |
+|---|---|---|---|
+| **Multi-Format Compilation** | Emits JSON Lines (`.jsonl`), SQLite (`.db`), and Markdown digests. | Produces standardized machine-readable releases. | Bridges plaintext author notes with AI vector embeddings. |
+| **Heading-Aware Semantic Chunker**| Splits notes at Markdown headers while preserving hierarchy. | Emits chunks annotated with parent headings and entities. | Delivers optimal chunk sizes for local RAG retrieval models. |
+| **SQLite FTS5 Virtual Index** | Builds full-text search tables with tokenized BM25 ranking. | Enables instant indexed SQL queries across entire corpus. | Provides high-speed offline query capabilities for applications. |
+| **Entity Graph Extractor** | Parses wikilinks and YAML properties into relational entity nodes. | Emits `entities.jsonl` with aliases and outgoing links. | Maps cross-references between characters, factions, and places. |
+| **Cryptographic Hash Verification**| Computes SHA-256 digests for all indexed documents. | Validates data integrity during export and vault restore. | Guarantees against accidental corruption or data loss. |
 
 ---
 
-## 4. Local Python Query Example
+## 4. Author Extension & Configuration Guide
 
-```python
-import sqlite3
+### 4.1 CLI Command Reference
+```bash
+# Export world and manuscripts to both JSONL and SQLite in dist/corpus
+arcanum corpus export World/
 
-conn = sqlite3.connect("dist/corpus/eldoria-cosmos/eldoria-cosmos.db")
-cursor = conn.cursor()
+# Export only SQLite database with custom path
+arcanum corpus export World/ --format sqlite -o dist/world_corpus.db
 
-# Find all chapters referencing High-Sanctuary
-cursor.execute("""
-    SELECT d.title, c.heading, c.text
-    FROM chunks c
-    JOIN documents d ON c.doc_id = d.id
-    WHERE d.corpus_type = 'manuscript' AND c.entities_json LIKE '%High-Sanctuary%'
-""")
+# Export JSON Lines dataset with custom 300-word chunk size
+arcanum corpus export World/ --format jsonl --chunk-size 300 -o dist/dataset/
 
-for row in cursor.fetchall():
-    print(f"[{row[0]} - {row[1]}]\n{row[2]}\n")
+# Dry-run inspection without writing files to disk
+arcanum corpus export World/ --dry-run
+
+# Output export statistics as JSON
+arcanum corpus export World/ --json
+
+# Query corpus export logic and database schema
+arcanum doc corpus_export --math --why
+```
+
+---
+
+## 5. Tri-Fold Creative Advisory Resolutions
+
+```mermaid
+flowchart TD
+    Alert["Corpus Alert: LARGE_UNINDEXED_BLOB ('Map_Image.png' or 'Archive.zip' in lore folder)"] --> PathA["Path A: Hard Realism / Clean Hygiene"]
+    Alert --> PathB["Path B: Speculative / Diegetic Trope"]
+    Alert --> PathC["Path C: Authorial Sovereignty"]
+    
+    PathA --> SolA["Move binary assets to Assets/ folder and add to .arcanumignore."]
+    PathB --> SolB["Create a Markdown companion note describing the visual artifact."]
+    PathC --> SolC["Configure skip_binary_extensions in corpus_config.yaml."]
+```
+
+### Scenario: Binary Asset Ingestion Warning
+- **Path A (Hard Realism / Clean Dataset Hygiene)**:
+  - Move non-markdown files (`.png`, `.pdf`, `.zip`) to a dedicated `Assets/` directory and list it in `.arcanumignore`.
+- **Path B (Speculative / Diegetic Companion Note)**:
+  - Create a companion markdown note (e.g. `World/Artifacts/Ancient_Map.md`) with textual descriptions and lore transcription of the image so that AI models can retrieve its content.
+- **Path C (Authorial Sovereignty)**:
+  - Ignore the warning; the engine automatically skips binary files exceeding $2\text{ MB}$.
+
+---
+
+## 6. Content Security Policy & Offline Isolation
+
+All dataset exports and SQLite generation operate 100% offline with zero cloud telemetry:
+
+```html
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
 ```

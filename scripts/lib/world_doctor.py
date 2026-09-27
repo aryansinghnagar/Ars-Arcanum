@@ -235,7 +235,7 @@ def is_template(rel: str, fm: dict[str, Any]) -> bool:
 
 def _index_world_vault(
     actual_bible: Path,
-    manuscript_dir: str | None,
+    manuscript_dir: Path | str | None,
     use_cache: bool,
     max_bytes: int,
 ) -> tuple[
@@ -444,7 +444,7 @@ def _validate_duplicate_names(
 
 
 def _validate_manuscript_crossrefs(
-    manuscript_dir: str | None,
+    manuscript_dir: Path | str | None,
     index: dict[str, str],
     aliases: dict[str, str],
     max_bytes: int,
@@ -533,8 +533,8 @@ def _validate_manuscript_crossrefs(
 
 
 def check_world(
-    bible_dir: str,
-    manuscript_dir: str | None = None,
+    bible_dir: Path | str,
+    manuscript_dir: Path | str | None = None,
     use_cache: bool = False,
     max_bytes: int = MAX_DEFAULT_BYTES,
 ) -> dict[str, Any]:

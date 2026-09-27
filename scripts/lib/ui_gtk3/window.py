@@ -53,6 +53,18 @@ from lib.ui_gtk3.studios.safety import SafetyStudioMixin
 from lib.ui_gtk3.studios.speculative import SpeculativeStudioMixin
 from lib.ui_gtk3.workers import WorkerMixin
 
+try:
+    from lib.tips import are_tips_enabled, get_tip_database
+except ImportError:
+    try:
+        from tips import are_tips_enabled, get_tip_database
+    except ImportError:
+        def are_tips_enabled() -> bool:
+            return True
+
+        def get_tip_database():
+            return None
+
 logger = logging.getLogger("arcanum.ui_gtk3.window")
 
 
@@ -159,6 +171,7 @@ class ArcanumApp(
         self.notebook.append_page(self.tab_publishing, Gtk.Label(label="📚 Publishing & Exports"))
         self.notebook.append_page(self.tab_safety, Gtk.Label(label="🔒 Snapshots & Backups"))
         self.notebook.append_page(self.tab_doctor, Gtk.Label(label="🩺 Diagnostics & Doctor"))
+        self.notebook.connect("switch-page", self._on_notebook_switch_page)
 
         if active_tab:
             tab_clean = active_tab.lower().strip()
@@ -232,6 +245,29 @@ class ArcanumApp(
             return
         self.statusbar.pop(self.status_context)
         self.statusbar.push(self.status_context, message)
+
+    def _on_notebook_switch_page(self, notebook, page, page_num: int):
+        """Displays a non-intrusive contextual craft wisdom tip in statusbar when navigating studios."""
+        try:
+            if not are_tips_enabled():
+                return
+            db = get_tip_database()
+            if not db:
+                return
+            context_map = {
+                0: ("cosmos", "cartography"),
+                1: ("drafting", "pacing"),
+                2: ("worldbuilding", "magic_system"),
+                3: ("publishing", "codex_export"),
+                4: ("safety", "fs_utils"),
+                5: ("diagnostics", "world_doctor"),
+            }
+            ctx, eng = context_map.get(page_num, ("drafting", "structure"))
+            tip = db.get_contextual_tip(engine=eng, context=ctx)
+            if tip:
+                self.set_status(f"💡 [{tip.engine.upper()}]: {tip.title} — {tip.content}")
+        except Exception as e:
+            logger.debug("Failed displaying contextual status tip: %s", e)
 
     def create_selector_bar(self):
         bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)

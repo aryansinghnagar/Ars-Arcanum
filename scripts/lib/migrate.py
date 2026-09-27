@@ -11,8 +11,10 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.lockfile import ArcanumLock, acquire_manuscript_lock, acquire_world_lock
 except ImportError:
     from _bootstrap import atomic_write
+    from lockfile import ArcanumLock, acquire_manuscript_lock, acquire_world_lock
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger("arcanum.migrate")
@@ -46,89 +48,90 @@ def ensure_gitignore_entries(repo_path: Path) -> list[str]:
 def migrate_universe(u_path: Path) -> list[str]:
     """Migrates a Universe root to schema_version 1.0."""
     actions = []
-    manifest = u_path / "universe.yaml"
-    if not manifest.is_file():
-        content = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\nname: "{u_path.name}"\ndescription: "Narrative Universe."\n'
-        atomic_write(manifest, content)
-        actions.append(f"Created universe.yaml with schema_version: {CURRENT_SCHEMA_VERSION}")
-    else:
-        text = manifest.read_text(encoding="utf-8", errors="replace")
-        if "schema_version:" not in text:
-            updated = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\n' + text
-            atomic_write(manifest, updated)
-            actions.append(f"Added schema_version: {CURRENT_SCHEMA_VERSION} to universe.yaml")
-    actions.extend(ensure_gitignore_entries(u_path))
+    with ArcanumLock(u_path / ".arcanum.lock", op_name="migrate_universe"):
+        manifest = u_path / "universe.yaml"
+        if not manifest.is_file():
+            content = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\nname: "{u_path.name}"\ndescription: "Narrative Universe."\n'
+            atomic_write(manifest, content)
+            actions.append(f"Created universe.yaml with schema_version: {CURRENT_SCHEMA_VERSION}")
+        else:
+            text = manifest.read_text(encoding="utf-8", errors="replace")
+            if "schema_version:" not in text:
+                updated = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\n' + text
+                atomic_write(manifest, updated)
+                actions.append(f"Added schema_version: {CURRENT_SCHEMA_VERSION} to universe.yaml")
+        actions.extend(ensure_gitignore_entries(u_path))
     return actions
 
 
 def migrate_world(w_path: Path) -> list[str]:
     """Migrates a World Vault to schema_version 1.0."""
     actions = []
-    
-    # 1. Legacy folder migration
-    legacy_bak = w_path / "05-Backups"
-    modern_bak = w_path / "Backups"
-    if legacy_bak.is_dir() and not modern_bak.is_dir():
-        legacy_bak.rename(modern_bak)
-        actions.append("Renamed legacy 05-Backups/ to Backups/")
+    with acquire_world_lock(w_path, op_name="migrate_world"):
+        # 1. Legacy folder migration
+        legacy_bak = w_path / "05-Backups"
+        modern_bak = w_path / "Backups"
+        if legacy_bak.is_dir() and not modern_bak.is_dir():
+            legacy_bak.rename(modern_bak)
+            actions.append("Renamed legacy 05-Backups/ to Backups/")
 
-    # 2. Legacy manifest migration (scriptorium.yaml -> world.yaml)
-    legacy_manifest = w_path / "scriptorium.yaml"
-    modern_manifest = w_path / "world.yaml"
-    if legacy_manifest.is_file() and not modern_manifest.is_file():
-        content = legacy_manifest.read_text(encoding="utf-8", errors="replace")
-        if "schema_version:" not in content:
-            content = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\n' + content
-        atomic_write(modern_manifest, content)
-        actions.append("Migrated scriptorium.yaml to world.yaml")
-    elif modern_manifest.is_file():
-        text = modern_manifest.read_text(encoding="utf-8", errors="replace")
-        if "schema_version:" not in text:
-            updated = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\n' + text
-            atomic_write(modern_manifest, updated)
-            actions.append(f"Added schema_version: {CURRENT_SCHEMA_VERSION} to world.yaml")
-    else:
-        content = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\nname: "{w_path.name}"\ndescription: "World Lore Vault."\n'
-        atomic_write(modern_manifest, content)
-        actions.append(f"Created world.yaml with schema_version: {CURRENT_SCHEMA_VERSION}")
+        # 2. Legacy manifest migration (scriptorium.yaml -> world.yaml)
+        legacy_manifest = w_path / "scriptorium.yaml"
+        modern_manifest = w_path / "world.yaml"
+        if legacy_manifest.is_file() and not modern_manifest.is_file():
+            content = legacy_manifest.read_text(encoding="utf-8", errors="replace")
+            if "schema_version:" not in content:
+                content = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\n' + content
+            atomic_write(modern_manifest, content)
+            actions.append("Migrated scriptorium.yaml to world.yaml")
+        elif modern_manifest.is_file():
+            text = modern_manifest.read_text(encoding="utf-8", errors="replace")
+            if "schema_version:" not in text:
+                updated = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\n' + text
+                atomic_write(modern_manifest, updated)
+                actions.append(f"Added schema_version: {CURRENT_SCHEMA_VERSION} to world.yaml")
+        else:
+            content = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\nname: "{w_path.name}"\ndescription: "World Lore Vault."\n'
+            atomic_write(modern_manifest, content)
+            actions.append(f"Created world.yaml with schema_version: {CURRENT_SCHEMA_VERSION}")
 
-    # 3. Ensure gitignore entries
-    actions.extend(ensure_gitignore_entries(w_path))
+        # 3. Ensure gitignore entries
+        actions.extend(ensure_gitignore_entries(w_path))
     return actions
 
 
 def migrate_manuscript(m_path: Path) -> list[str]:
     """Migrates a Manuscript project to schema_version 1.0."""
     actions = []
-    
-    # 1. Legacy folder migrations
-    legacy_pub = m_path / "04-Publishing"
-    modern_exp = m_path / "Exports"
-    if legacy_pub.is_dir() and not modern_exp.is_dir():
-        legacy_pub.rename(modern_exp)
-        actions.append("Renamed legacy 04-Publishing/ to Exports/")
+    with acquire_manuscript_lock(m_path, op_name="migrate_manuscript"):
+        # 1. Legacy folder migrations
+        legacy_pub = m_path / "04-Publishing"
+        modern_exp = m_path / "Exports"
+        if legacy_pub.is_dir() and not modern_exp.is_dir():
+            legacy_pub.rename(modern_exp)
+            actions.append("Renamed legacy 04-Publishing/ to Exports/")
 
-    legacy_bak = m_path / "05-Backups"
-    modern_bak = m_path / "Backups"
-    if legacy_bak.is_dir() and not modern_bak.is_dir():
-        legacy_bak.rename(modern_bak)
-        actions.append("Renamed legacy 05-Backups/ to Backups/")
+        legacy_bak = m_path / "05-Backups"
+        modern_bak = m_path / "Backups"
+        if legacy_bak.is_dir() and not modern_bak.is_dir():
+            legacy_bak.rename(modern_bak)
+            actions.append("Renamed legacy 05-Backups/ to Backups/")
 
-    # 2. Manifest migration
-    manifest = m_path / "manuscript.yaml"
-    if manifest.is_file():
-        text = manifest.read_text(encoding="utf-8", errors="replace")
-        if "schema_version:" not in text:
-            updated = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\n' + text
-            atomic_write(manifest, updated)
-            actions.append(f"Added schema_version: {CURRENT_SCHEMA_VERSION} to manuscript.yaml")
-    else:
-        content = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\ntitle: "{m_path.name}"\nauthor: "Author"\n'
-        atomic_write(manifest, content)
-        actions.append(f"Created manuscript.yaml with schema_version: {CURRENT_SCHEMA_VERSION}")
+        # 2. Manifest migration
+        manifest = m_path / "manuscript.yaml"
+        if manifest.is_file():
+            text = manifest.read_text(encoding="utf-8", errors="replace")
+            if "schema_version:" not in text:
+                updated = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\n' + text
+                atomic_write(manifest, updated)
+                actions.append(f"Added schema_version: {CURRENT_SCHEMA_VERSION} to manuscript.yaml")
+        else:
+            content = f'schema_version: "{CURRENT_SCHEMA_VERSION}"\ntitle: "{m_path.name}"\nauthor: "Author"\n'
+            atomic_write(manifest, content)
+            actions.append(f"Created manuscript.yaml with schema_version: {CURRENT_SCHEMA_VERSION}")
 
-    # 3. Ensure gitignore entries
-    actions.extend(ensure_gitignore_entries(m_path))
+        # 3. Ensure gitignore entries
+        actions.extend(ensure_gitignore_entries(m_path))
     return actions
 
 

@@ -133,7 +133,10 @@ def extract_book_entities(book_dir: Path) -> dict:
         if char_tag_m:
             raw_names = char_tag_m.group(2).strip()
             for r_name in raw_names.split(","):
-                c_clean = r_name.strip().strip('"\'').title()
+                cleaned = r_name.strip().strip("[]\"'")
+                if "|" in cleaned:
+                    cleaned = cleaned.split("|")[0].strip().strip("[]\"'")
+                c_clean = cleaned.title()
                 if c_clean and c_clean not in PRONOUN_EXCLUSIONS:
                     characters.add(c_clean)
         for m in re.finditer(r'\b([A-Z][a-z]{2,15})\s+(?:said|asked|shouted|whispered|cried|replied|thought|stepped|drew|smiled|nodded|commanded|looked|turned|stood|fought|advanced)\b', line):

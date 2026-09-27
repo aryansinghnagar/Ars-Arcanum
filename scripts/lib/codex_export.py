@@ -246,6 +246,16 @@ def build_single_file_codex(categories: dict[str, list[dict]], world_name: str, 
 </main>
 
 <script>
+function escapeHtml(str) {{
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}}
+
 const index = {search_json};
 let originalNavHtml = '';
 
@@ -278,8 +288,8 @@ function doSearch() {{
   matches.forEach(m => {{
     const a = document.createElement('a');
     a.className = 'nav-link';
-    a.href = '#' + m.id;
-    a.innerHTML = `<strong>${{m.title}}</strong> <small style="color:var(--muted);">(${{m.tax}})</small>`;
+    a.href = '#' + encodeURIComponent(m.id);
+    a.innerHTML = `<strong>${{escapeHtml(m.title)}}</strong> <small style="color:var(--muted);">(${{escapeHtml(m.tax)}})</small>`;
     a.onclick = () => showArticle(m.id);
     nav.appendChild(a);
   }});

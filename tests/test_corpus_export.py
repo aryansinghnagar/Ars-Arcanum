@@ -199,25 +199,26 @@ This is paragraph in section two with [[High-Sanctuary]].
         self.assertTrue(db_file.exists())
 
         conn = sqlite3.connect(str(db_file))
-        cur = conn.cursor()
+        try:
+            cur = conn.cursor()
 
-        # Meta table
-        cur.execute("SELECT total_docs, total_words, version FROM corpus_meta")
-        row = cur.fetchone()
-        self.assertEqual(row[0], 4)
-        self.assertEqual(row[2], "1.9.0")
+            # Meta table
+            cur.execute("SELECT total_docs, total_words, version FROM corpus_meta")
+            row = cur.fetchone()
+            self.assertEqual(row[0], 4)
+            self.assertEqual(row[2], "2.0.0")
 
-        # Documents table
-        cur.execute("SELECT COUNT(*) FROM documents")
-        self.assertEqual(cur.fetchone()[0], 4)
+            # Documents table
+            cur.execute("SELECT COUNT(*) FROM documents")
+            self.assertEqual(cur.fetchone()[0], 4)
 
-        # FTS5 search
-        cur.execute("SELECT id, title FROM documents_fts WHERE documents_fts MATCH 'swordsman'")
-        fts_res = cur.fetchall()
-        self.assertGreaterEqual(len(fts_res), 1)
-        self.assertIn("aeloria", fts_res[0][0].lower())
-
-        conn.close()
+            # FTS5 search
+            cur.execute("SELECT id, title FROM documents_fts WHERE documents_fts MATCH 'swordsman'")
+            fts_res = cur.fetchall()
+            self.assertGreaterEqual(len(fts_res), 1)
+            self.assertIn("aeloria", fts_res[0][0].lower())
+        finally:
+            conn.close()
 
     def test_export_markdown_summary(self):
         scanner = CorpusScanner(self.root)

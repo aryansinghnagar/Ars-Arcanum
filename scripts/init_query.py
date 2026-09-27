@@ -24,6 +24,14 @@ import logging
 import sys
 from pathlib import Path
 
+try:
+    from lib._bootstrap import atomic_write
+except ImportError:
+    try:
+        from scripts.lib._bootstrap import atomic_write
+    except ImportError:
+        from _bootstrap import atomic_write
+
 if hasattr(sys.stdout, "reconfigure"):
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -146,7 +154,7 @@ def scaffold_submission_package(manuscript_path: Path, metadata: dict, force: bo
         if fp.is_file() and not force:
             skipped.append(str(fp))
         else:
-            fp.write_text(content, encoding="utf-8")
+            atomic_write(fp, content)
             created.append(str(fp))
 
     return {

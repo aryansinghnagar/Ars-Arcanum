@@ -201,6 +201,11 @@ def calc_brachistochrone(distance_m: float, acc_mps2: float = G0, exhaust_vel_mp
     Calculates exact relativistic 1-turnover (accelerate to midpoint, decelerate to stop)
     continuous-thrust Brachistochrone spaceflight trajectory.
     """
+    if distance_m <= 0:
+        raise ValueError("Flight distance must be greater than zero.")
+    if acc_mps2 <= 0:
+        raise ValueError("Acceleration must be greater than zero.")
+
     a = acc_mps2
     d = distance_m
     half_d = d / 2.0
@@ -324,6 +329,8 @@ def calc_orbital_transfer(primary_body: str = "sun", r1_m: float | None = None, 
         r1_m = AU
     if r2_m is None:
         r2_m = 1.524 * AU
+    if r1_m <= 0 or r2_m <= 0:
+        raise ValueError("Orbital radii r1 and r2 must be greater than zero.")
     m_primary = primary_mass_kg
     body_name = primary_body.capitalize()
     if primary_body.lower() in BODY_PRESETS:
@@ -333,6 +340,9 @@ def calc_orbital_transfer(primary_body: str = "sun", r1_m: float | None = None, 
     elif not m_primary:
         m_primary = SOLAR_MASS
         body_name = "Sun (Standard)"
+
+    if m_primary <= 0:
+        raise ValueError("Primary body mass must be greater than zero.")
 
     mu = G * m_primary
 
@@ -388,6 +398,8 @@ def calc_orbital_transfer(primary_body: str = "sun", r1_m: float | None = None, 
 
 def calc_comms_delay(distance_m: float) -> dict:
     """Calculates electromagnetic signal propagation latencies."""
+    if distance_m < 0:
+        raise ValueError("Comms distance cannot be negative.")
     one_way_sec = distance_m / C
     rtt_sec = 2.0 * one_way_sec
     return {
@@ -402,6 +414,13 @@ def calc_comms_delay(distance_m: float) -> dict:
 
 def calc_habitability_gravity(mass_kg: float, radius_m: float, star_luminosity_watts: float = SOLAR_LUMINOSITY) -> dict:
     """Calculates planetary surface gravity, escape velocity, and stellar habitable zone."""
+    if radius_m <= 0:
+        raise ValueError("Planetary radius must be greater than zero.")
+    if mass_kg < 0:
+        raise ValueError("Planetary mass cannot be negative.")
+    if star_luminosity_watts < 0:
+        raise ValueError("Stellar luminosity cannot be negative.")
+
     g_surf = (G * mass_kg) / (radius_m * radius_m)
     g_ratio = g_surf / G0
     v_esc = math.sqrt((2.0 * G * mass_kg) / radius_m)

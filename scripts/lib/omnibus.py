@@ -177,8 +177,8 @@ def compile_omnibus_manuscript(
     # Markdown assembly
     md_lines = [
         "---",
-        f'title: "{series_title}"',
-        f'author: "{author}"',
+        f"title: {json.dumps(series_title)}",
+        f"author: {json.dumps(author)}",
         f"volumes_count: {len(volumes)}",
         f"total_word_count: {total_words}",
         "---",

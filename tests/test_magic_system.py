@@ -96,7 +96,45 @@ A promising initiate.
         self.assertIn("ruby focus", chars["Valen Vance"]["catalysts"])
         self.assertEqual(chars["Valen Vance"]["max_fatigue"], 80)
 
+    def test_detect_tier_overflow_mag101(self) -> None:
+        """MAG-101 is raised when a character casts a spell above their registered tier."""
+        (self.world_dir / "Characters" / "Valen.md").write_text("""---
+name: "Valen Vance"
+magic_tier: 1
+---
+""", encoding="utf-8")
 
+        scene = self.ms_dir / "Book-01" / "01_Act_I" / "01_Scene.md"
+        scene.write_text("""# Scene 1
+@pov: Valen Vance
+@cast: Valen Vance, Cataclysm, tier=4
+
+The sky shattered.
+""", encoding="utf-8")
+
+        audit = run_magic_audit(str(self.world_dir), str(self.ms_dir))
+        self.assertTrue(any(f["id"] == "MAG-101" for f in audit["findings"]))
+
+    def test_detect_fatigue_overflow_mag104(self) -> None:
+        """MAG-104 is raised when accumulated spell cost in a scene exceeds max fatigue."""
+        (self.world_dir / "Characters" / "Valen.md").write_text("""---
+name: "Valen Vance"
+magic_tier: 3
+max_fatigue: 50
+---
+""", encoding="utf-8")
+
+        scene = self.ms_dir / "Book-01" / "01_Act_I" / "01_Scene.md"
+        scene.write_text("""# Scene 1
+@pov: Valen Vance
+@cast: Valen Vance, Fireball, cost=30
+@cast: Valen Vance, Fireball, cost=30
+
+Valen collapsed from exhaustion.
+""", encoding="utf-8")
+
+        audit = run_magic_audit(str(self.world_dir), str(self.ms_dir))
+        self.assertTrue(any(f["id"] == "MAG-104" for f in audit["findings"]))
 
     def test_detect_missing_catalyst_mag102(self) -> None:
         """MAG-102 is raised when required spell catalyst is absent from scene and inventory."""

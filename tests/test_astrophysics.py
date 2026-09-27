@@ -144,6 +144,20 @@ class TestAstrophysicsEngine(unittest.TestCase):
         self.assertIn("climate_circulation", dossier)
         self.assertTrue(any("Tidally locked" in w for w in dossier["scientific_plausibility_warnings"]))
 
+    def test_boundary_validation_clamps(self):
+        with self.assertRaises(ValueError):
+            calc_brachistochrone(0.0)
+        with self.assertRaises(ValueError):
+            calc_brachistochrone(1000.0, acc_mps2=-1.0)
+        with self.assertRaises(ValueError):
+            calc_orbital_transfer(r1_m=-1.0)
+        with self.assertRaises(ValueError):
+            calc_comms_delay(-100.0)
+        with self.assertRaises(ValueError):
+            calc_habitability_gravity(EARTH_MASS, radius_m=0.0)
+        with self.assertRaises(ValueError):
+            calc_habitability_gravity(EARTH_MASS, EARTH_RADIUS, star_luminosity_watts=-10.0)
+
 
 if __name__ == "__main__":
     unittest.main()

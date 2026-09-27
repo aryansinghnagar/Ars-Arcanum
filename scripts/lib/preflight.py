@@ -35,8 +35,10 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.frontmatter import parse_yaml_frontmatter
 except ImportError:
     from _bootstrap import atomic_write
+    from frontmatter import parse_yaml_frontmatter
 
 logger = logging.getLogger("arcanum.preflight")
 
@@ -52,13 +54,15 @@ def check_metadata(manuscript_dir: Path) -> dict:
         return {"valid": False, "issues": issues, "data": {}}
 
     try:
-        # Simple YAML key-value parser to avoid PyYAML dependency
-        lines = manifest_path.read_text(encoding="utf-8", errors="replace").splitlines()
-        for line in lines:
-            line = line.strip()
-            if ":" in line and not line.startswith("#"):
-                k, v = line.split(":", 1)
-                metadata[k.strip()] = v.strip().strip('"\'')
+        raw_text = manifest_path.read_text(encoding="utf-8", errors="replace")
+        metadata = parse_yaml_frontmatter(raw_text)
+        if not metadata:
+            lines = raw_text.splitlines()
+            for line in lines:
+                line = line.strip()
+                if ":" in line and not line.startswith("#"):
+                    k, v = line.split(":", 1)
+                    metadata[k.strip()] = v.strip().strip('"\'')
     except Exception as e:
         issues.append({"level": "FAIL", "code": "META-02", "message": f"Failed reading manuscript.yaml: {e}"})
 

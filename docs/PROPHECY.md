@@ -1,230 +1,152 @@
-# Prophecy Resolution Matrix — Author Guide
-
-> **Command:** `arcanum prophecy`
-> **Module:** `scripts/lib/prophecy.py`
-> **Phase:** 13 — The Sovereign Craft Deepening
+# Prophecy Resolution Matrix, Constraint Satisfaction & Dramatic Irony (`docs/PROPHECY.md`)
+> **Domain C: Magic Systems, Metaphysics, Metasystems & Causality** | **CLI:** `arcanum prophecy` / `arcanum oracle`
 
 ---
 
-## Overview
+## 1. Overview & Theoretical Rationale
 
-The **Prophecy Resolution Matrix** cross-validates in-world prophecy lore against manuscript progress and World Bible character data. It answers three craft questions every epic-fantasy author must track:
+The **Ars Arcanum Prophecy Engine** (`scripts/lib/prophecy.py`) is an offline predictive constraint validator, dramatic irony modeler, and narrative foreshadowing auditor engineered for epic fantasy authors, mythological worldbuilders, and tragedy dramatists.
 
-1. **Is every prophecy actually *in* my story?** (Lore that never appears in the manuscript is dead weight.)
-2. **Can the chosen one still fulfill it?** (A deceased target entity makes fulfillment impossible.)
-3. **Does the manuscript *earn* the resolution status I've declared in lore?** (Marking a prophecy `fulfilled` without manuscript evidence is a continuity error.)
+In mythological and high-fantasy literature, prophecies are powerful structural promises that establish intense reader expectations. Authors encounter three major architectural failure modes:
+1. **Unearned Declared Fulfillment (`PRO-101`)**: Labeling a prophecy as `fulfilled` in lore notes when zero corresponding fulfillment events occur in the manuscript.
+2. **Dead Target Entity (`PRO-102`)**: The destined "Chosen One" dies prematurely before completing the prophecy's clauses without an explicit subversion tag.
+3. **Orphan Lore Prophecies (`PRO-103`)**: Sprawling mythological prophecies created in the World Bible that never appear in prose or influence character actions.
+4. **Dramatic Irony Decay**: Failing to track the epistemic gap between what the reader knows from the prophecy versus what the characters understand.
 
-The engine scans `Cosmology/Prophecies/*.md` in the World Bible, aggregates prophecy metadata, and then cross-validates against manuscript scene text and `@prophecy:` scene tags.
+The Prophecy Engine extracts prophecy definitions (`World/Cosmology/Prophecies/*.md`), cross-validates them against character dossiers and manuscript `@prophecy:` tags, computes clause-level Boolean fulfillment vectors, models dramatic irony metrics, and generates interactive HTML audit reports.
 
 ---
 
-## Lore Schema — Prophecy File Frontmatter
+## 2. Mathematical Modeling, CSP & Epistemic Theory
 
-Prophecy lore files live at:
-
+```mermaid
+flowchart TD
+    Prophecies["Prophecy Dossiers (World/Cosmology/Prophecies/*.md)"] --> CSPCompiler["Constraint Satisfaction Compiler"]
+    Characters["Character Dossiers (Lifecycles & Statuses)"] --> TargetValidator["Chosen One Lifecycle Validator"]
+    Manuscript["Manuscript Chapters (@prophecy, @prophecy-fulfilled)"] --> ClauseScanner["Clause Resolution Scanner"]
+    
+    CSPCompiler & TargetValidator & ClauseScanner --> AuditEngine["Prophecy Continuity Auditor (PRO-101, PRO-102, PRO-103)"]
+    
+    ClauseScanner --> EpistemicMath["Dramatic Irony Divergence Engine D_irony(t)"]
+    AuditEngine & EpistemicMath --> HTMLReport["Offline Interactive HTML Prophecy Matrix"]
 ```
-<WorldDir>/Cosmology/Prophecies/<Prophecy_Name>.md
-```
 
-### Frontmatter Reference
+### 2.1 Prophecy as a Constraint Satisfaction Problem (CSP)
+A prophecy $\Phi$ is formalized as a tuple $(X, D, C)$:
+- $X = \{x_1, x_2, \dots, x_k\}$: Set of predictive condition variables (clauses).
+- $D = \{\{0, 1\}\}^k$: Boolean domain of fulfillment states ($0 = \text{unresolved}, 1 = \text{fulfilled}$).
+- $C = \{\phi_1, \phi_2, \dots, \phi_m\}$: Logical constraints linking clauses to temporal windows, locations, and actors.
 
-```yaml
+The global prophecy fulfillment state vector $\vec{S}(\Phi) \in \{0, 1\}^k$:
+$$\text{Status}(\Phi) = \begin{cases} 
+\text{unfulfilled} & \text{if } \sum_{i=1}^k x_i = 0 \\
+\text{partially\_fulfilled} & \text{if } 0 < \sum_{i=1}^k x_i < k \\
+\text{fulfilled} & \text{if } \sum_{i=1}^k x_i = k \land \neg \text{Subverted} \\
+\text{subverted} & \text{if } \sum_{i=1}^k x_i = k \land \text{IronicInversion} \\
+\text{broken} & \text{if } \exists i \text{ s.t. } x_i \text{ is rendered impossible (e.g. Chosen One dead)}
+\end{cases}$$
+
+### 2.2 Dramatic Irony Divergence Metric ($D_{\text{irony}}$)
+Dramatic irony measures the cognitive divergence between the reader's knowledge base $\mathcal{K}_{\text{reader}}(t)$ and the viewpoint character's knowledge base $\mathcal{K}_{\text{char}}(t)$ at narrative chapter index $t$:
+
+$$D_{\text{irony}}(t) = \frac{|\mathcal{K}_{\text{reader}}(t) \setminus \mathcal{K}_{\text{char}}(t)|}{|\mathcal{K}_{\text{reader}}(t)|} \in [0.0, 1.0]$$
+
+- $D_{\text{irony}} \approx 0.0$: **Mystery Mode** (Reader and character share identical knowledge).
+- $D_{\text{irony}} \ge 0.60$: **Tragic / Suspense Mode** (Reader possesses vital prophetic secrets that the protagonist is ignorantly marching toward).
+
 ---
-name: "The Bleeding Star"           # Canonical prophecy name (required)
-type: prophecy                      # Must contain 'prophecy' for discovery
-oracle: "[[Pythia of Delphi]]"      # Wikilink or plain name of the prophecy's source
-target_entity: "[[Chosen King]]"    # Wikilink or plain name of the destined recipient
-status: unfulfilled                 # See Status Lifecycle below
-clauses:                            # Predictive conditions / sub-prophecies
-  - "When the red star bleeds across the dawn"
-  - "The shattered crown shall be remade"
-  - "And the last heir shall drink from the broken cup"
-date_uttered: "3rd Age, Year 401"   # Optional; era or date when prophecy was spoken
-resolution_criteria: |              # Optional free-text clarification of fulfillment conditions
-  All three clauses must occur within a single lunar cycle.
+
+## 3. Subfeatures Matrix & Diagnostic Codes
+
+| Code / Feature | Algorithmic Mechanism | Severity | Diagnostic Rule / Trigger | Narrative Significance |
+|:---|---|:---:|---|---|
+| **`PRO-101`** | Manuscript cross-reference validator. | `ERROR` | **Unearned Fulfillment**: Prophecy marked `fulfilled` in lore with 0 manuscript events. | Prevents fake resolution claims unsupported by prose. |
+| **`PRO-102`** | Character lifecycle cross-referencer. | `ERROR` | **Dead Target Entity**: Chosen One is deceased while prophecy remains `unfulfilled`. | Catches broken prophecies or prompts tragic subversion tags. |
+| **`PRO-103`** | World vs. manuscript text search. | `WARNING` | **Orphan Prophecy**: Prophecy lore note never mentioned or tagged in manuscript. | Eliminates dead-weight worldbuilding that never impacts the plot. |
+| **Clause Progress Tracker** | Boolean vector evaluation across scene directives. | `INFO` | Tracks ratio of fulfilled clauses ($\frac{m}{k}$). | Provides clear progress indicators across long trilogies. |
+| **Dramatic Irony Auditor** | Compares character epistemic state against oracle revelation chapters. | `INFO` | Emits $D_{\text{irony}}$ curve across chapters. | Optimizes suspense and impending doom in tragic arcs. |
+
+---
+
+## 4. Author Extension & Configuration Guide
+
+### 4.1 Prophecy Lore Schema (`World/Cosmology/Prophecies/Bleeding_Star.md`)
+```markdown
+---
+name: "The Bleeding Star"
+type: prophecy
+oracle: "[[Pythia of Delphi]]"
+target_entity: "[[Prince Valen]]"
+status: unfulfilled
+date_uttered: "3rd Age, Year 401"
+clauses:
+  - "When the red comet crosses the winter solstice"
+  - "The obsidian blade shall drink royal blood"
+  - "And the crown of spires shall crumble to ash"
 ---
 
 # The Bleeding Star
-
-*Body text can contain lore elaboration, legend fragments, and annotation.*
+An ancient apocalyptic oracle carved onto the basalt pillars of Delphi.
 ```
 
-> [!IMPORTANT]
-> The `type` field must include the word `prophecy` (case-insensitive) for the file to be discovered. Files whose `type` is unrelated and whose path does not include `prophecy` are skipped.
-
-### Wikilink Resolution
-
-Both `oracle` and `target_entity` accept Obsidian-style wikilinks. The engine strips the brackets and alias to extract the canonical name:
-
-```
-"[[Pythia of Delphi|The Oracle]]"  →  "Pythia of Delphi"
-"[[Chosen King]]"                  →  "Chosen King"
-"Unnamed Seer"                     →  "Unnamed Seer"
-```
-
----
-
-## Manuscript Directive — `@prophecy:`
-
-To tag a scene as containing a prophecy reference or resolution event, add a directive line anywhere in the scene file:
-
+### 4.2 In-Manuscript Directive Syntax
 ```markdown
-# Chapter 14 — The Hour of Stars
-
-The king finally understood the words carved into the monolith.
+# Chapter 18: The Eclipse of the Sunken Spire
+@pov: Prince Valen
 @prophecy: The Bleeding Star
+@prophecy-fulfilled: The Bleeding Star
+
+Valen looked up as the crimson comet tore through the darkened sky.
+He drew the obsidian blade and drove it into his father's chest.
 ```
 
-### Supported Tag Keys
-
-| Tag | Meaning |
-|---|---|
-| `@prophecy: <Name>` | This scene references or advances the named prophecy |
-| `@prophecy-fulfilled: <Name>` | This scene constitutes the fulfillment event |
-| `@prophecy-subverted: <Name>` | This scene constitutes an ironic or tragic subversion |
-
-The engine also performs a corpus text-match: if the prophecy's canonical name appears anywhere in the manuscript (case-insensitive, after normalising whitespace and hyphens), the prophecy is considered *in-manuscript* even without an explicit tag.
-
 ---
 
-## Status Lifecycle
-
-```
-unfulfilled  ──→  partially_fulfilled  ──→  fulfilled
-                                        ──→  subverted
-                                        ──→  broken
-```
-
-| Status | Meaning |
-|---|---|
-| `unfulfilled` | Prophecy was uttered; no clauses resolved yet |
-| `partially_fulfilled` | One or more clauses have come to pass; story still in motion |
-| `fulfilled` | All clauses resolved; destiny achieved |
-| `subverted` | Prophecy resolved through irony, reversal, or loophole (classic "Macbeth" pattern) |
-| `broken` | A precondition was violated, rendering fulfillment impossible |
-
-> [!NOTE]
-> The engine treats `active` as an alias for `unfulfilled` when evaluating PRP-102 (Dead Chosen One). All other statuses are compared as literal strings.
-
----
-
-## Diagnostic Codes
-
-### PRP-101 — Orphan Prophecy
-
-**Trigger:** A prophecy exists in `Cosmology/Prophecies/` but the canonical prophecy name never appears in any manuscript scene file and no `@prophecy:` tag references it.
-
-**Interpretation:** The prophecy was written into the lore but forgotten during drafting — it is not part of the story the reader will experience.
-
-**Severity:** `WARNING`
-
-**Remediation:**
-- Decide whether the prophecy serves the story. If not, archive it or move it to a `_unused/` subfolder.
-- If it should be present, add at least one scene reference: a character reciting a fragment, an NPC mentioning the legend, or a scene tag.
-
----
-
-### PRP-102 — Dead Chosen One
-
-**Trigger:** The `target_entity` of an `unfulfilled` (or `partially_fulfilled`) prophecy matches a character whose World Bible entry has `status: deceased` or a `death_year` / `death_date` field.
-
-**Interpretation:** The destined recipient of the prophecy is dead, creating a structural contradiction unless the story explicitly addresses how fulfillment can now occur (reincarnation, successor, subversion).
-
-**Severity:** `ERROR`
-
-**Remediation:**
-- If the character's death is intentional and the prophecy pivots to a successor, update `target_entity` to the new recipient and add a manuscript note explaining the transfer.
-- If the death is a lore error, correct the character's status.
-- If the prophecy should be `broken` or `subverted` as a result of the death, update `status` accordingly.
-
----
-
-### PRP-103 — Resolution Status Discrepancy
-
-**Trigger:** A prophecy is marked `fulfilled` or `subverted` in lore, but no `@prophecy:` tag in the manuscript references it, and the manuscript corpus contains neither the word `fulfilled` nor the word `prophecy`.
-
-**Interpretation:** The World Bible declares the prophecy resolved, but there is no manuscript evidence of the resolution event. The lore is ahead of the draft.
-
-**Severity:** `WARNING`
-
-**Remediation:**
-- Write the resolution scene and tag it with `@prophecy-fulfilled: <Name>` or `@prophecy-subverted: <Name>`.
-- Alternatively, if the lore entry is aspirational (written for the planned ending), leave `status: partially_fulfilled` until the scene is drafted.
-
----
-
-## CLI Usage
+## 5. Command-Line Interface (CLI) Reference
 
 ```bash
-arcanum prophecy [MANUSCRIPT] [-w WORLD] [OPTIONS]
-```
+# Audit prophecies across world lore and manuscript
+arcanum prophecy World/ -m Manuscript/
 
-| Argument / Option | Description |
-|---|---|
-| `MANUSCRIPT` | Path to manuscript draft directory (optional positional) |
-| `-w`, `--world WORLD` | Path to World Bible directory (optional; auto-discovered) |
-| `-m`, `--manuscript PATH` | Explicit manuscript directory path |
-| `--html PATH` | Export a standalone HTML report to `PATH` |
-| `--json` | Print machine-readable JSON audit data to stdout |
-| `--write-note PATH` | Export Mermaid.js Prophecy Lifecycle diagram to an Obsidian note |
+# Export standalone offline interactive HTML prophecy dashboard
+arcanum prophecy World/ -m Manuscript/ --html reports/prophecy_matrix.html
 
-### Examples
+# Output machine-readable JSON prophecy analytics
+arcanum prophecy World/ -m Manuscript/ --json
 
-```bash
-# Auto-discover world and manuscript
-arcanum prophecy
-
-# Explicit paths
-arcanum prophecy ~/Manuscripts/MyNovel -w ~/Worlds/MyWorld
-
-# Check prophecy lore only (no manuscript cross-validation)
-arcanum prophecy -w ~/Worlds/MyWorld
-
-# Export HTML report
-arcanum prophecy ~/Manuscripts/MyNovel -w ~/Worlds/MyWorld --html reports/prophecy.html
-
-# Export Mermaid lifecycle diagram to Obsidian vault
-arcanum prophecy -w ~/Worlds/MyWorld --write-note "MyWorld/Cosmology/Prophecy_Lifecycle.md"
-
-# Machine-readable JSON for CI
-arcanum prophecy --json | jq '.findings[] | select(.id == "PRP-101")'
+# Query prophecy constraint theory and dramatic irony mathematics
+arcanum doc prophecy --math --why
 ```
 
 ---
 
-## Mermaid State Machine
-
-When `--write-note` is used, the engine generates a `stateDiagram-v2` Mermaid diagram suitable for embedding in an Obsidian note or any Markdown renderer that supports Mermaid.
-
-### Structure
+## 6. Tri-Fold Creative Advisory Resolutions
 
 ```mermaid
-stateDiagram-v2
-    %% Prophecy Lifecycle State Matrix
-    [*] --> The_Bleeding_Star_Uttered : Uttered by Pythia of Delphi
-    The_Bleeding_Star_Uttered --> The_Bleeding_Star_Active : In Progress
-    [*] --> Sunfire_Oath_Uttered : Uttered by Ancient Oracle
-    Sunfire_Oath_Uttered --> Sunfire_Oath_Fulfilled : Criteria Met
-    Sunfire_Oath_Fulfilled --> [*]
+flowchart TD
+    Alert["Prophecy Alert: PRO-102 Target Entity 'Prince Valen' died before fulfilling 'The Bleeding Star'"] --> PathA["Path A: Hard Realism / Lore Update"]
+    Alert --> PathB["Path B: Speculative / Diegetic Trope"]
+    Alert --> PathC["Path C: Authorial Sovereignty"]
+    
+    PathA --> SolA["Update prophecy status to 'broken' or transfer claim to Prince Valen's secret heir."]
+    PathB --> SolB["Fulfill prophecy through Valen's undead revenant or spiritual avatar."]
+    PathC --> SolC["Tag scene with @prophecy-subverted: true to declare intentional tragic irony."]
 ```
 
-Each prophecy is rendered as:
-1. An entry transition from `[*]` labelled with the oracle source.
-2. A transition to the appropriate terminal or ongoing state based on `status`.
-
-| Status | Rendered Transition |
-|---|---|
-| `unfulfilled` / `active` | `→ <Name>_Active : In Progress` |
-| `fulfilled` / `partially_fulfilled` | `→ <Name>_Fulfilled : Criteria Met` → `[*]` |
-| `subverted` | `→ <Name>_Subverted : Irony / Subversion` → `[*]` |
-| `broken` | `→ <Name>_Broken : Failed Precondition` → `[*]` |
+### Scenario: Dead Chosen One Alert (`PRO-102`)
+- **Path A (Hard Realism / Strict Status Update)**:
+  - Update `status: broken` in `World/Cosmology/Prophecies/*.md`, acknowledging that destiny was irrevocably severed.
+- **Path B (Speculative / Diegetic Trope)**:
+  - Reinterpret the prophecy metaphorically: the prophecy is fulfilled posthumously by Valen's bloodline, his clone, or his resurrected revenant.
+- **Path C (Authorial Sovereignty)**:
+  - Mark the scene with `@prophecy-subverted: The Bleeding Star`, turning the Chosen One's death into an intentional thematic critique of predestination.
 
 ---
 
-## Return Codes
+## 7. Content Security Policy & Offline Isolation
 
-| Code | Meaning |
-|---|---|
-| `0` | No findings; prophecy tracking is consistent |
-| `1` | One or more PRP findings detected |
-| `2` | Configuration error (no valid World Bible directory) |
+Generated HTML prophecy reports and interactive dashboards operate 100% offline with zero CDN dependencies:
+
+```html
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
+```

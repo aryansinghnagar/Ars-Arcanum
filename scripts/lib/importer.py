@@ -10,19 +10,21 @@ Zero external dependencies required (supports native OpenXML parsing with Pandoc
 """
 
 import argparse
+import json
 import logging
 import os
 import re
 import sys
 import xml.etree.ElementTree as ET
+import xml.sax.saxutils as saxutils
 import zipfile
 from pathlib import Path
 from typing import Any
 
 try:
-    from lib._bootstrap import atomic_write
+    from lib._bootstrap import atomic_write, sanitize_identifier
 except ImportError:
-    from _bootstrap import atomic_write
+    from _bootstrap import atomic_write, sanitize_identifier
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger("arcanum.importer")
@@ -144,16 +146,18 @@ def import_manuscript_batch(
     # Write manuscript.yaml
     manifest_yaml = f"""# Ars Arcanum Manuscript Project Manifest
 schema_version: "1.0"
-title: "{ms_title}"
-author: "{author}"
-universe: "{universe}"
-world: "{world}"
+title: {json.dumps(ms_title)}
+author: {json.dumps(author)}
+universe: {json.dumps(universe)}
+world: {json.dumps(world)}
 status: "in-progress"
 """
     atomic_write(dest_path / "manuscript.yaml", manifest_yaml)
 
-    # Write novelWriter project file
-    nwx_content = NWX_TEMPLATE.format(title=ms_title, author=author)
+    # Write novelWriter project file with XML escaping
+    clean_nwx_title = saxutils.escape(ms_title)
+    clean_nwx_author = saxutils.escape(author)
+    nwx_content = NWX_TEMPLATE.format(title=clean_nwx_title, author=clean_nwx_author)
     atomic_write(dest_path / "nwProject.nwx", nwx_content)
 
     # Write .gitignore
@@ -196,7 +200,8 @@ def main(argv: list[str] | None = None) -> int:
         dest_p = Path(args.dest)
     else:
         manuscripts_base = Path(os.environ.get("MANUSCRIPTS_BASE", Path.home() / "Manuscripts"))
-        dest_p = manuscripts_base / (args.title or source_p.name)
+        safe_name = sanitize_identifier(args.title or source_p.stem, fallback="Imported-Manuscript")
+        dest_p = manuscripts_base / safe_name
 
     try:
         res = import_manuscript_batch(

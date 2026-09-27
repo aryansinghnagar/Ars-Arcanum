@@ -69,6 +69,8 @@ Usage:
   package [MS] [-t TARGET]     Multi-platform release packager: Reader, Submission, ARC (OPS-101)
   sprint [MS]                  Sovereign writing sprint timer & productivity analytics
   revision-heatmap [MS]        Manuscript revision density & churn heatmap
+  resonance [CMD] [opts]       Universal Knowledge Mesh, Causal Cascade & Creative Spark bridges
+  tip [opts]                   Dynamic non-obvious craft advice & engine wisdom (aliases: tips, hint)
   doc [ENGINE]                 Display educational craft logic documentation & advisory resolution guide (alias: guide, explain)
 
 🪐 Universe, World Lore & Series Continuity:
@@ -195,13 +197,22 @@ def handle_engines_command(argv: list[str]) -> int:
 
 
 def handle_doc_command(argv: list[str]) -> int:
-    from lib.registry import format_engine_doc, get_all_engine_docs, get_engine, list_engines
+    import json
+
+    from lib.registry import (
+        format_engine_doc,
+        get_all_engine_docs,
+        get_engine,
+        get_engine_docs,
+        list_engines,
+        search_engine_docs,
+    )
 
     if not argv or argv[0] in ("--all", "-a", "all"):
         docs = get_all_engine_docs()
         print(f"🏛️  Ars Arcanum Author Craft Guide & Advisory Matrix ({len(docs)} Engines Available)\n")
         print("To view deep craft logic, scientific foundations, and advisory guidance for an engine, run:")
-        print("  arcanum doc <ENGINE_NAME_OR_COMMAND> (e.g. 'arcanum doc astrophysics', 'arcanum doc structure')\n")
+        print("  arcanum doc <ENGINE> [--math|--why|--examples|--subfeatures|--json]\n")
         print(f"{'Command':<20} {'Category':<12} {'Engine Title':<32} {'Relevance Summary'}")
         print("=" * 95)
         for d in sorted(docs, key=lambda x: (x['category'], x['name'])):
@@ -209,10 +220,60 @@ def handle_doc_command(argv: list[str]) -> int:
             print(f"arcanum {d['cli_command']:<12} [{d['category'].upper():<10}] {d['title']:<32} {rel_summary}")
         return 0
 
-    target_full = " ".join(argv).strip().lower()
+    # Flag parsing
+    mode = "full"
+    is_json = False
+    search_query = None
+    cleaned_args: list[str] = []
+
+    idx = 0
+    while idx < len(argv):
+        arg = argv[idx]
+        if arg in ("--math", "--theory", "--physics", "--logic"):
+            mode = "math"
+        elif arg in ("--why", "--rationale"):
+            mode = "why"
+        elif arg in ("--examples", "--extension", "--how-to", "--guide"):
+            mode = "examples"
+        elif arg in ("--subfeatures", "--features"):
+            mode = "subfeatures"
+        elif arg in ("--advisory", "--resolution"):
+            mode = "advisory"
+        elif arg in ("--json", "-j"):
+            is_json = True
+        elif arg in ("--search", "-s", "--find"):
+            if idx + 1 < len(argv):
+                search_query = argv[idx + 1]
+                idx += 1
+            else:
+                search_query = ""
+        else:
+            cleaned_args.append(arg)
+        idx += 1
+
+    if search_query is not None:
+        results = search_engine_docs(search_query)
+        if is_json:
+            print(json.dumps([get_engine_docs(r.name) for r in results], indent=2))
+            return 0
+        print(f"🔍 Search results for '{search_query}' ({len(results)} matches):\n")
+        for r in results:
+            print(f" • [{r.category.value.upper()}] arcanum {r.cli_command:<14} {r.title}")
+            desc_snip = r.description[:75] + "..." if len(r.description) > 75 else r.description
+            print(f"   {desc_snip}\n")
+        return 0
+
+    if not cleaned_args:
+        docs = get_all_engine_docs()
+        if is_json:
+            print(json.dumps(docs, indent=2))
+            return 0
+        return handle_doc_command(["--all"])
+
+    target_full = " ".join(cleaned_args).strip().lower()
     spec = get_engine(target_full)
-    if not spec and len(argv) > 1:
-        spec = get_engine(argv[0].strip().lower())
+    if not spec and len(cleaned_args) > 1:
+        spec = get_engine(cleaned_args[0].strip().lower())
 
     if not spec:
         from difflib import get_close_matches
@@ -221,8 +282,8 @@ def handle_doc_command(argv: list[str]) -> int:
             all_names.extend(e.aliases)
             all_names.append(e.name.replace("_", "-"))
         matches = get_close_matches(target_full, all_names, n=1, cutoff=0.5)
-        if not matches and len(argv) > 1:
-            matches = get_close_matches(argv[0], all_names, n=1, cutoff=0.5)
+        if not matches and len(cleaned_args) > 1:
+            matches = get_close_matches(cleaned_args[0], all_names, n=1, cutoff=0.5)
 
         if matches:
             print(f"Error: No documentation found for engine: '{target_full}'. Did you mean 'arcanum doc {matches[0]}'?", file=sys.stderr)
@@ -230,7 +291,12 @@ def handle_doc_command(argv: list[str]) -> int:
             print(f"Error: No documentation found for engine: '{target_full}'. Run 'arcanum doc' to list all engines.", file=sys.stderr)
         return 1
 
-    print(format_engine_doc(spec))
+    if is_json:
+        doc_dict = get_engine_docs(spec.name)
+        print(json.dumps(doc_dict, indent=2))
+        return 0
+
+    print(format_engine_doc(spec, mode=mode))
     return 0
 
 
@@ -378,6 +444,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if cmd in ("package", "dist", "bundle"):
         return dispatch_script("package_distribution.py", rest)
+
+    if cmd in ("resonance", "mesh", "cascade", "spark", "bridge", "ecosystem", "synergy"):
+        if cmd in ("mesh", "cascade", "spark", "bridge"):
+            return dispatch_subcommand("lib.resonance", [cmd, *rest])
+        return dispatch_subcommand("lib.resonance", rest)
+
+    if cmd in ("tip", "tips", "craft-tip", "wisdom", "hint", "hints"):
+        return dispatch_subcommand("lib.tips", rest)
 
     # --- Universe, World Lore & Series Continuity ---
     if cmd in ("universe", "init-universe", "cosmos"):
@@ -571,6 +645,7 @@ def main(argv: list[str] | None = None) -> int:
         "cast", "dramatis-personae", "dramatis", "characters-cast",
         "canvas", "story-canvas", "timeline", "timeline-sync", "omnibus", "import", "importer",
         "doc", "docs", "explain", "guide", "craft-docs",
+        "tip", "tips", "craft-tip", "wisdom", "hint", "hints",
     ]
 
     matches = difflib.get_close_matches(cmd, known_commands, n=1, cutoff=0.55)

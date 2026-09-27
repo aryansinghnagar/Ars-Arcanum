@@ -1,105 +1,158 @@
-# Ars Arcanum — Multi-Volume Dramatis Personae & Universe Cast Matrix Guide
-> **Engine**: `scripts/lib/dramatis_personae.py` | **CLI**: `arcanum dramatis-personae`, `arcanum cast`
+# Ars Arcanum Multi-Volume Dramatis Personae & Universe Cast Matrix (`docs/DRAMATIS_PERSONAE.md`)
+> **Domain D: Sociology, Factions, Economics, Genealogy & Warfare** | **CLI:** `arcanum cast` / `arcanum dramatis-personae`
 
 ---
 
-## 1. Overview & Purpose
+## 1. Overview & Theoretical Rationale
 
-The **Multi-Volume Dramatis Personae & Universe Cast Matrix** provides narrative designers and series authors with an automated character tracking, continuity auditing, and publication-ready appendix compiler. It bridges worldbuilding character dossiers (`World/Characters/*.md`) with manuscript chapters across multi-volume series, keeping track of appearances, POV scenes, allegiances, and character lifecycles.
+The **Ars Arcanum Dramatis Personae Engine** (`scripts/lib/dramatis_personae.py`) is an offline character indexer, social network graph analyzer, and publication-ready appendix compiler for single novels and multi-volume series.
 
-### Core Capabilities
-- **Multi-Volume Cast Discovery**: Scans World Bible dossiers and indexes names, aliases, allegiances, roles, statuses, and origins.
-- **Manuscript Cross-Referencing**: Tracks `@char:`, `@cast:`, `@pov:`, `@character:`, and `@death:` directives across all chapters and volumes.
-- **Continuity & Lifecycle Audits**:
-  - `CAS-101`: **Ghost Character**: Character mentioned in manuscript without an existing World Bible dossier.
-  - `CAS-102`: **Post-Mortem Action**: Deceased character appears or takes action in subsequent chapters after a recorded death event.
-  - `CAS-103`: **Orphan Lore Character**: Character defined in World Bible dossiers with zero manuscript appearances.
-- **Publication Exports**:
-  - Formatted **Markdown Dramatis Personae** appendix grouped by faction.
-  - Offline, CSP-compliant **Interactive HTML Character Gallery**.
+In multi-character speculative epics, tracking a sprawling cast across dozens of factions, viewpoints, and story arcs creates immense cognitive friction. Authors encounter three major narrative continuity and character balance failure modes:
+1. **Ghost Characters (`CAS-101`)**: Ephemeral characters introduced in prose without canonical dossiers in the World Bible, risking inconsistent backstories.
+2. **Post-Mortem Actions (`CAS-102`)**: Characters appearing or speaking in scenes chronologically subsequent to their recorded death or exile.
+3. **Orphan Lore Characters (`CAS-103`)**: Sprawling dossiers created in worldbuilding notes that never participate in the dramatic narrative.
+4. **Cast Network Bloat & Low Agency**: Characters who inhabit scenes without driving conflict, exerting agency, or altering relationships.
+
+The engine parses character dossiers (`World/Characters/*.md`), correlates `@char:`, `@cast:`, `@pov:`, and `@death:` directives across manuscript chapters, constructs a social co-occurrence network graph $G = (V, E)$, computes graph centrality indices, and generates formatted publication appendices.
 
 ---
 
-## 2. Character Lore Schema & In-Prose Directives
+## 2. Social Network Theory & Mathematical Formulation
 
-### Character Dossier Frontmatter (`World/Characters/*.md`)
+```mermaid
+flowchart TD
+    Dossiers["World Bible Dossiers (World/Characters/*.md)"] --> Parser["Cast Indexer & Schema Validator"]
+    Chapters["Manuscript Chapters (@char, @pov, @death)"] --> Extractor["Scene Co-Occurrence Extractor"]
+    
+    Parser & Extractor --> ContinuityAudit["Lifecycle Auditor (CAS-101, CAS-102, CAS-103)"]
+    Extractor --> CoOccurMatrix["Character Co-Occurrence Matrix C(i, j)"]
+    
+    CoOccurMatrix --> Graph["Cast Social Graph G = (V, E, W)"]
+    Graph --> Centrality["Degree & Betweenness Centrality Calculations"]
+    
+    ContinuityAudit & Centrality --> PubExport["Publication Formatter (Markdown & Offline HTML Gallery)"]
+```
+
+### 2.1 Character Social Graph & Co-Occurrence Matrix
+The cast is represented as a weighted undirected graph $G = (V, E, W)$, where vertices $V$ represent characters and edges $(u, v) \in E$ represent shared scene appearances with weight $W(u, v) = \text{number of shared scenes}$.
+
+The symmetric co-occurrence matrix $\mathbf{C} \in \mathbb{N}^{|V| \times |V|}$ satisfies:
+$$C_{ij} = \sum_{s \in \text{Scenes}} \mathbb{I}(c_i \in s \land c_j \in s)$$
+
+### 2.2 Graph Centrality & Character Prominence Metrics
+To measure character narrative importance independently of raw word count, the engine computes:
+
+1. **Degree Centrality ($C_D$)**: Direct conversational and spatial connections:
+   $$C_D(v) = \frac{\sum_{u \ne v} W(v, u)}{|V| - 1}$$
+
+2. **Betweenness Centrality ($C_B$)**: Measures how often a character serves as a bridge between otherwise isolated factions or subplots:
+   $$C_B(v) = \sum_{s \ne v \ne t} \frac{\sigma_{st}(v)}{\sigma_{st}}$$
+   Where $\sigma_{st}$ is the total number of shortest paths from character $s$ to character $t$, and $\sigma_{st}(v)$ is the number of those paths passing through $v$.
+
+3. **Agency & POV Ratio ($A_r$)**:
+   $$A_r(v) = \frac{\text{Scenes where } v \text{ is POV}}{\text{Total Scenes containing } v}$$
+
+---
+
+## 3. Subfeatures Matrix
+
+| Subfeature | Algorithmic Mechanism | Diagnostic Output / Rule | Narrative Significance |
+|---|---|---|---|
+| **Multi-Volume Cast Discovery** | Recursively scans `World/Characters/` indexing frontmatter metadata. | Indexes name, aliases, faction, role, and status. | Maintains a single authoritative source of truth for universe characters. |
+| **Manuscript Cross-Referencing** | Scans `@char`, `@cast`, `@pov`, and `@death` tags across all chapters. | Maps scene timeline appearances and POV shares. | Verifies character screen-time and participation distribution. |
+| **Lifecycle Continuity Auditor** | Compares appearance timestamps against `@death` directives and dossiers. | Emits `CAS-101` (Ghost), `CAS-102` (Post-Mortem), `CAS-103` (Orphan). | Guarantees dead characters stay dead and all named actors exist in lore. |
+| **Social Network Analyzer** | Constructs weighted co-occurrence graph and computes centrality. | Surfaces isolated character islands and central network brokers. | Prevents bloated cast ensembles with disconnected character threads. |
+| **Publication Appendix Formatter**| Generates structured Markdown and HTML grouped by faction/role. | Emits publication-ready `DRAMATIS_PERSONAE.md` back matter. | Produces reader-friendly character glossaries with zero manual formatting. |
+
+---
+
+## 4. Author Extension & Configuration Guide
+
+### 4.1 Character Lore Dossier (`World/Characters/Elena_Vane.md`)
 ```markdown
 ---
-name: Kaelen Vane
+name: Elena Vane
 aliases:
-  - The Ghostblade
-  - Shade of Oakhaven
+  - The Star-Weaver
+  - Lady of the Northern Spire
 role: Major Protagonist
+faction: Astromancers Guild
 status: Active
-faction: Silver Concordat
 origin: High Vale
+importance: Primary
 ---
-# Kaelen Vane
-Master swordsman of the northern reaches...
+
+# Elena Vane
+Elena is the youngest magister to sit on the High Astronomical Council...
 ```
 
-### In-Manuscript Directives
+### 4.2 In-Manuscript Scene Tags
 ```markdown
 ---
-title: The Fall of High Vale
-pov: Kaelen Vane
+title: "The Siege of the Obsidian Gate"
+pov: "Elena Vane"
 characters:
-  - Marcus
-  - Lyra
+  - "Vance Keller"
+  - "Master Corvo"
 ---
-@char: Garrick, Elena
-The swords clashed against the stone gates.
 
-@death: Marcus
-Marcus fell before the citadel gates.
+@char: Vance Keller, Master Corvo
+The air hummed with ionized mana.
+
+@death: Master Corvo
+Corvo collapsed as the ward failed. His staff clattered against the stone.
 ```
 
-| Directive | Description | Example |
-|:---|:---|:---|
-| `@pov: Character` | Designates the point-of-view character for the scene or chapter. | `@pov: Kaelen Vane` |
-| `@char: Char1, Char2` | Registers characters present in the scene. | `@char: Lyra, Garrick` |
-| `@cast: Char1; Char2` | Alternative alias for `@char:`. | `@cast: Elena; Marcus` |
-| `@death: Character` | Marks a canonical death event for the character. | `@death: Marcus` |
-
 ---
 
-## 3. CLI Command Reference
+## 5. Command-Line Interface (CLI) Reference
 
-### Basic Cast Extraction & Console Table
 ```bash
-# Analyze cast across universe directory
-arcanum cast Universes/Eldoria-Cosmos
+# Analyze cast across full universe or manuscript directory
+arcanum cast Universes/Eldoria/
 
-# Equivalent full command
-arcanum dramatis-personae Universes/Eldoria-Cosmos
-```
+# Generate publication-ready Markdown Dramatis Personae appendix
+arcanum cast Universes/Eldoria/ --markdown Manuscripts/Book-01/Back_Matter/DRAMATIS_PERSONAE.md
 
-### Exporting Publication Appendices
-```bash
-# Export formatted Markdown Dramatis Personae appendix
-arcanum cast Universes/Eldoria-Cosmos --markdown Manuscripts/Book-01/Back_Matter/DRAMATIS_PERSONAE.md
+# Export standalone offline interactive HTML character gallery
+arcanum cast Universes/Eldoria/ --html reports/cast_gallery.html
 
-# Export standalone offline HTML character gallery
-arcanum cast Universes/Eldoria-Cosmos --html reports/cast_gallery.html
+# Output raw JSON cast graph data for visualization
+arcanum cast Universes/Eldoria/ --json
 
-# Machine-readable JSON output for integrations
-arcanum cast Universes/Eldoria-Cosmos --json
+# Query cast logic and network centrality theory
+arcanum doc dramatis_personae --math --why
 ```
 
 ---
 
-## 4. Continuity Diagnostic Codes Reference
+## 6. Tri-Fold Creative Advisory Resolutions
 
-| Code | Severity | Name | Description | Remediation |
-|:---|:---|:---|:---|:---|
-| `CAS-101` | **WARNING** | **Ghost Character** | A character is tagged in manuscript scenes but lacks a corresponding dossier in `World/Characters/`. | Create a character dossier in `World/Characters/` or add an alias to an existing character profile. |
-| `CAS-102` | **ERROR** | **Post-Mortem Action** | A character appears in a chapter after their recorded `@death:` event chapter. | Verify scene ordering, remove accidental appearances, or mark resurrected characters with updated lore status. |
-| `CAS-103` | **INFO** | **Orphan Lore Character** | A character has a detailed lore dossier in `World/Characters/` but never appears in the manuscript. | Integrate character into manuscript scenes or archive unused background lore dossiers. |
+```mermaid
+flowchart TD
+    Alert["Continuity Error: CAS-102 Post-Mortem Action in Chapter 14 for 'Master Corvo'"] --> PathA["Path A: Hard Realism / Timeline Fix"]
+    Alert --> PathB["Path B: Speculative / Diegetic Trope"]
+    Alert --> PathC["Path C: Authorial Sovereignty"]
+    
+    PathA --> SolA["Correct character reference to a surviving ally or mark scene as flashback."]
+    PathB --> SolB["Declare character status as Necromantic Revenant, Hologram, or Spectral Echo."]
+    PathC --> SolC["Tag scene with @chronology: analepsis (Flashback) to suppress error."]
+```
+
+### Scenario: Post-Mortem Action Warning (`CAS-102`)
+- **Path A (Hard Realism / Strict Continuity)**:
+  - Verify chapter chronology. If the character died in Chapter 10, remove their dialogue in Chapter 14 or replace them with a surviving lieutenant.
+- **Path B (Speculative / Diegetic Trope)**:
+  - Reframe the appearance as a legitimate supernatural manifestation: a necromantic revenant, an AI holographic recording, or an astral projection. Update status in dossier to `Status: Undead`.
+- **Path C (Authorial Sovereignty)**:
+  - If Chapter 14 is a non-linear flashback (*analepsis*), tag the chapter frontmatter with `chronology: flashback` or `@time: 10_years_prior` to bypass sequential death validation.
 
 ---
 
-## 5. Architectural Invariants
+## 7. Content Security Policy & Offline Isolation
 
-- **Zero-Pip Guarantee**: Pure Python standard library implementation (`json`, `html`, `re`, `dataclasses`, `pathlib`).
-- **Atomic Writes**: Uses `atomic_write()` from `lib._bootstrap.py` for all markdown and HTML exports.
-- **Offline CSP Enforcement**: Generated HTML gallery includes strict `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">`.
+Generated character galleries and HTML appendices operate strictly offline with zero external network access:
+
+```html
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
+```

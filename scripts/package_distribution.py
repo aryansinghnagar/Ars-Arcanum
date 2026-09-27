@@ -30,6 +30,14 @@ import sys
 import zipfile
 from pathlib import Path
 
+try:
+    from lib._bootstrap import atomic_write
+except ImportError:
+    try:
+        from scripts.lib._bootstrap import atomic_write
+    except ImportError:
+        from _bootstrap import atomic_write
+
 if hasattr(sys.stdout, "reconfigure"):
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -262,7 +270,7 @@ def main():
         "packages": packages
     }
     manifest_path = out_dir / "RELEASE_MANIFEST.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    atomic_write(manifest_path, json.dumps(manifest, indent=2))
 
     if args.json:
         print(json.dumps(manifest, indent=2))

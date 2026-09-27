@@ -35,10 +35,19 @@ try:
     from lib._bootstrap import atomic_write
     from lib.frontmatter import parse_yaml_frontmatter
     from lib.structure import PARADIGMS
+    from lib.tips import are_tips_enabled, get_tip_database
 except ImportError:
     from _bootstrap import atomic_write
     from frontmatter import parse_yaml_frontmatter
     from structure import PARADIGMS
+    try:
+        from tips import are_tips_enabled, get_tip_database
+    except ImportError:
+        def are_tips_enabled() -> bool:
+            return True
+
+        def get_tip_database() -> Any:
+            return None
 
 logger = logging.getLogger("arcanum.canvas")
 
@@ -136,8 +145,24 @@ def generate_story_canvas_html(
         pct = (c["cumulative_words"] / total_words) if total_words > 0 else 0.0
         c["pct"] = round(pct, 3)
 
+    tips_data: list[dict[str, Any]] = []
+    tips_enabled = True
+    try:
+        tips_enabled = are_tips_enabled()
+        db = get_tip_database()
+        if db:
+            canvas_engines = ["story_canvas", "structure", "pacing", "scene_mechanics", "timeline_sync", "revision_heatmap"]
+            for eng in canvas_engines:
+                for t in db.get_by_engine(eng):
+                    tips_data.append(t.to_dict())
+            if not tips_data:
+                tips_data = [t.to_dict() for t in db.get_by_context("drafting")]
+    except Exception as e:
+        logger.debug("Story canvas tips extraction skipped: %s", e)
+
     cards_json = json.dumps(cards)
     paradigms_json = json.dumps(PARADIGMS)
+    tips_json = json.dumps(tips_data)
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -225,6 +250,36 @@ def generate_story_canvas_html(
   .drop-indicator {{
     height: 3px; background: var(--accent); border-radius: 2px; margin: 4px 0;
   }}
+
+  .modal-backdrop {{
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
+  }}
+  .modal-window {{
+    background: #0f172a; border: 1px solid var(--border); border-radius: 12px;
+    width: 90%; max-width: 920px; height: 85vh; display: flex; flex-direction: column; overflow: hidden;
+  }}
+  .modal-header {{
+    background: #1e293b; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }}
+  .modal-body {{
+    flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;
+  }}
+
+  .tip-bar {{
+    background: #0b1120; border-top: 1px solid var(--border);
+    padding: 0.45rem 1.25rem; display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.8rem; color: var(--muted); z-index: 100;
+  }}
+  .tip-content-box {{ display: flex; align-items: center; gap: 0.75rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }}
+  .tip-icon {{ font-size: 1rem; flex-shrink: 0; }}
+  .tip-badge {{ background: #1e293b; color: var(--accent); font-weight: 700; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }}
+  .tip-text {{ color: #e2e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
+  .tip-text b {{ color: var(--gold); }}
+  .tip-actions {{ display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; margin-left: 1rem; }}
+  .tip-btn {{ background: transparent; border: 1px solid var(--border); color: var(--muted); font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; cursor: pointer; transition: all 0.15s; }}
+  .tip-btn:hover {{ color: var(--text); border-color: var(--accent); background: var(--panel-hover); }}
 </style>
 </head>
 <body>
@@ -245,6 +300,7 @@ def generate_story_canvas_html(
         <option value="all">All POVs</option>
       </select>
     </label>
+    <button style="background:#b45309;color:#fef3c7;border:none;font-weight:600;" onclick="openParadigmGuide()">📐 Paradigm Guide & Math</button>
     <button class="btn-primary" onclick="exportManifest()">Export Manifest</button>
   </div>
 </header>
@@ -260,15 +316,71 @@ def generate_story_canvas_html(
   <!-- Dynamic Columns and Cards -->
 </div>
 
+<div class="tip-bar" id="tipBar" style="display: {'flex' if (tips_enabled and tips_data) else 'none'};">
+  <div class="tip-content-box">
+    <span class="tip-icon">💡</span>
+    <span class="tip-badge" id="tipBadge">CRAFT WISDOM</span>
+    <span class="tip-text" id="tipText">Loading craft insight...</span>
+  </div>
+  <div class="tip-actions">
+    <button class="tip-btn" title="Cycle to next non-obvious craft tip" onclick="cycleCanvasTip()">🔄 Next Tip</button>
+    <button class="tip-btn" title="Hide tips" onclick="dismissCanvasTip()">✕</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="paradigmGuideModal" onclick="if(event.target===this)closeParadigmGuide()">
+  <div class="modal-window">
+    <div class="modal-header">
+      <div>
+        <span style="font-weight:700;font-size:1.1rem;color:var(--accent);">📐 Narrative Paradigm Guide & Mathematical Harmony</span>
+        <div style="font-size:0.8rem;color:var(--muted);margin-top:2px;">9 Canonical Structural Architectures • Mathematical Beat Tolerances • Dynamic Tension Curves</div>
+      </div>
+      <button onclick="closeParadigmGuide()" style="font-size:1.2rem;line-height:1;background:transparent;border:none;color:var(--muted);cursor:pointer;">✕</button>
+    </div>
+    <div class="modal-body" id="paradigmModalBody">
+      <!-- Dynamic Paradigm Math and Beat Targets -->
+    </div>
+  </div>
+</div>
+
 <script>
   let cardsData = {cards_json};
   let paradigmsData = {paradigms_json};
+  let tipsData = {tips_json};
+  let currentTipIdx = 0;
   let currentParadigmKey = "{paradigm_key}";
   let draggedCardId = null;
 
   function init() {{
     populatePOVFilter();
     renderColumns();
+    initTips();
+  }}
+
+  function initTips() {{
+    if (!tipsData || tipsData.length === 0) return;
+    showCanvasTip(0);
+  }}
+
+  function showCanvasTip(idx) {{
+    if (!tipsData || tipsData.length === 0) return;
+    currentTipIdx = (idx + tipsData.length) % tipsData.length;
+    const tip = tipsData[currentTipIdx];
+    const badgeEl = document.getElementById("tipBadge");
+    const textEl = document.getElementById("tipText");
+    if (badgeEl && textEl) {{
+      badgeEl.textContent = `${{tip.engine.toUpperCase()}} • ${{tip.subfeature}}`;
+      textEl.innerHTML = `<b>${{escapeHtml(tip.title)}}:</b> ${{escapeHtml(tip.content)}}`;
+    }}
+  }}
+
+  function cycleCanvasTip() {{
+    showCanvasTip(currentTipIdx + 1);
+  }}
+
+  function dismissCanvasTip() {{
+    const bar = document.getElementById("tipBar");
+    if (bar) bar.style.display = "none";
   }}
 
   function populatePOVFilter() {{
@@ -414,11 +526,27 @@ def generate_story_canvas_html(
   function calculateHarmonyScore() {{
     const totalWords = cardsData.reduce((acc, c) => acc + c.word_count, 0);
     const harmonyEl = document.getElementById("statHarmony");
-    if (totalWords === 0) {{
+    if (totalWords === 0 || cardsData.length === 0) {{
       harmonyEl.textContent = "100%";
       return;
     }}
-    harmonyEl.textContent = "94.5%";
+    const paradigm = paradigmsData[currentParadigmKey] || paradigmsData["three_act"];
+    let totalDeviation = 0;
+    paradigm.beats.forEach((b, idx) => {{
+      const list = document.getElementById(`list_beat_${{idx}}`);
+      let beatWords = 0;
+      if (list) {{
+        list.querySelectorAll(".card").forEach(el => {{
+          const card = cardsData.find(c => c.id === el.id);
+          if (card) beatWords += card.word_count;
+        }});
+      }}
+      const actualPct = beatWords / totalWords;
+      const targetPct = b.target_pct;
+      totalDeviation += Math.abs(actualPct - targetPct);
+    }});
+    const harmony = Math.max(0, Math.min(100, Math.round((1.0 - (totalDeviation / 2.0)) * 100)));
+    harmonyEl.textContent = `${{harmony}}%`;
   }}
 
   function updateParadigm(key) {{
@@ -435,6 +563,70 @@ def generate_story_canvas_html(
         el.style.display = "none";
       }}
     }});
+  }}
+
+  function openParadigmGuide() {{
+    renderParadigmGuide();
+    document.getElementById("paradigmGuideModal").style.display = "flex";
+  }}
+
+  function closeParadigmGuide() {{
+    document.getElementById("paradigmGuideModal").style.display = "none";
+  }}
+
+  function renderParadigmGuide() {{
+    const container = document.getElementById("paradigmModalBody");
+    container.innerHTML = "";
+
+    const cur = paradigmsData[currentParadigmKey] || paradigmsData["three_act"];
+
+    // Math Explanation Card
+    const mathCard = document.createElement("div");
+    mathCard.style.background = "#1e293b";
+    mathCard.style.border = "1px solid var(--border)";
+    mathCard.style.borderRadius = "8px";
+    mathCard.style.padding = "1rem 1.25rem";
+    mathCard.innerHTML = `
+      <h3 style="margin:0 0 0.5rem 0;color:var(--accent);font-size:1rem;">📐 Structural Harmony Equation</h3>
+      <p style="margin:0 0 0.5rem 0;font-size:0.85rem;color:var(--text);line-height:1.5;">
+        Ars Arcanum evaluates narrative architecture by calculating the L1 norm total variation distance between actual cumulative word distributions and canonical paradigm milestone targets:
+      </p>
+      <div style="background:#0b1120;padding:0.6rem 1rem;border-radius:6px;font-family:monospace;font-size:0.85rem;color:var(--gold);margin-bottom:0.5rem;">
+        Harmony % = max(0, min(100, round(100 * (1 - 0.5 * sum(|ActualPct_b - TargetPct_b|)))))
+      </div>
+      <p style="margin:0;font-size:0.8rem;color:var(--muted);">
+        A score of 80%+ indicates balanced narrative pacing and optimal dramatic tension delivery.
+      </p>
+    `;
+    container.appendChild(mathCard);
+
+    // Active Paradigm Beats
+    const beatCard = document.createElement("div");
+    beatCard.style.background = "#1e293b";
+    beatCard.style.border = "1px solid var(--border)";
+    beatCard.style.borderRadius = "8px";
+    beatCard.style.padding = "1rem 1.25rem";
+    beatCard.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+        <h3 style="margin:0;color:var(--gold);font-size:1.05rem;">Active Architecture: ${{escapeHtml(cur.name)}}</h3>
+        <span style="font-size:0.8rem;color:var(--muted);">${{cur.beats.length}} Structural Beats</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        ${{cur.beats.map(b => `
+          <div style="background:#0b1120;padding:0.6rem 0.8rem;border-radius:6px;border-left:3px solid var(--accent);display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <strong style="color:var(--text);font-size:0.85rem;">${{escapeHtml(b.name)}}</strong>
+              <div style="font-size:0.75rem;color:var(--muted);">${{escapeHtml(b.description || "Milestone")}}</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="color:var(--accent);font-family:monospace;font-weight:600;font-size:0.85rem;">${{Math.round(b.target_pct * 100)}}%</span>
+              <div style="font-size:0.7rem;color:var(--muted);font-family:monospace;">[${{Math.round(b.window[0] * 100)}}% - ${{Math.round(b.window[1] * 100)}}%]</div>
+            </div>
+          </div>
+        `).join('')}}
+      </div>
+    `;
+    container.appendChild(beatCard);
   }}
 
   function exportManifest() {{

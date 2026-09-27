@@ -5,7 +5,7 @@
 
 [![Status: Beta (Experimental)](https://img.shields.io/badge/Status-Beta%20(Experimental)-yellow.svg)](#)
 [![Ars Arcanum CI](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml/badge.svg)](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml)
-[![Unit Tests: 687 Passing](https://img.shields.io/badge/Unit%20Tests-687%2F687%20Passing-brightgreen.svg)](#)
+[![Unit Tests: 754 Passing](https://img.shields.io/badge/Unit%20Tests-754%2F754%20Passing-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > [!NOTE]

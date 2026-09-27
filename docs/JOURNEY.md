@@ -1,96 +1,124 @@
-# Ars Arcanum Overland, Naval & Aerial Journey Modeler Guide (`docs/JOURNEY.md`)
+# Overland, Naval & Aerial Journey Modeler & Tobler Kinematics (`docs/JOURNEY.md`)
+> **Domain A: Astrophysics, Climate, Cartography & Celestial Mechanics** | **CLI:** `arcanum journey` / `arcanum travel`
 
 ---
 
-## 1. Overview & System Mission
+## 1. Overview & Theoretical Rationale
 
-The **Ars Arcanum Journey Engine** (`scripts/lib/journey.py`) is an offline expedition planning, terrain friction, travel pace, and party supply consumption modeler for fantasy, historical, and speculative fiction authors.
+The **Ars Arcanum Journey Engine** (`scripts/lib/journey.py`) is an offline expedition planner, slope-dependent movement calculator, naval navigation modeler, and party supply depletion simulator designed for fantasy novelists, historical authors, and adventure worldbuilders.
 
-Maintaining realistic travel times, terrain difficulties, and supply logistics is one of the hardest aspects of worldbuilding. Characters frequently cross continental mountain ranges in days or carry months of rations without pack animals. The Journey Engine provides mathematical rigor to overland expeditions, naval voyages, and aerial sorties.
+Unrealistic travel times and impossible logistical feats break reader immersion. Common narrative errors include:
+1. **Teleporting Armies & Characters**: Heroes crossing continental mountain ranges on foot in three days.
+2. **Infinite Supply Pouches**: Small adventuring parties traveling across waterless salt flats for weeks without pack animals or water canteens.
+3. **Flat-Earth Velocity Assumptions**: Assuming walking speed is identical on flat stone highways and $30^\circ$ mountain inclines.
 
----
-
-## 2. Terrain Friction Coefficients
-
-Terrain type alters base movement speeds according to environmental friction:
-
-| Terrain Type | Speed Multiplier | Description |
-| :--- | :---: | :--- |
-| **`paved-road` / `highway`** | `1.00x` | Maintained stone imperial road. Full standard pace. |
-| **`dirt-road` / `trail`** | `0.85x` | Beaten dirt pathway or wagon trail. Minor resistance. |
-| **`plains` / `grassland`** | `0.75x` | Open steppe, savanna, or meadow without roads. |
-| **`hills`** | `0.60x` | Rolling hills, moderate incline, and broken ground. |
-| **`forest` / `woods`** | `0.50x` | Temperate canopy, brush, and uneven forest floor. |
-| **`desert` / `dunes`** | `0.40x` | Shifting sand, heat exhaustion, and high friction. |
-| **`mountain-pass` / `mountains`**| `0.35x` | Steep rocky trails, high altitude, and narrow paths. |
-| **`tundra` / `snow`** | `0.35x` | Frozen permafrost, deep snowdrifts, and icy crust. |
-| **`jungle` / `rainforest`** | `0.30x` | Dense tropical undergrowth requiring machetes. |
-| **`swamp` / `marsh` / `bog`** | `0.25x` | Deep mud, stagnant waters, and sinking terrain. |
-| **`peaks`** | `0.20x` | Treacherous unmapped summit passes and cliffs. |
-| **`river-downstream`** | `1.20x` | River navigation traveling with the current. |
-| **`river-upstream`** | `0.50x` | River navigation rowing or towing against the current. |
-| **`ocean` / `coastal-sea`** | `1.00x` | Open deepwater or coastal sea lanes. |
+The Journey Engine calculates movement speeds based on empirical human/mount biomechanics (Tobler's Hiking Function), applies environmental terrain friction multipliers, calculates metabolic caloric and hydration demands, and computes multi-leg expedition itineraries.
 
 ---
 
-## 3. Travel Modes & Base Speeds
+## 2. Biomechanics, Kinematics & Mathematical Formulation
 
-Pace is computed over a standard 8-hour travel day:
+```mermaid
+flowchart TD
+    Inputs["Expedition Parameters (Distance, Slope, Terrain, Mode, Party Size)"] --> Tobler["Tobler's Hiking Biomechanics Engine"]
+    Inputs --> Friction["Terrain Environmental Friction Matrix"]
+    
+    Tobler & Friction --> Velocity["Effective Velocity V_eff (km/h & km/day)"]
+    Velocity --> Duration["Travel Duration T_days = Distance / V_eff"]
+    
+    Inputs & Duration --> Metabolic["Metabolic Caloric & Hydration Consumption Engine"]
+    Metabolic --> Capacity["Pack Animal Payload & Logistics Feasibility"]
+    
+    Duration & Capacity --> Itinerary["Day-by-Day Expedition Itinerary & HTML Report"]
+```
 
-| Mode Identifier | Mode Name | Base Speed (km/day) | Domain | Notes |
-| :--- | :--- | :---: | :---: | :--- |
-| `foot-normal` | Foot (Normal March) | **24.0 km/d** | Land | Sustainable indefinitely. |
-| `foot-fast` | Foot (Fast March) | **32.0 km/d** | Land | Heavy exertion. |
-| `foot-forced` | Foot (Forced March) | **40.0 km/d** | Land | Fatigue risk; cumulative exhaustion. |
-| `foot-cautious` | Foot (Cautious / Stealth) | **16.0 km/d** | Land | Scouting and avoiding detection. |
-| `caravan-wagon` | Caravan (Heavy Oxen Wagons) | **18.0 km/d** | Land | Bulk cargo freight. |
-| `caravan-mules` | Caravan (Pack Mule Train) | **22.0 km/d** | Land | Mountain-capable cargo train. |
-| `horse-walk` | Mounted (Walking Pace) | **32.0 km/d** | Land | Cavalry march saving horse stamina. |
-| `horse-trot` | Mounted (Cruising Trot) | **48.0 km/d** | Land | Standard cruising speed for riders. |
-| `horse-relay` | Mounted (Courier / Relay Gallop)| **80.0 km/d** | Land | Requires fresh horse remount stations. |
-| `ship-galley` | Naval (Rowed Galley) | **40.0 km/d** | Water | Requires large rowing crew. |
-| `ship-cog` | Naval (Merchant Sailing Cog)| **80.0 km/d** | Water | Standard merchant sailing vessel. |
-| `ship-longship` | Naval (Viking Longship) | **90.0 km/d** | Water | Shallow draft; rowing and sail. |
-| `ship-frigate` | Naval (Fast Caravel / Frigate) | **140.0 km/d** | Water | Multi-mast oceanic warship. |
-| `aerial-airship`| Aerial (Steam / Magic Airship) | **200.0 km/d** | Air | Ignores ground terrain friction. |
-| `aerial-dragon` | Aerial (Dragon Flight) | **350.0 km/d** | Air | High-speed aerial transit. |
+### 2.1 Tobler's Hiking Function (Slope-Dependent Walking Velocity)
+Waldo Tobler's empirical formulation computes walking velocity $W$ ($\text{km/h}$) as an exponential function of topographic slope $S = \frac{dh}{dx} = \tan(\theta)$:
+
+$$W(S) = 6.0 \cdot \exp\left(-3.5 \cdot |S + 0.05|\right)$$
+
+- **Peak Walking Velocity**: $\approx 6.0 \text{ km/h}$ occurs on a slight downhill slope ($S = -0.05$ or $-2.86^\circ$).
+- **Flat Ground**: $\approx 5.0 \text{ km/h}$.
+- **Steep Incline ($+20^\circ$, $S \approx 0.36$)**: Drops to $\approx 1.4 \text{ km/h}$.
+
+### 2.2 Effective Daily Travel Pace
+For a daily travel window of $H_{\text{march}}$ hours (standard: $8.0 \text{ hours}$):
+
+$$V_{\text{eff}} = W(S) \cdot \mu_{\text{terrain}} \cdot \mu_{\text{weather}}$$
+$$\text{Daily Distance } D_{\text{day}} = V_{\text{eff}} \cdot H_{\text{march}}$$
+$$\text{Total Expedition Days } T = \left\lceil \frac{D_{\text{total}}}{D_{\text{day}}} \right\rceil$$
+
+### 2.3 Party Supply Depletion & Logistic Feasibility
+For $N_{\text{people}}$ humans and $N_{\text{mounts}}$ animals traveling for $T$ days:
+
+$$\text{Daily Food (kg)} = 1.0 \cdot N_{\text{people}} + 8.0 \cdot N_{\text{mounts}}$$
+$$\text{Daily Water (Liters)} = \begin{cases} 3.0 \cdot N_{\text{people}} + 25.0 \cdot N_{\text{mounts}} & (\text{Temperate}) \\ 4.5 \cdot N_{\text{people}} + 40.0 \cdot N_{\text{mounts}} & (\text{Arid/Desert}) \end{cases}$$
+$$\text{Total Required Payload} = T \cdot (\text{Daily Food} + \text{Daily Water}) + \text{GearWeight}$$
+
+$$\text{Logistical Viability} \iff \text{Total Required Payload} \le \sum \text{CarryingCapacity}(\text{Party + Mules + Wagons})$$
 
 ---
 
-## 4. Supply & Ration Logistics Mathematics
+## 3. Subfeatures Matrix
 
-The engine models daily consumption rates for parties and livestock:
-
-- **Food Rations**: $1.0\text{ kg} / \text{person} / \text{day}$
-- **Drinking Water (Standard)**: $3.0\text{ Liters} / \text{person} / \text{day}$
-- **Drinking Water (Desert / Arid)**: $4.5\text{ Liters} / \text{person} / \text{day}$
-- **Mount Feed (Hay / Grain)**: $8.0\text{ kg} / \text{mount} / \text{day}$
-- **Mount Water**: $25.0\text{ Liters} / \text{mount} / \text{day}$
-
-$$\text{Total Cargo Weight} = \text{Food}(\text{kg}) + \text{Water}(\text{kg}) + \text{Mount Feed}(\text{kg})$$
-
-If the author specifies an initial supply allotment (`--rations-days`), the engine flags potential starvation or dehydration points along the route.
+| Subfeature | Algorithmic Mechanism | Diagnostic Output / Rule | Narrative Craft Significance |
+|---|---|---|---|
+| **Tobler Slope Kinematics** | Evaluates exponential slope velocity equations for alpine routes. | Computes accurate mountain march rates. | Prevents unrealistically rapid mountain passes and ascents. |
+| **Terrain Friction Matrix** | Multiplies base speed by 14 distinct surface friction coefficients. | Adjusts travel speed from paved roads ($1.0\times$) to swamps ($0.25\times$). | Forces characters to navigate along established roads and rivers. |
+| **Multi-Mode Travel Engine** | Models 15 travel modes (Foot, Mule, Warhorse, Galley, Airship, Dragon). | Emits speed and stamina limits per vehicle/mount. | Accurately distinguishes courier relays from heavy wagon caravans. |
+| **Metabolic Supply Simulator**| Tracks daily water, food, and fodder depletion along routes. | Flags starvation, dehydration, and pack animal payload overloads. | Injects realistic survival tension into wilderness journeys. |
+| **Day-by-Day Itinerary Builder**| Compiles multi-leg expedition schedules with campsite milestones. | Emits publication-ready travel schedules and HTML reports. | Keeps multi-chapter travel chronologies flawlessly synchronized. |
 
 ---
 
-## 5. Command-Line Interface (CLI)
+## 4. Author Extension & Configuration Guide
 
+### 4.1 CLI Command Syntax
 ```bash
-# Calculate travel duration and supplies for an overland march
-arcanum journey --dist "120 km" --terrain "mountains" --mode "foot-normal" --party 4
+# Calculate overland march duration and supplies for a 4-person party across mountains
+arcanum journey --dist "140 km" --terrain "mountains" --mode "foot-normal" --party 4
 
-# Model a cavalry trek with mounts through plains
-arcanum journey --dist "200 km" --terrain "plains" --mode "horse-trot" --party 2 --mounts 2
+# Model a cavalry trek with mounts through open plains
+arcanum journey --dist "240 km" --terrain "plains" --mode "horse-trot" --party 2 --mounts 2
 
-# Plan a naval voyage and export an interactive HTML itinerary
-arcanum journey --dist "500 km" --terrain "ocean" --mode "ship-frigate" --party 20 --html voyage_plan.html
+# Plan a long-range oceanic voyage on a sailing frigate
+arcanum journey --dist "800 km" --terrain "ocean" --mode "ship-frigate" --party 25 --html dist/voyage.html
+
+# Output machine-readable JSON
+arcanum journey --dist "100 km" --terrain "forest" --mode "foot-fast" --json
+
+# Query Tobler hiking math and metabolic formulas
+arcanum doc journey --math --why
 ```
 
 ---
 
-## 6. HTML Itinerary Report & Security Guarantee
+## 5. Tri-Fold Creative Advisory Resolutions
 
-Generated HTML expedition reports include day-by-day distance milestones, cumulative ration consumption, and remaining distance indicators with strict offline security headers:
+```mermaid
+flowchart TD
+    Alert["Journey Alert: LOGISTICAL_DEFICIT (Party will run out of water on Day 6 of 11 in Desert)"] --> PathA["Path A: Hard Realism / Logistical Expansion"]
+    Alert --> PathB["Path B: Speculative / Diegetic Trope"]
+    Alert --> PathC["Path C: Authorial Sovereignty"]
+    
+    PathA --> SolA["Add 2 pack camels to party or introduce an oasis stop on Day 5."]
+    PathB --> SolB["Introduce a water-generating enchanted ring or magical condensation prism."]
+    PathC --> SolC["Tag scene with @survival: supernatural_endurance to ignore hydration."]
+```
+
+### Scenario: Desert Dehydration Warning (Water exhausts on Day 6 of 11)
+- **Path A (Hard Realism / Logistical Feasibility)**:
+  - Add two pack mules or camels carrying additional water barrels, or route the party through an intermediate oasis or desert spring.
+- **Path B (Speculative / Diegetic Trope)**:
+  - Give the party a low-tier magical artifact (e.g. *Decanter of Endless Water*, *Frost-Rune Condenser*, or native moisture-retaining cacti).
+- **Path C (Authorial Sovereignty)**:
+  - Declare the characters possess superhuman physical endurance due to desert lineage, suppressing survival warnings via `@survival: adapted`.
+
+---
+
+## 6. Content Security Policy & Offline Isolation
+
+Generated HTML journey itineraries and SVG route profiles operate 100% offline with zero external network access:
 
 ```html
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">

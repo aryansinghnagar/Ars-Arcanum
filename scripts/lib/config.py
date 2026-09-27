@@ -218,7 +218,27 @@ def list_docx_presets() -> dict:
     return DOCX_PRESETS
 
 
-def main():
+def get_tips_enabled() -> bool:
+    """Returns True if dynamic contextual tips are enabled (default: True)."""
+    cfg = load_config()
+    return bool(cfg.get("tips_enabled", True))
+
+
+def set_tips_enabled(enabled: bool) -> bool:
+    """Sets and persists dynamic tips enabled state."""
+    cfg = load_config()
+    cfg["tips_enabled"] = bool(enabled)
+    return save_config(cfg)
+
+
+def toggle_tips() -> bool:
+    """Toggles dynamic tips enabled state and returns new value."""
+    current = get_tips_enabled()
+    set_tips_enabled(not current)
+    return not current
+
+
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Configuration Tool")
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
 
@@ -245,7 +265,17 @@ def main():
     dcfg_parser.add_argument("key", nargs="?", help="Option key (e.g. font_family, font_size_pt, line_spacing, margin_inches)")
     dcfg_parser.add_argument("value", nargs="?", help="Option value")
 
-    args = parser.parse_args()
+    # tips subcommand
+    tips_parser = subparsers.add_parser("tips", help="Manage dynamic tips display preference")
+    tips_sub = tips_parser.add_subparsers(dest="action", required=False)
+    tips_sub.add_parser("get", help="Get current tips enabled status")
+    tips_sub.add_parser("enable", help="Enable dynamic tips display")
+    tips_sub.add_parser("disable", help="Disable dynamic tips display")
+    tips_sub.add_parser("toggle", help="Toggle dynamic tips display")
+    set_tips_p = tips_sub.add_parser("set", help="Set tips enabled status (true/false)")
+    set_tips_p.add_argument("state", help="true or false")
+
+    args = parser.parse_args(argv)
 
     if args.subcommand == "backup-dest":
         if args.action == "get":
@@ -321,6 +351,28 @@ def main():
             print(json.dumps(get_docx_config(), indent=2))
             sys.exit(0)
 
+    elif args.subcommand == "tips":
+        action = getattr(args, "action", None)
+        if action == "enable" or (action == "set" and getattr(args, "state", "").lower() in ("true", "1", "yes", "on")):
+            set_tips_enabled(True)
+            print("[CONFIG] Dynamic tips display enabled.")
+            return 0
+        elif action == "disable" or (action == "set" and getattr(args, "state", "").lower() in ("false", "0", "no", "off")):
+            set_tips_enabled(False)
+            print("[CONFIG] Dynamic tips display disabled.")
+            return 0
+        elif action == "toggle":
+            new_val = toggle_tips()
+            print(f"[CONFIG] Dynamic tips display {'enabled' if new_val else 'disabled'}.")
+            return 0
+        else:
+            # Default or "get"
+            enabled = get_tips_enabled()
+            print(f"tips_enabled: {enabled}")
+            return 0
+
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
