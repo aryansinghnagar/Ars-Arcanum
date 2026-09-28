@@ -111,10 +111,6 @@ debian/debhelper-build-stamp
 coverage.xml
 htmlcov/
 
-# Agent working files — agentic session state, handoffs, ADR logs
-# (kept in .agent/ for reference but never committed to history)
-.agent/
-
 # Performance benchmark outputs
 .benchmarks/
 

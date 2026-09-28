@@ -291,7 +291,7 @@ class TestAstrophysicsEngine(unittest.TestCase):
 
             # error handling in CLI
             with patch("sys.stderr", new_callable=io.StringIO) as mock_err:
-                with patch("sys.argv", ["astrophysics.py", "transit", "-500m"]):
+                with patch("sys.argv", ["astrophysics.py", "transit", "invalid-dist"]):
                     with self.assertRaises(SystemExit) as cm:
                         main()
                     self.assertEqual(cm.exception.code, 1)

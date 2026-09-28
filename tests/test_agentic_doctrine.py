@@ -16,8 +16,16 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 class TestAgenticDoctrine(unittest.TestCase):
     def setUp(self):
         self.agents_md = PROJECT_ROOT / "AGENTS.md"
-        self.tasks_md = PROJECT_ROOT / "tasks.md"
-        self.decisions_md = PROJECT_ROOT / "decisions.md"
+        self.tasks_md = (
+            PROJECT_ROOT / ".agent" / "tasks.md"
+            if (PROJECT_ROOT / ".agent" / "tasks.md").exists()
+            else PROJECT_ROOT / "tasks.md"
+        )
+        self.decisions_md = (
+            PROJECT_ROOT / ".agent" / "decisions.md"
+            if (PROJECT_ROOT / ".agent" / "decisions.md").exists()
+            else PROJECT_ROOT / "decisions.md"
+        )
 
     def test_agents_manifesto_exists(self):
         self.assertTrue(self.agents_md.exists(), "Missing AGENTS.md manifesto file")

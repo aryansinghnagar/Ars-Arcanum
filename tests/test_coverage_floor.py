@@ -41,7 +41,12 @@ class TestCoverageFloor(unittest.TestCase):
             fail_under = cov_report.get("fail_under", 0)
             self.assertGreaterEqual(fail_under, 65, "Coverage fail_under must be at least 65%")
         else:
-            self.assertIn("fail_under = 65", content)
+            import re
+            m = re.search(r"fail_under\s*=\s*(\d+)", content)
+            self.assertIsNotNone(m, "fail_under must be specified in pyproject.toml")
+            if m:
+                fail_under = int(m.group(1))
+                self.assertGreaterEqual(fail_under, 65, "Coverage fail_under must be at least 65%")
             self.assertIn("[tool.coverage.report]", content)
 
     def test_coverage_run_sources_scripts_lib(self):

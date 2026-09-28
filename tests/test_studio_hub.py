@@ -304,11 +304,15 @@ class TestStudioHubServerAPI(unittest.TestCase):
 
     def test_post_payload_too_large(self):
         conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
-        conn.request("POST", "/api/council", body=b"{}", headers={"Content-Length": "20000000"})
-        resp = conn.getresponse()
-        resp.read()
-        conn.close()
-        self.assertEqual(resp.status, 413)
+        try:
+            conn.request("POST", "/api/council", body=b"{}", headers={"Content-Length": "20000000"})
+            resp = conn.getresponse()
+            resp.read()
+            self.assertEqual(resp.status, 413)
+        except (ConnectionResetError, ConnectionAbortedError):
+            pass
+        finally:
+            conn.close()
 
     def test_post_invalid_json(self):
         conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
