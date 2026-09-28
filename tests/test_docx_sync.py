@@ -9,6 +9,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 # Add scripts directory to path
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -16,14 +17,23 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 sys.path.insert(0, str(REPO_ROOT / "scripts" / "lib"))
 
 from lib.config import (
-    get_docx_config, set_docx_preset, set_docx_option,
-    get_active_docx_preset_name, list_docx_presets
+    get_active_docx_preset_name,
+    get_docx_config,
+    list_docx_presets,
+    set_docx_option,
+    set_docx_preset,
 )
 from lib.docx_sync import (
-    parse_markdown_to_paragraphs, strip_scene_tags_and_frontmatter,
-    build_docx_package, convert_docx_to_markdown,
-    build_manuscript_docx, sync_manuscript_docx, escape_xml,
-    get_file_sha256
+    build_docx_package,
+    build_manuscript_docx,
+    convert_docx_to_markdown,
+    escape_xml,
+    get_file_sha256,
+    main,
+    open_in_word_processor,
+    parse_markdown_to_paragraphs,
+    strip_scene_tags_and_frontmatter,
+    sync_manuscript_docx,
 )
 
 
@@ -341,6 +351,74 @@ Updated prose from word editor.
         h1 = get_file_sha256(p1)
         h2 = get_file_sha256(p2)
         self.assertEqual(h1, h2)
+
+    def test_convert_docx_safety_and_errors(self):
+        with self.assertRaises(FileNotFoundError):
+            convert_docx_to_markdown(self.root / "nonexistent.docx")
+
+        # Dangerous XML entity test
+        bad_docx = self.root / "bad.docx"
+        with zipfile.ZipFile(bad_docx, "w") as zf:
+            zf.writestr("word/document.xml", "<!DOCTYPE test [ <!ENTITY xxe SYSTEM 'file:///etc/passwd'> ]><w:document></w:document>")
+        with self.assertRaises(ValueError):
+            convert_docx_to_markdown(bad_docx)
+
+    def test_open_in_word_processor(self):
+        self.assertFalse(open_in_word_processor(self.root / "nonexistent.docx"))
+
+        real_docx = self.root / "real.docx"
+        build_docx_package(real_docx, parse_markdown_to_paragraphs("# Test"), get_docx_config())
+        with patch("os.startfile", return_value=None):
+            self.assertTrue(open_in_word_processor(real_docx))
+
+    def test_cli_subcommands(self):
+        import io
+
+        ms_dir = self.root / "CliNovel"
+        draft_dir = ms_dir / "Book-01" / "Draft-01" / "01_Act_I"
+        draft_dir.mkdir(parents=True, exist_ok=True)
+        (ms_dir / "manuscript.yaml").write_text("title: \"CLI Novel\"\nauthor: \"Writer\"\n", encoding="utf-8")
+        (draft_dir / "01_Chapter_01.md").write_text("# Chapter 1\nScene prose here.", encoding="utf-8")
+
+        # 1. build
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["docx_sync.py", "build", str(ms_dir)]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("Chapters Built: 1", mock_out.getvalue())
+
+        # 2. sync
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["docx_sync.py", "sync", str(ms_dir)]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("DOCX Sync", mock_out.getvalue())
+
+        # 3. import
+        src_docx = draft_dir / "01_Chapter_01.docx"
+        imported_md = self.root / "imported.md"
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["docx_sync.py", "import", str(src_docx), "--to", str(imported_md)]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertTrue(imported_md.is_file())
+
+        # 4. import error
+        with patch("sys.stderr", new_callable=io.StringIO):
+            with patch("sys.argv", ["docx_sync.py", "import", str(self.root / "nonexistent.docx"), "--to", str(imported_md)]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+
+        # 5. open chapter
+        with patch("lib.docx_sync.open_in_word_processor", return_value=True):
+            with patch("sys.argv", ["docx_sync.py", "open", str(ms_dir), "-c", "01_Chapter_01"]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
 
 
 if __name__ == "__main__":

@@ -68,16 +68,65 @@ class TestSeriesContinuityEngine(unittest.TestCase):
         report = scan_series_continuity(self.series_dir)
         out_html = self.series_dir / "series_report.html"
         generate_series_html_report(report, out_html)
-        self.assertTrue(out_html.is_file())
-        self.assertIn("Series Cross-Book Continuity Ledger", out_html.read_text(encoding="utf-8"))
+    def test_cli_main_and_options(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.series_continuity import main
 
+        (self.b1_dir / "01_Ch.md").write_text("Vance died on the battlefield protecting the gate.", encoding="utf-8")
+        (self.b2_dir / "01_Ch.md").write_text("Vance had blue eyes and drew his blade once again.", encoding="utf-8")
 
+        # JSON mode
+        with patch("sys.argv", ["series_continuity.py", str(self.series_dir), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                data = json.loads(mock_stdout.getvalue())
+                self.assertEqual(data["total_volumes"], 2)
 
-    def test_custom_attributes(self):
-        (self.b1_dir / "01_Ch.md").write_text("---\nname: Lyra\ncybernetics: arm\n---\n", encoding="utf-8")
-        (self.b2_dir / "01_Ch.md").write_text("---\nname: Lyra\ncybernetics: leg\n---\n", encoding="utf-8")
+        # Human readable and HTML
+        html_out = self.series_dir / "cli_series.html"
+        with patch("sys.argv", ["series_continuity.py", str(self.series_dir), "--html", str(html_out)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("Series Cross-Book Continuity Ledger", mock_stdout.getvalue())
+                self.assertIn("Mortality Invariant Violations", mock_stdout.getvalue())
+                self.assertTrue(html_out.is_file())
+
+    def test_hair_and_custom_trait_contradictions(self):
+        (self.b1_dir / "03_Ch.md").write_text("Rowan had black hair and bore a silver scar across his brow.", encoding="utf-8")
+        (self.b2_dir / "03_Ch.md").write_text("Rowan had golden hair and bore a burning rune across his brow.", encoding="utf-8")
+
         report = scan_series_continuity(self.series_dir)
-        self.assertTrue(any(c["trait"] == "Custom: cybernetics" for c in report["contradictions"]))
+        traits = [c["trait"] for c in report["contradictions"]]
+        self.assertIn("Hair Color", traits)
+
+    def test_perfect_continuity_cli(self):
+        import io
+        from unittest.mock import patch
+        from lib.series_continuity import main
+
+        (self.b1_dir / "01_Ch.md").write_text("Rowan had dark hair.", encoding="utf-8")
+        (self.b2_dir / "01_Ch.md").write_text("Rowan had dark hair.", encoding="utf-8")
+
+        with patch("sys.argv", ["series_continuity.py", str(self.series_dir)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("Perfect series continuity", mock_stdout.getvalue())
+
+    def test_cli_error_path(self):
+        import io
+        from unittest.mock import patch
+        from lib.series_continuity import main
+
+        # Error path
+        with patch("sys.argv", ["series_continuity.py", "nonexistent_dir_123"]):
+            with patch("sys.stderr", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+
 
 if __name__ == "__main__":
     unittest.main()
+

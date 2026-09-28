@@ -58,6 +58,7 @@ Usage:
   tension [MS] [--html]        Model chapter tension curve & narrative arcs
   plot [MS] [--html|--matrix]  Multi-track plot grid & subplot pacing matrix (PLT-101)
   structure [MS] [-p PARADIGM] Story paradigm enforcer: 3-Act, 8-Sequence, Kishotenketsu (PLT-102)
+  scaffold [TARGET] [options]  Pluggable manuscript structure scaffolder across 16 presets (alias: presets)
   canvas [MS] [--html|--json]  Interactive visual story canvas & corkboard drag-and-drop
   timeline [MS|WORLD] [--html] Dual-track chronological vs narrative timeline synchronizer
   omnibus <UNIVERSE> [--html]  Compile multi-volume series omnibus with unified lore
@@ -310,14 +311,18 @@ cmd_manuscript() {
     local uname=""
     local wname=""
     local author="Author Name"
+    local structure="three_act"
+    local divisions=""
     while [ $# -gt 0 ]; do
         case "$1" in
             -u|--universe) uname="$2"; shift 2 ;;
             -w|--world) wname="$2"; shift 2 ;;
             -a|--author) author="$2"; shift 2 ;;
             -n|--name) mname="$2"; shift 2 ;;
+            -s|--structure) structure="$2"; shift 2 ;;
+            -d|--divisions) divisions="$2"; shift 2 ;;
             -h|--help)
-                echo "Usage: arcanum manuscript <NAME> [-u UNIVERSE] [-w WORLD] [-a AUTHOR]"
+                echo "Usage: arcanum manuscript <NAME> [-u UNIVERSE] [-w WORLD] [-a AUTHOR] [-s STRUCTURE] [-d DIVISIONS]"
                 return 0 ;;
             *) mname="$1"; shift ;;
         esac
@@ -358,23 +363,73 @@ cmd_manuscript() {
         return 1
     fi
 
-    echo "Scaffolding Manuscript Project: ${mname} ..."
+    echo "Scaffolding Manuscript Project: ${mname} (structure: ${structure}) ..."
     local tpl_dir="${PROJECT_ROOT}/templates/manuscript"
     if [ -d "${tpl_dir}" ]; then
         cp -r "${tpl_dir}" "${target_dir}"
+        rm -rf "${target_dir}/Book-01"
+    fi
+    mkdir -p "${target_dir}/Book-01" "${target_dir}/03-Art" "${target_dir}/04-Publishing" "${target_dir}/05-Backups"
+
+    local scaffold_rc=0
+    if [ -n "${divisions}" ]; then
+        if command -v python3 &>/dev/null; then
+            python3 "${PROJECT_ROOT}/scripts/lib/manuscript_scaffold.py" scaffold "${target_dir}/Book-01" --structure "${structure}" --divisions "${divisions}" || scaffold_rc=$?
+        elif command -v python &>/dev/null; then
+            python "${PROJECT_ROOT}/scripts/lib/manuscript_scaffold.py" scaffold "${target_dir}/Book-01" --structure "${structure}" --divisions "${divisions}" || scaffold_rc=$?
+        else
+            mkdir -p "${target_dir}/Book-01/01_Act_I" "${target_dir}/Book-01/02_Act_II" "${target_dir}/Book-01/03_Act_III"
+            cat << 'EOF' > "${target_dir}/Book-01/01_Act_I/01_Chapter_01.md"
+# Chapter 1
+
+Begin writing Book-01 here...
+EOF
+        fi
     else
-        mkdir -p "${target_dir}/Book-01/01_Act_I" "${target_dir}/Book-01/02_Act_II" "${target_dir}/Book-01/03_Act_III" "${target_dir}/03-Art" "${target_dir}/04-Publishing" "${target_dir}/05-Backups"
+        if command -v python3 &>/dev/null; then
+            python3 "${PROJECT_ROOT}/scripts/lib/manuscript_scaffold.py" scaffold "${target_dir}/Book-01" --structure "${structure}" || scaffold_rc=$?
+        elif command -v python &>/dev/null; then
+            python "${PROJECT_ROOT}/scripts/lib/manuscript_scaffold.py" scaffold "${target_dir}/Book-01" --structure "${structure}" || scaffold_rc=$?
+        else
+            mkdir -p "${target_dir}/Book-01/01_Act_I" "${target_dir}/Book-01/02_Act_II" "${target_dir}/Book-01/03_Act_III"
+            cat << 'EOF' > "${target_dir}/Book-01/01_Act_I/01_Chapter_01.md"
+# Chapter 1
+
+Begin writing Book-01 here...
+EOF
+        fi
     fi
 
-    cat << EOF > "${target_dir}/manuscript.yaml"
+    if [ "${scaffold_rc}" -ne 0 ]; then
+        echo "Error: Failed to scaffold manuscript structure (exit code ${scaffold_rc})." >&2
+        return "${scaffold_rc}"
+    fi
+
+    if [ "${structure}" = "custom" ] && [ -n "${divisions}" ]; then
+        cat << EOF > "${target_dir}/manuscript.yaml"
 # Ars Arcanum Manuscript Manifest
-schema_version: "1.0"
+schema_version: "1.1"
 title: "${mname}"
 author: "${author}"
 universe: "${uname:-Default-Universe}"
 world: "${wname:-}"
+structure: "${structure}"
+custom_divisions:
+$(echo "${divisions}" | tr ',' '\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | grep -v '^[[:space:]]*$' | sed 's/^/  - "/; s/$/"/')
 created_at: "$(date +%Y-%m-%d)"
 EOF
+    else
+        cat << EOF > "${target_dir}/manuscript.yaml"
+# Ars Arcanum Manuscript Manifest
+schema_version: "1.1"
+title: "${mname}"
+author: "${author}"
+universe: "${uname:-Default-Universe}"
+world: "${wname:-}"
+structure: "${structure}"
+created_at: "$(date +%Y-%m-%d)"
+EOF
+    fi
 
     if [ -f "${target_dir}/nwProject.nwx" ] && command -v python3 &>/dev/null; then
         python3 - "${target_dir}/nwProject.nwx" "${mname}" "${author}" << 'PYEOF'
@@ -437,12 +492,16 @@ EOF
 cmd_volume() {
     local ms_target=""
     local vol_name=""
+    local structure=""
+    local divisions=""
     while [ $# -gt 0 ]; do
         case "$1" in
             -m|--manuscript) ms_target="$2"; shift 2 ;;
             -n|--name) vol_name="$2"; shift 2 ;;
+            -s|--structure) structure="$2"; shift 2 ;;
+            -d|--divisions) divisions="$2"; shift 2 ;;
             -h|--help)
-                echo "Usage: arcanum add-volume <MANUSCRIPT> [VOLUME_NAME]"
+                echo "Usage: arcanum add-volume <MANUSCRIPT> [VOLUME_NAME] [-s STRUCTURE] [-d DIVISIONS]"
                 return 0 ;;
             *)
                 if [ -z "${ms_target}" ]; then ms_target="$1"; else vol_name="$1"; fi
@@ -478,14 +537,83 @@ cmd_volume() {
         echo "Error: Volume '${vol_name}' already exists in '${resolved_ms}'." >&2; return 1
     fi
 
-    echo "Adding Volume '${vol_name}' to '${resolved_ms}'..."
-    mkdir -p "${target_vol}/01_Act_I" "${target_vol}/02_Act_II" "${target_vol}/03_Act_III" "${target_vol}/04_Back_Matter"
+    if [ -z "${structure}" ] && [ -f "${resolved_ms}/manuscript.yaml" ]; then
+        if command -v python3 &>/dev/null; then
+            eval "$(python3 - "${PROJECT_ROOT}" "${resolved_ms}" << 'PYEOF'
+import sys
+from pathlib import Path
+root = Path(sys.argv[1])
+sys.path.insert(0, str(root / "scripts"))
+try:
+    from lib.manuscript_scaffold import read_manifest_structure
+    s, d = read_manifest_structure(sys.argv[2])
+    print(f"structure=\"{s}\"")
+    if d:
+        divs_str = ",".join(d)
+        print(f"divisions=\"{divs_str}\"")
+except Exception:
+    pass
+PYEOF
+)"
+        elif command -v python &>/dev/null; then
+            eval "$(python - "${PROJECT_ROOT}" "${resolved_ms}" << 'PYEOF'
+import sys
+from pathlib import Path
+root = Path(sys.argv[1])
+sys.path.insert(0, str(root / "scripts"))
+try:
+    from lib.manuscript_scaffold import read_manifest_structure
+    s, d = read_manifest_structure(sys.argv[2])
+    print(f"structure=\"{s}\"")
+    if d:
+        divs_str = ",".join(d)
+        print(f"divisions=\"{divs_str}\"")
+except Exception:
+    pass
+PYEOF
+)"
+        else
+            structure="$(grep -E '^[[:space:]]*structure:' "${resolved_ms}/manuscript.yaml" | head -n1 | sed -E 's/.*structure:[[:space:]]*"?([^"\r\n]+)"?/\1/' | tr -d '[:space:]')"
+        fi
+    fi
+    structure="${structure:-three_act}"
 
-    cat << EOF > "${target_vol}/01_Act_I/01_Chapter_01.md"
+    echo "Adding Volume '${vol_name}' to '${resolved_ms}' (structure: ${structure})..."
+    mkdir -p "${target_vol}" "${target_vol}/04_Back_Matter"
+
+    local vol_scaffold_rc=0
+    if [ -n "${divisions}" ]; then
+        if command -v python3 &>/dev/null; then
+            python3 "${PROJECT_ROOT}/scripts/lib/manuscript_scaffold.py" scaffold "${target_vol}" --structure "${structure}" --divisions "${divisions}" || vol_scaffold_rc=$?
+        elif command -v python &>/dev/null; then
+            python "${PROJECT_ROOT}/scripts/lib/manuscript_scaffold.py" scaffold "${target_vol}" --structure "${structure}" --divisions "${divisions}" || vol_scaffold_rc=$?
+        else
+            mkdir -p "${target_vol}/01_Act_I" "${target_vol}/02_Act_II" "${target_vol}/03_Act_III"
+            cat << EOF > "${target_vol}/01_Act_I/01_Chapter_01.md"
 # Chapter 1
 
 Begin writing ${vol_name} here...
 EOF
+        fi
+    else
+        if command -v python3 &>/dev/null; then
+            python3 "${PROJECT_ROOT}/scripts/lib/manuscript_scaffold.py" scaffold "${target_vol}" --structure "${structure}" || vol_scaffold_rc=$?
+        elif command -v python &>/dev/null; then
+            python "${PROJECT_ROOT}/scripts/lib/manuscript_scaffold.py" scaffold "${target_vol}" --structure "${structure}" || vol_scaffold_rc=$?
+        else
+            mkdir -p "${target_vol}/01_Act_I" "${target_vol}/02_Act_II" "${target_vol}/03_Act_III"
+            cat << EOF > "${target_vol}/01_Act_I/01_Chapter_01.md"
+# Chapter 1
+
+Begin writing ${vol_name} here...
+EOF
+        fi
+    fi
+
+    if [ "${vol_scaffold_rc}" -ne 0 ]; then
+        echo "Error: Failed to scaffold volume structure (exit code ${vol_scaffold_rc})." >&2
+        return "${vol_scaffold_rc}"
+    fi
 
     if command -v git &>/dev/null; then
         (
@@ -1327,7 +1455,42 @@ MENU
                 echo "  b) Back"
                 read -r -p "Choose action: " S2_CHOICE || break
                 case "${S2_CHOICE}" in
-                    1) read -r -p "Manuscript name: " MNAME && [ -n "$MNAME" ] && cmd_manuscript "$MNAME" ;;
+                    1)
+                        read -r -p "Manuscript name: " MNAME && [ -n "$MNAME" ] || break
+                        echo "Select structure preset (or enter name/custom):"
+                        echo "  1) three_act (Default)"
+                        echo "  2) freytags_pyramid"
+                        echo "  3) heros_journey"
+                        echo "  4) save_the_cat"
+                        echo "  5) story_circle"
+                        echo "  6) kishotenketsu"
+                        echo "  7) seven_point"
+                        echo "  8) fichtean_curve"
+                        echo "  9) other / custom"
+                        read -r -p "Structure [1-9 / name] (default: 1): " S_CHOICE
+                        S_NAME="three_act"
+                        S_DIVS=""
+                        case "${S_CHOICE}" in
+                            1|"") S_NAME="three_act" ;;
+                            2) S_NAME="freytags_pyramid" ;;
+                            3) S_NAME="heros_journey" ;;
+                            4) S_NAME="save_the_cat" ;;
+                            5) S_NAME="story_circle" ;;
+                            6) S_NAME="kishotenketsu" ;;
+                            7) S_NAME="seven_point" ;;
+                            8) S_NAME="fichtean_curve" ;;
+                            9|"custom")
+                                S_NAME="custom"
+                                read -r -p "Comma-separated divisions (e.g. Prologue,Part_I,Part_II,Epilogue): " S_DIVS
+                                ;;
+                            *) S_NAME="${S_CHOICE}" ;;
+                        esac
+                        if [ -n "${S_DIVS}" ]; then
+                            cmd_manuscript "$MNAME" --structure "$S_NAME" --divisions "$S_DIVS"
+                        else
+                            cmd_manuscript "$MNAME" --structure "$S_NAME"
+                        fi
+                        ;;
                     2) read -r -p "Manuscript name: " MNAME && [ -n "$MNAME" ] && cmd_draft "$MNAME" ;;
                     3) read -r -p "Manuscript path: " MDIR && [ -n "$MDIR" ] && python3 "${PROJECT_ROOT}/scripts/lib/plot_matrix.py" "$MDIR" ;;
                     4) read -r -p "Manuscript path: " MDIR && [ -n "$MDIR" ] && python3 "${PROJECT_ROOT}/scripts/lib/structure.py" "$MDIR" ;;
@@ -1685,6 +1848,9 @@ case "${COMMAND}" in
     structure|paradigm)
         exec python3 "${PROJECT_ROOT}/scripts/lib/structure.py" "$@"
         ;;
+    scaffold|scaffold-volume|structure-presets|presets)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/manuscript_scaffold.py" "$@"
+        ;;
     portfolio|catalog)
         exec python3 "${PROJECT_ROOT}/scripts/lib/portfolio.py" "$@"
         ;;
@@ -1865,7 +2031,7 @@ known_commands = [
     "prophecy", "audit", "pace", "tension", "voice", "calendar", "journey",
     "gui", "control-center", "menu", "interactive", "verify", "setup", "uninstall", "version", "help",
     "cast", "dramatis-personae", "dramatis", "characters-cast", "corpus", "rag", "canvas", "timeline", "omnibus",
-    "doc", "studio", "zen", "resonance", "tip", "import", "hub"
+    "doc", "studio", "zen", "resonance", "tip", "import", "hub", "scaffold", "presets"
 ]
 
 matches = difflib.get_close_matches(cmd, known_commands, n=1, cutoff=0.55)

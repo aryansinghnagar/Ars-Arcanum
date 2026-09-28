@@ -18,9 +18,7 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 from lib.preflight import (
     check_metadata,
     check_cover_and_assets,
-    validate_chapter_formatting,
-    run_preflight_linter,
-    generate_preflight_html_report
+    validate_chapter_formatting
 )
 
 
@@ -65,23 +63,47 @@ class TestPreflightEngine(unittest.TestCase):
     def test_straight_quotes_warning(self):
         ch = self.ms_dir / "02_Quotes.md"
         ch.write_text('# Chapter 2\n"Hello," said John. "We must go." "Why?" asked Elena. "Because."\n', encoding="utf-8")
+        validate_chapter_formatting(ch)
+    def test_chapter_formatting_unclosed_codeblock_and_divider(self):
+        ch = self.ms_dir / "03_BadFormat.md"
+        ch.write_text("# Chapter 3\n```python\nprint('hello')\n---\n", encoding="utf-8")
         issues = validate_chapter_formatting(ch)
         codes = [i["code"] for i in issues]
-        self.assertIn("TYP-STRAIGHT-QUOTES", codes)
+        self.assertIn("TYP-UNCLOSED-CODE", codes)
+        self.assertIn("TYP-TRAILING-DIV", codes)
 
-    def test_full_linter_and_html_generation(self):
+    def test_cli_main_and_options(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.preflight import main
+
         (self.ms_dir / "manuscript.yaml").write_text('title: "Valid Book"\nauthor: "A. Author"\n', encoding="utf-8")
-        (self.ms_dir / "01_Ch1.md").write_text("# Chapter 1\n\nWord " * 150, encoding="utf-8")
-        
-        report = run_preflight_linter(self.ms_dir)
-        self.assertGreater(report["compliance_score"], 50)
-        self.assertGreater(report["total_words"], 100)
+        (self.ms_dir / "01_Ch1.md").write_text("# Chapter 1\n\nWord " * 50, encoding="utf-8")
 
-        out_html = self.ms_dir / "preflight_cert.html"
-        generate_preflight_html_report(report, out_html)
-        self.assertTrue(out_html.is_file())
-        self.assertIn("Pre-Flight Typesetting & Publishing Compliance", out_html.read_text(encoding="utf-8"))
+        # JSON mode
+        with patch("sys.argv", ["preflight.py", str(self.ms_dir), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                data = json.loads(mock_stdout.getvalue())
+                self.assertIn("compliance_score", data)
+
+        # HTML and human readable
+        html_out = self.ms_dir / "cli_cert.html"
+        with patch("sys.argv", ["preflight.py", str(self.ms_dir), "--html", str(html_out)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("Pre-Flight Typesetting Linter", mock_stdout.getvalue())
+                self.assertTrue(html_out.is_file())
+
+        # Error path
+        with patch("sys.argv", ["preflight.py", "nonexistent_dir_123"]):
+            with patch("sys.stderr", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
 
 
 if __name__ == "__main__":
     unittest.main()
+

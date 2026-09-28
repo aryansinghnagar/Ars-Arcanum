@@ -855,8 +855,10 @@ class ArcanumApp(
             for d in sorted(book_dir.glob("Draft-*")):
                 if d.is_dir():
                     drafts.append(d.name)
-        if not drafts and (book_dir / "01_Act_I").is_dir():
-            drafts = ["Draft-01 (Baseline)"]
+        if not drafts and book_dir.is_dir():
+            has_divisions = any(d.is_dir() and bool(re.match(r"^\d{2}_", d.name)) for d in book_dir.iterdir())
+            if has_divisions or (book_dir / "01_Act_I").is_dir():
+                drafts = ["Draft-01 (Baseline)"]
 
         self.combo_draft_list.remove_all()
         self.combo_diff_a.remove_all()

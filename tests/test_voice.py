@@ -171,6 +171,37 @@ Kaelen: "We strike at midnight."
         self.assertIn("Character Voice Profiler", content)
         self.assertIn("Content-Security-Policy", content)
 
+    def test_cli(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.voice import main
+
+        chapter = self.target_dir / "01_Ch1.md"
+        chapter.write_text("""# Ch 1\nElena: "We cannot fail."\nVance: "Let's do this."\n""", encoding="utf-8")
+        out_html = self.target_dir / "cli_voice.html"
+
+        # 1. json
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["voice.py", str(self.target_dir), "--json"]):
+                main()
+                data = json.loads(mock_out.getvalue())
+                self.assertIn("character_count", data)
+
+        # 2. table and html
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["voice.py", str(self.target_dir), "--html", str(out_html)]):
+                main()
+                self.assertIn("Character Voice Profiler", mock_out.getvalue())
+                self.assertTrue(out_html.is_file())
+
+        # 3. nonexistent path -> exit 1
+        with patch("sys.stderr", new_callable=io.StringIO):
+            with patch("sys.argv", ["voice.py", str(self.target_dir / "nonexistent")]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

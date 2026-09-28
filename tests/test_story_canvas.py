@@ -7,13 +7,18 @@ Validates scene card extraction, metadata parsing, paradigm mapping, drag-and-dr
 corkboard generation, thread/POV filtering, and Content Security Policy compliance.
 """
 
+import io
+import json
 import tempfile
 import unittest
 from pathlib import Path
+import sys
+from unittest.mock import patch
 
 from scripts.lib.story_canvas import (
     extract_scene_cards,
     generate_story_canvas_html,
+    main,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -196,6 +201,33 @@ class TestStoryCanvas(unittest.TestCase):
         """extract_scene_cards on missing directory must raise FileNotFoundError."""
         with self.assertRaises(FileNotFoundError):
             extract_scene_cards(self.root / "Nonexistent_Dir")
+
+    # ------------------------------------------------------------------ #
+    # 13. CLI Main Routine                                               #
+    # ------------------------------------------------------------------ #
+    def test_cli_main(self):
+        # JSON output
+        with patch.object(sys, "argv", ["story_canvas.py", str(self.root), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                data = json.loads(mock_stdout.getvalue())
+                self.assertEqual(len(data), 3)
+
+        # HTML generation via CLI
+        out_html = self.root / "cli_canvas.html"
+        with patch.object(sys, "argv", ["story_canvas.py", str(self.root), "--html", str(out_html), "--paradigm", "save_the_cat"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("Ars Arcanum Story Canvas", mock_stdout.getvalue())
+                self.assertTrue(out_html.is_file())
+
+        # Error nonexistent
+        with patch.object(sys, "argv", ["story_canvas.py", str(self.root / "nonexistent")]):
+            with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+                self.assertIn("Target path does not exist", mock_stderr.getvalue())
 
 
 if __name__ == "__main__":

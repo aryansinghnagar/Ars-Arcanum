@@ -6,13 +6,17 @@ Validates:
 - PRO-101: Dialogue tag classification, said-bookisms detection, adverb tag alerts, quote punctuation.
 - PRO-102: Word echoes repetition detection within sliding windows with morphological stemmer.
 - PRO-105: Readability rhythm metrics (sentence variance, Flesch-Kincaid, Flesch Reading Ease, Fog index).
-- Standalone HTML report generation with Content Security Policy.
+- Idioms and immersion audit (IDM-101, IDM-102, IDM-103) and HTML reports.
+- CLI subcommands and scan interfaces.
 """
 
+import io
+import json
 import tempfile
 import unittest
 from pathlib import Path
 import sys
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
@@ -23,8 +27,12 @@ from lib.stylistics import (
     analyze_readability_rhythm,
     scan_text_or_path,
     generate_stylistics_html_report,
+    audit_manuscript_idioms,
+    generate_idioms_html_report,
+    load_idioms_config,
     count_syllables,
     _simple_stem,
+    main
 )
 
 
@@ -175,6 +183,145 @@ class TestStylisticsEngine(unittest.TestCase):
         self.assertEqual(_simple_stem("trembling"), "trembl")
         self.assertEqual(_simple_stem("darkness"), "dark")
         self.assertEqual(_simple_stem("cat"), "cat")
+
+    def test_idioms_audit_and_html_export(self):
+        ms_dir = self.target_dir / "Manuscript"
+        ms_dir.mkdir()
+        (ms_dir / "01_Scene.md").write_text("""# Scene 1
+@tag: draft
+<!-- comment -->
+It was an achilles heel for their defense.
+He was playing devil's advocate during the trial.
+It felt like a red herring in the mystery.
+He ate a sandwich quietly.
+""", encoding="utf-8")
+
+        # Skip front matter
+        (ms_dir / "Front_Matter").mkdir()
+        (ms_dir / "Front_Matter" / "title.md").write_text("sandwich", encoding="utf-8")
+
+        findings = audit_manuscript_idioms(ms_dir, custom_whitelist=["sandwich"])
+        self.assertGreaterEqual(len(findings), 3)
+        found_phrases = [f["phrase"].lower() for f in findings]
+        self.assertIn("achilles heel", found_phrases)
+        self.assertIn("devil's advocate", found_phrases)
+        self.assertIn("red herring", found_phrases)
+        self.assertNotIn("sandwich", found_phrases)
+
+        # HTML export
+        out_html = self.target_dir / "idioms_report.html"
+        generate_idioms_html_report({"manuscript": "Test MS", "findings": findings}, out_html)
+        self.assertTrue(out_html.is_file())
+        self.assertIn("Content-Security-Policy", out_html.read_text(encoding="utf-8"))
+
+        # HTML export clean (no findings)
+        out_clean = self.target_dir / "idioms_clean.html"
+        generate_idioms_html_report({"manuscript": "Clean MS", "findings": []}, out_clean)
+        self.assertTrue(out_clean.is_file())
+        self.assertIn("No Earth eponyms or de-immersion clichés detected", out_clean.read_text(encoding="utf-8"))
+
+    def test_load_idioms_config_custom_and_fallback(self):
+        custom_cfg = self.target_dir / "custom_idioms.json"
+        custom_cfg.write_text(json.dumps({"eponyms": {"test_word": {"origin": "Test", "suggestion": "Try"}}, "whitelist": []}), encoding="utf-8")
+        loaded = load_idioms_config(custom_cfg)
+        self.assertIn("test_word", loaded["eponyms"])
+
+        fallback = load_idioms_config()
+        self.assertIn("achilles heel", fallback["eponyms"])
+
+    def test_cli_subcommands(self):
+        sample_file = self.target_dir / "sample.md"
+        sample_file.write_text("""# Scene 1\n"Hello there," Vance whispered softly.\nThe fortress was dark and the ancient fortress stood silent.\nHe walked to the gate.""", encoding="utf-8")
+
+        # 1. dialogue json and table
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["stylistics.py", "dialogue", str(sample_file), "--json"]):
+                main()
+                data = json.loads(mock_out.getvalue())
+                self.assertIn("dialogue_ratio", data)
+
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["stylistics.py", "dialogue", str(sample_file)]):
+                main()
+                self.assertIn("Dialogue Mechanics", mock_out.getvalue())
+
+        # 2. echoes json and table
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["stylistics.py", "echoes", str(sample_file), "--window", "100", "--json"]):
+                main()
+                data = json.loads(mock_out.getvalue())
+                self.assertIn("echo_count", data)
+
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["stylistics.py", "echoes", str(sample_file)]):
+                main()
+                self.assertIn("Word Echoes Scanner", mock_out.getvalue())
+
+        # 3. rhythm json and table
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["stylistics.py", "rhythm", str(sample_file), "--json"]):
+                main()
+                data = json.loads(mock_out.getvalue())
+                self.assertIn("flesch_reading_ease", data)
+
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["stylistics.py", "rhythm", str(sample_file)]):
+                main()
+                self.assertIn("Readability Rhythm", mock_out.getvalue())
+
+        # 4. scan json, table, html
+        out_html = self.target_dir / "cli_scan.html"
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["stylistics.py", "scan", str(sample_file), "--html", str(out_html), "--json"]):
+                main()
+                self.assertTrue(out_html.is_file())
+
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["stylistics.py", "scan", str(sample_file)]):
+                main()
+                self.assertIn("Stylistics & Prose Craft Analysis", mock_out.getvalue())
+
+        # 5. idiom command with findings (exit 1) and html
+        ms_dir = self.target_dir / "CliMS"
+        ms_dir.mkdir()
+        (ms_dir / "chapter.md").write_text("This is an achilles heel.", encoding="utf-8")
+        out_idiom_html = self.target_dir / "idiom_cli.html"
+
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["stylistics.py", "idiom", "-m", str(ms_dir), "--html", str(out_idiom_html), "--whitelist", "something_else"]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+                self.assertTrue(out_idiom_html.is_file())
+
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["stylistics.py", "idioms", "-m", str(ms_dir), "--json"]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+                data = json.loads(mock_out.getvalue())
+                self.assertIn("findings", data)
+
+        # 6. idiom missing manuscript -> exit 2
+        with patch("sys.stderr", new_callable=io.StringIO):
+            with patch("lib.stylistics.resolve_manuscript_dir", return_value=""):
+                with patch("sys.argv", ["stylistics.py", "idiom", "-m", "nonexistent"]):
+                    with self.assertRaises(SystemExit) as cm:
+                        main()
+                    self.assertEqual(cm.exception.code, 2)
+
+        # 7. nonexistent target path for dialogue -> exit 1
+        with patch("sys.stderr", new_callable=io.StringIO):
+            with patch("sys.argv", ["stylistics.py", "dialogue", str(self.target_dir / "nonexistent.md")]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+
+        # 8. no arguments -> exit 0
+        with patch("sys.argv", ["stylistics.py"]):
+            with self.assertRaises(SystemExit) as cm:
+                main()
+            self.assertEqual(cm.exception.code, 0)
 
 
 if __name__ == "__main__":

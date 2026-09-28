@@ -16,6 +16,7 @@
    - [Journey & Expedition Transit Calculator (`journey`)](#journey--expedition-transit-calculator-journey)
 3. [Domain B: Narrative Architecture, Structure & Dynamics](#3-domain-b-narrative-architecture-structure--dynamics)
    - [Structure & Paradigm Engine (`structure`)](#structure--paradigm-engine-structure)
+   - [Manuscript Structure Scaffolder (`manuscript_scaffold`)](#manuscript-structure-scaffolder-manuscript_scaffold)
    - [Scene Mechanics & MRU Validator (`scene_mechanics`)](#scene-mechanics--mru-validator-scene_mechanics)
    - [Pacing & Rhythm Waveform Analyzer (`pacing`)](#pacing--rhythm-waveform-analyzer-pacing)
    - [Plot Matrix & Tension Modeler (`plot_matrix`)](#plot-matrix--tension-modeler-plot_matrix)
@@ -256,6 +257,23 @@ Ars Arcanum (Scriptorium) is built upon three foundational engineering tenets:
 - **Subfeatures**:
   - Tolerance window validation ($[\text{MinPct}, \text{MaxPct}]$).
   - Out-of-sequence beat anomaly detection.
+
+---
+
+### Manuscript Structure Scaffolder (`manuscript_scaffold`)
+- **Scientific & Structural Logic**:
+  - **16 Narrative Architecture Presets**:
+    Pre-configures directory partitions, chapter allocations, and beat prompts for 16 canonical frameworks: Classic Three-Act, Freytag's Dramatic Pyramid, Hero's Journey (Monomyth), Save the Cat! Beat Sheet, Dan Harmon Story Circle, Kishōtenketsu (起承転結), Seven-Point Story Structure, Fichtean Curve, 8-Sequence Method (Gulino/Daniel), Romancing the Beat (Gwen Hayes), MICE Quotient (Orson Scott Card), The Virgin's Promise (Kim Hudson), Snowflake Method (Randy Ingermanson), Parallel / Multi-POV Matrix, Episodic / Picaresque Arc, and Nonlinear / Fragmented Timeline.
+  - **Mathematical Division & Beat Partitioning**:
+    $$w_{\text{division}} = \frac{W_{\text{target}}}{N_{\text{divisions}}}, \quad \text{Beat}_{\text{target}} = \text{Division}_{\text{offset}} + \text{Beat}_{\text{relative\_pct}} \times \text{Length}_{\text{division}}$$
+  - **Path Traversal & Injection Security Invariant**:
+    $$\text{ValidName}(S) \iff S \in [A-Za-z0-9\_-]+ \quad (\text{directory separators and } `..` \text{ strictly rejected})$$
+- **Why This Way**: Eliminates blank-page paralysis and structural pacing debt by pre-seeding narrative milestone checkpoints directly into chapter YAML frontmatter headers before writing begins, guaranteeing instant bi-directional interoperability with `structure` and `story_canvas`.
+- **Subfeatures**:
+  - 16 pluggable narrative structure presets with beat-prompt seeding.
+  - Bespoke user-defined division scaffolding (`--divisions Part_1,Part_2,Part_3`).
+  - Strict path sanitization and POSIX atomic directory generation.
+  - Automatic YAML frontmatter metadata scaffolding (`@pov:`, `@time:`, `status:`).
 
 ---
 
@@ -707,6 +725,7 @@ Ars Arcanum (Scriptorium) is built upon three foundational engineering tenets:
 - **Subfeatures**:
   - Cross-platform file locking (`fcntl` / `msvcrt`).
   - Directory traversal sanitization (`^[A-Za-z0-9_-]+$`).
+  - Diagnostic CLI tool (`arcanum fs [--json|--check]`) verifying atomic write safety.
 
 ---
 
@@ -783,7 +802,7 @@ Ars Arcanum (Scriptorium) is built upon three foundational engineering tenets:
 ### Universal Resonance Mesh & Cross-Domain Synthesizer (`resonance`)
 - **Scientific & Mathematical Logic**:
   - **Bi-Directional 5-Pillar Graph & Causal Damping Simulation**:
-    Models 52 engines across 5 pillars. Simulates parameter shifts across physical, socioeconomic, and narrative boundaries with damping factor $\gamma = 0.85$:
+    Models 53 engines across 5 pillars connected via 74 active relational edges. Simulates parameter shifts across physical, socioeconomic, and narrative boundaries with damping factor $\gamma = 0.85$:
     $$\text{Impact}(v) = \text{InitialMagnitude}(u) \cdot \prod_{e=(i, j) \in \text{Path}(u, v)} \text{EdgeWeight}(e) \cdot \gamma^{d(u, v)}$$
   - **BFS Shortest-Path Metaphorical Bridging**:
     Calculates intermediate storytelling steps connecting arbitrary craft domains (e.g. `astrophysics` $\leftrightarrow$ `conlang`).
@@ -801,13 +820,13 @@ Ars Arcanum (Scriptorium) is built upon three foundational engineering tenets:
 ### Dynamic Intelligent Tips & Knowledge Discovery (`tips`)
 - **Scientific & Mathematical Logic**:
   - **Multidimensional Contextual Ranking**:
-    Matches active user focus vector against 130+ indexed masterclass tips:
+    Matches active user focus vector against 137 indexed masterclass tips across all 53 registered engines:
     $$\text{Score}(\mathbf{t}_i, \mathbf{u}) = w_e \cdot \mathbb{I}(e_i = u_e) + w_{sf} \cdot \text{Sim}(sf_i, u_{sf}) + w_k \cdot |\text{Tags}_i \cap \text{Toks}(\mathbf{u})| + w_d \cdot \text{DepthWeight}_i$$
   - **LRU Session History Differencing & Pool Cycling**:
     Prevents repetitive fatigue by querying candidates from $\text{Tips} \setminus H_s$ with automatic pool refresh on exhaustion.
 - **Why This Way**: Surfaces non-obvious craft principles and engine capabilities in-situ without cognitive overload or workflow interruption.
 - **Subfeatures**:
-  - Contextual relevance filtering across all 52 engines and 122 subfeatures.
+  - Contextual relevance filtering across all 53 engines and 125 subfeatures.
   - Non-obvious masterclass depth grading.
   - Ambient non-intrusive presentation rails (CLI, Studio Hub, Zen Studio).
   - Sovereign display toggle persistence (`arcanum tip --enable/disable`).

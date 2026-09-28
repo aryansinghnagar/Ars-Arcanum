@@ -9,16 +9,20 @@
 - Commands:
 
 ```bash
-# Run all automated unit and integration tests (754 tests)
+# Run all automated unit and integration tests (937 tests)
 python -m unittest discover tests
 
 # Run specific engine test suite
+python -m unittest tests.test_ecosystem_cohesion
 python -m unittest tests.test_resonance
 python -m unittest tests.test_tips
 python -m unittest tests.test_astrophysics
 
+# Run coverage report (86% coverage, fail_under = 85)
+coverage run -m unittest discover tests; coverage report
+
 # Run type safety verification
-mypy --explicit-package-bases scripts/lib tests
+mypy --config-file mypy.ini scripts/lib/
 ```
 
 ### 2) Test Layout
@@ -31,9 +35,10 @@ mypy --explicit-package-bases scripts/lib tests
 
 | Scope | Covered? | Typical target | Notes |
 |-------|----------|----------------|-------|
-| Unit | Yes | All 52 domain engines and helper libraries | 100% engine coverage, pure standard library |
+| Unit | Yes | All 53 domain engines and helper libraries | 100% engine coverage, pure standard library |
 | Integration | Yes | CLI dispatcher, Studio Hub REST API, Zen Studio exports | Verifies end-to-end data pipelines |
 | E2E | Yes | Grand Tour master lifecycle (`test_grand_tour_e2e.py`) | Tests full authoring lifecycle across all domains |
+| Ecosystem Cohesion | Yes | CLI dispatch, alias routing, zero isolated mesh nodes (`test_ecosystem_cohesion.py`) | Verifies seamless multi-engine interplay |
 | Security / Supply Chain | Yes | `test_path_traversal_defense.py`, `test_threat_model.py`, `test_supply_chain.py` | Validates regex sanitization, CSP, plugin hashes |
 
 ### 4) Mocking and Isolation Strategy
@@ -44,12 +49,13 @@ mypy --explicit-package-bases scripts/lib tests
 
 ### 5) Coverage and Quality Signals
 
-- Coverage tool + threshold: 100% passing rate mandatory; 0 test failures or errors permitted.
-- Current reported coverage: 754 tests passing in $\approx 30$ seconds.
+- Coverage tool + threshold: 86% aggregate coverage with `fail_under = 85` enforced in `pyproject.toml`; 0 test failures or errors permitted.
+- Current reported coverage: 937 tests passing (935 passed, 2 skipped, 0 failures) in $\approx 35$ seconds.
 - Known gaps/flaky areas: None. All tests are deterministic and offline.
 
 ### 6) Evidence
 
+- `tests/test_ecosystem_cohesion.py#L1-L180`
 - `tests/test_resonance.py#L1-L150`
 - `tests/test_tips.py#L1-L150`
 - `tests/test_grand_tour_e2e.py#L1-L100`

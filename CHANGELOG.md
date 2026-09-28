@@ -4,7 +4,50 @@ All notable changes to Ars Arcanum are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Scope decisions
 behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## [4.2.1] - 2026-09-27
+## [4.2.1] - 2026-09-28
+
+### Added & Hardened (Multi-Expert Audit, Coverage Expansion to 86%, Data-Driven CLI Dispatch & Invariant Compliance — Phase 25)
+- **Comprehensive Test Suite Expansion (`tests/`, `pyproject.toml`)**:
+  - Expanded test suite from 806 to **937 automated unit and integration tests** (131 new tests, 0 failures, 2 skipped).
+  - Elevated aggregate test coverage across all 73 `scripts/lib/` modules from 68% to **86% branch + line coverage**.
+  - Ratcheted verified test coverage floor in `pyproject.toml` to **`fail_under = 85`** (`tests/test_coverage_floor.py`).
+  - Added exhaustive branch and error-handler test coverage across `fs_utils`, `lockfile`, `frontmatter`, `frontmatter_builder`, `migrate`, `tactical_sim`, `prophecy`, `economy`, `magic_system`, `ecology`, `genealogy`, `manuscript_diff`, `factions`, `revision_heatmap`, `series_continuity`, and `journey`.
+- **Data-Driven CLI Dispatch Architecture (`scripts/lib/cli.py`, `ADR-118`)**:
+  - Refactored 380-line procedural `if/elif` chain into a modular, declarative `_DISPATCH_TABLE` architecture.
+  - Consolidated sub-dispatch for `new`, `calc`, `audit`, `matter`, `polish`, `ambient`, `sim`, `magic`, `conlang`, `pace`, `doctor`, and `resonance`.
+  - Unified `_DISPATCH_TABLE.keys()` as the authoritative single source of truth for fuzzy command matching (`difflib.get_close_matches`), eliminating redundant arrays.
+- **Strict Atomic File Write Contract Enforcement (`_bootstrap.py`, `branching_graph.py`, `local_rag.py`, `manuscript_scaffold.py`, `resonance.py`)**:
+  - Upgraded all fallback `atomic_write()` implementations to strictly enforce the crash-resilient `mkstemp` $\to$ `fdopen` $\to$ `flush` $\to$ `fsync` $\to$ `os.replace` protocol per `AGENTS.md §2.1`.
+- **Static Type Safety Hardening (`mypy.ini`)**:
+  - Enabled `check_untyped_defs = True` to type-check unannotated function bodies, passing cleanly across all 73 source files.
+- **Multi-Expert Architectural & Security Audit (`scriptorium_comprehensive_audit.md`, `walkthrough.md`)**:
+  - Completed 5-viewpoint deep audit covering Architecture Review, Code Review, Security & Safety Invariants, Multi-Scale Planning Operations, and Codebase Knowledge Mapping.
+
+### Added (Universal Ecosystem Cohesion, Zero Isolated Mesh Nodes & Comprehensive CLI Alias Resolution — Phase 24)
+- **Universal Resonance Mesh Topology Expansion (`scripts/lib/resonance.py`, `ADR-117`)**:
+  - Connected all 15 previously isolated engines (`branching_graph`, `codex_export`, `writing_sprint`, `revision_heatmap`, `manuscript_diff`, `ambient`, `portfolio`, `importer`, `docx_sync`, `diagnostics`, `frontmatter_builder`, `migrate`, `config`, `cache`, `fs_utils`) across all 5 Domain Pillars.
+  - Expanded total relational edges from 41 to 74, guaranteeing that every single engine node achieves degree $\ge 2$ with 0 isolated nodes.
+  - Added 3 structural isomorphisms (`iso-branching-multiverse`, `iso-acoustic-immersion`, `iso-scaffold-cathedral`).
+- **Filesystem Diagnostics & Direct CLI Entrypoint (`scripts/lib/fs_utils.py`)**:
+  - Implemented `check_filesystem()` storage health inspection and CLI `main()` entrypoint for `arcanum fs`, `arcanum fs-utils`, and `arcanum atomic-storage`.
+- **Universal CLI Alias Routing & Conflict Elimination (`scripts/lib/cli.py`)**:
+  - Wired first-class routes for all 58+ registered engine aliases (`journey`, `travel`, `voice`, `scene`, `style`, `stylistics`, `rhythm`, `typography`, `heatmap`, `battle`, `combat`, `tactical`, `dynasty`, `diplomacy`, `currency`, `prices`, `biomes`, `weather`, `ephemeris`, `bestiary`, `traits`, `ledger`, `health`, `prepress`, `index`, `craft-tips`, `advice`, `lore-check`, `scrivener-import`, etc.).
+  - Resolved routing collision between `timeline` and `causality`.
+- **Ecosystem Cohesion Integration Test Suite (`tests/test_ecosystem_cohesion.py`, `tests/test_resonance.py`)**:
+  - Created test suites enforcing zero isolated nodes and verifying end-to-end multi-engine pipelines (Scaffolding $\to$ Corkboard Canvas $\to$ Timeline $\to$ Structure $\to$ Corpus $\to$ Local RAG $\to$ World Doctor).
+  - Elevated test suite to **797 tests (795 passing, 2 skipped, 0 failures)** across 161 source files with clean Mypy static typing and 0 Ruff linter violations.
+
+### Added (Universal 53-Engine Synergy Mesh, Structural Scaffolding & Cross-Domain Harmony — Phase 23)
+- **Foundational Resonance Mesh Expansion (`scripts/lib/resonance.py`, `ADR-116`)**:
+  - Integrated `manuscript_scaffold`, `tips`, and `resonance` as foundational nodes in the cross-domain resonance graph, expanding the total foundational mesh from 50 to 53 nodes.
+  - Formed 10 new active cross-domain relational edges (`manuscript_scaffold` $\to$ `structure`, `manuscript_scaffold` $\to$ `story_canvas`, `tips` $\to$ `zen_studio`, `tips` $\to$ `studio_hub`, `resonance` $\to$ `world_doctor`, `resonance` $\to$ `studio_hub`, `corpus_export` $\to$ `local_rag`, `omnibus` $\to$ `series_continuity`, `preflight` $\to$ `typography_cleaner`, `calendar` $\to$ `timeline_sync`), bringing total graph edges to 41 across all 5 Domain Pillars.
+- **Intelligent Dynamic Tip Engine Expansion (`scripts/lib/tips.py`)**:
+  - Authored 3 masterclass tips for `manuscript_scaffold` and configured command aliases (`scaffold`, `presets`, `structure-presets`, `mesh`, `cascade`).
+  - Elevated tip database coverage to 137 tips spanning 100% of registered engines (53/53).
+- **Unified CLI Dispatcher Hardening (`scripts/lib/cli.py`)**:
+  - Added fuzzy matching and typo suggestions for `scaffold`, `presets`, `structure-presets`, `resonance`, `mesh`, `cascade`, `spark`, `bridge`, `ecosystem`, `synergy`.
+- **Comprehensive Engine Logic Encyclopedia (`docs/ENGINE_LOGIC_ENCYCLOPEDIA.md`)**:
+  - Documented mathematical and structural logic specifications for `manuscript_scaffold` (16 narrative structure presets, division formulas, traversal safety).
 
 ### Fixed & Hardened (Critical Data Safety, Forensic Hardening & Quality Gate Stabilization)
 - **Data Safety & Reverse-Sync (`docx_sync.py`)**:

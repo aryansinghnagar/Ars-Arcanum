@@ -42,6 +42,7 @@ class TestRegistry(unittest.TestCase):
         self.assertIn("world_doctor", core_names)
         self.assertIn("concordance", core_names)
         self.assertIn("diagnostics", core_names)
+        self.assertIn("manuscript_scaffold", core_names)
 
         # Check craft engines present
         craft = get_craft_engines()

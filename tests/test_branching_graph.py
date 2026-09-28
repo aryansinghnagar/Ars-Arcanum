@@ -359,6 +359,29 @@ class TestBranchingNarrativeGraph(unittest.TestCase):
             self.assertIn("diagnostics", data)
             self.assertEqual(data["total_nodes"], 5)
 
+    def test_cli_edge_cases(self) -> None:
+        """Verifies CLI error handling on missing target, empty dir, and audit error exits."""
+        # 1. Nonexistent target
+        code_missing = branching_main([str(self.root / "nonexistent_dir")])
+        self.assertEqual(code_missing, 1)
+
+        # 2. Empty directory
+        empty_dir = self.root / "empty_vault"
+        empty_dir.mkdir()
+        code_empty = branching_main([str(empty_dir)])
+        self.assertEqual(code_empty, 0)
+
+        # 3. Default run without export flags
+        code_default = branching_main([str(self.root)])
+        self.assertEqual(code_default, 0)
+
+        # 4. Audit error return code
+        broken_dir = self.root / "broken_vault"
+        broken_dir.mkdir()
+        (broken_dir / "01_Start.md").write_text("@choice: \"Jump\" -> nowhere\n", encoding="utf-8")
+        code_audit = branching_main([str(broken_dir), "--audit"])
+        self.assertEqual(code_audit, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

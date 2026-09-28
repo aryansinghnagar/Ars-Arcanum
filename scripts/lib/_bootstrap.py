@@ -39,12 +39,30 @@ except ImportError:
         from fs_utils import atomic_write  # type: ignore[no-redef]
     except ImportError:
         def atomic_write(path: Path | str, data: Any, encoding: str = "utf-8") -> None:
-            p = Path(path)
+            import os as _os
+            import tempfile as _tf
+            p = Path(path).resolve()
             p.parent.mkdir(parents=True, exist_ok=True)
-            if isinstance(data, (bytes, bytearray)):
-                p.write_bytes(data)
-            else:
-                p.write_text(str(data), encoding=encoding)
+            is_bytes = isinstance(data, (bytes, bytearray))
+            fd, tmp = _tf.mkstemp(dir=p.parent, prefix=f".{p.name}.", suffix=".tmp")
+            try:
+                if is_bytes:
+                    with _os.fdopen(fd, "wb") as f:
+                        f.write(data)
+                        f.flush()
+                        _os.fsync(f.fileno())
+                else:
+                    with _os.fdopen(fd, "w", encoding=encoding, newline="") as f:
+                        f.write(str(data))
+                        f.flush()
+                        _os.fsync(f.fileno())
+                _os.replace(tmp, p)
+            except BaseException:
+                try:
+                    Path(tmp).unlink(missing_ok=True)
+                except OSError:
+                    pass
+                raise
 
 
 # 4. Volume and identifier validation helpers (Path Traversal Defense)

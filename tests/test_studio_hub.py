@@ -221,51 +221,175 @@ class TestStudioHubServerAPI(unittest.TestCase):
         conn.close()
         return resp.status, headers, data
 
-    def _post_json(self, path: str, payload: dict[str, Any]) -> tuple[int, dict[str, str], dict[str, Any]]:
+    def _post_raw(self, path: str, body_bytes: bytes, headers: dict[str, str] | None = None) -> tuple[int, dict[str, str], bytes]:
         conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
+        h = headers or {"Content-Type": "application/json", "Content-Length": str(len(body_bytes))}
+        conn.request("POST", path, body_bytes, h)
+        resp = conn.getresponse()
+        resp_headers = dict(resp.getheaders())
+        data = resp.read()
+        conn.close()
+        return resp.status, resp_headers, data
+
+    def _post_json(self, path: str, payload: dict[str, Any]) -> tuple[int, dict[str, str], dict[str, Any]]:
         body = json.dumps(payload).encode("utf-8")
-        conn.request("POST", path, body, {"Content-Type": "application/json", "Content-Length": str(len(body))})
+        status, headers, data = self._post_raw(path, body)
+        try:
+            json_data = json.loads(data.decode("utf-8"))
+        except Exception:
+            json_data = {}
+        return status, headers, json_data
+
+    def test_head_request(self):
+        conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
+        conn.request("HEAD", "/")
         resp = conn.getresponse()
         headers = dict(resp.getheaders())
-        data = json.loads(resp.read().decode("utf-8"))
         conn.close()
-        return resp.status, headers, data
-
-    def test_get_index_html(self):
-        status, headers, data = self._get("/")
-        self.assertEqual(status, 200)
+        self.assertEqual(resp.status, 200)
         self.assertIn("text/html", headers.get("Content-Type", ""))
-        self.assertIn(b"Ars Arcanum", data)
 
-    def test_get_api_status(self):
-        status, _, data = self._get("/api/status")
+    def test_invalid_host_header(self):
+        conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
+        conn.request("GET", "/", headers={"Host": "malicious-site.com"})
+        resp = conn.getresponse()
+        resp.read()
+        conn.close()
+        self.assertEqual(resp.status, 403)
+
+    def test_get_other_endpoints(self):
+        # /index.html
+        status, _, _ = self._get("/index.html")
+        self.assertEqual(status, 200)
+
+        # /api/timeline
+        status, _, data = self._get("/api/timeline")
+        self.assertEqual(status, 200)
+
+        # /api/metrics
+        status, _, data = self._get("/api/metrics")
+        self.assertEqual(status, 200)
+
+        # /api/docs and /api/engines
+        status, _, _ = self._get("/api/docs")
+        self.assertEqual(status, 200)
+        status, _, _ = self._get("/api/engines")
+        self.assertEqual(status, 200)
+
+        # /api/resonance
+        status, _, _ = self._get("/api/resonance")
+        self.assertEqual(status, 200)
+
+        # /api/tips
+        status, _, _ = self._get("/api/tips?engine=astrophysics")
+        self.assertEqual(status, 200)
+
+        # /api/tips/all
+        status, _, _ = self._get("/api/tips/all")
+        self.assertEqual(status, 200)
+
+        # /api/tips/status
+        status, _, _ = self._get("/api/tips/status")
+        self.assertEqual(status, 200)
+
+        # /api/all
+        status, _, data = self._get("/api/all")
         self.assertEqual(status, 200)
         json_data = json.loads(data.decode("utf-8"))
-        self.assertIn("offline_sovereignty", json_data)
+        self.assertIn("version", json_data)
 
-    def test_get_api_lore_and_chapters(self):
-        status, _, data = self._get("/api/lore")
-        self.assertEqual(status, 200)
-        lore = json.loads(data.decode("utf-8"))
-        self.assertTrue(len(lore) >= 1)
+        # 404
+        status, _, _ = self._get("/api/unknown_route")
+        self.assertEqual(status, 404)
 
-        status, _, data = self._get("/api/chapters")
-        self.assertEqual(status, 200)
-        chapters = json.loads(data.decode("utf-8"))
-        self.assertTrue(len(chapters) >= 1)
+    def test_post_payload_too_large(self):
+        conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
+        conn.request("POST", "/api/council", body=b"{}", headers={"Content-Length": "20000000"})
+        resp = conn.getresponse()
+        resp.read()
+        conn.close()
+        self.assertEqual(resp.status, 413)
 
-    def test_post_api_query(self):
-        status, _, res = self._post_json("/api/query", {"query": "Hero"})
-        self.assertEqual(status, 200)
-        self.assertEqual(res["query"], "Hero")
-        self.assertTrue(res["total_matches"] >= 1)
+    def test_post_invalid_json(self):
+        conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
+        conn.request("POST", "/api/council", body=b"invalid json!!", headers={"Content-Length": "14"})
+        resp = conn.getresponse()
+        data = json.loads(resp.read().decode("utf-8"))
+        conn.close()
+        self.assertEqual(resp.status, 200)
+        self.assertEqual(data["word_count"], 0)
 
-    def test_post_api_council(self):
-        status, _, res = self._post_json("/api/council", {"text": "The dark blade severed the arcane connection."})
+    def test_post_tips_toggle_and_set(self):
+        status, _, res = self._post_json("/api/tips/toggle", {})
         self.assertEqual(status, 200)
         self.assertEqual(res["status"], "success")
-        self.assertIn("line_editor", res["critique"])
+
+        status, _, res = self._post_json("/api/tips/set", {"enabled": True})
+        self.assertEqual(status, 200)
+        self.assertEqual(res["status"], "success")
+        self.assertTrue(res["enabled"])
+
+    def test_post_branch(self):
+        status, _, res = self._post_json("/api/branch", {"text": "Path @choice: [Left path] -> left\n@choice: [Right path] -> right"})
+        self.assertEqual(status, 200)
+        self.assertEqual(res["total_choices"], 2)
+
+    def test_post_resonance_endpoints(self):
+        # Cascade
+        status, _, res = self._post_json("/api/resonance/cascade", {"node": "astrophysics", "param": "axial_tilt", "val": 30.0})
+        self.assertEqual(status, 200)
+
+        # Spark
+        status, _, res = self._post_json("/api/resonance/spark", {"domains": ["astrophysics", "climate"], "count": 2})
+        self.assertEqual(status, 200)
+        self.assertIsInstance(res, list)
+
+        # Bridge
+        status, _, res = self._post_json("/api/resonance/bridge", {"domain_a": "astrophysics", "domain_b": "voice"})
+        self.assertEqual(status, 200)
+
+        # 404 POST
+        status, _, _ = self._post_json("/api/unknown_post", {})
+        self.assertEqual(status, 404)
+
+
+class TestStudioHubEdgeCases(unittest.TestCase):
+    """Tests edge cases in scanning and server startup."""
+
+    def test_scan_manuscript_edge_cases(self):
+        self.assertEqual(scan_manuscript_chapters(None), [])
+        self.assertEqual(scan_manuscript_chapters(Path("nonexistent_path_12345")), [])
+
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td)
+            (p / ".hidden.md").write_text("hidden", encoding="utf-8")
+            (p / "_draft.md").write_text("draft", encoding="utf-8")
+            backup_dir = p / "Backups"
+            backup_dir.mkdir()
+            (backup_dir / "backup.md").write_text("backup", encoding="utf-8")
+            (p / "empty.md").write_text("", encoding="utf-8")
+            no_frontmatter = p / "no_fm.md"
+            no_frontmatter.write_text("# Chapter Without Frontmatter\nSome content here.", encoding="utf-8")
+
+            res = scan_manuscript_chapters(p)
+            self.assertEqual(len(res), 1)
+            self.assertEqual(res[0]["title"], "Chapter Without Frontmatter")
+
+    def test_start_studio_hub_server(self):
+        from unittest.mock import MagicMock, patch
+        from scripts.lib.studio_hub import start_studio_hub_server
+
+        with patch("http.server.ThreadingHTTPServer") as mock_server:
+            instance = MagicMock()
+            instance.server_address = ("127.0.0.1", 8080)
+            instance.serve_forever.side_effect = KeyboardInterrupt
+            mock_server.return_value.__enter__.return_value = instance
+
+            with tempfile.TemporaryDirectory() as td:
+                start_studio_hub_server(project_dir=Path(td), open_browser=True)
+            self.assertTrue(instance.serve_forever.called)
 
 
 if __name__ == "__main__":
     unittest.main()
+

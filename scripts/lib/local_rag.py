@@ -46,10 +46,22 @@ except ImportError:
         PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
         def atomic_write(path: Path, content: str, encoding: str = "utf-8") -> None:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            tmp = path.with_suffix(".tmp")
-            tmp.write_text(content, encoding=encoding)
-            os.replace(tmp, path)
+            import tempfile as _tf
+            p = Path(path).resolve()
+            p.parent.mkdir(parents=True, exist_ok=True)
+            fd, tmp = _tf.mkstemp(dir=p.parent, prefix=f".{p.name}.", suffix=".tmp")
+            try:
+                with os.fdopen(fd, "w", encoding=encoding, newline="") as f:
+                    f.write(content)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(tmp, p)
+            except BaseException:
+                try:
+                    Path(tmp).unlink(missing_ok=True)
+                except OSError:
+                    pass
+                raise
 
         CorpusDocument = None  # type: ignore
         CorpusScanner = None  # type: ignore

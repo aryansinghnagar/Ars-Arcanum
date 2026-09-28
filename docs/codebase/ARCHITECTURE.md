@@ -14,7 +14,7 @@
 ### 2) System Flow
 
 ```text
-[Author Input / CLI / GUI / REST] -> [CLI / Controller / Dispatcher] -> [Registry & Validation Guard] -> [52 Domain & Craft Engines] -> [Atomic POSIX File I/O & Presentation Engine]
+[Author Input / CLI / GUI / REST] -> [CLI / Controller / Dispatcher] -> [Registry & Validation Guard] -> [53 Domain & Craft Engines] -> [Atomic POSIX File I/O & Presentation Engine]
 ```
 
 1. **Invocation**: Author triggers action via POSIX wrapper (`scripts/arcanum`), Python CLI (`scripts/lib/cli.py`), Studio Hub (`studio_hub.py`), or GTK3 Desktop GUI (`scripts/arcanum_app.py`).

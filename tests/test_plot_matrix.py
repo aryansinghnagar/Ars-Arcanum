@@ -153,16 +153,56 @@ class TestPlotMatrixEngine(unittest.TestCase):
             msg="Plot matrix HTML is missing Content-Security-Policy meta tag",
         )
 
-    def test_html_report_contains_svg(self):
-        """HTML report must contain an SVG element for the multi-lane timeline grid."""
-        (self.target_dir / "01.md").write_text("@plot: Main\nText.", encoding="utf-8")
-        (self.target_dir / "02.md").write_text("@plot: Main\nText.", encoding="utf-8")
-        report = scan_manuscript_plot_matrix(self.target_dir)
-        out_html = self.target_dir / "svg_check.html"
-        generate_plot_html_report(report, out_html)
-        content = out_html.read_text(encoding="utf-8")
-        self.assertIn("<svg", content, msg="Plot matrix HTML must contain an SVG element")
+    def test_extract_chapter_yaml_frontmatter(self):
+        ch = self.target_dir / "fm_chapter.md"
+        ch.write_text("""# The Heist Begins
+@pov: Elena
+@plot: Infiltration
+@thread: Betrayal
+@arc: Elena Arc
+
+Prose here.
+""", encoding="utf-8")
+        meta = extract_chapter_plot_metadata(ch, 1)
+        self.assertEqual(meta["pov"], "Elena")
+        self.assertIn("Infiltration", meta["plots"])
+        self.assertIn("Betrayal", meta["threads"])
+        self.assertIn("Elena Arc", meta["arcs"])
+
+    def test_cli_main_and_matrix_render(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.plot_matrix import main
+
+        (self.target_dir / "01_Ch1.md").write_text("@plot: Track1\nText.", encoding="utf-8")
+        (self.target_dir / "02_Ch2.md").write_text("@plot: Track1\nText.", encoding="utf-8")
+        (self.target_dir / "03_Ch3.md").write_text("@plot: Track2\nText.", encoding="utf-8")
+
+        # JSON mode
+        with patch("sys.argv", ["plot_matrix.py", str(self.target_dir), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                data = json.loads(mock_stdout.getvalue())
+                self.assertEqual(data["total_chapters"], 3)
+
+        # Matrix and HTML
+        html_out = self.target_dir / "cli_plot.html"
+        with patch("sys.argv", ["plot_matrix.py", str(self.target_dir), "--matrix", "--html", str(html_out)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("Multi-Track Plot Grid", mock_stdout.getvalue())
+                self.assertIn("Narrative Track ASCII Grid", mock_stdout.getvalue())
+                self.assertTrue(html_out.is_file())
+
+        # Error path
+        with patch("sys.argv", ["plot_matrix.py", "nonexistent_dir_123"]):
+            with patch("sys.stderr", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
 
 
 if __name__ == "__main__":
     unittest.main()
+

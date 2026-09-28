@@ -1819,6 +1819,50 @@ arcanum cache scan
         ],
     ),
 
+    "manuscript_scaffold": EngineSpec(
+        name="manuscript_scaffold",
+        category=EngineCategory.CORE,
+        title="Manuscript Structure Scaffolder",
+        description="Pluggable manuscript directory scaffolding across 16 narrative structure presets and custom division layouts",
+        module_name="lib.manuscript_scaffold",
+        cli_command="scaffold",
+        aliases=["scaffold", "presets", "structure-presets", "manuscript-scaffold"],
+        studio_tab="Craft",
+        logic_documentation="Generates numbered directory hierarchies and starter chapters across 16 structural paradigms (Classic Three-Act, Hero's Journey, Save the Cat, Story Circle, Kishōtenketsu, 7-Point, Fichtean Curve, 8-Sequence, Freytag's Pyramid, MICE Quotient, Romancing the Beat, Virgin's Promise, Snowflake, Parallel, Episodic, Nonlinear) and custom user-defined division lists with path traversal protection.",
+        scientific_logic="""1. Narrative Paradigm Directory Scaffolding:
+   Maps structural beats to physical filesystem directories with zero cloud dependencies:
+   $$\\text{Preset } K \\longrightarrow \\langle 01\\_\\text{Div}_1, 02\\_\\text{Div}_2, \\dots, N\\_\\text{Div}_N \\rangle$$
+
+2. Path Traversal & Identifier Validation:
+   Enforces token regex `^[A-Za-z0-9_-]+$`, rejecting directory traversal tokens (`..`, `/`, `\\`).
+
+3. Manifest Serialization & Upward Discovery:
+   Serializes `schema_version: "1.1"` in `manuscript.yaml` with bidirectional paradigm links.""",
+        why_this_way="Different storytelling traditions (Western 3-Act, Eastern Kishōtenketsu, Romance beat sheets, Multi-POV parallel tracks) require different folder structures matching the author's mental model.",
+        worldbuilding_relevance="Enables structured scaffolding of companion volumes, parallel lore threads, and episodic world chronologies.",
+        storytelling_relevance="Aligns the physical folder layout directly with the chosen narrative pacing framework.",
+        writing_relevance="Provides clean, distraction-free starter chapters and atomic division creation.",
+        subfeatures=[
+            {"name": "16 Built-in Presets", "rule": "Supports Classic Three-Act, Hero's Journey, Save the Cat, Kishōtenketsu, and 12 other presets.", "example": "arcanum scaffold MyNovel/Book-01 --structure heros_journey"},
+            {"name": "Custom Divisions", "rule": "Scaffolds arbitrary named division lists with regex validation.", "example": "arcanum scaffold MyNovel/Book-01 --structure custom --divisions 'Prologue,Part-I,Part-II,Epilogue'"},
+            {"name": "Structure Preset Introspection", "rule": "Lists and inspects all registered presets and division descriptions.", "example": "arcanum scaffold list / arcanum scaffold info kishotenketsu"},
+        ],
+        extension_guide="""Scaffold a volume or query structure presets:
+```bash
+# List all 16 presets
+arcanum scaffold list
+
+# View details for a preset
+arcanum scaffold info kishotenketsu
+
+# Scaffold a volume with custom structure
+arcanum scaffold Manuscripts/Novel/Book-01 --structure story_circle
+```""",
+        advisory_guidance=[
+            {"pattern": "Manuscript structure does not match default Three-Act model", "option_a": "Select matching preset from 16 registered narrative frameworks", "option_b": "Define custom division labels via `--divisions`", "option_c": "Retain default Three-Act structure"},
+        ],
+    ),
+
     "fs_utils": EngineSpec(
         name="fs_utils",
         category=EngineCategory.CORE,

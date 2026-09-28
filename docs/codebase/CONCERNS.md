@@ -33,7 +33,7 @@
 
 | Area | Why fragile | Churn signal | Safe change strategy |
 |------|-------------|-------------|----------------------|
-| `scripts/lib/registry.py` | Central authoritative hub for all 52 engines and metadata | High churn on new engine introductions | Exhaustive test suite (`test_registry.py`, `test_engine_logic_docs.py`, `test_tips.py`) |
+| `scripts/lib/registry.py` | Central authoritative hub for all 53 engines and metadata | High churn on new engine introductions | Exhaustive test suite (`test_registry.py`, `test_engine_logic_docs.py`, `test_tips.py`) |
 | `scripts/lib/cli.py` | Single entry point for 50+ CLI subcommands | High subcommand density | Strict argparse subparser testing and alias resolution |
 
 ### 6) `[ASK USER]` Questions

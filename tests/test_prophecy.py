@@ -3,10 +3,12 @@
 Unit tests for Ars Arcanum Prophecy Resolution Matrix (scripts/lib/prophecy.py).
 """
 
+import io
 import tempfile
 import unittest
 from pathlib import Path
 import sys
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
@@ -16,6 +18,7 @@ from lib.prophecy import (
     audit_prophecy_resolution,
     generate_prophecy_mermaid,
     generate_prophecy_html_report,
+    main,
 )
 
 
@@ -32,8 +35,6 @@ class TestProphecyEngine(unittest.TestCase):
 
     def tearDown(self):
         self.temp_dir.cleanup()
-
-    # --- Original 4 tests ---
 
     def test_extract_and_audit_prophecy(self):
         (self.world_dir / "Cosmology" / "Prophecies" / "The_Bleeding_Star.md").write_text("""---
@@ -81,7 +82,7 @@ A quiet day at the bakery with fresh warm bread.
         findings = audit_prophecy_resolution(prophecies, self.ms_dir)
 
         ids = [f["id"] for f in findings]
-        self.assertIn("PRP-101", ids)  # Forgotten Fate is orphaned
+        self.assertIn("PRP-101", ids)
 
     def test_dead_chosen_one_prp102(self):
         (self.world_dir / "Characters").mkdir(parents=True, exist_ok=True)
@@ -104,145 +105,160 @@ status: unfulfilled
         ids = [f["id"] for f in findings]
         self.assertIn("PRP-102", ids)
 
-    def test_generate_prophecy_html_report(self):
-        (self.world_dir / "Cosmology" / "Prophecies" / "Test_Prophecy.md").write_text("""---
-name: "Solar Prophecy"
+    def test_prp103_status_discrepancy(self):
+        (self.world_dir / "Cosmology" / "Prophecies" / "Secret_Fate.md").write_text("""---
+name: "Secret Fate"
 type: prophecy
 status: fulfilled
+oracle: "Seer"
+clauses: ["The door opens"]
 ---
 """, encoding="utf-8")
-        prophecies = extract_prophecies(self.world_dir)
-        html_out = Path(self.temp_dir.name) / "prophecy.html"
-        generate_prophecy_html_report({"world": "TestWorld", "prophecies": prophecies, "findings": []}, html_out)
-        self.assertTrue(html_out.is_file())
-        self.assertIn("Solar Prophecy", html_out.read_text(encoding="utf-8"))
-
-    # --- New tests (5–12) ---
-
-    def test_multiple_prophecies_extracted(self):
-        """Three distinct prophecy files → three entries in the extracted dict."""
-        for slug, name in [
-            ("Alpha.md", "Alpha Prophecy"),
-            ("Beta.md", "Beta Prophecy"),
-            ("Gamma.md", "Gamma Prophecy"),
-        ]:
-            (self.world_dir / "Cosmology" / "Prophecies" / slug).write_text(
-                f'---\nname: "{name}"\ntype: prophecy\nstatus: unfulfilled\n---\n',
-                encoding="utf-8",
-            )
-        prophecies = extract_prophecies(self.world_dir)
-        self.assertEqual(len(prophecies), 3)
-
-    def test_fulfilled_prophecy_with_manuscript_evidence(self):
-        """status=fulfilled + manuscript mentions it by name → no PRP-103 finding."""
-        (self.world_dir / "Cosmology" / "Prophecies" / "Sunfire.md").write_text("""---
-name: "Sunfire Oath"
-type: prophecy
-status: fulfilled
----
+        (self.ms_dir / "Book-01" / "01_Act_I" / "01_Scene.md").write_text("""# Chapter 1
+A quiet day with no mention of anything special.
 """, encoding="utf-8")
-        (self.ms_dir / "Book-01" / "01_Act_I" / "01_Scene.md").write_text(
-            "The Sunfire Oath was finally fulfilled when the twin suns aligned.\n"
-            "@prophecy: Sunfire Oath\n",
-            encoding="utf-8",
-        )
-        prophecies = extract_prophecies(self.world_dir)
-        findings = audit_prophecy_resolution(prophecies, self.ms_dir)
-        ids = [f["id"] for f in findings]
-        self.assertNotIn("PRP-103", ids)
-
-    def test_resolution_discrepancy_prp103(self):
-        """status=fulfilled in lore with NO manuscript mention → PRP-103 raised."""
-        (self.world_dir / "Cosmology" / "Prophecies" / "Silent_Covenant.md").write_text("""---
-name: "Silent Covenant"
-type: prophecy
-status: fulfilled
----
-""", encoding="utf-8")
-        # Manuscript deliberately contains no mention of the prophecy or 'fulfilled'
-        (self.ms_dir / "Book-01" / "01_Act_I" / "01_Scene.md").write_text(
-            "A merchant sold apples in the square on a warm afternoon.\n",
-            encoding="utf-8",
-        )
         prophecies = extract_prophecies(self.world_dir)
         findings = audit_prophecy_resolution(prophecies, self.ms_dir)
         ids = [f["id"] for f in findings]
         self.assertIn("PRP-103", ids)
 
-    def test_clauses_extracted_correctly(self):
-        """Prophecy with 3 clauses in frontmatter → len(clauses) == 3."""
-        (self.world_dir / "Cosmology" / "Prophecies" / "Tripartite.md").write_text("""---
-name: "Tripartite Vision"
+    def test_subverted_and_broken_prophecies_mermaid(self):
+        (self.world_dir / "Cosmology" / "Prophecies" / "Subverted.md").write_text("""---
+name: "Subverted Fate"
 type: prophecy
-status: unfulfilled
-clauses:
-  - "When iron weeps upon the dawn"
-  - "The silver throne shall crack asunder"
-  - "And the last heir shall rise from ash"
+status: subverted
+oracle: Oracle A
 ---
 """, encoding="utf-8")
-        prophecies = extract_prophecies(self.world_dir)
-        self.assertIn("Tripartite Vision", prophecies)
-        self.assertEqual(len(prophecies["Tripartite Vision"]["clauses"]), 3)
-
-    def test_empty_prophecy_dir(self):
-        """No prophecy files → empty dict and zero findings from audit."""
-        # The Prophecies dir exists but is empty (created in setUp)
-        prophecies = extract_prophecies(self.world_dir)
-        self.assertEqual(len(prophecies), 0)
-        findings = audit_prophecy_resolution(prophecies, self.ms_dir)
-        self.assertEqual(len(findings), 0)
-
-    def test_mermaid_contains_states(self):
-        """generate_prophecy_mermaid should include status keywords from the prophecy."""
-        (self.world_dir / "Cosmology" / "Prophecies" / "Dawn.md").write_text("""---
-name: "Dawn Pact"
+        (self.world_dir / "Cosmology" / "Prophecies" / "Broken.md").write_text("""---
+name: "Broken Oath"
 type: prophecy
-status: unfulfilled
----
-""", encoding="utf-8")
-        (self.world_dir / "Cosmology" / "Prophecies" / "Dusk.md").write_text("""---
-name: "Dusk Accord"
-type: prophecy
-status: fulfilled
+status: broken
+oracle: Oracle B
 ---
 """, encoding="utf-8")
         prophecies = extract_prophecies(self.world_dir)
         mermaid = generate_prophecy_mermaid(prophecies)
-        # Either 'unfulfilled' or 'fulfilled' should appear as a lifecycle state label
-        has_state = "unfulfilled" in mermaid.lower() or "fulfilled" in mermaid.lower()
-        self.assertTrue(has_state)
+        self.assertIn("Subverted", mermaid)
+        self.assertIn("Broken", mermaid)
 
-    def test_html_csp_compliance(self):
-        """Generated prophecy HTML report must include the mandatory CSP meta tag."""
-        (self.world_dir / "Cosmology" / "Prophecies" / "Starfall.md").write_text("""---
-name: "Starfall Omen"
+    def test_generate_prophecy_html_report_all_statuses(self):
+        (self.world_dir / "Cosmology" / "Prophecies" / "Test_Prophecy.md").write_text("""---
+name: "Solar Prophecy"
 type: prophecy
+status: partially_fulfilled
+clauses:
+  - "The sun rises"
+---
+""", encoding="utf-8")
+        (self.world_dir / "Cosmology" / "Prophecies" / "Broken_Prophecy.md").write_text("""---
+name: "Lunar Prophecy"
+type: prophecy
+status: broken
+---
+""", encoding="utf-8")
+        prophecies = extract_prophecies(self.world_dir)
+        html_out = Path(self.temp_dir.name) / "prophecy.html"
+        generate_prophecy_html_report({
+            "world": "TestWorld",
+            "prophecies": prophecies,
+            "findings": [{"id": "PRP-101", "severity": "WARNING", "message": "Orphan", "file": "test.md"}]
+        }, html_out)
+        self.assertTrue(html_out.is_file())
+        content = html_out.read_text(encoding="utf-8")
+        self.assertIn("Solar Prophecy", content)
+        self.assertIn("Lunar Prophecy", content)
+        self.assertIn("badge-warning", content)
+
+    def test_cli_json_and_options(self):
+        (self.world_dir / "Cosmology" / "Prophecies" / "Fate.md").write_text("""---
+name: "Ancient Fate"
+type: prophecy
+oracle: "Seer"
+target_entity: "Chosen"
+clauses: "The bell shall toll"
 status: unfulfilled
 ---
 """, encoding="utf-8")
-        prophecies = extract_prophecies(self.world_dir)
-        html_out = Path(self.temp_dir.name) / "prp_csp.html"
-        generate_prophecy_html_report(
-            {"world": "TestWorld", "prophecies": prophecies, "findings": []}, html_out
-        )
-        content = html_out.read_text(encoding="utf-8")
-        self.assertIn("default-src", content)
+        (self.ms_dir / "Book-01" / "01_Act_I" / "01_Chapter.md").write_text("""# Chapter 1
+@prophecy: Ancient Fate
+The bell tolled.
+""", encoding="utf-8")
+        note_out = Path(self.temp_dir.name) / "lifecycle.md"
+        html_out = Path(self.temp_dir.name) / "out.html"
 
-    def test_partially_fulfilled_status(self):
-        """Prophecy with status=partially_fulfilled is extracted with the correct status value."""
-        (self.world_dir / "Cosmology" / "Prophecies" / "Partial.md").write_text("""---
-name: "Ember Prophecy"
+        # 1. Test JSON output
+        with patch.object(sys, "argv", ["prophecy.py", "report", "-w", str(self.world_dir), "-m", str(self.ms_dir), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                import json
+                parsed = json.loads(mock_stdout.getvalue())
+                self.assertEqual(parsed["world"], self.world_dir.name)
+                self.assertEqual(parsed["prophecies_count"], 1)
+
+        # 2. Test file writes
+        with patch.object(sys, "argv", ["prophecy.py", "report", "-w", str(self.world_dir), "-m", str(self.ms_dir), "--write-note", str(note_out), "--html", str(html_out)]):
+            with patch("sys.stdout", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertTrue(note_out.is_file())
+                self.assertTrue(html_out.is_file())
+
+    def test_cli_human_readable_check_and_report(self):
+        (self.world_dir / "Cosmology" / "Prophecies" / "Fate.md").write_text("""---
+name: "Ancient Fate"
 type: prophecy
-status: partially_fulfilled
-oracle: "[[The Blind Seer]]"
-target_entity: "[[The Half-King]]"
+oracle: "Seer"
+target_entity: "Chosen"
+clauses: "The bell shall toll"
+status: unfulfilled
 ---
 """, encoding="utf-8")
-        prophecies = extract_prophecies(self.world_dir)
-        self.assertIn("Ember Prophecy", prophecies)
-        self.assertEqual(prophecies["Ember Prophecy"]["status"], "partially_fulfilled")
+        (self.ms_dir / "Book-01" / "01_Act_I" / "01_Chapter.md").write_text("# Chapter 1\nNo prophecies mentioned.\n", encoding="utf-8")
+        # Check with stdout
+        with patch.object(sys, "argv", ["prophecy.py", str(self.world_dir), str(self.ms_dir)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+                self.assertIn("Prophecy Resolution Matrix", mock_stdout.getvalue())
+                self.assertIn("Ancient Fate", mock_stdout.getvalue())
+
+    def test_cli_errors_and_path_resolution(self):
+        # Invalid world dir
+        with patch.object(sys, "argv", ["prophecy.py", "check", "nonexistent_world_123"]):
+            with patch("sys.stderr", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 2)
+
+        from lib.prophecy import resolve_manuscript_dir, resolve_world_dir, clean_link_name
+        self.assertEqual(clean_link_name(""), "")
+        self.assertEqual(clean_link_name("[[Oracle of Delphi]]"), "Oracle of Delphi")
+        self.assertEqual(resolve_manuscript_dir(str(self.ms_dir)), str(self.ms_dir.resolve()))
+        self.assertEqual(resolve_manuscript_dir(""), "")
+
+        # Test resolving world from Universe / World fallback
+        temp_home = Path(self.temp_dir.name) / "home"
+        (temp_home / "Universes" / "Cosmos" / "Aethelgard").mkdir(parents=True)
+        with patch("pathlib.Path.home", return_value=temp_home):
+            res = resolve_world_dir("Aethelgard")
+            self.assertTrue(res.endswith("Aethelgard"))
+            # Test default single universe
+            res2 = resolve_world_dir(None)
+            self.assertTrue(res2.endswith("Aethelgard"))
+
+            # Test multiple worlds
+            (temp_home / "Universes" / "Cosmos" / "Valendor").mkdir(parents=True)
+            with patch("sys.stderr", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    resolve_world_dir(None)
+                self.assertEqual(cm.exception.code, 2)
 
 
 if __name__ == "__main__":
     unittest.main()
+

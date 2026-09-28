@@ -1,4 +1,4 @@
-﻿---
+---
 type: character
 name: "<% tp.file.title %>"
 aliases: []
@@ -13,6 +13,23 @@ species_race: Human
 ---
 
 # <% tp.file.title %>
+
+> [!NOTE] ⚠️ EDUCATIONAL TEMPLATE (AI-GENERATED)
+> **Notice**: This template was AI-generated for educational demonstration and craft guidance within the Ars Arcanum operating system. It is strictly non-commercial and provided solely to demonstrate system features, metadata schemas, and engine capabilities. Authors should replace placeholder values with their original worldbuilding details.
+
+<details>
+<summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
+
+### Features Demonstrated in This Quickstart:
+- **Fast Character Scaffolding**: `world_doctor` (`arcanum doctor`) — Conforms to the minimum viable frontmatter schema (`name`, `role`, `status`, `faction`, `origin`) for instant indexing.
+- **Roster & Cast Discovery**: `dramatis_personae` (`arcanum concordance --cast`) — Automatically parses the character into the active volume cast table.
+- **Dataview Integration**: Indexed under `#world/character` on the central [[Templates/World-Bible-Index|World Bible Index]].
+
+### How to Use for Your Projects:
+1. When creating a character in Obsidian via Templater, rename the file to your character's name (e.g. `Kaelen-Vance.md`).
+2. Replace `"[[Faction-Name]]"` and `"[[Location-Name]]"` with actual wikilinks in your vault.
+3. If you later require deeper psychological profiling, voice cadence analysis, or genealogy tracking, upgrade to [[Characters/Character-Template|Character-Template]].
+</details>
 
 > *"A memorable signature line or personal motto."*
 

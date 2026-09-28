@@ -41,7 +41,7 @@
 
 - Test file naming/location rule: Co-located in `tests/test_<module_name>.py`.
 - Mocking strategy norm: `unittest.mock.patch` with temporary directory isolation via `tempfile.TemporaryDirectory()`.
-- Coverage expectation: 100% engine coverage, minimum 750+ automated unit/integration tests with 0 failures permitted.
+- Coverage expectation: 100% engine coverage across all 53 registered engines, 789+ automated unit/integration tests with 0 failures permitted.
 
 ### 6) Evidence
 

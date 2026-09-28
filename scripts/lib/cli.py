@@ -60,6 +60,7 @@ Usage:
   tension [MS] [--html]        Model chapter tension curve & narrative arcs
   plot [MS] [--html|--matrix]  Multi-track plot grid & subplot pacing matrix (PLT-101)
   structure [MS] [-p PARADIGM] Story paradigm enforcer: 3-Act, 8-Sequence, Kishotenketsu (PLT-102)
+  scaffold [TARGET] [options]  Pluggable manuscript structure scaffolder across 16 presets (alias: presets)
   canvas [MS] [--html|--json]  Interactive visual story canvas & corkboard drag-and-drop
   timeline [MS|WORLD] [--html] Dual-track chronological vs narrative timeline synchronizer
   omnibus <UNIVERSE> [--html]  Compile multi-volume series omnibus with unified lore
@@ -301,6 +302,370 @@ def handle_doc_command(argv: list[str]) -> int:
 
 
 
+# ---------------------------------------------------------------------------
+# Dispatch Table: Single source of truth for all CLI command routing.
+# ---------------------------------------------------------------------------
+# Each key is a command alias. The value is either:
+#   ("module", "lib.module_name")         — dispatch_subcommand(module, rest)
+#   ("module", "lib.module_name", [...])  — dispatch_subcommand(module, [..., *rest])
+#   ("script", "script_name")             — dispatch_script(script, rest)
+#   ("script", "script_name", [...])      — dispatch_script(script, [..., *rest])
+#   ("handler", callable)                 — callable(rest)
+# ---------------------------------------------------------------------------
+
+def _handle_new(rest: list[str]) -> int:
+    """Handle 'arcanum new <type> <NAME>' sub-dispatch."""
+    if not rest:
+        print("Usage: arcanum new <manuscript|draft|world|universe|volume> <NAME> [--structure STRUCTURE] [--divisions DIVISIONS] [options]", file=sys.stderr)
+        return 2
+    sub_type = rest[0].lower()
+    sub_args = rest[1:]
+    _new_dispatch: dict[str, tuple[str, list[str]]] = {
+        "manuscript": ("arcanum", ["new", "manuscript"]),
+        "novel": ("arcanum", ["new", "manuscript"]),
+        "book": ("arcanum", ["new", "manuscript"]),
+        "draft": ("arcanum", ["draft"]),
+        "revision": ("arcanum", ["draft"]),
+        "world": ("arcanum", ["new", "world"]),
+        "lore": ("arcanum", ["new", "world"]),
+        "vault": ("arcanum", ["new", "world"]),
+        "universe": ("arcanum", ["new", "universe"]),
+        "cosmos": ("arcanum", ["new", "universe"]),
+        "volume": ("arcanum", ["add-volume"]),
+        "book-volume": ("arcanum", ["add-volume"]),
+    }
+    entry = _new_dispatch.get(sub_type)
+    if entry:
+        return dispatch_script(entry[0], [*entry[1], *sub_args])
+    print(f"Unknown project type '{sub_type}'. Choose: manuscript, draft, world, universe, volume.", file=sys.stderr)
+    return 2
+
+
+def _handle_matter(rest: list[str]) -> int:
+    """Handle 'arcanum matter [build]' default sub-dispatch."""
+    if rest and rest[0] == "build":
+        return dispatch_subcommand("lib.frontmatter_builder", rest)
+    return dispatch_subcommand("lib.frontmatter_builder", ["build", *rest])
+
+
+def _handle_polish(rest: list[str]) -> int:
+    """Handle 'arcanum polish [typography]' sub-dispatch."""
+    if rest and rest[0] == "typography":
+        return dispatch_subcommand("lib.typography_cleaner", rest[1:])
+    return dispatch_subcommand("lib.typography_cleaner", rest)
+
+
+def _handle_ambient(rest: list[str]) -> int:
+    """Handle 'arcanum ambient [generate]' default sub-dispatch."""
+    if rest and rest[0] == "generate":
+        return dispatch_subcommand("lib.ambient", rest)
+    return dispatch_subcommand("lib.ambient", ["generate", *rest])
+
+
+def _handle_resonance(cmd: str, rest: list[str]) -> int:
+    """Handle 'arcanum resonance|mesh|cascade|spark|bridge' sub-dispatch."""
+    if cmd in ("mesh", "cascade", "spark", "bridge"):
+        return dispatch_subcommand("lib.resonance", [cmd, *rest])
+    return dispatch_subcommand("lib.resonance", rest)
+
+
+def _handle_sim(rest: list[str]) -> int:
+    """Handle 'arcanum sim [battle]' sub-dispatch."""
+    if rest and rest[0] == "battle":
+        return dispatch_subcommand("lib.tactical_sim", ["sim", *rest[1:]])
+    return dispatch_subcommand("lib.tactical_sim", rest)
+
+
+def _handle_magic(rest: list[str]) -> int:
+    """Handle 'arcanum magic|magic-check' with default 'check' sub-action."""
+    if rest and rest[0] in ("check", "report"):
+        return dispatch_subcommand("lib.magic_system", rest)
+    return dispatch_subcommand("lib.magic_system", ["check", *rest])
+
+
+def _handle_conlang(cmd: str, rest: list[str]) -> int:
+    """Handle 'arcanum conlang|family-tree' sub-dispatch."""
+    if cmd == "family-tree":
+        return dispatch_subcommand("lib.conlang", ["family-tree", *rest])
+    return dispatch_subcommand("lib.conlang", rest)
+
+
+def _handle_calc(rest: list[str]) -> int:
+    """Handle 'arcanum calc <subcommand>' sub-dispatch."""
+    if not rest:
+        print("Usage: arcanum calc <transit|time-dilation|orbit|comms|habitability|system-dossier|journey|battle|logistics|climate|trade> [args...]", file=sys.stderr)
+        return 2
+    sub = rest[0].lower()
+    sub_args = rest[1:]
+    if sub in ("transit", "time-dilation", "orbit", "comms", "habitability", "astro", "astrophysics", "system-dossier", "dossier"):
+        if sub in ("astro", "astrophysics"):
+            return dispatch_subcommand("lib.astrophysics", sub_args)
+        return dispatch_subcommand("lib.astrophysics", [sub, *sub_args])
+    elif sub in ("journey", "expedition", "travel"):
+        return dispatch_subcommand("lib.journey", sub_args)
+    elif sub in ("battle", "sim", "tactical", "combat"):
+        return dispatch_subcommand("lib.tactical_sim", ["sim", *sub_args])
+    elif sub in ("logistics", "supply"):
+        return dispatch_subcommand("lib.factions", ["logistics", *sub_args])
+    elif sub in ("climate", "weather", "insolation", "biomes"):
+        return dispatch_subcommand("lib.climate", sub_args)
+    elif sub in ("trade", "arbitrage", "ppp"):
+        return dispatch_subcommand("lib.economy", ["trade", *sub_args])
+    else:
+        print(f"Unknown calc mode '{sub}'. Choose: transit, time-dilation, orbit, comms, habitability, system-dossier, journey, battle, logistics, climate, trade.", file=sys.stderr)
+        return 2
+
+
+def _handle_audit(rest: list[str]) -> int:
+    """Handle 'arcanum audit <subcommand>' sub-dispatch."""
+    if not rest:
+        return dispatch_script("arcanum_doctor.sh", [])
+    sub = rest[0].lower()
+    sub_args = rest[1:]
+    _audit_dispatch: dict[str, tuple[str, list[str]]] = {
+        "dialogue": ("lib.stylistics", ["dialogue"]),
+        "tags": ("lib.stylistics", ["dialogue"]),
+        "said-bookisms": ("lib.stylistics", ["dialogue"]),
+        "echoes": ("lib.stylistics", ["echoes"]),
+        "echo": ("lib.stylistics", ["echoes"]),
+        "repetition": ("lib.stylistics", ["echoes"]),
+        "rhythm": ("lib.stylistics", ["rhythm"]),
+        "readability": ("lib.stylistics", ["rhythm"]),
+        "prose": ("lib.stylistics", ["scan"]),
+        "style": ("lib.stylistics", ["scan"]),
+        "stylistics": ("lib.stylistics", ["scan"]),
+        "voice": ("lib.voice", []),
+        "voice-bleed": ("lib.voice", []),
+        "scenes": ("lib.scene_mechanics", []),
+        "scene": ("lib.scene_mechanics", []),
+        "mru": ("lib.scene_mechanics", []),
+        "structure": ("lib.structure", []),
+        "paradigm": ("lib.structure", []),
+        "idioms": ("lib.stylistics", ["idiom"]),
+        "idiom": ("lib.stylistics", ["idiom"]),
+        "eponyms": ("lib.stylistics", ["idiom"]),
+        "senses": ("lib.senses", []),
+        "sensory": ("lib.senses", []),
+        "palette": ("lib.senses", []),
+        "tech": ("lib.economy", ["tech"]),
+        "technology": ("lib.economy", ["tech"]),
+        "anachronisms": ("lib.economy", ["tech"]),
+    }
+    entry = _audit_dispatch.get(sub)
+    if entry:
+        return dispatch_subcommand(entry[0], [*entry[1], *sub_args])
+    return dispatch_subcommand("lib.diagnostics", rest)
+
+
+def _handle_pace(rest: list[str]) -> int:
+    """Handle 'arcanum pace' with default sub-action prefix."""
+    if rest and rest[0] in ("pace", "tension", "pov"):
+        return dispatch_subcommand("lib.pacing", rest)
+    return dispatch_subcommand("lib.pacing", ["pace", *rest])
+
+
+def _handle_doctor(rest: list[str]) -> int:
+    """Handle 'arcanum doctor' with world-doctor path detection."""
+    if rest and not rest[0].startswith("-") and os.path.isdir(rest[0]):
+        return dispatch_subcommand("lib.world_doctor", rest)
+    return dispatch_subcommand("lib.diagnostics", rest)
+
+
+# The canonical dispatch table — single source of truth for all command routing.
+# Format: alias -> (dispatch_type, target, [optional_prefix_args])
+_DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
+    # --- Core Authoring & Editorial Craft ---
+    "doc": ("handler", "doc"), "docs": ("handler", "doc"), "explain": ("handler", "doc"),
+    "guide": ("handler", "doc"), "craft-docs": ("handler", "doc"),
+    "import": ("module", "lib.importer"), "importer": ("module", "lib.importer"),
+    "import-manuscript": ("module", "lib.importer"), "scrivener-import": ("module", "lib.importer"),
+    "write": ("script", "lib/ui_controller.py"), "open": ("script", "lib/ui_controller.py"),
+    "word": ("module", "lib.docx_sync", "open"), "writer": ("module", "lib.docx_sync", "open"),
+    "word-processor": ("module", "lib.docx_sync", "open"),
+    "docx": ("module", "lib.docx_sync"), "docx-sync": ("module", "lib.docx_sync"),
+    "sync-docx": ("module", "lib.docx_sync"),
+    "new": ("handler", "new"), "create": ("handler", "new"),
+    "draft": ("script", "arcanum", "draft"), "drafts": ("script", "arcanum", "draft"),
+    "init-draft": ("script", "arcanum", "draft"), "new-draft": ("script", "arcanum", "draft"),
+    "revision": ("script", "arcanum", "draft"),
+    "compare": ("module", "lib.manuscript_diff"), "diff": ("module", "lib.manuscript_diff"),
+    "redline": ("module", "lib.manuscript_diff"), "changelog": ("module", "lib.manuscript_diff"),
+    "manuscript-diff": ("module", "lib.manuscript_diff"),
+    "save": ("script", "arcanum", "snapshot"), "snapshot": ("script", "arcanum", "snapshot"),
+    "snap": ("script", "arcanum", "snapshot"), "commit": ("script", "arcanum", "snapshot"),
+    "publish": ("script", "arcanum", "export"), "export": ("script", "arcanum", "export"),
+    "compile": ("script", "arcanum", "export"),
+    "preflight": ("module", "lib.preflight"), "pre-flight": ("module", "lib.preflight"),
+    "prepress": ("module", "lib.preflight"),
+    "matter": ("handler", "matter"), "frontmatter": ("handler", "matter"),
+    "backmatter": ("handler", "matter"), "matter-builder": ("handler", "matter"),
+    "query": ("script", "init_query.py"), "synopsis": ("script", "init_query.py"),
+    "agent": ("script", "init_query.py"),
+    "polish": ("handler", "polish"), "clean-typography": ("handler", "polish"),
+    "typography": ("handler", "polish"),
+    "studio": ("module", "lib.zen_studio"), "zen": ("module", "lib.zen_studio"),
+    "zen-studio": ("module", "lib.zen_studio"), "editor": ("module", "lib.zen_studio"),
+    "corpus": ("module", "lib.corpus_export"), "corpus-export": ("module", "lib.corpus_export"),
+    "export-corpus": ("module", "lib.corpus_export"), "rag-export": ("module", "lib.corpus_export"),
+    "corpus-restore": ("module", "lib.corpus_export"),
+    "rag": ("module", "lib.local_rag"), "query-lore": ("module", "lib.local_rag"),
+    "semantic-search": ("module", "lib.local_rag"), "lore-query": ("module", "lib.local_rag"),
+    "branch": ("module", "lib.branching_graph"), "branching": ("module", "lib.branching_graph"),
+    "gamebook": ("module", "lib.branching_graph"), "interactive-fiction": ("module", "lib.branching_graph"),
+    "branch-graph": ("module", "lib.branching_graph"), "subway-map": ("module", "lib.branching_graph"),
+    "hub": ("module", "lib.studio_hub"), "dashboard": ("module", "lib.studio_hub"),
+    "gui-web": ("module", "lib.studio_hub"), "studio-hub": ("module", "lib.studio_hub"),
+    "causality": ("module", "lib.causality"), "causal": ("module", "lib.causality"),
+    "time-travel": ("module", "lib.causality"), "ctc": ("module", "lib.causality"),
+    "multiverse": ("module", "lib.causality"), "paradox": ("module", "lib.causality"),
+    "prophecy": ("module", "lib.prophecy"), "prophecies": ("module", "lib.prophecy"),
+    "oracle": ("module", "lib.prophecy"), "delphic": ("module", "lib.prophecy"),
+    "arcane-inscription": ("module", "lib.prophecy"), "prophecy-matrix": ("module", "lib.prophecy"),
+    "senses": ("module", "lib.senses"), "sensory": ("module", "lib.senses"),
+    "immersion": ("module", "lib.senses"), "white-room": ("module", "lib.senses"),
+    "palette": ("module", "lib.senses"),
+    "sprint": ("module", "lib.writing_sprint"), "writing-sprint": ("module", "lib.writing_sprint"),
+    "pomodoro": ("module", "lib.writing_sprint"), "session": ("module", "lib.writing_sprint"),
+    "velocity": ("module", "lib.writing_sprint"),
+    "revision-heatmap": ("module", "lib.revision_heatmap"), "churn": ("module", "lib.revision_heatmap"),
+    "revision-density": ("module", "lib.revision_heatmap"), "draft-churn": ("module", "lib.revision_heatmap"),
+    "heatmap": ("module", "lib.revision_heatmap"),
+    "words": ("script", "arcanum", "words"), "wordcount": ("script", "arcanum", "words"),
+    "report": ("script", "arcanum", "words"), "count": ("script", "arcanum", "words"),
+    "stats": ("script", "arcanum", "words"),
+    "pace": ("handler", "pace"), "pacing": ("handler", "pace"),
+    "rhythm": ("handler", "pace"), "waveform": ("handler", "pace"),
+    "tension": ("module", "lib.scene_mechanics"), "tension-arc": ("module", "lib.scene_mechanics"),
+    "scene": ("module", "lib.scene_mechanics"), "scenes": ("module", "lib.scene_mechanics"),
+    "swain": ("module", "lib.scene_mechanics"), "mru": ("module", "lib.scene_mechanics"),
+    "plot": ("module", "lib.plot_matrix"), "plot-matrix": ("module", "lib.plot_matrix"),
+    "subplot": ("module", "lib.plot_matrix"), "subplots": ("module", "lib.plot_matrix"),
+    "matrix": ("module", "lib.plot_matrix"),
+    "structure": ("module", "lib.structure"), "beats": ("module", "lib.structure"),
+    "paradigm": ("module", "lib.structure"), "paradigms": ("module", "lib.structure"),
+    "scaffold": ("module", "lib.manuscript_scaffold"), "scaffold-volume": ("module", "lib.manuscript_scaffold"),
+    "manuscript-scaffold": ("module", "lib.manuscript_scaffold"),
+    "structure-presets": ("module", "lib.manuscript_scaffold"), "presets": ("module", "lib.manuscript_scaffold"),
+    "canvas": ("module", "lib.story_canvas"), "corkboard": ("module", "lib.story_canvas"),
+    "story-map": ("module", "lib.story_canvas"), "story-canvas": ("module", "lib.story_canvas"),
+    "timeline": ("module", "lib.timeline_sync"), "timeline-sync": ("module", "lib.timeline_sync"),
+    "sync-timeline": ("module", "lib.timeline_sync"), "chronology": ("module", "lib.timeline_sync"),
+    "omnibus": ("module", "lib.omnibus"), "compile-omnibus": ("module", "lib.omnibus"),
+    "series-omnibus": ("module", "lib.omnibus"),
+    "ambient": ("handler", "ambient"), "soundscape": ("handler", "ambient"),
+    "noise": ("handler", "ambient"), "focus": ("handler", "ambient"),
+    "binaural": ("handler", "ambient"), "focus-sound": ("handler", "ambient"),
+    "portfolio": ("module", "lib.portfolio"), "catalog": ("module", "lib.portfolio"),
+    "series-overview": ("module", "lib.portfolio"),
+    "package": ("script", "package_distribution.py"), "dist": ("script", "package_distribution.py"),
+    "bundle": ("script", "package_distribution.py"),
+    "resonance": ("handler", "resonance"), "mesh": ("handler", "resonance"),
+    "cascade": ("handler", "resonance"), "spark": ("handler", "resonance"),
+    "bridge": ("handler", "resonance"), "ecosystem": ("handler", "resonance"),
+    "synergy": ("handler", "resonance"),
+    "tip": ("module", "lib.tips"), "tips": ("module", "lib.tips"),
+    "craft-tip": ("module", "lib.tips"), "wisdom": ("module", "lib.tips"),
+    "hint": ("module", "lib.tips"), "hints": ("module", "lib.tips"),
+    "craft-tips": ("module", "lib.tips"), "advice": ("module", "lib.tips"),
+    "help-tips": ("module", "lib.tips"),
+    # --- Universe, World Lore & Series Continuity ---
+    "universe": ("script", "arcanum", "universe"), "init-universe": ("script", "arcanum", "universe"),
+    "cosmos": ("script", "arcanum", "universe"),
+    "world": ("script", "arcanum", "world"), "init-world": ("script", "arcanum", "world"),
+    "manuscript": ("script", "arcanum", "manuscript"), "init-manuscript": ("script", "arcanum", "manuscript"),
+    "novel": ("script", "arcanum", "manuscript"),
+    "volume": ("script", "arcanum", "add-volume"), "add-volume": ("script", "arcanum", "add-volume"),
+    "add-book": ("script", "arcanum", "add-volume"), "new-book": ("script", "arcanum", "add-volume"),
+    "map": ("module", "lib.cartography"), "cartography": ("module", "lib.cartography"),
+    "vector-map": ("module", "lib.cartography"),
+    "codex": ("module", "lib.codex_export"), "wiki": ("module", "lib.codex_export"),
+    "export-codex": ("module", "lib.codex_export"),
+    "series": ("module", "lib.series_continuity"), "series-continuity": ("module", "lib.series_continuity"),
+    "ledger": ("module", "lib.series_continuity"),
+    "sim": ("handler", "sim"), "tactical-sim": ("handler", "sim"),
+    "battle": ("handler", "sim"), "combat": ("handler", "sim"), "tactical": ("handler", "sim"),
+    "cast": ("module", "lib.dramatis_personae"), "dramatis-personae": ("module", "lib.dramatis_personae"),
+    "dramatis": ("module", "lib.dramatis_personae"), "characters-cast": ("module", "lib.dramatis_personae"),
+    "concordance": ("module", "lib.concordance"), "glossary": ("module", "lib.concordance"),
+    "index": ("module", "lib.concordance"),
+    "continuity": ("module", "lib.continuity"), "check-continuity": ("module", "lib.continuity"),
+    "traits": ("module", "lib.continuity"),
+    "faction": ("module", "lib.factions"), "factions": ("module", "lib.factions"),
+    "diplomacy": ("module", "lib.factions"),
+    "economy": ("module", "lib.economy"), "currencies": ("module", "lib.economy"),
+    "currency": ("module", "lib.economy"), "prices": ("module", "lib.economy"),
+    "ecology": ("module", "lib.ecology"), "foodweb": ("module", "lib.ecology"),
+    "bestiary": ("module", "lib.ecology"),
+    "magic": ("handler", "magic"), "magic-check": ("handler", "magic"),
+    "arcana": ("handler", "magic"), "spells": ("handler", "magic"),
+    "magic-report": ("module", "lib.magic_system", "report"),
+    "genealogy": ("module", "lib.genealogy"),
+    "lineage": ("module", "lib.genealogy", "lineage"), "dynasty": ("module", "lib.genealogy", "lineage"),
+    "conlang": ("handler", "conlang"), "lexicon": ("handler", "conlang"),
+    "linguistics": ("handler", "conlang"), "phonotactics": ("handler", "conlang"),
+    "family-tree": ("handler", "conlang"),
+    "calendar": ("module", "lib.calendar"), "calendars": ("module", "lib.calendar"),
+    "moons": ("module", "lib.calendar"), "ephemeris": ("module", "lib.calendar"),
+    "calc": ("handler", "calc"), "calculator": ("handler", "calc"),
+    "astro": ("module", "lib.astrophysics"), "astrophysics": ("module", "lib.astrophysics"),
+    "orbital": ("module", "lib.astrophysics"),
+    "climate": ("module", "lib.climate"), "weather": ("module", "lib.climate"),
+    "biomes": ("module", "lib.climate"), "insolation": ("module", "lib.climate"),
+    "journey": ("module", "lib.journey"), "travel": ("module", "lib.journey"),
+    "expedition": ("module", "lib.journey"), "logistics": ("module", "lib.journey"),
+    "voice": ("module", "lib.voice"), "voice-bleed": ("module", "lib.voice"),
+    "idiolect": ("module", "lib.voice"), "stylometry": ("module", "lib.voice"),
+    "style": ("module", "lib.stylistics", "scan"), "stylistics": ("module", "lib.stylistics", "scan"),
+    "polish-style": ("module", "lib.stylistics", "scan"), "readability": ("module", "lib.stylistics", "scan"),
+    "audit": ("handler", "audit"),
+    # --- Data Protection & Safety ---
+    "backup": ("script", "arcanum", "backup"), "backup-world": ("script", "arcanum", "backup"),
+    "backup-dest": ("module", "lib.config", "backup-dest"),
+    "backup-destination": ("module", "lib.config", "backup-dest"),
+    "config": ("module", "lib.config"), "settings": ("module", "lib.config"),
+    "preferences": ("module", "lib.config"),
+    "restore": ("script", "arcanum", "restore"), "restore-world": ("script", "arcanum", "restore"),
+    "fs": ("module", "lib.fs_utils"), "fs-utils": ("module", "lib.fs_utils"),
+    "atomic-storage": ("module", "lib.fs_utils"), "atomic-fs": ("module", "lib.fs_utils"),
+    # --- System Health & Diagnostics ---
+    "doctor": ("handler", "doctor"), "check": ("handler", "doctor"),
+    "diagnostics": ("handler", "doctor"), "health": ("handler", "doctor"),
+    "world-doctor": ("module", "lib.world_doctor"), "doctor-world": ("module", "lib.world_doctor"),
+    "lore-check": ("module", "lib.world_doctor"),
+    "cache": ("module", "lib.cache"), "cache-engine": ("module", "lib.cache"),
+    "cache-clear": ("module", "lib.cache", "clear"),
+    "cache-scan": ("module", "lib.cache", "scan"),
+    "migrate": ("module", "lib.migrate"), "upgrade": ("module", "lib.migrate"),
+    "engines": ("handler", "engines"),
+    "gui": ("script", "arcanum_app.py"), "control-center": ("script", "arcanum_app.py"),
+    "app": ("script", "arcanum_app.py"), "ui": ("script", "arcanum_app.py"),
+    "menu": ("script", "arcanum", "menu"), "interactive": ("script", "arcanum", "menu"),
+    "dashboard-cli": ("script", "arcanum", "menu"),
+    "verify": ("script", "verify.sh"), "test": ("script", "verify.sh"),
+    "tests": ("script", "verify.sh"),
+    "setup": ("script", "setup_arcanum.sh"),
+    "uninstall": ("script", "arcanum", "uninstall"), "remove": ("script", "arcanum", "uninstall"),
+}
+
+# Handler dispatch map for commands requiring custom logic
+_HANDLERS: dict[str, object] = {
+    "doc": handle_doc_command,
+    "new": _handle_new,
+    "matter": _handle_matter,
+    "polish": _handle_polish,
+    "ambient": _handle_ambient,
+    "sim": _handle_sim,
+    "magic": _handle_magic,
+    "calc": _handle_calc,
+    "audit": _handle_audit,
+    "pace": _handle_pace,
+    "doctor": _handle_doctor,
+    "engines": handle_engines_command,
+    "resonance": _handle_resonance,
+    "conlang": _handle_conlang,
+}
+
+
 def main(argv: list[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv[1:]
@@ -316,354 +681,46 @@ def main(argv: list[str] | None = None) -> int:
     cmd = argv[0].lower().strip()
     rest = argv[1:]
 
-    # --- Core Authoring & Editorial Craft ---
-    if cmd in ("doc", "docs", "explain", "guide", "craft-docs"):
-        return handle_doc_command(rest)
-
-    if cmd in ("import", "importer", "import-manuscript"):
-        return dispatch_subcommand("lib.importer", rest)
-
-    if cmd in ("write", "open"):
-        return dispatch_script("lib/ui_controller.py", rest)
-
-    if cmd in ("word", "writer", "word-processor"):
-        return dispatch_subcommand("lib.docx_sync", ["open", *rest])
-
-    if cmd in ("docx", "docx-sync", "sync-docx"):
-        return dispatch_subcommand("lib.docx_sync", rest)
-
-    if cmd in ("new", "create"):
-        if not rest:
-            print("Usage: arcanum new <manuscript|draft|world|universe|volume> <NAME> [options]", file=sys.stderr)
-            return 2
-        sub_type = rest[0].lower()
-        sub_args = rest[1:]
-        if sub_type in ("manuscript", "novel", "book"):
-            return dispatch_script("arcanum", ["new", "manuscript", *sub_args])
-        elif sub_type in ("draft", "revision"):
-            return dispatch_script("arcanum", ["draft", *sub_args])
-        elif sub_type in ("world", "lore", "vault"):
-            return dispatch_script("arcanum", ["new", "world", *sub_args])
-        elif sub_type in ("universe", "cosmos"):
-            return dispatch_script("arcanum", ["new", "universe", *sub_args])
-        elif sub_type in ("volume", "book-volume"):
-            return dispatch_script("arcanum", ["add-volume", *sub_args])
+    entry = _DISPATCH_TABLE.get(cmd)
+    if entry is None:
+        # Unknown command — fuzzy match against the dispatch table keys
+        matches = difflib.get_close_matches(cmd, _DISPATCH_TABLE.keys(), n=1, cutoff=0.55)
+        if matches:
+            print(f"Error: Unknown command '{cmd}'. Did you mean '{matches[0]}'?", file=sys.stderr)
         else:
-            print(f"Unknown project type '{sub_type}'. Choose: manuscript, draft, world, universe, volume.", file=sys.stderr)
-            return 2
-
-    if cmd in ("draft", "drafts", "init-draft", "new-draft", "revision"):
-        return dispatch_script("arcanum", ["draft", *rest])
-
-    if cmd in ("compare", "diff", "redline", "changelog"):
-        return dispatch_script("arcanum", ["compare", *rest])
-
-    if cmd in ("save", "snapshot", "snap", "commit"):
-        return dispatch_script("arcanum", ["snapshot", *rest])
-
-    if cmd in ("publish", "export", "compile"):
-        return dispatch_script("arcanum", ["export", *rest])
-
-    if cmd in ("preflight", "pre-flight"):
-        return dispatch_subcommand("lib.preflight", rest)
-
-    if cmd in ("matter", "frontmatter", "backmatter"):
-        if rest and rest[0] == "build":
-            return dispatch_subcommand("lib.frontmatter_builder", rest)
-        return dispatch_subcommand("lib.frontmatter_builder", ["build", *rest])
-
-    if cmd in ("query", "synopsis", "agent"):
-        return dispatch_script("init_query.py", rest)
-
-    if cmd in ("polish", "clean-typography"):
-        if rest and rest[0] == "typography":
-            return dispatch_subcommand("lib.typography_cleaner", rest[1:])
-        return dispatch_subcommand("lib.typography_cleaner", rest)
-
-    if cmd in ("studio", "zen", "zen-studio", "editor"):
-        return dispatch_subcommand("lib.zen_studio", rest)
-
-    if cmd in ("corpus", "corpus-export", "export-corpus", "rag-export", "corpus-restore"):
-        return dispatch_subcommand("lib.corpus_export", rest)
-
-    if cmd in ("rag", "query-lore", "semantic-search", "lore-query"):
-        return dispatch_subcommand("lib.local_rag", rest)
-
-    if cmd in ("branch", "branching", "gamebook", "interactive-fiction", "branch-graph", "subway-map"):
-        return dispatch_subcommand("lib.branching_graph", rest)
-
-    if cmd in ("hub", "dashboard", "gui-web", "studio-hub"):
-        return dispatch_subcommand("lib.studio_hub", rest)
-
-    if cmd in ("causality", "causal", "time-travel", "ctc", "multiverse"):
-        return dispatch_subcommand("lib.causality", rest)
-
-    if cmd in ("prophecy", "oracle", "arcane-inscription", "prophecy-matrix"):
-        return dispatch_subcommand("lib.prophecy", rest)
-
-    if cmd in ("senses", "sensory", "immersion", "white-room"):
-        return dispatch_subcommand("lib.senses", rest)
-
-    if cmd in ("sprint", "writing-sprint", "pomodoro", "session"):
-        return dispatch_subcommand("lib.writing_sprint", rest)
-
-    if cmd in ("revision-heatmap", "churn", "revision-density", "draft-churn"):
-        return dispatch_subcommand("lib.revision_heatmap", rest)
-
-    if cmd in ("words", "wordcount", "report", "count", "stats"):
-        return dispatch_script("arcanum", ["words", *rest])
-
-    if cmd in ("pace", "pacing"):
-        return dispatch_subcommand("lib.pacing", ["pace", *rest] if not (rest and rest[0] in ("pace", "tension", "pov")) else rest)
-
-    if cmd in ("tension", "tension-arc"):
-        return dispatch_subcommand("lib.pacing", ["tension", *rest] if not (rest and rest[0] in ("pace", "tension", "pov")) else rest)
-
-    if cmd in ("plot", "plot-matrix", "subplot"):
-        return dispatch_subcommand("lib.plot_matrix", rest)
-
-    if cmd in ("structure", "beats", "paradigm"):
-        return dispatch_subcommand("lib.structure", rest)
-
-    if cmd in ("canvas", "corkboard", "story-map", "story-canvas"):
-        return dispatch_subcommand("lib.story_canvas", rest)
-
-    if cmd in ("timeline", "timeline-sync", "sync-timeline"):
-        return dispatch_subcommand("lib.timeline_sync", rest)
-
-    if cmd in ("omnibus", "compile-omnibus", "series-omnibus"):
-        return dispatch_subcommand("lib.omnibus", rest)
-
-    if cmd in ("ambient", "soundscape", "noise", "focus"):
-        if rest and rest[0] == "generate":
-            return dispatch_subcommand("lib.ambient", rest)
-        return dispatch_subcommand("lib.ambient", ["generate", *rest])
-
-    if cmd in ("portfolio", "catalog"):
-        return dispatch_subcommand("lib.portfolio", rest)
-
-    if cmd in ("package", "dist", "bundle"):
-        return dispatch_script("package_distribution.py", rest)
-
-    if cmd in ("resonance", "mesh", "cascade", "spark", "bridge", "ecosystem", "synergy"):
-        if cmd in ("mesh", "cascade", "spark", "bridge"):
-            return dispatch_subcommand("lib.resonance", [cmd, *rest])
-        return dispatch_subcommand("lib.resonance", rest)
-
-    if cmd in ("tip", "tips", "craft-tip", "wisdom", "hint", "hints"):
-        return dispatch_subcommand("lib.tips", rest)
-
-    # --- Universe, World Lore & Series Continuity ---
-    if cmd in ("universe", "init-universe", "cosmos"):
-        return dispatch_script("arcanum", ["universe", *rest])
-
-    if cmd in ("world", "init-world"):
-        return dispatch_script("arcanum", ["world", *rest])
-
-    if cmd in ("manuscript", "init-manuscript", "novel"):
-        return dispatch_script("arcanum", ["manuscript", *rest])
-
-    if cmd in ("volume", "add-volume", "add-book", "new-book"):
-        return dispatch_script("arcanum", ["add-volume", *rest])
-
-    if cmd in ("map", "cartography"):
-        return dispatch_subcommand("lib.cartography", rest)
-
-    if cmd in ("codex", "wiki"):
-        return dispatch_subcommand("lib.codex_export", rest)
-
-    if cmd in ("series", "series-continuity"):
-        return dispatch_subcommand("lib.series_continuity", rest)
-
-    if cmd in ("sim", "tactical-sim"):
-        if rest and rest[0] == "battle":
-            return dispatch_subcommand("lib.tactical_sim", ["sim", *rest[1:]])
-        return dispatch_subcommand("lib.tactical_sim", rest)
-
-    if cmd in ("cast", "dramatis-personae", "dramatis", "characters-cast"):
-        return dispatch_subcommand("lib.dramatis_personae", rest)
-
-    if cmd in ("concordance", "glossary"):
-        return dispatch_subcommand("lib.concordance", rest)
-
-    if cmd in ("continuity", "check-continuity"):
-        return dispatch_subcommand("lib.series_continuity", rest)
-
-    if cmd in ("faction", "factions"):
-        return dispatch_subcommand("lib.factions", rest)
-
-    if cmd in ("economy", "currencies"):
-        return dispatch_subcommand("lib.economy", rest)
-
-    if cmd in ("causality", "timeline"):
-        return dispatch_subcommand("lib.causality", rest)
-
-    if cmd in ("ecology", "foodweb"):
-        return dispatch_subcommand("lib.ecology", rest)
-
-    if cmd in ("magic", "magic-check"):
-        if rest and rest[0] in ("check", "report"):
-            return dispatch_subcommand("lib.magic_system", rest)
-        return dispatch_subcommand("lib.magic_system", ["check", *rest])
-
-    if cmd == "magic-report":
-        return dispatch_subcommand("lib.magic_system", ["report", *rest])
-
-    if cmd in ("prophecy", "prophecies"):
-        return dispatch_subcommand("lib.prophecy", rest)
-
-    if cmd == "genealogy":
-        return dispatch_subcommand("lib.genealogy", rest)
-
-    if cmd == "lineage":
-        return dispatch_subcommand("lib.genealogy", ["lineage", *rest])
-
-    if cmd in ("conlang", "lexicon", "family-tree"):
-        if cmd == "family-tree":
-            return dispatch_subcommand("lib.conlang", ["family-tree", *rest])
-        return dispatch_subcommand("lib.conlang", rest)
-
-    if cmd in ("calendar", "moons"):
-        return dispatch_subcommand("lib.calendar", rest)
-
-    if cmd in ("calc", "calculator"):
-        if not rest:
-            print("Usage: arcanum calc <transit|time-dilation|orbit|comms|habitability|system-dossier|journey|battle|logistics|climate|trade> [args...]", file=sys.stderr)
-            return 2
-        sub = rest[0].lower()
-        sub_args = rest[1:]
-        if sub in ("transit", "time-dilation", "orbit", "comms", "habitability", "astro", "astrophysics", "system-dossier", "dossier"):
-            if sub in ("astro", "astrophysics"):
-                return dispatch_subcommand("lib.astrophysics", sub_args)
-            return dispatch_subcommand("lib.astrophysics", [sub, *sub_args])
-        elif sub in ("journey", "expedition"):
-            return dispatch_subcommand("lib.journey", sub_args)
-        elif sub in ("battle", "sim", "tactical"):
-            return dispatch_subcommand("lib.tactical_sim", ["sim", *sub_args])
-        elif sub in ("logistics", "supply"):
-            return dispatch_subcommand("lib.factions", ["logistics", *sub_args])
-        elif sub in ("climate", "weather", "insolation"):
-            return dispatch_subcommand("lib.climate", sub_args)
-        elif sub in ("trade", "arbitrage", "ppp"):
-            return dispatch_subcommand("lib.economy", ["trade", *sub_args])
-        else:
-            print(f"Unknown calc mode '{sub}'. Choose: transit, time-dilation, orbit, comms, habitability, system-dossier, journey, battle, logistics, climate, trade.", file=sys.stderr)
-            return 2
-
-    if cmd == "audit":
-        if not rest:
-            return dispatch_script("arcanum_doctor.sh", [])
-        sub = rest[0].lower()
-        sub_args = rest[1:]
-        if sub in ("dialogue", "tags", "said-bookisms"):
-            return dispatch_subcommand("lib.stylistics", ["dialogue", *sub_args])
-        elif sub in ("echoes", "echo", "repetition"):
-            return dispatch_subcommand("lib.stylistics", ["echoes", *sub_args])
-        elif sub in ("rhythm", "readability"):
-            return dispatch_subcommand("lib.stylistics", ["rhythm", *sub_args])
-        elif sub in ("prose", "style", "stylistics"):
-            return dispatch_subcommand("lib.stylistics", ["scan", *sub_args])
-        elif sub in ("voice", "voice-bleed"):
-            return dispatch_subcommand("lib.voice", sub_args)
-        elif sub in ("scenes", "scene", "mru"):
-            return dispatch_subcommand("lib.scene_mechanics", sub_args)
-        elif sub in ("structure", "paradigm"):
-            return dispatch_subcommand("lib.structure", sub_args)
-        elif sub in ("idioms", "idiom", "eponyms"):
-            return dispatch_subcommand("lib.stylistics", ["idiom", *sub_args])
-        elif sub in ("senses", "sensory", "palette"):
-            return dispatch_subcommand("lib.senses", sub_args)
-        elif sub in ("tech", "technology", "anachronisms"):
-            return dispatch_subcommand("lib.economy", ["tech", *sub_args])
-        else:
-            return dispatch_subcommand("lib.diagnostics", rest)
-
-    # --- Data Protection & Safety ---
-    if cmd in ("backup", "backup-world"):
-        return dispatch_script("arcanum", ["backup", *rest])
-
-    if cmd in ("backup-dest", "backup-destination"):
-        return dispatch_subcommand("lib.config", ["backup-dest", *rest])
-
-    if cmd in ("config", "settings", "preferences"):
-        return dispatch_subcommand("lib.config", rest)
-
-    if cmd in ("restore", "restore-world"):
-        return dispatch_script("arcanum", ["restore", *rest])
-
-    # --- System Health & Diagnostics ---
-    if cmd in ("doctor", "check", "diagnostics"):
-        if rest and not rest[0].startswith("-") and os.path.isdir(rest[0]):
-            return dispatch_subcommand("lib.world_doctor", rest)
-        return dispatch_subcommand("lib.diagnostics", rest)
-
-    if cmd in ("world-doctor", "doctor-world"):
-        return dispatch_subcommand("lib.world_doctor", rest)
-
-    if cmd in ("cache", "cache-engine"):
-        return dispatch_subcommand("lib.cache", rest)
-
-    if cmd == "cache-clear":
-        return dispatch_subcommand("lib.cache", ["clear", *rest])
-
-    if cmd == "cache-scan":
-        return dispatch_subcommand("lib.cache", ["scan", *rest])
-
-    if cmd in ("migrate", "upgrade"):
-        return dispatch_subcommand("lib.migrate", rest)
-
-
-    if cmd == "engines":
-        return handle_engines_command(rest)
-
-    if cmd in ("gui", "control-center", "app", "ui"):
-        return dispatch_script("arcanum_app.py", rest)
-
-    if cmd in ("menu", "interactive", "dashboard-cli"):
-        return dispatch_script("arcanum", ["menu", *rest])
-
-    if cmd in ("verify", "test", "tests"):
-        return dispatch_script("verify.sh", rest)
-
-    if cmd == "setup":
-        return dispatch_script("setup_arcanum.sh", rest)
-
-    if cmd in ("uninstall", "remove"):
-        return dispatch_script("arcanum", ["uninstall", *rest])
-
-    known_commands = [
-        "write", "open", "new", "create", "save", "snapshot", "publish", "export",
-        "preflight", "matter", "query", "polish", "typography",
-        "plot", "structure", "ambient", "portfolio", "package", "map", "codex",
-        "series", "sim", "draft", "drafts", "compare", "diff", "redline", "changelog",
-        "words", "count", "report", "universe", "world", "manuscript", "volume",
-        "add-volume", "concordance", "continuity", "check-continuity", "doctor",
-        "check", "world-doctor", "backup", "backup-dest", "config", "restore", "cache",
-        "calc", "magic-check", "magic-report", "genealogy", "lineage", "conlang",
-        "faction", "economy", "causality", "causal", "time-travel", "ecology",
-        "climate", "idioms", "senses", "sensory", "immersion",
-        "prophecy", "oracle", "audit", "pace", "tension", "voice", "calendar", "journey",
-        "gui", "control-center", "menu", "interactive", "verify", "setup", "uninstall",
-        "version", "help", "docx", "word", "corpus", "studio", "zen",
-        "rag", "query-lore", "branch", "branching",
-        "hub", "dashboard", "gui-web", "studio-hub",
-        "sprint", "writing-sprint", "revision-heatmap", "churn", "revision-density",
-        "cast", "dramatis-personae", "dramatis", "characters-cast",
-        "canvas", "story-canvas", "timeline", "timeline-sync", "omnibus", "import", "importer",
-        "doc", "docs", "explain", "guide", "craft-docs",
-        "tip", "tips", "craft-tip", "wisdom", "hint", "hints",
-    ]
-
-    matches = difflib.get_close_matches(cmd, known_commands, n=1, cutoff=0.55)
-    if matches:
-        print(f"Error: Unknown command '{cmd}'. Did you mean '{matches[0]}'?", file=sys.stderr)
-    else:
-        print(f"Error: Unknown command '{cmd}'.", file=sys.stderr)
-    print("Run 'arcanum --help' for available commands and examples.", file=sys.stderr)
+            print(f"Error: Unknown command '{cmd}'.", file=sys.stderr)
+        print("Run 'arcanum --help' for available commands and examples.", file=sys.stderr)
+        return 2
+
+    dispatch_type = entry[0]
+
+    if dispatch_type == "handler":
+        handler_key = entry[1]
+        handler_fn = _HANDLERS[handler_key]  # type: ignore[index]
+        # Handlers that need the original cmd for sub-dispatch (resonance, conlang)
+        if handler_key in ("resonance", "conlang"):
+            return handler_fn(cmd, rest)  # type: ignore[operator]
+        return handler_fn(rest)  # type: ignore[operator]
+
+    if dispatch_type == "module":
+        module_name = entry[1]
+        if len(entry) > 2:
+            # Has a prefix argument to prepend
+            prefix = entry[2]
+            return dispatch_subcommand(module_name, [prefix, *rest])  # type: ignore[arg-type]
+        return dispatch_subcommand(module_name, rest)  # type: ignore[arg-type]
+
+    if dispatch_type == "script":
+        script_name = entry[1]
+        if len(entry) > 2:
+            prefix = entry[2]
+            return dispatch_script(script_name, [prefix, *rest])  # type: ignore[arg-type]
+        return dispatch_script(script_name, rest)  # type: ignore[arg-type]
+
+    # Should never reach here
+    print(f"Error: Unknown command '{cmd}'.", file=sys.stderr)
     return 2
 
 
 if __name__ == "__main__":
     sys.exit(main())
-
-

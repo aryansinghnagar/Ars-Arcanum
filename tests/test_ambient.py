@@ -180,6 +180,32 @@ class TestAmbientEngine(unittest.TestCase):
             msg=f"HTML synthesizer only mentions {matches} of expected profile type words",
         )
 
+    def test_cli(self):
+        import io
+        from unittest.mock import patch
+        from lib.ambient import main
+
+        # list command
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["ambient.py", "list"]):
+                main()
+                self.assertIn("Ambient Atmosphere Profiles", mock_out.getvalue())
+
+        # generate wav command
+        wav_out = self.target_dir / "cli_test.wav"
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["ambient.py", "generate", "deep_space", "-d", "1", "-o", str(wav_out), "--binaural", "theta"]):
+                main()
+                self.assertIn("Synthesized", mock_out.getvalue())
+                self.assertTrue(wav_out.is_file())
+
+        # generate html command
+        html_out = self.target_dir / "cli_test.html"
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["ambient.py", "generate", "--html", str(html_out)]):
+                main()
+                self.assertTrue(html_out.is_file())
+
 
 if __name__ == "__main__":
     unittest.main()

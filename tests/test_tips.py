@@ -37,10 +37,11 @@ class TestTipModelAndDatabase(unittest.TestCase):
         db2 = tips.get_tip_database()
         self.assertIs(self.db, db2)
 
-    def test_engine_coverage_exactly_51(self) -> None:
-        """Asserts that all domain engines (52 engines) are represented in the tips database."""
+    def test_engine_coverage_exactly_53(self) -> None:
+        """Asserts that all domain engines (53 engines) are represented in the tips database."""
         engines = self.db.get_engines()
-        self.assertGreaterEqual(len(engines), 51, f"Expected at least 51 engines, got {len(engines)}: {engines}")
+        self.assertEqual(len(engines), 53, f"Expected exactly 53 engines, got {len(engines)}: {engines}")
+        self.assertIn("manuscript_scaffold", engines)
 
     def test_unique_tip_ids(self) -> None:
         """Asserts that every tip in the database has a strictly unique identifier."""
@@ -464,6 +465,46 @@ class TestExhaustiveSubfeatureCoverage(unittest.TestCase):
                     os.environ["XDG_CONFIG_HOME"] = orig_xdg
                 else:
                     os.environ.pop("XDG_CONFIG_HOME", None)
+
+    def test_cli_advanced_flags(self) -> None:
+        """Tests --toggle, --all text format, verbose, positional query, and context search."""
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ret = tips.main(["--toggle"])
+        self.assertEqual(ret, 0)
+        self.assertIn("Dynamic tips are now", buf.getvalue())
+
+        # --all text output
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ret = tips.main(["--all"])
+        self.assertEqual(ret, 0)
+        self.assertIn("Ars Arcanum Craft Wisdom", buf.getvalue())
+
+        # --all with --engine
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ret = tips.main(["--all", "--engine", "climate"])
+        self.assertEqual(ret, 0)
+
+        # --all with --context
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ret = tips.main(["--all", "--context", "drafting"])
+        self.assertEqual(ret, 0)
+
+        # --all with --query
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ret = tips.main(["--all", "-q", "roche"])
+        self.assertEqual(ret, 0)
+
+        # Single tip positional engine resolution and verbose
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ret = tips.main(["astro", "--verbose"])
+        self.assertEqual(ret, 0)
+        self.assertIn("💡", buf.getvalue())
 
 
 if __name__ == "__main__":

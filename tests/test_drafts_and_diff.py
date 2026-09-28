@@ -20,6 +20,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 # Add scripts/lib to Python path
 TEST_DIR = Path(__file__).resolve().parent
@@ -162,6 +163,133 @@ class TestManuscriptDiffEngine(unittest.TestCase):
             self.assertIn("Chapter 2", html_doc)
             self.assertIn("Words Added", html_doc)
             self.assertIn("Words Cut", html_doc)
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    def test_open_in_libreoffice(self):
+        tmp_dir = Path(tempfile.mkdtemp(prefix="arcanum_test_lo_"))
+        try:
+            file_a = tmp_dir / "draft1.md"
+            file_b = tmp_dir / "draft2.md"
+            file_a.write_text("# Scene A\nProse A", encoding="utf-8")
+            file_b.write_text("# Scene B\nProse B", encoding="utf-8")
+
+            comp = manuscript_diff.ManuscriptComparator(file_a, file_b)
+            comp.compare()
+
+            from unittest.mock import patch
+            with patch("subprocess.run", side_effect=Exception("No pandoc")):
+                res = comp.open_in_libreoffice()
+                self.assertFalse(res)
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    def test_cli_interface(self):
+        tmp_dir = Path(tempfile.mkdtemp(prefix="arcanum_test_cli_diff_"))
+        try:
+            file_a = tmp_dir / "draft1.md"
+            file_b = tmp_dir / "draft2.md"
+            file_a.write_text("# Scene 1\nOld scene prose.", encoding="utf-8")
+            file_b.write_text("# Scene 1\nNew revised scene prose.", encoding="utf-8")
+
+            import io
+            from unittest.mock import patch
+
+            # 1. json
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with patch("sys.argv", ["manuscript_diff.py", str(file_a), str(file_b), "--json"]):
+                    manuscript_diff.main()
+                    data = json.loads(mock_out.getvalue())
+                    self.assertIn("added_words", data)
+
+            # 2. html
+            html_out = tmp_dir / "report.html"
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with patch("sys.argv", ["manuscript_diff.py", str(file_a), str(file_b), "--html", str(html_out)]):
+                    manuscript_diff.main()
+                    self.assertTrue(html_out.is_file())
+
+            # 3. terminal default
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with patch("sys.argv", ["manuscript_diff.py", str(file_a), str(file_b)]):
+                    manuscript_diff.main()
+                    self.assertIn("Manuscript Revision Comparison", mock_out.getvalue())
+
+            # 4. 1 arg error -> exit 2
+            with patch("sys.stderr", new_callable=io.StringIO):
+                with patch("sys.argv", ["manuscript_diff.py", str(file_a)]):
+                    with self.assertRaises(SystemExit) as cm:
+                        manuscript_diff.main()
+                    self.assertEqual(cm.exception.code, 2)
+
+            # 5. nonexistent file -> exit 2
+            with patch("sys.stderr", new_callable=io.StringIO):
+                with patch("sys.argv", ["manuscript_diff.py", str(file_a), str(tmp_dir / "nonexistent.md")]):
+                    with self.assertRaises(SystemExit) as cm:
+                        manuscript_diff.main()
+                    self.assertEqual(cm.exception.code, 2)
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    def test_chapter_title_extraction_and_file_discovery(self):
+        tmp_dir = Path(tempfile.mkdtemp(prefix="arcanum_test_title_"))
+        try:
+            f1 = tmp_dir / "01_h2_scene.md"
+            f1.write_text("## Level 2 Scene Title\nBody text", encoding="utf-8")
+            self.assertEqual(manuscript_diff.extract_chapter_title(f1, f1.read_text(encoding="utf-8")), "Level 2 Scene Title")
+
+            f2 = tmp_dir / "02_no_heading.md"
+            f2.write_text("Just plain body text without headers", encoding="utf-8")
+            self.assertEqual(manuscript_diff.extract_chapter_title(f2, f2.read_text(encoding="utf-8")), "No Heading")
+
+            # discover_draft_files on non-dir
+            self.assertEqual(manuscript_diff.discover_draft_files(tmp_dir / "nonexistent"), [])
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    def test_open_in_libreoffice_success(self):
+        tmp_dir = Path(tempfile.mkdtemp(prefix="arcanum_test_lo_success_"))
+        try:
+            file_a = tmp_dir / "draft1.md"
+            file_b = tmp_dir / "draft2.md"
+            file_a.write_text("# Scene A\nProse A", encoding="utf-8")
+            file_b.write_text("# Scene B\nProse B", encoding="utf-8")
+
+            comp = manuscript_diff.ManuscriptComparator(file_a, file_b)
+            comp.compare()
+
+            with patch("subprocess.run") as mock_run, patch("subprocess.Popen") as mock_popen:
+                res = comp.open_in_libreoffice()
+                self.assertTrue(res)
+                self.assertEqual(mock_run.call_count, 2)
+                mock_popen.assert_called_once()
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    def test_cli_3_args_and_libreoffice(self):
+        tmp_dir = Path(tempfile.mkdtemp(prefix="arcanum_test_cli_3_"))
+        try:
+            ms_dir = tmp_dir / "MyNovel"
+            d1 = ms_dir / "Draft-01"
+            d2 = ms_dir / "Draft-02"
+            d1.mkdir(parents=True)
+            d2.mkdir(parents=True)
+            (d1 / "01_Ch.md").write_text("# Ch 1\nDraft 1 content", encoding="utf-8")
+            (d2 / "01_Ch.md").write_text("# Ch 1\nDraft 2 content", encoding="utf-8")
+
+            # 1. 3 arguments: ms_dir, draft_b, draft_a
+            import io
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with patch("sys.argv", ["manuscript_diff.py", str(ms_dir), "Draft-02", "Draft-01", "--json"]):
+                    manuscript_diff.main()
+                    data = json.loads(mock_out.getvalue())
+                    self.assertEqual(data["chapter_count"], 1)
+
+            # 2. --libreoffice flag in CLI
+            with patch("manuscript_diff.ManuscriptComparator.open_in_libreoffice") as mock_lo:
+                with patch("sys.argv", ["manuscript_diff.py", str(d1 / "01_Ch.md"), str(d2 / "01_Ch.md"), "--libreoffice"]):
+                    manuscript_diff.main()
+                    mock_lo.assert_called_once()
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 

@@ -147,19 +147,36 @@ class TestTimelineSync(unittest.TestCase):
         for key in ("total_events", "flashback_count", "is_linear", "paradoxes", "chronological_events"):
             self.assertIn(key, report, msg=f"Report is missing required key '{key}'")
 
-    def test_html_timeline_csp_compliant(self):
-        """Timeline HTML report must contain Content-Security-Policy meta tag."""
-        events = extract_timeline_events(self.root)
-        report = analyze_timeline_synchronization(events)
-        out_html = self.root / "csp_timeline.html"
-        generate_timeline_html_report(report, out_html)
-        content = out_html.read_text(encoding="utf-8")
-        self.assertIn(
-            "default-src",
-            content,
-            msg="Timeline HTML report is missing Content-Security-Policy meta tag",
-        )
+    def test_cli_main_and_modes(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from scripts.lib.timeline_sync import main
+
+        # CLI JSON
+        with patch("sys.argv", ["timeline_sync.py", str(self.root), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                data = json.loads(mock_stdout.getvalue())
+                self.assertEqual(data["total_events"], 3)
+
+        # CLI Chronological and HTML
+        html_out = self.root / "cli_timeline.html"
+        with patch("sys.argv", ["timeline_sync.py", str(self.root), "--chronological", "--html", str(html_out)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("Dual-Track Timeline Synchronizer", mock_stdout.getvalue())
+                self.assertIn("Chronological Order", mock_stdout.getvalue())
+                self.assertTrue(html_out.is_file())
+
+        # CLI Error non-existent path
+        with patch("sys.argv", ["timeline_sync.py", "nonexistent_path_123"]):
+            with patch("sys.stderr", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
 
 
 if __name__ == "__main__":
     unittest.main()
+

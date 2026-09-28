@@ -11,6 +11,7 @@ ignore = [
     "S311", # standard pseudo-random generators are fine for worldbuilding / fiction engines
     "S110", # try-except-pass intentional fallbacks
     "SIM105", # try-except-pass vs contextlib.suppress style choice
+    "SIM117", # nested with statements
     "B905", # zip strict argument
     "S608", # SQL injection rule (project does not use SQL databases; false positive on HTML templates)
     "RUF001", # ambiguous unicode characters (literals in conlangs / unicode typography)
@@ -38,7 +39,7 @@ omit = [
 ]
 
 [tool.coverage.report]
-fail_under = 65
+fail_under = 85
 show_missing = true
 exclude_lines = [
     "pragma: no cover",

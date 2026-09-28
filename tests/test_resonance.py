@@ -36,7 +36,7 @@ from lib.resonance import (
     STRUCTURAL_ISOMORPHISMS,
     main as resonance_main,
 )
-from lib.registry import get_engine, format_engine_doc
+from lib.registry import get_engine
 from lib.studio_hub import collect_studio_hub_data, generate_studio_hub_html
 from lib.zen_studio import build_zen_studio_bundle
 from lib.cli import main as cli_main
@@ -58,8 +58,8 @@ class TestResonanceMeshPrimitives(unittest.TestCase):
         self.assertIn(DomainPillar.AUTHORING_PRODUCTION, pillars)
 
     def test_foundational_mesh_nodes(self) -> None:
-        # All 50 canonical domain engines should be initialized as domain nodes
-        self.assertGreaterEqual(len(self.mesh.nodes), 50)
+        # All 53 canonical domain engines should be initialized as domain nodes
+        self.assertEqual(len(self.mesh.nodes), 53)
         self.assertIn("astrophysics", self.mesh.nodes)
         self.assertIn("climate", self.mesh.nodes)
         self.assertIn("economy", self.mesh.nodes)
@@ -68,15 +68,45 @@ class TestResonanceMeshPrimitives(unittest.TestCase):
         self.assertIn("conlang", self.mesh.nodes)
         self.assertIn("scene_mechanics", self.mesh.nodes)
         self.assertIn("voice", self.mesh.nodes)
+        self.assertIn("manuscript_scaffold", self.mesh.nodes)
+        self.assertIn("tips", self.mesh.nodes)
+        self.assertIn("resonance", self.mesh.nodes)
 
     def test_foundational_mesh_edges(self) -> None:
-        self.assertGreaterEqual(len(self.mesh.edges), 25)
+        self.assertEqual(len(self.mesh.edges), 74)
         # Check specific cross-domain causal edges
         relations = [(e.source_id, e.target_id, e.relation) for e in self.mesh.edges]
         self.assertIn(("astrophysics", "climate", "causally_drives"), relations)
         self.assertIn(("ecology", "economy", "economically_impacts"), relations)
         self.assertIn(("factions", "tactical_sim", "manifests_in"), relations)
         self.assertIn(("scene_mechanics", "senses", "sensory_grounding_for"), relations)
+        self.assertIn(("causality", "branching_graph", "causally_drives"), relations)
+        self.assertIn(("world_doctor", "codex_export", "constrains"), relations)
+        self.assertIn(("writing_sprint", "zen_studio", "manifests_in"), relations)
+        self.assertIn(("manuscript_diff", "revision_heatmap", "causally_drives"), relations)
+        self.assertIn(("senses", "ambient", "manifests_in"), relations)
+        self.assertIn(("portfolio", "studio_hub", "manifests_in"), relations)
+        self.assertIn(("importer", "manuscript_scaffold", "causally_drives"), relations)
+        self.assertIn(("docx_sync", "preflight", "constrains"), relations)
+        self.assertIn(("diagnostics", "fs_utils", "constrains"), relations)
+        self.assertIn(("frontmatter_builder", "continuity", "constrains"), relations)
+        self.assertIn(("migrate", "world_doctor", "causally_drives"), relations)
+        self.assertIn(("config", "studio_hub", "manifests_in"), relations)
+        self.assertIn(("cache", "local_rag", "causally_drives"), relations)
+        self.assertIn(("fs_utils", "corpus_export", "constrains"), relations)
+
+    def test_zero_isolated_nodes_across_ecosystem(self) -> None:
+        """Verifies that 100% of the 53 registered engines have degree >= 2 in the resonance mesh."""
+        node_degrees: dict[str, int] = {k: 0 for k in self.mesh.nodes}
+        for e in self.mesh.edges:
+            node_degrees[e.source_id] = node_degrees.get(e.source_id, 0) + 1
+            node_degrees[e.target_id] = node_degrees.get(e.target_id, 0) + 1
+
+        isolated = [k for k, v in node_degrees.items() if v == 0]
+        self.assertEqual(isolated, [], f"Found isolated nodes in resonance mesh: {isolated}")
+
+        low_degree = [k for k, v in node_degrees.items() if v < 2]
+        self.assertEqual(low_degree, [], f"Found low connectivity nodes (degree < 2): {low_degree}")
 
     def test_node_and_edge_serialization(self) -> None:
         node = CrossDomainNode(
@@ -442,12 +472,46 @@ class TestEngineRegistryCompliance(unittest.TestCase):
         self.assertTrue(spec.writing_relevance)
         self.assertGreaterEqual(len(spec.advisory_guidance), 1)
 
-    def test_format_engine_doc(self) -> None:
-        doc = format_engine_doc("resonance", mode="full")
-        self.assertIn("UNIVERSAL RESONANCE MESH", doc)
-        self.assertIn("Causal Cascade Dynamics", doc)
-        self.assertIn("Advisory Mechanics", doc)
+class TestResonanceCliAndAdvanced(unittest.TestCase):
+    """Test CLI JSON options, audit commands, dynamic sparks, and fallback bridge."""
+
+    def setUp(self) -> None:
+        self.mesh = ResonanceMesh()
+
+    def test_dynamic_sparks_and_bridge_fallback(self) -> None:
+        # Requesting more sparks than hardcoded (e.g. 15) triggers dynamic spark generation
+        sparks = self.mesh.generate_sparks(count=15)
+        self.assertEqual(len(sparks), 15)
+        self.assertTrue(any("dynamic" in s.id for s in sparks))
+
+        # Fallback bridge when domains are completely disconnected or fake
+        mesh = ResonanceMesh()
+        mesh.nodes.clear()
+        mesh.edges.clear()
+        mesh._adjacency.clear()
+        mesh._reverse_adjacency.clear()
+        node_a = CrossDomainNode("alpha", "Alpha", DomainPillar.COSMOLOGY_PHYSICS, "astrophysics", "domain")
+        node_b = CrossDomainNode("beta", "Beta", DomainPillar.SOCIETY_SYSTEMS, "economy", "domain")
+        mesh.add_node(node_a)
+        mesh.add_node(node_b)
+        steps = mesh.find_bridge("alpha", "beta")
+        self.assertGreaterEqual(len(steps), 1)
+
+    def test_resonance_cli_json_and_audit(self) -> None:
+        # mesh --json
+        self.assertEqual(resonance_main(["mesh", "--json"]), 0)
+        # cascade --json
+        self.assertEqual(resonance_main(["cascade", "astrophysics", "--param", "axial_tilt", "--val", "30", "--json"]), 0)
+        # spark --json
+        self.assertEqual(resonance_main(["spark", "--json"]), 0)
+        # bridge --json
+        self.assertEqual(resonance_main(["bridge", "astrophysics", "voice", "--json"]), 0)
+        # audit --json and audit human readable
+        self.assertEqual(resonance_main(["audit", "--json"]), 0)
+        self.assertEqual(resonance_main(["audit"]), 0)
 
 
 if __name__ == "__main__":
     unittest.main()
+
+

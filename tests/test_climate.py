@@ -174,6 +174,30 @@ class TestClimateEngine(unittest.TestCase):
         self.assertIsInstance(oro["leeward"]["biome"], str)
         self.assertGreater(len(oro["leeward"]["biome"]), 0)
 
+    def test_cli(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.climate import main
+
+        out_html = Path(self.temp_dir.name) / "cli_climate.html"
+
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["climate.py", "--star-lum", "1.2", "--distance-au", "1.1", "--json"]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                data = json.loads(mock_out.getvalue())
+                self.assertIn("insolation", data)
+
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["climate.py", "--rotation-hours", "10", "--html", str(out_html)]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("Ars Arcanum Planetary Climate", mock_out.getvalue())
+                self.assertTrue(out_html.is_file())
+
 
 if __name__ == "__main__":
     unittest.main()

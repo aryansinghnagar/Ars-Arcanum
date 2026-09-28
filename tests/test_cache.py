@@ -5,28 +5,32 @@ Covers cache persistence, 0o600 permission hardening, frontmatter parsing,
 novelWriter tag extraction, wikilink parsing, and mtime invalidation logic.
 """
 
+import io
+import json
 import os
-import sys
 import stat
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 # Add scripts directory to path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from lib.cache import (
-    CACHE_VERSION,
     CACHE_FILENAME,
+    CACHE_VERSION,
+    compute_wordcounts,
+    count_words,
     get_cache_path,
     load_cache,
-    save_cache,
-    count_words,
+    main,
     parse_frontmatter,
     parse_markdown_file,
+    save_cache,
     scan_project,
-    compute_wordcounts,
 )
 
 
@@ -163,7 +167,6 @@ A grand adventure awaits them in the citadel.
 
     def test_canonical_count_words_ana01(self):
         # ANA-01: frontmatter, codeblocks, @tags and % comments are not prose.
-        from lib.cache import count_words
         text = """---
 title: Test
 ---
@@ -187,6 +190,7 @@ Real prose words here.
         cache = scan_project(str(self.project_dir))
         self.assertIn("real.md", cache.get("files", {}))
         self.assertNotIn("Exports/compiled.md", cache.get("files", {}))
+
     def test_crlf_frontmatter_and_word_counts(self):
         # Verify CRLF line endings parse correctly across frontmatter and word counts
         crlf_text = "---\r\ntitle: \"CRLF Novel\"\r\nauthor: \"Author Name\"\r\n---\r\n\r\n# Chapter 1\r\n\r\n@pov: Hero\r\n\r\nProse content with CRLF line endings."
@@ -194,6 +198,49 @@ Real prose words here.
         self.assertEqual(fm.get("title"), "CRLF Novel")
         self.assertEqual(fm.get("author"), "Author Name")
         self.assertEqual(count_words(crlf_text), 8)  # Chapter + 1 + Prose + content + with + CRLF + line + endings
+
+    def test_cli_subcommands(self):
+        (self.project_dir / "01_Act_I").mkdir(parents=True)
+        (self.project_dir / "01_Act_I" / "01_Ch1.md").write_text("# Chapter 1\n@pov: Kael\nSome words here.", encoding="utf-8")
+
+        # 1. scan
+        with patch.object(sys, "argv", ["cache.py", "scan", str(self.project_dir)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("[CACHE] Indexed", mock_out.getvalue())
+
+        # 2. wordcounts (default, json, md, pov)
+        with patch.object(sys, "argv", ["cache.py", "wordcounts", str(self.project_dir)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("Total Word Count", mock_out.getvalue())
+
+        with patch.object(sys, "argv", ["cache.py", "wordcounts", str(self.project_dir), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                data = json.loads(mock_out.getvalue())
+                self.assertIn("total_words", data)
+
+        with patch.object(sys, "argv", ["cache.py", "wordcounts", str(self.project_dir), "--md", "--pov"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("# Wordcount Report", mock_out.getvalue())
+
+        # 3. clear
+        with patch.object(sys, "argv", ["cache.py", "clear", str(self.project_dir)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("[CACHE]", mock_out.getvalue())
 
 
 if __name__ == "__main__":

@@ -9,10 +9,12 @@ Validates:
 - End-to-end `generate_concordance` across World Bible dossiers and Manuscript volumes.
 """
 
+import io
+import sys
 import tempfile
 import unittest
 from pathlib import Path
-import sys
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
@@ -24,6 +26,7 @@ from lib.concordance import (
     extract_summary_or_quote,
     generate_concordance,
     is_template,
+    main,
     parse_frontmatter_and_body,
 )
 
@@ -296,6 +299,35 @@ The liturgical language of the ancient scribes.
         self.assertEqual(res["volumes_updated"], 1)
         dp_file = self.ms / "Book-01" / "04_Back_Matter" / "01_Dramatis_Personae.md"
         self.assertTrue(dp_file.exists())
+
+    # ------------------------------------------------------------------ #
+    # 13. CLI Main Routine                                               #
+    # ------------------------------------------------------------------ #
+    def test_cli_main(self):
+        char_dir = self.bible / "Characters"
+        char_dir.mkdir(parents=True)
+        (char_dir / "Vance.md").write_text("""---
+name: Vance
+role: Protagonist
+---
+""", encoding="utf-8")
+
+        # 1. Success with flags
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            rc = main(["-w", str(self.bible), "-m", str(self.ms), "-b", "Book-01"])
+            self.assertEqual(rc, 0)
+            self.assertIn("Concordance generated across 1 volume(s)", mock_out.getvalue())
+
+        # 2. Positional target
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            rc = main([str(self.bible)])
+            self.assertEqual(rc, 0)
+
+        # 3. Missing world error
+        with patch("sys.stderr", new_callable=io.StringIO) as mock_err:
+            rc = main([])
+            self.assertEqual(rc, 2)
+            self.assertIn("Error: World Bible directory not specified", mock_err.getvalue())
 
 
 if __name__ == "__main__":

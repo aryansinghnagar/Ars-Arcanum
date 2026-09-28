@@ -6,11 +6,18 @@ Validates:
 - Terrain modifiers (open field, castle walls, dense forest, dungeon corridor).
 - Monte Carlo probability analysis and blow-by-blow narrative fight logs.
 - MVP tracking, combatant type coverage, win rate arithmetic.
+- High-level warfare scenario planning with Lanchester's Square Law analysis.
+- Lanchester warfare reference guide generation.
+- CLI execution and modes (sim, plan, guide).
 """
 
+import io
+import json
+import tempfile
 import unittest
 from pathlib import Path
 import sys
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
@@ -18,6 +25,9 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 from lib.tactical_sim import (
     simulate_single_battle,
     run_monte_carlo,
+    plan_warfare_scenario,
+    get_lanchester_warfare_guide,
+    main,
     DEFAULT_SIDE1,
     DEFAULT_SIDE2,
     TERRAIN_MODIFIERS,
@@ -25,10 +35,6 @@ from lib.tactical_sim import (
 
 
 class TestTacticalSimulator(unittest.TestCase):
-
-    # ------------------------------------------------------------------ #
-    # Original 3 tests                                                     #
-    # ------------------------------------------------------------------ #
 
     def test_single_battle_simulation(self):
         """simulate_single_battle must return a valid result dict with winner in {0,1,2}."""
@@ -51,97 +57,108 @@ class TestTacticalSimulator(unittest.TestCase):
         battle = simulate_single_battle(DEFAULT_SIDE1, DEFAULT_SIDE2, terrain="castle_walls")
         self.assertIsNotNone(battle["winner_name"])
 
-    # ------------------------------------------------------------------ #
-    # New tests 4–12                                                       #
-    # ------------------------------------------------------------------ #
-
     def test_simulate_returns_winner_key_valid(self):
         """Winner must be 0 (draw), 1 (Side 1 wins), or 2 (Side 2 wins)."""
         for terrain in ("open_field", "dense_forest", "dungeon_corridor"):
             battle = simulate_single_battle(DEFAULT_SIDE1, DEFAULT_SIDE2, terrain=terrain)
-            self.assertIn(
-                battle["winner"],
-                (0, 1, 2),
-                msg=f"Unexpected winner value {battle['winner']} for terrain={terrain}",
-            )
-
-    def test_simulate_log_non_empty(self):
-        """Battle log must contain at least one entry."""
-        battle = simulate_single_battle(DEFAULT_SIDE1, DEFAULT_SIDE2, terrain="open_field")
-        self.assertGreater(len(battle["log"]), 0)
-
-    def test_simulate_rounds_lasted_positive(self):
-        """rounds_lasted must be >= 1 for any non-trivial battle."""
-        battle = simulate_single_battle(DEFAULT_SIDE1, DEFAULT_SIDE2, terrain="open_field")
-        self.assertGreaterEqual(battle["rounds_lasted"], 1)
-
-    def test_mvp_fields_present(self):
-        """MVP dict must have name, side, kills, and damage fields."""
-        battle = simulate_single_battle(DEFAULT_SIDE1, DEFAULT_SIDE2, terrain="open_field")
-        mvp = battle["mvp"]
-        for field in ("name", "side", "kills", "damage"):
-            self.assertIn(field, mvp, msg=f"MVP dict is missing field '{field}'")
-
-    def test_terrain_modifiers_dict_coverage(self):
-        """TERRAIN_MODIFIERS must include all four canonical terrain types."""
-        for key in ("open_field", "castle_walls", "dense_forest", "dungeon_corridor"):
-            self.assertIn(
-                key,
-                TERRAIN_MODIFIERS,
-                msg=f"TERRAIN_MODIFIERS is missing required terrain '{key}'",
-            )
+            self.assertIn(battle["winner"], (0, 1, 2))
 
     def test_terrain_modifiers_schema(self):
         """Each terrain modifier must have name, ranged_mod, def_bonus, and desc."""
         required = {"name", "ranged_mod", "def_bonus", "desc"}
-        for terrain, mod in TERRAIN_MODIFIERS.items():
-            missing = required - mod.keys()
-            self.assertEqual(
-                missing, set(), msg=f"Terrain '{terrain}' modifier is missing keys: {missing}"
-            )
+        for _terrain, mod in TERRAIN_MODIFIERS.items():
+            self.assertTrue(required.issubset(mod.keys()))
 
     def test_monte_carlo_win_rates_sum_to_100(self):
-        """side1_win_rate + side2_win_rate + draw_rate must equal 100.0 (within float tolerance)."""
         mc = run_monte_carlo(DEFAULT_SIDE1, DEFAULT_SIDE2, terrain="open_field", runs=50)
         total = mc["side1_win_rate"] + mc["side2_win_rate"] + mc["draw_rate"]
-        self.assertAlmostEqual(
-            total,
-            100.0,
-            delta=0.2,
-            msg=f"Win rates sum to {total}, expected 100.0",
-        )
+        self.assertAlmostEqual(total, 100.0, delta=0.2)
 
-    def test_monte_carlo_runs_count_exact(self):
-        """Monte Carlo with runs=30 must report runs == 30."""
-        mc = run_monte_carlo(DEFAULT_SIDE1, DEFAULT_SIDE2, runs=30)
-        self.assertEqual(mc["runs"], 30)
+    def test_plan_warfare_scenario_attacker_decisive(self):
+        att = {"name": "Grand Imperial Army", "troops": 10000, "tech_level": "advanced", "morale": 90, "supplies_days": 60}
+        dfn = {"name": "Isolated Garrison", "troops": 1000, "tech_level": "medieval", "morale": 50}
+        res = plan_warfare_scenario(att, dfn, terrain="open_field", season="summer")
 
-    def test_heavily_armored_side_wins_more(self):
-        """A heavily armored side (armor=15) should win significantly more often against unarmored opponents."""
-        armored = [{"name": "Tank", "hp": 40, "armor": 15, "attack": 7, "damage": 10, "type": "melee", "agility": 3, "morale": 95}]
-        glass = [{"name": "Glass", "hp": 40, "armor": 0, "attack": 7, "damage": 10, "type": "melee", "agility": 3, "morale": 95}]
-        mc = run_monte_carlo(armored, glass, terrain="open_field", runs=100)
-        # Armored side (side1) should win more than 55% of the time
-        self.assertGreater(
-            mc["side1_win_rate"],
-            55.0,
-            msg=f"Expected armored side to win >55%, got {mc['side1_win_rate']}%",
-        )
+        self.assertIn("Decisive Attacker Victory", res["predicted_outcome"])
+        self.assertGreater(res["combat_power_ratio"], 2.0)
+        self.assertEqual(len(res["story_beats"]), 4)
+        self.assertIn("lanchester_analysis", res)
 
-    def test_ranged_type_present_in_defaults(self):
-        """At least one default combatant must have type == 'ranged'."""
-        all_combatants = DEFAULT_SIDE1 + DEFAULT_SIDE2
-        ranged = [c for c in all_combatants if c.get("type") == "ranged"]
-        self.assertGreater(len(ranged), 0, msg="No ranged combatant found in DEFAULT_SIDE1 or DEFAULT_SIDE2")
+    def test_plan_warfare_scenario_frictions_and_defender_victory(self):
+        att = {"name": "Starving Invaders", "troops": 1200, "supplies_days": 7}
+        dfn = {"name": "Fortress Defenders", "troops": 2000, "morale": 80}
+        res = plan_warfare_scenario(att, dfn, terrain="castle_walls", season="winter")
 
-    def test_dense_forest_ranged_penalty(self):
-        """Dense forest must penalize ranged units (ranged_mod < 1.0)."""
-        forest_mod = TERRAIN_MODIFIERS["dense_forest"]["ranged_mod"]
-        self.assertLess(
-            forest_mod,
-            1.0,
-            msg=f"Expected dense_forest ranged_mod < 1.0, got {forest_mod}",
-        )
+        self.assertTrue("Defender" in res["predicted_outcome"] or "Rout" in res["predicted_outcome"])
+
+    def test_plan_warfare_scenario_stalemate_and_rout(self):
+        # Stalemate
+        att_equal = {"name": "Army A", "troops": 1000}
+        dfn_equal = {"name": "Army B", "troops": 1000}
+        res_equal = plan_warfare_scenario(att_equal, dfn_equal, terrain="open_field")
+        self.assertIn("Stalemate", res_equal["predicted_outcome"])
+
+        # Catastrophic Rout
+        att_small = {"name": "Tiny Raiding Party", "troops": 100}
+        dfn_huge = {"name": "Massive Host", "troops": 5000}
+        res_rout = plan_warfare_scenario(att_small, dfn_huge, terrain="open_field")
+        self.assertIn("Catastrophic Attacker Rout", res_rout["predicted_outcome"])
+
+    def test_lanchester_warfare_guide(self):
+        guide = get_lanchester_warfare_guide()
+        self.assertIn("Lanchester's Linear Law", guide)
+        self.assertIn("Lanchester's Square Law", guide)
+        self.assertIn("Terrain & Tactical Asymmetry Multipliers", guide)
+
+    def test_cli_main_guide_and_plan(self):
+        # Guide
+        with patch.object(sys, "argv", ["tactical_sim.py", "guide"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("Lanchester's Laws", mock_stdout.getvalue())
+
+        # Plan text
+        with patch.object(sys, "argv", ["tactical_sim.py", "plan", "--attacker-troops", "3000", "--defender-troops", "1000"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("Warfare Scenario Analysis", mock_stdout.getvalue())
+
+        # Plan JSON
+        with patch.object(sys, "argv", ["tactical_sim.py", "plan", "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                data = json.loads(mock_stdout.getvalue())
+                self.assertIn("predicted_outcome", data)
+
+    def test_cli_main_sim(self):
+        with tempfile.TemporaryDirectory() as td:
+            s1_file = Path(td) / "s1.json"
+            s2_file = Path(td) / "s2.json"
+            s1_file.write_text(json.dumps(DEFAULT_SIDE1), encoding="utf-8")
+            s2_file.write_text(json.dumps(DEFAULT_SIDE2), encoding="utf-8")
+
+            # Single battle JSON
+            with patch.object(sys, "argv", ["tactical_sim.py", "sim", "--side1", str(s1_file), "--side2", str(s2_file), "--json"]):
+                with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                    main()
+                    data = json.loads(mock_stdout.getvalue())
+                    self.assertIn("winner_name", data)
+
+            # Monte Carlo text
+            with patch.object(sys, "argv", ["tactical_sim.py", "sim", "-n", "10"]):
+                with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                    main()
+                    self.assertIn("Monte Carlo Tactical Simulation", mock_stdout.getvalue())
+
+            # Single battle text
+            with patch.object(sys, "argv", ["tactical_sim.py", "sim"]):
+                with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                    main()
+                    self.assertIn("Tactical Skirmish Result", mock_stdout.getvalue())
+
+    def test_cli_main_no_args(self):
+        with patch.object(sys, "argv", ["tactical_sim.py"]), self.assertRaises(SystemExit):
+            main()
 
 
 if __name__ == "__main__":

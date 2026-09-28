@@ -273,6 +273,41 @@ A simple knight.
         self.assertIn("world", data)
         self.assertIn("notes", data)
 
+    def test_cli_world_doctor_branches(self):
+        char = self.bible / "Characters" / "Alden.md"
+        char.parent.mkdir(parents=True, exist_ok=True)
+        char.write_text("""---
+name: Alden
+type: character
+---
+A simple knight.
+""", encoding="utf-8")
+
+        # 1. table text output with findings (orphan note)
+        stdout_buf = StringIO()
+        with patch("sys.stdout", stdout_buf):
+            code = doctor_main([str(self.bible)])
+            self.assertEqual(code, 1)
+            self.assertIn("World Doctor", stdout_buf.getvalue())
+
+        # 2. fast cache flag
+        stdout_buf = StringIO()
+        with patch("sys.stdout", stdout_buf):
+            code = doctor_main([str(self.bible), "--fast", "--json"])
+            self.assertIn(code, (0, 1))
+
+        # 3. no world dir -> return 2
+        stderr_buf = StringIO()
+        with patch("sys.stderr", stderr_buf), patch.dict("os.environ", {}, clear=True):
+            code = doctor_main([])
+            self.assertEqual(code, 2)
+
+        # 4. nonexistent path -> return 2
+        stderr_buf = StringIO()
+        with patch("sys.stderr", stderr_buf):
+            code = doctor_main([str(self.base / "nonexistent")])
+            self.assertEqual(code, 2)
+
 
 if __name__ == "__main__":
     unittest.main()

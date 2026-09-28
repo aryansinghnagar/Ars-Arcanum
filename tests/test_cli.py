@@ -49,6 +49,12 @@ class TestCLI(unittest.TestCase):
             self.assertEqual(rc, 0)
             mock_diag.assert_called_once_with(["--report"])
 
+    def test_scaffold_dispatch(self):
+        with patch("lib.manuscript_scaffold.main", return_value=0) as mock_scaffold:
+            rc = main(["scaffold", "list"])
+            self.assertEqual(rc, 0)
+            mock_scaffold.assert_called_once_with(["list"])
+
 
 if __name__ == "__main__":
     unittest.main()

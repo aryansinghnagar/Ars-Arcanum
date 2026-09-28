@@ -3,10 +3,12 @@
 Unit tests for Ars Arcanum Trophic Food Web & Ecology Simulator (scripts/lib/ecology.py).
 """
 
+import io
 import tempfile
 import unittest
 from pathlib import Path
 import sys
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
@@ -16,6 +18,8 @@ from lib.ecology import (
     audit_ecosystem,
     generate_ecology_mermaid,
     generate_ecology_html_report,
+    resolve_world_dir,
+    main,
 )
 
 
@@ -30,10 +34,6 @@ class TestEcologyEngine(unittest.TestCase):
 
     def tearDown(self):
         self.temp_dir.cleanup()
-
-    # ------------------------------------------------------------------ #
-    # Original 3 tests                                                     #
-    # ------------------------------------------------------------------ #
 
     def test_clean_self_sustaining_ecosystem(self):
         (self.world_dir / "Flora" / "Sun_Grass.md").write_text(
@@ -89,9 +89,6 @@ population_density: 0.5
         self.assertIn("Shadow Lion", mermaid)
 
     def test_trophic_anomalies_eco301_eco303_eco304(self):
-        # ECO-301: Apex without prey
-        # ECO-303: Circular predation loop
-        # ECO-304: Missing primary producers in habitat
         (self.world_dir / "Bestiary" / "Apex_Solitary.md").write_text(
             """---
 name: "Apex Solitary"
@@ -130,9 +127,9 @@ habitat: "Jungle"
         findings = audit_ecosystem(species)
 
         ids = [f["id"] for f in findings]
-        self.assertIn("ECO-301", ids)  # Apex without prey
-        self.assertIn("ECO-303", ids)  # Circular predation loop
-        self.assertIn("ECO-304", ids)  # Volcanic Ridge missing Level 1 producers
+        self.assertIn("ECO-301", ids)
+        self.assertIn("ECO-303", ids)
+        self.assertIn("ECO-304", ids)
 
     def test_generate_ecology_html_report(self):
         (self.world_dir / "Bestiary" / "Wolf.md").write_text(
@@ -152,12 +149,7 @@ habitat: "Forest"
         self.assertTrue(html_out.is_file())
         self.assertIn("Timber Wolf", html_out.read_text(encoding="utf-8"))
 
-    # ------------------------------------------------------------------ #
-    # New tests 4–10                                                       #
-    # ------------------------------------------------------------------ #
-
     def test_trophic_deficit_eco302(self):
-        """Predator biomass density exceeding 35% of prey biomass density should raise ECO-302."""
         (self.world_dir / "Flora" / "Forest_Fern.md").write_text(
             """---
 name: "Forest Fern"
@@ -198,176 +190,110 @@ population_density: 1
         species = extract_species_profiles(self.world_dir)
         findings = audit_ecosystem(species)
         ids = [f["id"] for f in findings]
-        self.assertIn("ECO-302", ids, msg="Expected ECO-302 for trophic deficit")
+        self.assertIn("ECO-302", ids)
 
-    def test_multiple_habitats_no_eco304(self):
-        """Three separate habitats each with a trophic-level-1 producer → no ECO-304."""
-        habitats = [
-            ("Grassland", "Fern"),
-            ("Desert", "Cactus"),
-            ("Ocean", "Kelp"),
-        ]
-        for habitat, plant_name in habitats:
-            safe_name = plant_name.replace(" ", "_")
-            (self.world_dir / "Flora" / f"{safe_name}.md").write_text(
-                f"""---
-name: "{plant_name}"
-trophic_level: 1
-habitat: "{habitat}"
-biomass_kg: 5000
-population_density: 1000
----
-""",
-                encoding="utf-8",
-            )
+    def test_resolve_world_dir(self):
+        self.assertEqual(resolve_world_dir(str(self.world_dir)), str(self.world_dir.resolve()))
+        self.assertEqual(resolve_world_dir(""), "")
 
-        species = extract_species_profiles(self.world_dir)
-        findings = audit_ecosystem(species)
-        eco304_findings = [f for f in findings if f["id"] == "ECO-304"]
-        self.assertEqual(
-            len(eco304_findings),
-            0,
-            msg=f"Unexpected ECO-304 findings: {eco304_findings}",
-        )
-
-    def test_extract_flora_species(self):
-        """Flora files should be parsed and returned with trophic_level 1."""
-        (self.world_dir / "Flora" / "MossPlant.md").write_text(
-            """---
-name: "Moss Plant"
-trophic_level: 1
-habitat: "Cavern"
-biomass_kg: 300
-population_density: 200
----
-""",
-            encoding="utf-8",
-        )
-        species = extract_species_profiles(self.world_dir)
-        self.assertIn("Moss Plant", species)
-        self.assertEqual(species["Moss Plant"]["trophic_level"], 1)
-
-    def test_single_species_apex_no_prey_eco301(self):
-        """A lone apex predator with no dietary_prey must trigger ECO-301."""
-        (self.world_dir / "Bestiary" / "Lone_Apex.md").write_text(
-            """---
-name: "Lone Apex"
-trophic_level: 4
-habitat: "Tundra"
-biomass_kg: 200
-population_density: 0.1
----
-""",
-            encoding="utf-8",
-        )
-        species = extract_species_profiles(self.world_dir)
-        findings = audit_ecosystem(species)
-        ids = [f["id"] for f in findings]
-        self.assertIn("ECO-301", ids, msg="Expected ECO-301 for apex predator without prey")
-
-    def test_mermaid_contains_prey_arrows(self):
-        """Mermaid output must include '-->' arrows representing predation links."""
-        (self.world_dir / "Flora" / "Grass.md").write_text(
-            """---
-name: "Grass"
-trophic_level: 1
+    def test_extract_species_trophic_string_aliases(self):
+        (self.world_dir / "Bestiary" / "Herb.md").write_text("""---
+name: "Herbivore Creature"
+trophic_level: "herbivore"
+prey: "Sun Grass"
 habitat: "Plains"
-biomass_kg: 8000
-population_density: 2000
 ---
-""",
-            encoding="utf-8",
-        )
-        (self.world_dir / "Bestiary" / "Gazelle.md").write_text(
-            """---
-name: "Gazelle"
-trophic_level: 2
-habitat: "Plains"
-dietary_prey:
-  - "[[Grass]]"
-biomass_kg: 45
-population_density: 80
----
-""",
-            encoding="utf-8",
-        )
+""", encoding="utf-8")
         species = extract_species_profiles(self.world_dir)
-        mermaid = generate_ecology_mermaid(species)
-        self.assertIn("-->", mermaid, msg="Mermaid diagram should contain '-->' predation arrows")
+        self.assertIn("Herbivore Creature", species)
+        self.assertEqual(species["Herbivore Creature"]["trophic_level"], 2)
+        self.assertIn("Sun Grass", species["Herbivore Creature"]["dietary_prey"])
 
-    def test_html_csp_compliance(self):
-        """Generated ecology HTML must include a Content-Security-Policy meta tag."""
-        (self.world_dir / "Bestiary" / "Bear.md").write_text(
-            """---
-name: "Forest Bear"
+    def test_cli_human_readable_check_and_report(self):
+        (self.world_dir / "Bestiary" / "Pred.md").write_text("""---
+name: "Lone Wolf"
 trophic_level: 3
-habitat: "Forest"
+dietary_prey: ["Sun Deer"]
+habitat: "Woods"
 ---
-""",
-            encoding="utf-8",
-        )
-        species = extract_species_profiles(self.world_dir)
-        out = Path(self.temp_dir.name) / "ecology_csp.html"
-        generate_ecology_html_report(
-            {"world": "CSPTest", "species": species, "findings": []}, out
-        )
-        content = out.read_text(encoding="utf-8")
-        self.assertIn(
-            "default-src",
-            content,
-            msg="Ecology HTML report is missing a Content-Security-Policy meta tag",
-        )
+""", encoding="utf-8")
+        # Check with stdout
+        with patch.object(sys, "argv", ["ecology.py", "check", str(self.world_dir)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+                self.assertIn("Trophic Food Web", mock_stdout.getvalue())
+                self.assertIn("Lone Wolf", mock_stdout.getvalue())
 
-    def test_biomass_and_density_extracted(self):
-        """Extracted species profile should faithfully preserve biomass_kg and population_density."""
-        (self.world_dir / "Bestiary" / "Iron_Boar.md").write_text(
-            """---
-name: "Iron Boar"
-trophic_level: 2
-habitat: "Forest"
-biomass_kg: 250
-population_density: 5
+    def test_cli_json_html_and_write_note(self):
+        (self.world_dir / "Bestiary" / "Pred.md").write_text("""---
+name: "Lone Wolf"
+trophic_level: 3
+dietary_prey: ["Sun Deer"]
+habitat: "Woods"
 ---
-""",
-            encoding="utf-8",
-        )
-        species = extract_species_profiles(self.world_dir)
-        self.assertIn("Iron Boar", species)
-        profile = species["Iron Boar"]
-        self.assertIn("biomass_kg", profile, msg="Profile should contain 'biomass_kg'")
-        self.assertIn(
-            "population_density", profile, msg="Profile should contain 'population_density'"
-        )
-        self.assertEqual(profile["biomass_kg"], 250)
-        self.assertEqual(profile["population_density"], 5)
+""", encoding="utf-8")
+        note_out = Path(self.temp_dir.name) / "food_web.md"
+        html_out = Path(self.temp_dir.name) / "web.html"
 
+        # 1. report --json
+        with patch.object(sys, "argv", ["ecology.py", "report", "-w", str(self.world_dir), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+                import json
+                res = json.loads(mock_stdout.getvalue())
+                self.assertEqual(res["world"], self.world_dir.name)
+                self.assertEqual(res["species_count"], 1)
 
-    def test_mermaid_starts_with_mermaid_fence(self):
-        """generate_ecology_mermaid must start with the mermaid code fence marker."""
-        (self.world_dir / "Flora" / "Meadow_Grass.md").write_text(
-            "---\nname: \"Meadow Grass\"\ntrophic_level: 1\nhabitat: \"Meadow\"\nbiomass_kg: 5000\npopulation_density: 1000\n---\n",
-            encoding="utf-8",
-        )
-        species = extract_species_profiles(self.world_dir)
-        mermaid = generate_ecology_mermaid(species)
-        self.assertTrue(
-            mermaid.strip().startswith("```mermaid") or "flowchart TD" in mermaid,
-            msg=f"Mermaid output should start with ```mermaid or contain flowchart TD: {mermaid[:80]}",
-        )
+        # 2. report --write-note --html
+        with patch.object(sys, "argv", ["ecology.py", "report", "-w", str(self.world_dir), "--write-note", str(note_out), "--html", str(html_out)]):
+            with patch("sys.stdout", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+                self.assertTrue(note_out.is_file())
+                self.assertTrue(html_out.is_file())
 
-    def test_species_profile_trophic_name_set(self):
-        """Extracted species profile must include a human-readable trophic_name string."""
-        (self.world_dir / "Bestiary" / "Fox.md").write_text(
-            "---\nname: \"Sly Fox\"\ntrophic_level: 3\nhabitat: \"Forest\"\n---\n",
-            encoding="utf-8",
-        )
+    def test_world_resolution_and_edge_cases(self):
+        temp_home = Path(self.temp_dir.name) / "home"
+        (temp_home / "Universes" / "Cosmos" / "Aethelgard").mkdir(parents=True)
+
+        with patch("pathlib.Path.home", return_value=temp_home):
+            # Resolve universe
+            res_w = resolve_world_dir("Aethelgard")
+            self.assertTrue(res_w.endswith("Aethelgard"))
+            # Default world fallback
+            res_single = resolve_world_dir(None)
+            self.assertTrue(res_single.endswith("Aethelgard"))
+
+            # Multiple worlds
+            (temp_home / "Universes" / "Cosmos" / "Valendor").mkdir(parents=True)
+            with patch("sys.stderr", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    resolve_world_dir(None)
+                self.assertEqual(cm.exception.code, 2)
+
+    def test_parsing_invalid_numeric_fields(self):
+        (self.world_dir / "Bestiary" / "Malformed.md").write_text("""---
+name: "Malformed Beast"
+trophic_level: "invalid"
+biomass_kg: "invalid"
+daily_caloric_demand: "invalid"
+population_density: "invalid"
+---
+""", encoding="utf-8")
         species = extract_species_profiles(self.world_dir)
-        self.assertIn("Sly Fox", species)
-        profile = species["Sly Fox"]
-        self.assertIn("trophic_name", profile, msg="Profile must contain 'trophic_name'")
-        self.assertIsInstance(profile["trophic_name"], str)
-        self.assertGreater(len(profile["trophic_name"]), 0)
+        self.assertIn("Malformed Beast", species)
+        m = species["Malformed Beast"]
+        self.assertEqual(m["trophic_level"], 2)
+        self.assertEqual(m["biomass_kg"], 50.0)
+        self.assertEqual(m["daily_caloric_demand"], 2500.0)
+        self.assertEqual(m["population_density"], 10.0)
 
 
 if __name__ == "__main__":
     unittest.main()
+

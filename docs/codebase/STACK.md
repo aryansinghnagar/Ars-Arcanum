@@ -31,22 +31,25 @@ List only high-impact production dependencies (frameworks, data, transport, auth
 | Tool | Purpose | Evidence |
 |------|---------|----------|
 | Ruff | Strict linting across rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | `pyproject.toml#L15-L35`, `.github/workflows/ci.yml#L25-L35` |
-| Mypy | Strict static type checking (`--explicit-package-bases`) | `mypy.ini#L1-L25`, `tests/test_type_safety.py#L1-L40` |
-| Unittest | Automated test discovery & regression test execution (754 tests) | `tests/test_*.py`, `.github/workflows/ci.yml#L30-L40` |
+| Mypy | Strict static type checking with `check_untyped_defs = True` | `mypy.ini#L1-L25`, `tests/test_type_safety.py#L1-L40` |
+| Unittest | Automated test discovery & regression test execution (937 tests, 86% coverage) | `tests/test_*.py`, `.github/workflows/ci.yml#L30-L40` |
 | AppStream CLI / Flatpak | Flathub manifest and metainfo validation | `flatpak/flathub_submission_validate.py#L1-L60` |
 | Shellcheck / Bash | Shell script syntax validation and POSIX compliance | `tests/test_shell_scripts_syntax.py#L1-L40` |
 
 ### 4) Key Commands
 
 ```bash
-# Full test discovery suite (754 tests)
+# Full test discovery suite (937 tests)
 python -m unittest discover tests
+
+# Coverage report enforcement (86% coverage, fail_under = 85)
+coverage run -m unittest discover tests; coverage report
 
 # Strict linter pass
 ruff check .
 
 # Static type checker pass
-mypy --explicit-package-bases scripts/lib tests
+mypy --config-file mypy.ini scripts/lib/
 
 # Master 7-stage verification harness (POSIX)
 bash scripts/verify.sh

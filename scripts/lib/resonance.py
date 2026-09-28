@@ -42,10 +42,23 @@ except ImportError:
         from frontmatter import parse_yaml_frontmatter
     except ImportError:
         def atomic_write(path: Path, content: str, encoding: str = "utf-8") -> None:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            temp = path.with_suffix(path.suffix + ".tmp")
-            temp.write_text(content, encoding=encoding)
-            temp.replace(path)
+            import os as _os
+            import tempfile as _tf
+            p = Path(path).resolve()
+            p.parent.mkdir(parents=True, exist_ok=True)
+            fd, tmp = _tf.mkstemp(dir=p.parent, prefix=f".{p.name}.", suffix=".tmp")
+            try:
+                with _os.fdopen(fd, "w", encoding=encoding, newline="") as f:
+                    f.write(content)
+                    f.flush()
+                    _os.fsync(f.fileno())
+                _os.replace(tmp, p)
+            except BaseException:
+                try:
+                    Path(tmp).unlink(missing_ok=True)
+                except OSError:
+                    pass
+                raise
 
         def parse_yaml_frontmatter(text: str) -> dict[str, Any]:
             if not text.startswith("---"):
@@ -282,6 +295,36 @@ STRUCTURAL_ISOMORPHISMS: list[dict[str, Any]] = [
         "sensory_palette": ["sloshing river water against hull timbers", "heavy clink of debased copper coins in wet leather pouches", "smell of tar, marsh weeds, and rotten silt"],
         "symbolic_mirror": "A dry riverbed strewn with bleached pebbles mirroring the empty vaults and defaulted promises of the royal treasury.",
     },
+    {
+        "id": "iso-branching-multiverse",
+        "title": "Quantum Many-Worlds Branching & Interactive Decision Trees",
+        "domains": ["branching_graph", "causality", "story_canvas"],
+        "analogy": "Quantum state decoherence generates non-communicating parallel histories; narrative choice nodes create branching causal graphs where subtle moral choices diverge into vastly distinct world states.",
+        "worldbuilding_hook": "An ancient temporal observatory allows travelers to peer into branching world-lines, revealing that a single assassinated ambassador caused the collapse of three empires in alternate branches.",
+        "scene_conflict": "A protagonist must decide whether to collapse a divergent timeline branch that would erase a parallel version of their daughter to save the primary world.",
+        "sensory_palette": ["humming crystal prism arrays splitting white light into ghost spectra", "hair standing on end from electrostatic temporal shearing", "faint echoes of unmade conversations in empty rooms"],
+        "symbolic_mirror": "A shattered mirror where each shard reflects a slightly different expression of the same face.",
+    },
+    {
+        "id": "iso-acoustic-immersion",
+        "title": "Acoustic Resonance, Biome Weather & Ambient Cognitive Flow",
+        "domains": ["ambient", "senses", "zen_studio"],
+        "analogy": "Binaural frequency entrainment and acoustic soundscapes modulate cognitive focus states, just as planetary weather soundscapes ground narrative scene immersion in physical reality.",
+        "worldbuilding_hook": "A monastic order uses resonant stone amphitheaters and cavern wind pipes to tune human emotional states and induce collective prophetic trance states.",
+        "scene_conflict": "An infiltrator must navigate a temple whose acoustic dampening floors amplify the slightest heartbeat or weapon click.",
+        "sensory_palette": ["deep subterranean drone vibrating through stone soles", "rhythmic patter of frozen sleet on canvas pavilions", "warm crackle of dry pine logs in a hearth"],
+        "symbolic_mirror": "A single tuned tuning fork humming in harmony with an approaching thunderhead.",
+    },
+    {
+        "id": "iso-scaffold-cathedral",
+        "title": "Gothic Architectural Ribbing & Narrative Structural Paradigms",
+        "domains": ["manuscript_scaffold", "structure", "story_canvas"],
+        "analogy": "Flying buttresses and ribbed vaults distribute massive stone roof loads into balanced ground vectors; narrative act and division presets distribute reader emotional tension across deterministic milestone beats.",
+        "worldbuilding_hook": "Cathedrals and grand administrative arches are built with proportional harmonic ratios that secretly encode the rise and fall of historical dynasties.",
+        "scene_conflict": "An architect-turned-rebel discovers structural fault lines deliberately engineered into the royal basilica to collapse upon coronation day.",
+        "sensory_palette": ["smell of damp lime mortar and freshly cut limestone", "soaring verticality of shadowed granite arches", "dust motes drifting through stained-glass rose windows"],
+        "symbolic_mirror": "A towering stone arch holding immense weight through balanced counter-forces mirroring a fragile political alliance.",
+    },
 ]
 
 
@@ -354,6 +397,9 @@ class ResonanceMesh:
             ("cache", "Performance Cache", DomainPillar.AUTHORING_PRODUCTION, "cache", "domain"),
             ("fs_utils", "Atomic File System", DomainPillar.AUTHORING_PRODUCTION, "fs_utils", "domain"),
             ("story_canvas", "Visual Story Canvas", DomainPillar.NARRATIVE_CHRONOLOGY, "story_canvas", "domain"),
+            ("manuscript_scaffold", "Manuscript Structure Scaffolder", DomainPillar.NARRATIVE_CHRONOLOGY, "manuscript_scaffold", "domain"),
+            ("tips", "Dynamic Intelligent Tip Engine", DomainPillar.AUTHORING_PRODUCTION, "tips", "domain"),
+            ("resonance", "Resonance Mesh & Cross-Domain Synthesizer", DomainPillar.AUTHORING_PRODUCTION, "resonance", "domain"),
         ]
 
         for d_id, label, pillar, engine, n_type in domains:
@@ -399,6 +445,49 @@ class ResonanceMesh:
             ("world_doctor", "continuity", "constrains", 0.95, "World Bible Doctor verifies wiki-link integrity and typed frontmatter references across the vault."),
             ("zen_studio", "local_rag", "thematically_mirrors", 0.85, "In-situ drafting leverages real-time local semantic RAG retrieval for instant lore lookup."),
             ("story_canvas", "structure", "manifests_in", 0.90, "Visual corkboard cards map directly to master act structures and chapter beats."),
+            ("manuscript_scaffold", "structure", "manifests_in", 0.95, "Pre-seeds chapter and act divisions mapped to 16 canonical story structure paradigms."),
+            ("manuscript_scaffold", "story_canvas", "manifests_in", 0.90, "Generates structural corkboard cards and narrative milestone columns from template divisions."),
+            ("tips", "zen_studio", "sensory_grounding_for", 0.90, "Provides in-situ masterclass craft wisdom and non-obvious guidance in the drafting drawer."),
+            ("tips", "studio_hub", "manifests_in", 0.90, "Surfaces non-intrusive contextual telemetry tips across the top status banner."),
+            ("resonance", "world_doctor", "causally_drives", 0.95, "Synthesizes multi-domain cross-validation checks and causal ripple analyses."),
+            ("resonance", "studio_hub", "manifests_in", 0.95, "Powers interactive 5-pillar resonance graph and simulation lab in the desktop hub."),
+            ("corpus_export", "local_rag", "causally_drives", 0.95, "Exports structured JSONL and SQLite tables consumed by hybrid RAG retriever."),
+            ("omnibus", "series_continuity", "constrains", 0.90, "Synthesizes cross-volume continuity ledgers into multi-book omnibus."),
+            ("preflight", "typography_cleaner", "constrains", 0.90, "Ensures smart quotes, dashes, and ellipsis compliance before publishing."),
+            ("calendar", "timeline_sync", "causally_drives", 0.95, "Translates planetary ephemeris into narrative and chronological timestamps."),
+            ("causality", "branching_graph", "causally_drives", 0.90, "Causal decision DAGs generate branching narrative choice nodes and parallel timeline paths."),
+            ("branching_graph", "story_canvas", "manifests_in", 0.85, "Branching story paths populate visual corkboard nodes and choice convergence points."),
+            ("world_doctor", "codex_export", "constrains", 0.95, "Doctor-validated wikilink topology compiles into static offline World Wiki encyclopedia."),
+            ("codex_export", "concordance", "manifests_in", 0.85, "Codex export builds glossary indexes and cross-referenced term concordance tables."),
+            ("writing_sprint", "zen_studio", "manifests_in", 0.95, "Live sprint timer and word-per-minute telemetry stream directly into Zen Drafting Studio."),
+            ("writing_sprint", "portfolio", "causally_drives", 0.90, "Daily sprint metrics and drafting velocity aggregate into author portfolio analytics."),
+            ("manuscript_diff", "revision_heatmap", "causally_drives", 0.95, "Line-level redline diffs aggregate into chapter revision churn and density heatmaps."),
+            ("revision_heatmap", "pacing", "manifests_in", 0.85, "High-churn revision hot spots correlate with structural pacing and dialogue restructurings."),
+            ("docx_sync", "manuscript_diff", "manifests_in", 0.90, "Roundtrip DOCX synchronization changes produce visual redline diffs against markdown."),
+            ("manuscript_diff", "zen_studio", "manifests_in", 0.85, "Draft comparison redlines display in-situ during drafting and revision sessions."),
+            ("senses", "ambient", "manifests_in", 0.85, "Sensory immersion palettes and biome weather profiles configure acoustic focus soundscapes."),
+            ("ambient", "zen_studio", "sensory_grounding_for", 0.90, "Atmospheric soundscapes play in background during distraction-free drafting."),
+            ("portfolio", "studio_hub", "manifests_in", 0.95, "Portfolio velocity, word counts, and milestone completion render in desktop studio hub."),
+            ("omnibus", "portfolio", "manifests_in", 0.90, "Series omnibus compilation updates multi-volume catalog status and publishing readiness."),
+            ("importer", "manuscript_scaffold", "causally_drives", 0.90, "Batch imported Scrivener and Word files scaffold into standardized act/chapter layouts."),
+            ("importer", "docx_sync", "manifests_in", 0.90, "Converts foreign documents into bi-directional syncable markdown manuscripts."),
+            ("docx_sync", "preflight", "constrains", 0.90, "Editorial roundtrip Word documents are validated for style and typography compliance."),
+            ("zen_studio", "docx_sync", "manifests_in", 0.85, "Zen studio drafts export cleanly to external editors via synchronized Word docx."),
+            ("diagnostics", "fs_utils", "constrains", 0.95, "System diagnostics verify atomic write guarantees, lockfile safety, and disk storage."),
+            ("diagnostics", "studio_hub", "manifests_in", 0.90, "Provides live health badges and toolchain diagnostic cards in desktop studio hub."),
+            ("frontmatter_builder", "continuity", "constrains", 0.95, "Standardizes YAML metadata schemas for character trait and lore continuity linting."),
+            ("frontmatter_builder", "world_doctor", "manifests_in", 0.90, "Builds schema-compliant frontmatter headers for world bible lore entries."),
+            ("migrate", "world_doctor", "causally_drives", 0.95, "Migrates and repairs legacy obsidian vaults to standard schema verified by world doctor."),
+            ("migrate", "corpus_export", "manifests_in", 0.90, "Upgrades project structure to enable universal structured corpus export and RAG."),
+            ("config", "studio_hub", "manifests_in", 0.95, "Stores persistent studio preferences, theme settings, and engine configurations."),
+            ("config", "tips", "constrains", 0.90, "Persistently configures ambient tip display frequency, pillars, and author preferences."),
+            ("cache", "local_rag", "causally_drives", 0.95, "Caches token embeddings, term vectors, and FTS5 search indices for instant lookup."),
+            ("cache", "fs_utils", "constrains", 0.90, "Accelerates mtime-keyed file change detection and atomic cache invalidation."),
+            ("fs_utils", "corpus_export", "constrains", 0.95, "Guarantees crash-safe atomic writes for SQLite databases and JSONL export datasets."),
+            ("fs_utils", "omnibus", "constrains", 0.90, "Provides atomic multi-volume compilation and directory synchronization."),
+            ("prophecy", "timeline_sync", "causally_drives", 0.90, "Prophetic fulfillment milestones anchor critical timestamp intervals in the timeline."),
+            ("stylistics", "continuity", "constrains", 0.85, "Prose style and lexical variety metrics enforce narrative voice consistency across chapters."),
+            ("typography_cleaner", "zen_studio", "manifests_in", 0.90, "Automated smart quote and punctuation formatting runs in-situ during Zen drafting."),
         ]
 
         for src, tgt, rel, strength, desc in foundational_edges:
@@ -1405,7 +1494,7 @@ function updateSidebar() {{
                     <div class="card">
                         <div class="card-title">Ecosystem Topology</div>
                         <div class="card-body">
-                            The Ars Arcanum Universal Resonance Mesh unifies all 50 engines into a deterministic, multi-hop knowledge graph.
+                            The Ars Arcanum Universal Resonance Mesh unifies all 53 engines into a deterministic, multi-hop knowledge graph.
                             Click any node on the graph to inspect cross-domain links, parameters, and causal relationships.
                         </div>
                     </div>
@@ -1480,7 +1569,7 @@ function updateSidebar() {{
                 <div class="card">
                     <div class="card-title">Cross-Domain Coherence Status</div>
                     <div class="card-body">
-                        ${{VIOLATIONS.length === 0 ? 'All 50 engines and world nodes are in 100% mutual mathematical and narrative alignment.' : 'Found ' + VIOLATIONS.length + ' advisory coherence notices.'}}
+                        ${{VIOLATIONS.length === 0 ? 'All 53 engines and world nodes are in 100% mutual mathematical and narrative alignment.' : 'Found ' + VIOLATIONS.length + ' advisory coherence notices.'}}
                     </div>
                 </div>
                 ${{VIOLATIONS.map(v => `
@@ -1559,7 +1648,7 @@ window.addEventListener('DOMContentLoaded', () => {{
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="arcanum resonance",
-        description="Universal Knowledge Mesh & Cross-Domain Resonance Synthesizer (v4.1.0)",
+        description=f"Universal Knowledge Mesh & Cross-Domain Resonance Synthesizer (v{VERSION})",
     )
     subparsers = parser.add_subparsers(dest="subcommand", help="Resonance Subcommand")
 
@@ -1703,7 +1792,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[*] Cross-Domain Coherence Audit ({len(violations)} notices)")
         print("=" * 65)
         if not violations:
-            print("✓ All 50 engines and domain systems are in 100% mutual harmony.")
+            print("✓ All 53 engines and domain systems are in 100% mutual harmony.")
         for v in violations:
             print(f"  [{v.severity.upper()}] {v.rule_id}: {v.message}")
             print(f"    Recommendation: {v.recommendation}")

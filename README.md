@@ -6,7 +6,8 @@
 [![Release: v4.2.1](https://img.shields.io/badge/Release-v4.2.1-blue.svg)](CHANGELOG.md)
 [![Status: Production Stable](https://img.shields.io/badge/Status-Production%20Stable-brightgreen.svg)](#)
 [![Ars Arcanum CI](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml/badge.svg)](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml)
-[![Unit Tests: 757 Passing](https://img.shields.io/badge/Unit%20Tests-757%2F757%20Passing-brightgreen.svg)](#)
+[![Unit Tests: 937 Total](https://img.shields.io/badge/Unit%20Tests-935%2F937%20Passing-brightgreen.svg)](#)
+[![Coverage: 86%](https://img.shields.io/badge/Coverage-86%25%20(fail__under%3D85)-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip: 100% Stdlib](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
 
@@ -14,7 +15,7 @@
 > ### 🛡️ SOVEREIGN, LOCAL-FIRST & ZERO-PIP CRAFT STUDIO
 > Ars Arcanum is a sovereign, 100% offline, privacy-first authoring platform and worldbuilding operating system.
 >
-> - **Comprehensive Test Suite**: Automated test suite with **757 passing unit & integration tests**, strict Ruff linter compliance, clean Mypy static typing across 145 files, and the canonical 7-stage integration verification harness (`scripts/verify.sh`).
+> - **Comprehensive Test Suite**: Automated test suite with **937 unit & integration tests (935 passing, 2 skipped, 0 failures)**, 86% branch+line coverage (`fail_under = 85`), strict Ruff linter compliance, clean Mypy static typing (`check_untyped_defs = True`), and the canonical 7-stage integration verification harness (`scripts/verify.sh`).
 > - **Absolute Creative Sovereignty & Zero Telemetry**: Operates strictly on your local machine with zero network calls, zero tracking, and pure Python standard library craft engines without external pip dependencies.
 > - **Advisory-First Creative Freedom (ADR-115)**: Craft diagnostics provide non-blocking alerts with three resolution pathways (*Hard Realism*, *Speculative Trope*, and *Author Sovereignty*), preserving 100% authorial creative intent.
 > - **Defense in Depth & Data Safety**: Strict path traversal validation (`^[A-Za-z0-9_-]+$`), atomic file operations (`atomic_write`), cross-platform file locking (`ArcanumLock`), hardened archive extraction member inspection, and SHA-256 backup verification.

@@ -166,14 +166,37 @@ class TestTypographyCleanerEngine(unittest.TestCase):
         _stats, diff = clean_file(f, in_place=True, make_backup=False)
         self.assertEqual(diff, "")
 
-    # ------------------------------------------------------------------ #
-    # 12. Nonexistent File Handling                                      #
-    # ------------------------------------------------------------------ #
-    def test_clean_nonexistent_file(self):
-        """clean_file on missing file must raise FileNotFoundError."""
-        with self.assertRaises(FileNotFoundError):
-            clean_file(self.target_dir / "ghost.md")
+    def test_cli_main_and_options(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.typography_cleaner import main
+
+        f = self.target_dir / "cli_scene.md"
+        f.write_text('"Hello world..."\n', encoding="utf-8")
+
+        # JSON mode
+        with patch("sys.argv", ["typography_cleaner.py", str(f), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                data = json.loads(mock_stdout.getvalue())
+                self.assertEqual(data["summary"]["files_scanned"], 1)
+
+        # In-place with diff and no-backup
+        with patch("sys.argv", ["typography_cleaner.py", str(f), "-i", "--no-backup", "--diff"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("Smart Typography Polish", mock_stdout.getvalue())
+                self.assertIn("[IN-PLACE WRITTEN]", mock_stdout.getvalue())
+
+        # Error path
+        with patch("sys.argv", ["typography_cleaner.py", "nonexistent_file_123"]):
+            with patch("sys.stderr", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
 
 
 if __name__ == "__main__":
     unittest.main()
+

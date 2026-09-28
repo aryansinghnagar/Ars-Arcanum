@@ -203,16 +203,43 @@ class TestOmnibus(unittest.TestCase):
     # ------------------------------------------------------------------ #
     # 12. Cross-Volume POV Tracking                                      #
     # ------------------------------------------------------------------ #
-    def test_cross_volume_pov_tracking(self):
-        """compile_omnibus_manuscript report must record POV character list per volume."""
-        volumes = discover_series_volumes(self.root)
-        report = compile_omnibus_manuscript(volumes)
-        v1 = next(v for v in report["volumes"] if v["name"] == "Book-01")
-        v2 = next(v for v in report["volumes"] if v["name"] == "Book-02")
-        self.assertIn("Kaelen", v1["povs"])
-        self.assertIn("Lysandra", v1["povs"])
-        self.assertIn("Valerius", v2["povs"])
+    def test_cli_main_and_options(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.omnibus import main
+
+        # JSON mode
+        with patch("sys.argv", ["omnibus.py", str(self.root), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                data = json.loads(mock_stdout.getvalue())
+                self.assertEqual(data["total_volumes"], 2)
+
+        # Human readable and HTML
+        html_out = self.root / "cli_omnibus.html"
+        with patch("sys.argv", ["omnibus.py", str(self.root), "--title", "Saga Master", "--author", "Tester", "--html", str(html_out)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("Omnibus Compiler", mock_stdout.getvalue())
+                self.assertTrue(html_out.is_file())
+
+        # Error path non-existent
+        with patch("sys.argv", ["omnibus.py", "nonexistent_dir_123"]):
+            with patch("sys.stderr", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+
+        # Error path empty
+        empty_dir = self.root / "EmptyDir"
+        empty_dir.mkdir()
+        with patch("sys.argv", ["omnibus.py", str(empty_dir)]), patch("sys.stderr", new_callable=io.StringIO):
+            with self.assertRaises(SystemExit) as cm:
+                main()
+            self.assertEqual(cm.exception.code, 1)
 
 
 if __name__ == "__main__":
     unittest.main()
+

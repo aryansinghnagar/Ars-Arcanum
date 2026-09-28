@@ -1,6 +1,25 @@
 # Subplot & Narrative Thread Pacing Matrix
 ### A Multi-Thread Pacing & Scene Architecture Engine for Novelists
 
+> [!NOTE] ⚠️ EDUCATIONAL TEMPLATE (AI-GENERATED)
+> **Notice**: This template was AI-generated for educational demonstration and craft guidance within the Ars Arcanum operating system. It is strictly non-commercial and provided solely to demonstrate system features, mechanical schemas, and engine capabilities. Authors should replace placeholder values with their original narrative threads.
+
+<details>
+<summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
+
+### Features Demonstrated in This Matrix:
+- **Subplot Progression Grid**: `plot_matrix` (`arcanum plot`) — Tracks active plot threads, subplot convergence rates, and POV character distributions across all novel scenes.
+- **Chekhov Gun Lifecycle Audit**: `plot_matrix` (`arcanum plot --audit-guns`) — Verifies that every introduced dramatic setup/foreshadowing is resolved prior to the climax.
+- **Bilocation Conflict Detector**: `timeline_sync` (`arcanum timeline sync`) — Audits character coordinates to prevent impossible simultaneous appearances in separate locations.
+- **Anachrony Visualizer**: `timeline_sync` (`arcanum timeline sync --anachrony`) — Maps flashbacks, flash-forwards, and dual-track chronological orders against narrative chapter flow.
+- **Clean Publication Export Guarantee**: `codex_export` / `corpus_export` (`arcanum export`) — Strips all `@thread:`, `@pov:`, `@char:`, `@location:`, and `@status:` tag lines during PDF/EPUB compilation.
+
+### How to Use for Your Projects:
+1. Define a naming taxonomy for your A-Plot and subplots (e.g. `@thread: Main-Plot-Seals, Subplot-Romance`).
+2. Add `@thread:` tags at the top of each chapter markdown file.
+3. Open this note in Obsidian to view real-time Dataview matrices tracking subplot scene frequencies.
+</details>
+
 ---
 
 ## 1. Overview & Narrative Thread Doctrine

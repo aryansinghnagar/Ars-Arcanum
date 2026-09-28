@@ -142,6 +142,36 @@ class TestSceneMechanicsEngine(unittest.TestCase):
             msg="Scene mechanics HTML is missing Content-Security-Policy meta tag",
         )
 
+    def test_cli(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.scene_mechanics import main
+
+        (self.target_dir / "01_ch.md").write_text("He must escape. Suddenly the gate crashed.", encoding="utf-8")
+        out_html = self.target_dir / "cli_scene.html"
+
+        # 1. json
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["scene_mechanics.py", str(self.target_dir), "--json"]):
+                main()
+                data = json.loads(mock_out.getvalue())
+                self.assertIn("scenes", data)
+
+        # 2. table and html
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["scene_mechanics.py", str(self.target_dir), "--html", str(out_html)]):
+                main()
+                self.assertIn("Scene Mechanics & MRU Analysis", mock_out.getvalue())
+                self.assertTrue(out_html.is_file())
+
+        # 3. nonexistent target -> exit 1
+        with patch("sys.stderr", new_callable=io.StringIO):
+            with patch("sys.argv", ["scene_mechanics.py", str(self.target_dir / "nonexistent")]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

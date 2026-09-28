@@ -151,6 +151,57 @@ The travelers walked along the road toward the distant tower.
         self.assertIn("Content-Security-Policy", content)
         self.assertIn("<svg", content)
 
+    def test_cli_subcommands(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.pacing import main
+
+        (self.book_dir / "01_Ch1.md").write_text("""# Ch 1\n@pov: Aric\n@tension: 8.5\nAric fought the dragon.""", encoding="utf-8")
+
+        # 1. pace json
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["pacing.py", "pace", str(self.ms_dir), "--json"]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                data = json.loads(mock_out.getvalue())
+                self.assertIn("chapters", data)
+
+        # 2. pace terminal & html
+        out_html = self.ms_dir / "cli_pacing.html"
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["pacing.py", "pace", str(self.ms_dir), "--html", str(out_html), "--pov"]):
+                main()
+                self.assertIn("POV Character Screen-Time Distribution", mock_out.getvalue())
+                self.assertTrue(out_html.is_file())
+
+        # 3. tension subcommand
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["pacing.py", "tension", "-m", str(self.ms_dir)]):
+                main()
+                self.assertIn("Tension Arc Sparkline", mock_out.getvalue())
+
+        # 4. pov subcommand
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["pacing.py", "pov", "-m", str(self.ms_dir)]):
+                main()
+                self.assertIn("POV Character Screen-Time Distribution", mock_out.getvalue())
+
+        # 5. missing manuscript -> exit 2
+        with patch("sys.stderr", new_callable=io.StringIO):
+            with patch("lib.pacing.resolve_manuscript_dir", return_value=""):
+                with patch("sys.argv", ["pacing.py", "pace", "-m", "nonexistent"]):
+                    with self.assertRaises(SystemExit) as cm:
+                        main()
+                    self.assertEqual(cm.exception.code, 2)
+
+        # 6. no subcommand -> exit 0
+        with patch("sys.argv", ["pacing.py"]):
+            with self.assertRaises(SystemExit) as cm:
+                main()
+            self.assertEqual(cm.exception.code, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -186,6 +186,67 @@ The silver blade hummed in the dark.
         content = html_out.read_text(encoding="utf-8")
         self.assertIn("01_Dawn_Awakening.md", content)
 
+    def test_cli(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.revision_heatmap import main
+
+        self._write(self.ms_dir, "Book-01/Draft-01/01_Chapter.md", "# Chapter 1\nNew lines here.")
+        self._write(self.snapshot_dir, "Book-01/Draft-01/01_Chapter.md", "# Chapter 1\nOld line.")
+
+        # 1. json
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["revision_heatmap.py", str(self.ms_dir), "--snapshot-dir", str(self.snapshot_dir), "--json"]):
+                main()
+                data = json.loads(mock_out.getvalue())
+                self.assertIn("chapters", data)
+
+        # 2. html
+        out_html = self.ms_dir / "cli_heatmap.html"
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["revision_heatmap.py", str(self.ms_dir), "--snapshot-dir", str(self.snapshot_dir), "--export-html", str(out_html)]):
+                main()
+                self.assertTrue(out_html.is_file())
+
+    def test_cli_terminal_colors_and_findings(self):
+        import io
+        from unittest.mock import patch
+        from lib.revision_heatmap import main
+
+        # Write high churn and medium churn files
+        self._write(self.ms_dir, "Book-01/01_Chapter.md", "# Chapter 1\n" + "new line\n" * 100)
+        self._write(self.snapshot_dir, "Book-01/01_Chapter.md", "# Chapter 1\n" + "old line\n" * 20)
+
+        self._write(self.ms_dir, "Book-01/02_Chapter.md", "# Chapter 2\n" + "line\n" * 50)
+        self._write(self.snapshot_dir, "Book-01/02_Chapter.md", "# Chapter 2\n" + "line\n" * 40 + "extra\n" * 10)
+
+        self._write(self.ms_dir, "Book-01/03_Chapter.md", "# Chapter 3\n" + "stable\n" * 50)
+        self._write(self.snapshot_dir, "Book-01/03_Chapter.md", "# Chapter 3\n" + "stable\n" * 50)
+
+        # Also write a file in skipped directory
+        self._write(self.ms_dir, "Book-01/04_Back_Matter/01_Notes.md", "# Notes\nSome notes")
+
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["revision_heatmap.py", str(self.ms_dir), "--snapshot-dir", str(self.snapshot_dir)]):
+                main()
+                out = mock_out.getvalue()
+                self.assertIn("Revision Heatmap", out)
+                self.assertIn("01_Chapter.md", out)
+        # 4. missing manuscript dir -> exit 1
+        with patch("sys.argv", ["revision_heatmap.py", str(Path(self.temp_dir.name) / "nonexistent")]):
+            with self.assertRaises(SystemExit) as cm:
+                main()
+            self.assertEqual(cm.exception.code, 1)
+
+        # 5. empty manuscript dir -> exit 0
+        empty_dir = Path(self.temp_dir.name) / "empty_ms"
+        empty_dir.mkdir()
+        with patch("sys.argv", ["revision_heatmap.py", str(empty_dir)]):
+            with self.assertRaises(SystemExit) as cm:
+                main()
+            self.assertEqual(cm.exception.code, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

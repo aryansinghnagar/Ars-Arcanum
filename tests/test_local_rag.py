@@ -4,15 +4,18 @@ Unit and Integration Tests for Ars Arcanum Local Semantic Retrieval Engine
 (tests/test_local_rag.py)
 """
 
+import io
 import json
 import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts.lib.local_rag import (
     IndexedChunk,
     LocalLoreRetrievalEngine,
+    find_default_corpus_database,
     format_markdown_report,
     generate_html_retrieval_viewer,
     main as rag_main,
@@ -287,6 +290,24 @@ class TestLocalSemanticRetrieval(unittest.TestCase):
         self.assertIn("results", data)
         self.assertGreater(len(data["results"]), 0)
 
+    def test_cli_stdout_and_errors(self) -> None:
+        # CLI without query -> returns 2
+        with patch("sys.stderr", new_callable=io.StringIO):
+            code_no_q = rag_main([])
+            self.assertEqual(code_no_q, 2)
+
+        # CLI with missing target -> returns 1
+        with patch("sys.stderr", new_callable=io.StringIO) as mock_err:
+            code_bad_t = rag_main(["Valerius", "-t", str(self.root / "missing_dir")])
+            self.assertEqual(code_bad_t, 1)
+            self.assertIn("Target path", mock_err.getvalue())
+
+        # CLI stdout context
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            code_ctx = rag_main(["Valerius", "-t", str(self.vault_dir), "-f", "context"])
+            self.assertEqual(code_ctx, 0)
+            self.assertIn("<canonical_lore_context>", mock_out.getvalue())
+
     def test_empty_vault_and_no_match_query(self) -> None:
         """Verifies handling of empty directory indexing and queries with 0 matches."""
         empty_dir = self.root / "Empty_Vault"
@@ -346,6 +367,10 @@ class TestLocalSemanticRetrieval(unittest.TestCase):
         self.assertEqual(code_html, 0)
         self.assertTrue(out_html.is_file())
         self.assertIn("Content-Security-Policy", out_html.read_text(encoding="utf-8"))
+
+    def test_find_default_corpus_database(self) -> None:
+        res = find_default_corpus_database()
+        self.assertTrue(res is None or isinstance(res, Path))
 
 
 if __name__ == "__main__":

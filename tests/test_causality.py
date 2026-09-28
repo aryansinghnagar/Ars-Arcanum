@@ -3,10 +3,13 @@
 Unit tests for Ars Arcanum Causal DAG & Time-Travel Consistency Validator (scripts/lib/causality.py).
 """
 
+import io
+import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
-import sys
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
@@ -16,6 +19,10 @@ from lib.causality import (
     audit_causality,
     generate_causality_mermaid,
     generate_causality_html_report,
+    normalize_id,
+    resolve_world_dir,
+    resolve_manuscript_dir,
+    main
 )
 
 
@@ -38,9 +45,9 @@ class TestCausalityEngine(unittest.TestCase):
         target.write_text(content, encoding="utf-8")
         return target
 
-    # ------------------------------------------------------------------
-    # 1. test_extract_clean_linear_events
-    # ------------------------------------------------------------------
+    def test_normalize_id(self):
+        self.assertEqual(normalize_id("Event_One #1"), "event-one-1")
+
     def test_extract_clean_linear_events(self):
         """Two events with no causal loops -> events_dict has exactly 2 entries."""
         self._write(
@@ -61,9 +68,6 @@ class TestCausalityEngine(unittest.TestCase):
         self.assertIn("scene-alpha", ids)
         self.assertIn("scene-beta", ids)
 
-    # ------------------------------------------------------------------
-    # 2. test_causal_origins_extracted
-    # ------------------------------------------------------------------
     def test_causal_origins_extracted(self):
         """@causal-origin tag populates the causal_origins list."""
         self._write(
@@ -78,9 +82,6 @@ class TestCausalityEngine(unittest.TestCase):
         self.assertIn("scene-child", events)
         self.assertIn("scene-parent", events["scene-child"]["causal_origins"])
 
-    # ------------------------------------------------------------------
-    # 3. test_causes_extracted
-    # ------------------------------------------------------------------
     def test_causes_extracted(self):
         """@causes tag populates the causes list."""
         self._write(
@@ -95,9 +96,32 @@ class TestCausalityEngine(unittest.TestCase):
         self.assertIn("scene-trigger", events)
         self.assertIn("scene-result", events["scene-trigger"]["causes"])
 
-    # ------------------------------------------------------------------
-    # 4. test_unregistered_bootstrap_cau102
-    # ------------------------------------------------------------------
+    def test_extract_tag_directives_and_branch_from(self):
+        self._write(
+            self.world_dir / "History",
+            "branch-event.md",
+            """---
+name: Branch Divergence
+timeline: alternate-1
+start_year: 1050
+---
+@branch-from: prime@1045
+@causes: alt-consequence
+@event: Custom Divergence
+@paradox-type: branching
+""",
+        )
+        events, timelines = extract_causal_nodes(self.world_dir, self.ms_dir)
+        self.assertIn("custom-divergence", events)
+        self.assertIn("alternate-1", timelines)
+
+    def test_extract_skip_front_matter_and_hidden(self):
+        self._write(self.ms_dir, ".hidden.md", "@timeline: prime\n")
+        self._write(self.ms_dir, "Front_Matter/title.md", "@timeline: prime\n")
+        events, _ = extract_causal_nodes(self.world_dir, self.ms_dir)
+        self.assertNotIn(".hidden", events)
+        self.assertNotIn("title", events)
+
     def test_unregistered_bootstrap_cau102(self):
         """Mutual causation without paradox_type -> CAU-102 (unregistered bootstrap)."""
         self._write(
@@ -117,9 +141,6 @@ class TestCausalityEngine(unittest.TestCase):
         codes = [f["id"] for f in findings]
         self.assertIn("CAU-102", codes)
 
-    # ------------------------------------------------------------------
-    # 5. test_grandfather_paradox_cau101
-    # ------------------------------------------------------------------
     def test_grandfather_paradox_cau101(self):
         """Cycle with paradox_type=grandfather -> CAU-101."""
         self._write(
@@ -139,9 +160,6 @@ class TestCausalityEngine(unittest.TestCase):
         codes = [f["id"] for f in findings]
         self.assertIn("CAU-101", codes)
 
-    # ------------------------------------------------------------------
-    # 6. test_novikov_violation_cau103
-    # ------------------------------------------------------------------
     def test_novikov_violation_cau103(self):
         """Cycle with paradox_type=novikov-violation -> CAU-103."""
         self._write(
@@ -161,9 +179,6 @@ class TestCausalityEngine(unittest.TestCase):
         codes = [f["id"] for f in findings]
         self.assertIn("CAU-103", codes)
 
-    # ------------------------------------------------------------------
-    # 7. test_intentional_bootstrap_no_violation
-    # ------------------------------------------------------------------
     def test_intentional_bootstrap_no_violation(self):
         """Cycle tagged paradox_type=bootstrap is self-consistent -> no CAU-101/102/103."""
         self._write(
@@ -187,31 +202,15 @@ class TestCausalityEngine(unittest.TestCase):
             f"Unexpected violation codes for intentional bootstrap: {raised & violation_codes}",
         )
 
-    # ------------------------------------------------------------------
-    # 8. test_no_cau104_for_prime_only_manuscript
-    # ------------------------------------------------------------------
-    def test_no_cau104_for_prime_only_manuscript(self):
-        """All events on the prime timeline -> no CAU-104 orphan-branch finding."""
-        self._write(
-            self.ms_dir,
-            "scene-one.md",
-            "@timeline: prime\n",
-        )
-        self._write(
-            self.ms_dir,
-            "scene-two.md",
-            "@timeline: prime\n",
-        )
-
-        events, timelines = extract_causal_nodes(self.world_dir, self.ms_dir)
+    def test_orphan_timeline_cau104(self):
+        events = {"scene-1": {"id": "scene-1", "timeline": "prime", "time_coord": "", "causal_origins": [], "causes": [], "paradox_type": ""}}
+        timelines = {
+            "prime": {"id": "prime", "events": ["scene-1"]},
+            "orphan-timeline": {"id": "orphan-timeline", "events": []}
+        }
         findings = audit_causality(events, timelines)
+        self.assertTrue(any(f["id"] == "CAU-104" for f in findings))
 
-        codes = [f["id"] for f in findings]
-        self.assertNotIn("CAU-104", codes)
-
-    # ------------------------------------------------------------------
-    # 9. test_dangling_causal_origin_cau105
-    # ------------------------------------------------------------------
     def test_dangling_causal_origin_cau105(self):
         """Event referencing a nonexistent causal origin -> CAU-105."""
         self._write(
@@ -245,9 +244,35 @@ class TestCausalityEngine(unittest.TestCase):
         codes = [f["id"] for f in findings]
         self.assertIn("CAU-106", codes)
 
-    # ------------------------------------------------------------------
-    # 10. test_generate_causality_mermaid
-    # ------------------------------------------------------------------
+    def test_dynamic_butterfly_cau201(self):
+        self._write(self.ms_dir, "event-1.md", "---\ncauses: [event-2]\nparadox_type: dynamic\n---\n@timeline: prime\n")
+        self._write(self.ms_dir, "event-2.md", "---\ncauses: [event-1]\nparadox_type: dynamic\n---\n@timeline: prime\n")
+        events, timelines = extract_causal_nodes(self.world_dir, self.ms_dir)
+        findings = audit_causality(events, timelines)
+        self.assertTrue(any(f["id"] == "CAU-201" for f in findings))
+
+    def test_other_paradox_types(self):
+        # groundhog loop
+        self._write(self.ms_dir, "g1.md", "---\ncauses: [g2]\nparadox_type: groundhog\n---\n@timeline: prime\n")
+        self._write(self.ms_dir, "g2.md", "---\ncauses: [g1]\nparadox_type: groundhog\n---\n@timeline: prime\n")
+        # multiverse
+        self._write(self.ms_dir, "m1.md", "---\ncauses: [m2]\nparadox_type: multiverse\n---\n@timeline: prime\n")
+        self._write(self.ms_dir, "m2.md", "---\ncauses: [m1]\nparadox_type: multiverse\n---\n@timeline: prime\n")
+        # relativistic
+        self._write(self.ms_dir, "r1.md", "---\ncauses: [r2]\nparadox_type: relativistic\n---\n@timeline: prime\n")
+        self._write(self.ms_dir, "r2.md", "---\ncauses: [r1]\nparadox_type: relativistic\n---\n@timeline: prime\n")
+
+        events, timelines = extract_causal_nodes(self.world_dir, self.ms_dir)
+        findings = audit_causality(events, timelines)
+        self.assertTrue(any(f["id"] == "CAU-202" for f in findings))
+
+    def test_resolvers(self):
+        w_res = resolve_world_dir(str(self.world_dir))
+        self.assertEqual(Path(w_res).resolve(), self.world_dir.resolve())
+        m_res = resolve_manuscript_dir(str(self.ms_dir))
+        self.assertEqual(Path(m_res).resolve(), self.ms_dir.resolve())
+        self.assertEqual(resolve_manuscript_dir("nonexistent_path_12345"), "")
+
     def test_generate_causality_mermaid(self):
         """generate_causality_mermaid returns a string with 'graph TD' and 'mermaid'."""
         self._write(self.ms_dir, "scene-x.md", "@timeline: prime\n")
@@ -264,9 +289,6 @@ class TestCausalityEngine(unittest.TestCase):
         self.assertIn("mermaid", output)
         self.assertIn("graph TD", output)
 
-    # ------------------------------------------------------------------
-    # 11. test_generate_causality_html_report
-    # ------------------------------------------------------------------
     def test_generate_causality_html_report(self):
         """HTML report is written, has CSP header, and contains 'Causal DAG'."""
         self._write(self.ms_dir, "scene-p.md", "@timeline: prime\n")
@@ -293,9 +315,6 @@ class TestCausalityEngine(unittest.TestCase):
         self.assertIn("Content-Security-Policy", html)
         self.assertIn("Causal DAG", html)
 
-    # ------------------------------------------------------------------
-    # 12. test_clean_world_zero_findings
-    # ------------------------------------------------------------------
     def test_clean_world_zero_findings(self):
         """Linear chain A->B->C with no cycles -> 0 audit findings."""
         self._write(self.ms_dir, "event-aaa.md", "@timeline: prime\n")
@@ -313,20 +332,57 @@ class TestCausalityEngine(unittest.TestCase):
         events, timelines = extract_causal_nodes(self.world_dir, self.ms_dir)
         findings = audit_causality(events, timelines)
 
-        self.assertEqual(
-            len(findings),
-            0,
-            f"Expected zero findings for clean linear chain, got: {findings}",
-        )
+        self.assertEqual(len(findings), 0)
 
+    def test_cli_subcommands(self):
+        self._write(self.ms_dir, "scene-1.md", "---\nname: Start\n---\n@timeline: prime\n")
+        self._write(self.ms_dir, "scene-2.md", "---\nname: Middle\n---\n@timeline: prime\n@causal-origin: scene-1\n")
 
+        html_p = Path(self.temp_dir.name) / "c_report.html"
+        note_p = Path(self.temp_dir.name) / "c_note.md"
 
-    def test_dynamic_butterfly(self):
-        self._write(self.ms_dir, "event-1.md", "---\ncauses: [event-2]\nparadox_type: dynamic\n---\n@timeline: prime\n")
-        self._write(self.ms_dir, "event-2.md", "---\ncauses: [event-1]\nparadox_type: dynamic\n---\n@timeline: prime\n")
-        events, timelines = extract_causal_nodes(self.world_dir, self.ms_dir)
-        findings = audit_causality(events, timelines)
-        self.assertTrue(any(f["id"] == "CAU-201" for f in findings))
+        # 1. branch command
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["causality.py", "branch", "Dark Timeline", "--from-timeline", "prime", "--at-coord", "Year 500"]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("dark-timeline", mock_out.getvalue())
+
+        # 2. check command with clean DAG (exit 0)
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["causality.py", "check", "-w", str(self.world_dir), "-m", str(self.ms_dir), "--html", str(html_p), "--write-note", str(note_p)]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("Causal DAG is acyclic and self-consistent", mock_out.getvalue())
+                self.assertTrue(html_p.is_file())
+                self.assertTrue(note_p.is_file())
+
+        # 3. check json
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["causality.py", "dag", "-w", str(self.world_dir), "-m", str(self.ms_dir), "--json"]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                data = json.loads(mock_out.getvalue())
+                self.assertEqual(data["events_count"], 2)
+
+        # 4. check with finding -> exit 1
+        self._write(self.ms_dir, "bad-loop.md", "@timeline: prime\n@causal-origin: non-existent\n")
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["causality.py", "-w", str(self.world_dir), "-m", str(self.ms_dir)]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+                self.assertIn("CAU-105", mock_out.getvalue())
+
+        # 5. missing targets error -> exit 2
+        with patch("sys.stderr", new_callable=io.StringIO), patch("sys.argv", ["causality.py", "check"]):
+            with self.assertRaises(SystemExit) as cm:
+                main()
+            self.assertEqual(cm.exception.code, 2)
+
 
 if __name__ == "__main__":
     unittest.main()

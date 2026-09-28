@@ -300,6 +300,67 @@ class TestWritingSprintEngine(unittest.TestCase):
         self.assertEqual(restored.manuscript_dir, original.manuscript_dir)
         self.assertEqual(restored.notes, original.notes)
 
+    def test_cli_subcommands(self) -> None:
+        import io
+        from unittest.mock import patch
+        from lib.writing_sprint import main
+
+        # 1. status with no active sprint
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with self.assertRaises(SystemExit) as cm:
+                main(["status", str(self.ms_dir)])
+            self.assertEqual(cm.exception.code, 0)
+            self.assertIn("No active sprint", mock_out.getvalue())
+
+        # 2. stats with no sessions
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with self.assertRaises(SystemExit) as cm:
+                main(["stats", str(self.ms_dir)])
+            self.assertEqual(cm.exception.code, 0)
+            self.assertIn("No sprint sessions recorded yet", mock_out.getvalue())
+
+        # 3. start sprint
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with self.assertRaises(SystemExit) as cm:
+                main(["start", str(self.ms_dir), "--target", "600", "--duration", "15"])
+            self.assertEqual(cm.exception.code, 0)
+            self.assertIn("Sprint started", mock_out.getvalue())
+
+        # 4. status with active sprint
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with self.assertRaises(SystemExit) as cm:
+                main(["status", str(self.ms_dir)])
+            self.assertEqual(cm.exception.code, 0)
+            self.assertIn("Active Sprint", mock_out.getvalue())
+
+        # 5. stop sprint
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with self.assertRaises(SystemExit) as cm:
+                main(["stop", str(self.ms_dir), "--words", "650"])
+            self.assertEqual(cm.exception.code, 0)
+            self.assertIn("Sprint complete", mock_out.getvalue())
+
+        # 6. stop with no active sprint -> exit 1
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with self.assertRaises(SystemExit) as cm:
+                main(["stop", str(self.ms_dir), "--words", "100"])
+            self.assertEqual(cm.exception.code, 1)
+
+        # 7. stats with session recorded
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with self.assertRaises(SystemExit) as cm:
+                main(["stats", str(self.ms_dir)])
+            self.assertEqual(cm.exception.code, 0)
+            self.assertIn("Sprint Analytics", mock_out.getvalue())
+
+        # 8. report HTML
+        out_html = self.ms_dir / "sprint_dashboard.html"
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with self.assertRaises(SystemExit) as cm:
+                main(["report", str(self.ms_dir), "--html", str(out_html)])
+            self.assertEqual(cm.exception.code, 0)
+            self.assertTrue(out_html.is_file())
+
 
 if __name__ == "__main__":
     unittest.main()

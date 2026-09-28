@@ -36,6 +36,20 @@ try:
 except ImportError:
     from _bootstrap import atomic_write
 
+try:
+    from lib.manuscript_scaffold import get_paradigm_key, list_presets, read_manifest_structure
+except ImportError:
+    try:
+        from manuscript_scaffold import (  # type: ignore[no-redef]
+            get_paradigm_key,
+            list_presets,
+            read_manifest_structure,
+        )
+    except ImportError:
+        get_paradigm_key = None  # type: ignore[assignment]
+        list_presets = None  # type: ignore[assignment]
+        read_manifest_structure = None  # type: ignore[assignment]
+
 logger = logging.getLogger("arcanum.structure")
 
 PARADIGMS = {
@@ -370,29 +384,69 @@ def generate_structure_html_report(report: dict, output_path: Path) -> Path:
     return output_path
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Story Paradigm Enforcer (PLT-102)")
-    parser.add_argument("target", help="Manuscript directory or file")
+    parser.add_argument("target", nargs="?", default=None, help="Manuscript directory or file")
+    parser.add_argument(
+        "--list-structures", action="store_true",
+        help="List all available manuscript structure presets"
+    )
     parser.add_argument(
         "--paradigm", "-p",
         choices=list(PARADIGMS.keys()),
-        default="three_act",
+        default=None,
         help=f"Story structure paradigm model: {', '.join(PARADIGMS.keys())} (default: three_act)"
+    )
+    parser.add_argument(
+        "--structure", "-s",
+        help="Manuscript structure key (maps preset to analysis paradigm if available)"
     )
     parser.add_argument("--html", help="Generate HTML report to output path")
     parser.add_argument("--json", action="store_true", help="Output JSON results")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+
+    if args.list_structures:
+        if list_presets is not None:
+            print(list_presets())
+        else:
+            print("Structure presets module unavailable.", file=sys.stderr)
+        return 0
+
+    if not args.target:
+        parser.print_help()
+        return 1
 
     target_path = Path(args.target)
     if not target_path.exists():
         print(f"Error: Target path does not exist: {target_path}", file=sys.stderr)
-        sys.exit(1)
+        return 1
 
-    report = scan_manuscript_structure(target_path, paradigm_key=args.paradigm)
+    chosen_paradigm = args.paradigm
+    if not chosen_paradigm:
+        if args.structure and get_paradigm_key is not None:
+            mapped = get_paradigm_key(args.structure)
+            if mapped and mapped in PARADIGMS:
+                chosen_paradigm = mapped
+            elif args.structure in PARADIGMS:
+                chosen_paradigm = args.structure
+        elif read_manifest_structure is not None:
+            manifest_struct, _ = read_manifest_structure(target_path)
+            if manifest_struct:
+                if get_paradigm_key is not None:
+                    mapped = get_paradigm_key(manifest_struct)
+                    if mapped and mapped in PARADIGMS:
+                        chosen_paradigm = mapped
+                if not chosen_paradigm and manifest_struct in PARADIGMS:
+                    chosen_paradigm = manifest_struct
+
+    if not chosen_paradigm:
+        chosen_paradigm = "three_act"
+
+    report = scan_manuscript_structure(target_path, paradigm_key=chosen_paradigm)
 
     if args.json:
         print(json.dumps(report, indent=2))
-        return
+        return 0
 
     print(f"=== Story Paradigm Enforcer: {report['paradigm_name']} ===")
     print(f"Target: {target_path.name} | Total Words: {report['total_words']:,} | Chapters: {report['total_chapters']}")
@@ -406,7 +460,9 @@ def main():
         out_p = Path(args.html)
         generate_structure_html_report(report, out_p)
         print(f"\nHTML report written to: {out_p}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
+

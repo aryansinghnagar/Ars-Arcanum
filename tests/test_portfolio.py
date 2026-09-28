@@ -6,10 +6,13 @@ Validates:
   progress bar calculations, export detection, and standalone HTML dashboard generation.
 """
 
+import io
+import json
 import tempfile
 import unittest
 from pathlib import Path
 import sys
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
@@ -18,6 +21,7 @@ from lib.portfolio import (
     analyze_manuscript_project,
     generate_portfolio_html,
     scan_portfolio,
+    main,
 )
 
 
@@ -173,6 +177,25 @@ class TestPortfolioDashboard(unittest.TestCase):
         content = out_html.read_text(encoding="utf-8")
         self.assertIn("Book Alpha", content)
         self.assertIn("Book Beta", content)
+
+    # ------------------------------------------------------------------ #
+    # 13. CLI Main Execution                                             #
+    # ------------------------------------------------------------------ #
+    def test_cli_main_stdout_json_html(self):
+        # Human-readable stdout
+        out_html = self.root_dir / "cli_port.html"
+        with patch.object(sys, "argv", ["portfolio.py", str(self.root_dir), "--html", str(out_html)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("Ars Arcanum Author Portfolio Dashboard", mock_stdout.getvalue())
+                self.assertTrue(out_html.is_file())
+
+        # JSON output
+        with patch.object(sys, "argv", ["portfolio.py", str(self.root_dir), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                data = json.loads(mock_stdout.getvalue())
+                self.assertEqual(data["total_projects"], 2)
 
 
 if __name__ == "__main__":

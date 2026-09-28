@@ -5,21 +5,25 @@ Covers trait normalization, inline regex trait extraction, lore bible profiling,
 lore trait contradiction detection (CNT-101), and inter-scene drift (CNT-102).
 """
 
+import io
+import json
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 # Add scripts directory to path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from lib.continuity import (
-    normalize_trait,
-    extract_traits_from_text,
     extract_lore_profiles,
-    scan_manuscript_scenes,
+    extract_traits_from_text,
+    main,
+    normalize_trait,
     run_continuity_audit,
+    scan_manuscript_scenes,
 )
 
 
@@ -40,11 +44,24 @@ class TestContinuityEngine(unittest.TestCase):
         self.assertEqual(normalize_trait("eye_color", "sapphire"), "blue")
         self.assertEqual(normalize_trait("eye_color", "emerald"), "green")
         self.assertEqual(normalize_trait("eye_color", "dark"), "brown")
+        self.assertEqual(normalize_trait("eye_color", "hazel"), "hazel")
+        self.assertEqual(normalize_trait("eye_color", "grey"), "grey")
+        self.assertEqual(normalize_trait("eye_color", "amber"), "amber")
+        self.assertEqual(normalize_trait("eye_color", "black"), "black")
+
         self.assertEqual(normalize_trait("hair_color", "raven"), "black")
         self.assertEqual(normalize_trait("hair_color", "golden"), "blonde")
+        self.assertEqual(normalize_trait("hair_color", "brunette"), "brown")
         self.assertEqual(normalize_trait("hair_color", "auburn"), "red")
+        self.assertEqual(normalize_trait("hair_color", "ginger"), "red")
+        self.assertEqual(normalize_trait("hair_color", "silver"), "silver/white")
+        self.assertEqual(normalize_trait("hair_color", "white"), "silver/white")
+        self.assertEqual(normalize_trait("hair_color", "grey"), "grey")
+
         self.assertEqual(normalize_trait("status", "deceased"), "deceased")
+        self.assertEqual(normalize_trait("status", "dead"), "deceased")
         self.assertEqual(normalize_trait("status", "alive"), "alive")
+        self.assertEqual(normalize_trait("other", "custom"), "custom")
 
     def test_extract_traits_from_text(self):
         text = "Her piercing blue eyes searched the room. His raven hair glistened in the rain."
@@ -215,8 +232,6 @@ Renée smiled, her emerald eyes glowing softly.
         self.assertEqual(len(findings), 0)
 
     def test_multi_character_possessive_no_false_positive_cnt101(self):
-        # CNT-01: "Bob looked into Alice's green eyes" must attribute green
-        # eyes to Alice only — Bob (brown eyes in lore) must not be flagged.
         chars_dir = self.world_dir / "Characters"
         chars_dir.mkdir(parents=True)
         (chars_dir / "Alice.md").write_text("""---
@@ -260,7 +275,45 @@ Hero had blue eyes.
         self.assertEqual(report["entities_profiled"], 1)
         self.assertEqual(report["total_findings"], 0)
 
+    def test_cli_main(self):
+        chars_dir = self.world_dir / "Characters"
+        chars_dir.mkdir(parents=True)
+        (chars_dir / "Hero.md").write_text("""---
+name: "Hero"
+eyes: blue
+---
+""", encoding="utf-8")
+
+        (self.manuscript_dir / "01_Scene.md").write_text("""# Scene 1
+@pov: Hero
+Hero had blue eyes.
+""", encoding="utf-8")
+
+        # JSON CLI
+        with patch("sys.argv", ["continuity.py", "-w", str(self.world_dir), "-m", str(self.manuscript_dir), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                data = json.loads(mock_stdout.getvalue())
+                self.assertEqual(data["total_findings"], 0)
+
+        # Human-readable CLI
+        with patch("sys.argv", ["continuity.py", "-w", str(self.world_dir), "-m", str(self.manuscript_dir)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("Narrative Continuity Report", mock_stdout.getvalue())
+
+    def test_cli_main_invalid_world(self):
+        with patch("sys.argv", ["continuity.py", "-w", str(self.root_path / "nonexistent_world")]):
+            with patch("sys.stderr", new_callable=io.StringIO) as mock_stderr:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 2)
+                self.assertIn("Error: No valid World Bible directory", mock_stderr.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()
-

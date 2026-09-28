@@ -251,4 +251,36 @@ This living plan outlines the phased modernization, quality hardening, and archi
 - [x] **P20-M9**: Added bidirectional vault restore from exported JSONL/SQLite archives to `corpus_export.py` (`arcanum corpus restore <archive>`).
 - [x] **P20-M10**: Synchronized `registry.py`, `cli.py`, `studio_hub.py`, `ui_adw.py`, and documentation. Achieved 681 tests passing (0 failures, 0 errors, 2 skipped), 0 ruff lint violations, clean mypy typing across all 70 modules.
 
+---
+
+## Phase 21: Cohesive Ecosystem Integration & Advisory-First Creative Freedom (Completed)
+**Theme**: Unify all craft and simulation engines across CLI (`arcanum doc`), Web Studio Hub Craft Guide (`tab-guide`), and Desktop GUI (GTK3 & Libadwaita).
+- [x] **P21-M1**: Built bidirectional hyphen/underscore normalization, multi-word lookups, and rich worldbuilding/narrative/writing documentation with multi-pathway advisory resolution options (Hard Realism, Speculative Trope, Author Sovereignty). Elevated test suite to **687 tests** (100% passing, 0 failures, 2 skipped), 0 ruff violations, clean mypy typing across all source files (`ADR-115`).
+
+---
+
+## Phase 22: Universal Resonance Mesh, Cross-Domain Synthesis & Dynamic Tip Engine (Completed)
+**Theme**: Universal 5-pillar resonance graph, deterministic multi-hop causal cascading, BFS shortest-path metaphorical bridging, structural isomorphism spark synthesis, and dynamic masterclass craft tips.
+- [x] **P22-M1**: Built Universal Resonance & Interconnectivity Mesh (`scripts/lib/resonance.py`) linking domain engines into a 5-pillar bi-directional graph with deterministic multi-hop causal cascading, BFS shortest-path metaphorical bridging, structural isomorphism spark synthesis, and offline HTML visualization.
+- [x] **P22-M2**: Engineered Dynamic Intelligent Tip Engine & Metadata Database (`scripts/lib/tips.py`) with masterclass non-obvious craft/technical tips across engines, multi-criteria token scoring, zero-stall LRU history differencing, sovereign user toggle persistence, and ambient tri-surface presentation (CLI, Studio Hub, Zen Studio). Elevated test suite to **754 tests** (100% passing, 0 failures, 2 skipped), 0 ruff violations, clean mypy typing across all source files.
+
+---
+
+## Phase 23: Cohesive Ecosystem Deep Synthesis & Organic Cross-Engine Mesh Milestone (Completed)
+**Theme**: Exhaustive 53-engine ecosystem synthesis, cross-domain edge expansion, manuscript structure scaffolding integration, complete tip coverage, and documentation parity.
+- [x] **P23-M1**: Full 53-Engine Foundational Resonance Mesh & Cross-Domain Edge Matrix (`scripts/lib/resonance.py`) integrating `manuscript_scaffold`, `tips`, and `resonance` as first-class nodes with 41 active causal and thematic relational edges across all 5 Domain Pillars.
+- [x] **P23-M2**: Dynamic Intelligent Tip Engine 100% Engine Coverage (`scripts/lib/tips.py`) expanding to 137 curated masterclass, advanced, and intermediate tips with full 53-engine coverage and CLI fuzzy match integration in `scripts/lib/cli.py`.
+- [x] **P23-M3**: Documentation Parity & Evidence Audit across `docs/codebase/` (`STACK.md`, `STRUCTURE.md`, `ARCHITECTURE.md`, `CONVENTIONS.md`, `INTEGRATIONS.md`, `TESTING.md`, `CONCERNS.md`), `docs/ENGINE_LOGIC_ENCYCLOPEDIA.md`, `plan.md`, `status.md`, `decisions.md` (`ADR-116`), `knowledge.md`, and `tasks.md`. Elevated test suite to **789 tests** (787 passed, 2 skipped, 0 failures), 0 ruff violations, strict mypy type check pass across all 149 source files.
+
+---
+
+## Phase 24: Universal Ecosystem Cohesion, Zero Isolated Mesh Nodes & Comprehensive CLI Alias Resolution (Completed)
+**Theme**: Connect all 15 previously isolated engines into the resonance mesh (74 total edges, 0 isolated nodes, degree $\ge 2$), add 3 structural isomorphisms, implement `fs_utils.py` CLI interface and diagnostics, register and route all 58+ engine aliases in `cli.py`, and build comprehensive ecosystem cohesion integration tests (`tests/test_ecosystem_cohesion.py`).
+- [x] **P24-M1**: Comprehensive Resonance Mesh Topology Expansion (`scripts/lib/resonance.py`, `ADR-117`): Connected all 15 isolated engines (`branching_graph`, `codex_export`, `writing_sprint`, `revision_heatmap`, `manuscript_diff`, `ambient`, `portfolio`, `importer`, `docx_sync`, `diagnostics`, `frontmatter_builder`, `migrate`, `config`, `cache`, `fs_utils`) across all 5 domain pillars. Expanded total edges from 41 to 74, ensuring every node has degree $\ge 2$ with 0 isolated nodes. Added 3 new structural isomorphisms (`iso-branching-multiverse`, `iso-acoustic-immersion`, `iso-scaffold-cathedral`).
+- [x] **P24-M2**: Filesystem Storage Diagnostics & CLI Entry Point (`scripts/lib/fs_utils.py`): Implemented `check_filesystem()` storage health inspection and CLI `main()` entrypoint for `arcanum fs` / `arcanum fs-utils` / `arcanum atomic-storage`.
+- [x] **P24-M3**: Universal CLI Alias Routing & Conflict Elimination (`scripts/lib/cli.py`): Wired first-class routes for all 58+ registered engine aliases (`journey`, `travel`, `voice`, `scene`, `style`, `stylistics`, `rhythm`, `typography`, `heatmap`, `battle`, `combat`, `tactical`, `dynasty`, `diplomacy`, `currency`, `prices`, `biomes`, `weather`, `ephemeris`, `bestiary`, `traits`, `ledger`, `health`, `prepress`, `index`, `craft-tips`, `advice`, `lore-check`, `scrivener-import`, etc.). Resolved routing collision between `timeline` and `causality`.
+- [x] **P24-M4**: Ecosystem Cohesion Integration Test Suite (`tests/test_ecosystem_cohesion.py`, `tests/test_resonance.py`): Created test suites enforcing zero isolated nodes and verifying end-to-end multi-engine pipelines (Scaffolding $\to$ Corkboard Canvas $\to$ Timeline $\to$ Structure $\to$ Corpus $\to$ Local RAG $\to$ World Doctor). Elevated test suite to **797 tests** (795 passed, 2 skipped, 0 failures), 0 Ruff violations, strict Mypy clean across 161 source files.
+
+
+
 

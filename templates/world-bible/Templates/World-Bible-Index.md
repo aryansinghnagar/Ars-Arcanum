@@ -4,24 +4,46 @@ tags:
   - meta/index
 ---
 
-# 📖 World Bible & Codex Index
+# 📖 Sovereign World Bible & Codex Master Index
 
-Welcome to your central worldbuilding hub. Every note created in this vault is interconnected via wikilinks and indexed dynamically below using **Dataview**.
+Welcome to your central worldbuilding hub. Every note created in this vault is interconnected via wikilinks, validated by `arcanum doctor`, and indexed dynamically below using **Dataview**.
+
+> [!NOTE] ⚠️ EDUCATIONAL TEMPLATE (AI-GENERATED)
+> **Notice**: This template was AI-generated for educational demonstration and craft guidance within the Ars Arcanum operating system. It is strictly non-commercial and provided solely to demonstrate system features, metadata schemas, and engine capabilities. Authors should replace placeholder values with their original worldbuilding details.
+
+<details>
+<summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
+
+### Features Demonstrated in This Index:
+- **Central Knowledge Hub & Codex Exporter**: `codex_export` (`arcanum codex <WorldDir> --html`) — Compiles this entire index and linked notes into a standalone, searchable offline HTML encyclopedia.
+- **Dynamic Dataview Aggregation**: Real-time structured query tables for characters, locations, factions, battles, astrophysics, conlangs, and writing sprints.
+- **System Doctor & Integrity Audits**: `world_doctor` (`arcanum doctor`) — Scans all notes indexed here for broken cross-references, orphan files, and frontmatter parse errors.
+- **Offline Semantic Search**: `local_rag` (`arcanum rag "query"`) — Uses TF-IDF and SQLite FTS5 to index all vault markdown content for offline contextual query retrieval.
+
+### How to Use for Your Projects:
+1. Click any template link in the Quick Navigation Directory below to scaffold a new lore note.
+2. When creating notes, assign appropriate tags (`#world/character`, `#world/location`, `#world/faction`, etc.) to automatically populate the Dataview dashboards.
+3. Keep the file paths organized under their domain folders for clean structure.
+</details>
 
 ---
 
-## 🏛️ Quick Navigation Links
-- 🚀 **[[00_START_HERE|Getting Started Guide (Minimum Viable World Bible)]]**
-- 👤 **[[Characters/Character-Template|Character Vault (Detailed)]]** · **[[Characters/Character-Quickstart-Template|Quickstart Character Card]]**
-- 🗺️ **[[Locations/Location-Template|World Atlas & Geography]]**
-- ⚔️ **[[Factions/Faction-Template|Factions & Guilds]]**
-- ⚡ **[[Magic-Technology/Magic-Tech-System-Template|Magic & Tech Systems]]**
-- 🐾 **[[Bestiary/Creature-Flora-Fauna-Template|Bestiary & Ecosystems]]**
-- 🗡️ **[[Artifacts/Artifact-Relic-Template|Relics & Artifacts]]**
-- ✨ **[[Cosmology/Deity-Cosmology-Template|Pantheons & Cosmology]]**
-- ⏳ **[[History/Timeline-Event-Template|Historical Chronology]]**
-- 🗣️ **[[Languages/Glossary-Conlang-Template|Linguistics & Glossaries]]**
-- 📅 **[[Templates/Daily-Writing-Log|Writing Logs & Word Counts]]**
+## 🏛️ Comprehensive Quick Navigation Directory
+
+| Category | Primary Template | Specialized Sub-Templates |
+| :--- | :--- | :--- |
+| **Getting Started** | 🚀 **[[00_START_HERE\|Minimum Viable World Bible Guide]]** | — |
+| **Characters & Cast**| 👤 **[[Characters/Character-Template\|Character Vault (Detailed)]]** | ⚡ **[[Characters/Character-Quickstart-Template\|Quickstart Character Card]]**<br/>🗣️ **[[Characters/Character-Voice-Profile-Template\|Character Voice Profile]]**<br/>👑 **[[Characters/Genealogy-Dynasty-Template\|Genealogy & Dynasties]]** |
+| **Geography & Travel**| 🗺️ **[[Locations/Location-Template\|World Atlas & Geography]]** | 🌦️ **[[Locations/Climate-Biome-Template\|Climate & Köppen Biomes]]**<br/>🧭 **[[Locations/Cartography-Route-Template\|Cartography & Travel Routes]]** |
+| **Factions & Warfare**| ⚔️ **[[Factions/Faction-Template\|Factions & Diplomatic Matrix]]** | 🛡️ **[[Factions/Tactical-Skirmish-Battle-Template\|Tactical Battle Simulator]]** |
+| **Magic & Science** | ⚡ **[[Magic-Technology/Magic-Tech-System-Template\|Magic & Tech Systems]]** | 🗡️ **[[Artifacts/Artifact-Relic-Template\|Relics & Arcane Foci]]** |
+| **Bestiary & Ecology**| 🐾 **[[Bestiary/Creature-Flora-Fauna-Template\|Bestiary & Species]]** | 🌿 **[[Bestiary/Ecology-Food-Web-Template\|Ecology & Trophic Webs]]** |
+| **Cosmology & Time** | ✨ **[[Cosmology/Deity-Cosmology-Template\|Pantheons & Cosmology]]** | 🌌 **[[Cosmology/Astrophysics-System-Template\|Astrophysics & Orbital Mechanics]]**<br/>📅 **[[Cosmology/Calendar-Moons-Template\|Calendars & Lunar Phases]]**<br/>🔮 **[[Cosmology/Prophecy-Template\|Prophecy Lifecycle Tracker]]**<br/>🕸️ **[[Cosmology/Resonance-Mesh-Template\|Universal Resonance Mesh]]** |
+| **History & Causality**| ⏳ **[[History/Timeline-Event-Template\|Historical Chronology]]** | 🔀 **[[History/Causality-Timeline-Branch-Template\|Causality & Multiverse Branches]]** |
+| **Linguistics** | 🗣️ **[[Languages/Glossary-Conlang-Template\|Linguistics & Conlangs]]** | — |
+| **Macroeconomics** | 💰 **[[Economies/Economy-Template\|Macroeconomics & Currencies]]** | — |
+| **Drafting Tools** | 📝 **[[Templates/Daily-Writing-Log\|Writing Sprint Logs]]** | 🎬 **[[Templates/Scene-Note-Template\|Scene & Sequel Worksheets]]** |
+| **System & Ops** | ⚙️ **[[Templates/System-Engineering-and-Ops-Guide\|System & Ops Guide]]** | 🛠️ **[[../manuscript/Outlines/Revision-Diff-and-Diagnostics-Workflow\|Revision & Diff Workflow]]** |
 
 ---
 

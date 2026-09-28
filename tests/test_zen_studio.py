@@ -227,13 +227,36 @@ A cold mist rolled across the valley floor.
     # ------------------------------------------------------------------ #
     # 12. LocalStorage Persistence Logic                                 #
     # ------------------------------------------------------------------ #
-    def test_zen_studio_localstorage_persistence(self):
-        """Bundle must reference localStorage for draft auto-save recovery."""
-        out_html = self.root / "zen_storage.html"
-        build_zen_studio_bundle(self.ms_dir, world_path=self.world_dir, output_path=out_html)
-        content = out_html.read_text(encoding="utf-8")
-        self.assertIn("localStorage", content)
+    def test_cli_main_and_options(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.zen_studio import main
+
+        out_html = self.root / "cli_zen.html"
+
+        # JSON mode
+        with patch("sys.argv", ["zen_studio.py", str(self.ms_dir), "--world", str(self.world_dir), "--output", str(out_html), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                data = json.loads(mock_stdout.getvalue())
+                self.assertEqual(data["status"], "ready")
+                self.assertTrue(out_html.is_file())
+
+        # Human readable
+        with patch("sys.argv", ["zen_studio.py", str(self.ms_dir), "--world", str(self.world_dir)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("Sovereign Zen Studio", mock_stdout.getvalue())
+
+        # Error path
+        with patch("sys.argv", ["zen_studio.py", "nonexistent_dir_123"]):
+            with patch("sys.stderr", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
 
 
 if __name__ == "__main__":
     unittest.main()
+

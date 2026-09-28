@@ -152,6 +152,104 @@ class TestStructureEngine(unittest.TestCase):
         self.assertIn("Story Paradigm & Structure Alignment", content)
         self.assertIn("Content-Security-Policy", content)
 
+    def test_cli_list_structures(self):
+        import io
+        from unittest.mock import patch
+        from lib.structure import main as structure_main
+
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            rc = structure_main(["--list-structures"])
+            self.assertEqual(rc, 0)
+            self.assertIn("Manuscript Structure Presets", mock_out.getvalue())
+
+    def test_cli_structure_mapping(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.structure import main as structure_main
+
+        (self.target_dir / "01_Ch1.md").write_text("# Ch 1\n\n" + "word " * 100, encoding="utf-8")
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            rc = structure_main([str(self.target_dir), "--structure", "kishotenketsu", "--json"])
+            self.assertEqual(rc, 0)
+            data = json.loads(mock_out.getvalue())
+            self.assertEqual(data["paradigm_key"], "kishotenketsu")
+
+    def test_cli_auto_detect_structure_from_manifest(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.structure import main as structure_main
+
+        # Create manuscript with manuscript.yaml declaring heros_journey
+        (self.target_dir / "manuscript.yaml").write_text(
+            'schema_version: "1.1"\ntitle: "Hero Tale"\nstructure: "heros_journey"\n',
+            encoding="utf-8",
+        )
+        vol_dir = self.target_dir / "Book-01"
+        vol_dir.mkdir(parents=True, exist_ok=True)
+        (vol_dir / "01_Departure").mkdir(parents=True, exist_ok=True)
+        (vol_dir / "01_Departure" / "01_Ch1.md").write_text("# Ch 1\n\n" + "word " * 150, encoding="utf-8")
+
+        # Scan volume without passing --paradigm or --structure
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            rc = structure_main([str(vol_dir), "--json"])
+            self.assertEqual(rc, 0)
+            data = json.loads(mock_out.getvalue())
+            self.assertEqual(data["paradigm_key"], "heros_journey")
+
+    def test_cli_additional_branches(self):
+        import io
+        from unittest.mock import patch
+        from lib.structure import main as structure_main
+
+        (self.target_dir / "01_Ch1.md").write_text("# Ch 1\n\n" + "word " * 100, encoding="utf-8")
+        out_html = self.target_dir / "struct.html"
+
+        # 1. table and html export
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            rc = structure_main([str(self.target_dir), "--paradigm", "three_act", "--html", str(out_html)])
+            self.assertEqual(rc, 0)
+            self.assertIn("Story Paradigm Enforcer", mock_out.getvalue())
+            self.assertTrue(out_html.is_file())
+
+        # 2. no target -> return 1
+        with patch("sys.stdout", new_callable=io.StringIO):
+            rc = structure_main([])
+            self.assertEqual(rc, 1)
+
+    def test_scan_single_file_and_file_not_found(self):
+        f = self.target_dir / "single.md"
+        f.write_text("# Chapter 1\n\n" + "word " * 500, encoding="utf-8")
+        report = scan_manuscript_structure(f, paradigm_key="three_act")
+        self.assertEqual(report["total_chapters"], 1)
+
+        with self.assertRaises(FileNotFoundError):
+            scan_manuscript_structure(self.target_dir / "nonexistent_dir_or_file")
+
+    def test_cli_structure_direct_paradigm_name(self):
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.structure import main as structure_main
+
+        (self.target_dir / "01_Ch1.md").write_text("# Ch 1\n\n" + "word " * 100, encoding="utf-8")
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            rc = structure_main([str(self.target_dir), "--structure", "three_act", "--json"])
+            self.assertEqual(rc, 0)
+            data = json.loads(mock_out.getvalue())
+            self.assertEqual(data["paradigm_key"], "three_act")
+
+    def test_cli_list_structures_unavailable(self):
+        import io
+        from unittest.mock import patch
+        from lib.structure import main as structure_main
+
+        with patch("lib.structure.list_presets", None), patch("sys.stderr", new_callable=io.StringIO) as mock_err:
+            rc = structure_main(["--list-structures"])
+            self.assertEqual(rc, 0)
+            self.assertIn("unavailable", mock_err.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()
