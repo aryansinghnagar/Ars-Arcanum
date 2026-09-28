@@ -368,7 +368,9 @@ Updated prose from word editor.
 
         real_docx = self.root / "real.docx"
         build_docx_package(real_docx, parse_markdown_to_paragraphs("# Test"), get_docx_config())
-        with patch("os.startfile", return_value=None):
+        with patch("os.startfile", create=True, return_value=None), \
+             patch("shutil.which", return_value="/usr/bin/libreoffice"), \
+             patch("subprocess.Popen", return_value=None):
             self.assertTrue(open_in_word_processor(real_docx))
 
     def test_cli_subcommands(self):
