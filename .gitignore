@@ -111,4 +111,13 @@ debian/debhelper-build-stamp
 coverage.xml
 htmlcov/
 
+# Agent working files — agentic session state, handoffs, ADR logs
+# (kept in .agent/ for reference but never committed to history)
+.agent/
+
+# Performance benchmark outputs
+.benchmarks/
+
+# Python cache in scripts/ (not covered by root __pycache__ rule)
+scripts/__pycache__/
 

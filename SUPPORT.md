@@ -8,9 +8,9 @@ Thank you for using Ars Arcanum! This document outlines our support policy, comm
 
 | Version | Status | Security Patches | Bug Fixes |
 | :--- | :--- | :--- | :--- |
-| **1.6.x** | **Current Stable** | ✅ Yes | ✅ Yes |
-| **1.5.x** | Deprecated | ⚠️ Critical Only | ❌ No |
-| **< 1.5.0** | End of Life | ❌ No | ❌ No |
+| **4.2.x** | **Current Stable** | ✅ Yes | ✅ Yes |
+| **4.1.x** | Maintenance | ⚠️ Critical Only | ❌ No |
+| **< 4.1.0** | End of Life | ❌ No | ❌ No |
 
 ---
 
