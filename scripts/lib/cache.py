@@ -83,7 +83,7 @@ def extract_tags(content: str) -> dict[str, list[str]]:
             tags.setdefault(canonical_key, []).append(tag_val)
     return tags
 
-WIKILINK_REGEX = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]")
+WIKILINK_REGEX = re.compile(r"\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\\?\|[^\]]+)?\]\]")
 FRONTMATTER_REGEX = re.compile(r"^---\s*\r?\n(.*?)\r?\n---\s*(?:\r?\n|$)", re.DOTALL)
 FENCED_CODE_REGEX = re.compile(r"```.*?```", re.DOTALL)
 WORD_REGEX = re.compile(r"\b\w+\b", re.UNICODE)
@@ -183,7 +183,8 @@ def parse_markdown_file(file_path: Path) -> dict:
         tags = extract_tags(content)
 
         # Extract wikilinks
-        wikilinks = sorted(list(set(WIKILINK_REGEX.findall(content))))
+        raw_links = [m.rstrip("\\").strip() for m in WIKILINK_REGEX.findall(content)]
+        wikilinks = sorted(list(set(k for k in raw_links if k)))
 
         # Frontmatter
         frontmatter = parse_frontmatter(content)

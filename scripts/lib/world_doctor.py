@@ -28,7 +28,7 @@ except ImportError:
     import _bootstrap  # noqa: F401
 
 
-WIKI_LINK = re.compile(r"\[\[([^\]\|#]+)(?:\|[^\]\]]*)?\]\]")
+WIKI_LINK = re.compile(r"\[\[([^\]\|#]+)(?:#[^\]\|]+)?(?:\\?\|[^\]\]]*)?\]\]")
 FRONTMATTER_DELIM = "---"
 MAX_DEFAULT_BYTES = 2 * 1024 * 1024  # 2MB cap per file
 
@@ -392,10 +392,10 @@ def _validate_link_graph(
         templated = is_template(rel, fm)
         links = []
         for m in WIKI_LINK.finditer(text):
-            target = m.group(1).strip()
+            target = m.group(1).rstrip("\\").strip()
             if not target or target.startswith("#"):
                 continue
-            target = target.split("#")[0].strip()
+            target = target.split("#")[0].rstrip("\\").strip()
             if not target:
                 continue
             links.append(target)
@@ -414,7 +414,7 @@ def _validate_link_graph(
                 vals = val if isinstance(val, list) else [val]
                 for v in vals:
                     for m in WIKI_LINK.finditer(str(v)):
-                        t = m.group(1).strip()
+                        t = m.group(1).rstrip("\\").strip()
                         if resolve(t) is None:
                             if templated:
                                 placeholder_links.append((rel, t))
@@ -514,7 +514,7 @@ def _validate_manuscript_crossrefs(
                         if not item or norm(item) in PLACEHOLDER_NAMES:
                             continue
                         wl_m = WIKI_LINK.match(item)
-                        target = wl_m.group(1).split("#")[0].strip() if wl_m else item
+                        target = wl_m.group(1).split("#")[0].rstrip("\\").strip() if wl_m else item
                         if not target or norm(target) in PLACEHOLDER_NAMES:
                             continue
                         if resolve(target) is None and norm(target) not in ms_index:
@@ -523,7 +523,7 @@ def _validate_manuscript_crossrefs(
                     continue
                 else:
                     for m_wl in WIKI_LINK.finditer(stripped):
-                        target = m_wl.group(1).split("#")[0].strip()
+                        target = m_wl.group(1).split("#")[0].rstrip("\\").strip()
                         if not target or norm(target) in PLACEHOLDER_NAMES:
                             continue
                         if resolve(target) is None and norm(target) not in ms_index:
