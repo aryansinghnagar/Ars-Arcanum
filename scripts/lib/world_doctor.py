@@ -393,10 +393,10 @@ def _validate_link_graph(
         links = []
         for m in WIKI_LINK.finditer(text):
             target = m.group(1).rstrip("\\").strip()
-            if not target or target.startswith("#"):
+            if not target or target.startswith("#") or target.startswith("..") or target.startswith("/"):
                 continue
             target = target.split("#")[0].rstrip("\\").strip()
-            if not target:
+            if not target or target.startswith("..") or target.startswith("/"):
                 continue
             links.append(target)
         outbound[rel] = set(links)
@@ -415,6 +415,8 @@ def _validate_link_graph(
                 for v in vals:
                     for m in WIKI_LINK.finditer(str(v)):
                         t = m.group(1).rstrip("\\").strip()
+                        if not t or t.startswith("..") or t.startswith("/"):
+                            continue
                         if resolve(t) is None:
                             if templated:
                                 placeholder_links.append((rel, t))
@@ -511,11 +513,11 @@ def _validate_manuscript_crossrefs(
                     raw_val = m_tag.group(2).strip()
                     items = [v.strip().strip('"').strip("'") for v in raw_val.split(",") if v.strip()]
                     for item in items:
-                        if not item or norm(item) in PLACEHOLDER_NAMES:
+                        if not item or item.startswith("..") or item.startswith("/") or norm(item) in PLACEHOLDER_NAMES:
                             continue
                         wl_m = WIKI_LINK.match(item)
                         target = wl_m.group(1).split("#")[0].rstrip("\\").strip() if wl_m else item
-                        if not target or norm(target) in PLACEHOLDER_NAMES:
+                        if not target or target.startswith("..") or target.startswith("/") or norm(target) in PLACEHOLDER_NAMES:
                             continue
                         if resolve(target) is None and norm(target) not in ms_index:
                             manuscript_errors.append((rel, f"@{tag_type}", target))
@@ -524,7 +526,7 @@ def _validate_manuscript_crossrefs(
                 else:
                     for m_wl in WIKI_LINK.finditer(stripped):
                         target = m_wl.group(1).split("#")[0].rstrip("\\").strip()
-                        if not target or norm(target) in PLACEHOLDER_NAMES:
+                        if not target or target.startswith("..") or target.startswith("/") or norm(target) in PLACEHOLDER_NAMES:
                             continue
                         if resolve(target) is None and norm(target) not in ms_index:
                             manuscript_errors.append((rel, "[[link]]", target))
