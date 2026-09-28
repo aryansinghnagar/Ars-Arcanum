@@ -271,7 +271,7 @@ cmd_world() {
     if [ -d "${tpl_dir}" ]; then
         cp -r "${tpl_dir}" "${target_dir}"
     else
-        mkdir -p "${target_dir}/Characters" "${target_dir}/Locations" "${target_dir}/Factions" "${target_dir}/Magic" "${target_dir}/Cosmology" "${target_dir}/Timeline" "${target_dir}/05-Backups"
+        mkdir -p "${target_dir}/Characters" "${target_dir}/Locations" "${target_dir}/Factions" "${target_dir}/Magic" "${target_dir}/Cosmology" "${target_dir}/Timeline" "${target_dir}/Backups"
     fi
 
     cat << EOF > "${target_dir}/world.yaml"
@@ -369,7 +369,7 @@ cmd_manuscript() {
         cp -r "${tpl_dir}" "${target_dir}"
         rm -rf "${target_dir}/Book-01"
     fi
-    mkdir -p "${target_dir}/Book-01" "${target_dir}/03-Art" "${target_dir}/04-Publishing" "${target_dir}/05-Backups"
+    mkdir -p "${target_dir}/Book-01" "${target_dir}/Exports" "${target_dir}/Backups"
 
     local scaffold_rc=0
     if [ -n "${divisions}" ]; then
@@ -875,8 +875,8 @@ cmd_backup() {
     local safe_name
     safe_name="$(sanitize_name "${world_name}" "project")"
 
-    local local_backup_dir="${world_dir}/05-Backups"
-    [ ! -d "${local_backup_dir}" ] && local_backup_dir="${world_dir}/Backups"
+    local local_backup_dir="${world_dir}/Backups"
+    [ ! -d "${local_backup_dir}" ] && [ -d "${world_dir}/05-Backups" ] && local_backup_dir="${world_dir}/05-Backups"
     mkdir -p "${local_backup_dir}"
 
     local primary_backup_dir="${local_backup_dir}"
@@ -1298,8 +1298,8 @@ cmd_export() {
     fi
 
     [ -z "${title}" ] && title="$(basename "${target_dir}")"
-    local pub_dir="${target_dir}/04-Publishing"
-    [ ! -d "${pub_dir}" ] && pub_dir="${target_dir}/Exports"
+    local pub_dir="${target_dir}/Exports"
+    [ ! -d "${pub_dir}" ] && [ -d "${target_dir}/04-Publishing" ] && pub_dir="${target_dir}/04-Publishing"
     mkdir -p "${pub_dir}"
 
     local safe_stem
