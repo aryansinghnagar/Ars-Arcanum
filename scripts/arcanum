@@ -926,8 +926,13 @@ cmd_backup() {
         command -v gpg &>/dev/null || gpg_cmd="gpg2"
         local archive_gpg="${primary_backup_dir}/${archive_base}.tar.gz.gpg"
         local gpg_args=(--batch --yes)
-        [ -n "${passphrase}" ] && gpg_args+=(--pinentry-mode loopback --passphrase "${passphrase}")
-        "${gpg_cmd}" "${gpg_args[@]}" --symmetric --cipher-algo AES256 -o "${archive_gpg}" "${archive_tar}"
+        if [ -n "${passphrase}" ]; then
+            echo "Warning: Passing passphrases via CLI flags exposes secrets to process lists." >&2
+            gpg_args+=(--pinentry-mode loopback --passphrase-fd 0)
+            printf '%s' "${passphrase}" | "${gpg_cmd}" "${gpg_args[@]}" --symmetric --cipher-algo AES256 -o "${archive_gpg}" "${archive_tar}"
+        else
+            "${gpg_cmd}" "${gpg_args[@]}" --symmetric --cipher-algo AES256 -o "${archive_gpg}" "${archive_tar}"
+        fi
         rm -f "${archive_tar}"
         final_archive="${archive_gpg}"
         final_archive_name="${archive_base}.tar.gz.gpg"
@@ -1068,8 +1073,19 @@ cmd_restore() {
         command -v gpg &>/dev/null || gpg_cmd="gpg2"
         local dec_tar="${staging_dir}/decrypted.tar.gz"
         local gpg_args=(--batch --yes)
-        [ -n "${passphrase}" ] && gpg_args+=(--pinentry-mode loopback --passphrase "${passphrase}")
-        if ! "${gpg_cmd}" "${gpg_args[@]}" --decrypt -o "${dec_tar}" "${archive_path}" 2>/dev/null; then
+        local dec_ok=0
+        if [ -n "${passphrase}" ]; then
+            echo "Warning: Passing passphrases via CLI flags exposes secrets to process lists." >&2
+            gpg_args+=(--pinentry-mode loopback --passphrase-fd 0)
+            if printf '%s' "${passphrase}" | "${gpg_cmd}" "${gpg_args[@]}" --decrypt -o "${dec_tar}" "${archive_path}" 2>/dev/null; then
+                dec_ok=1
+            fi
+        else
+            if "${gpg_cmd}" "${gpg_args[@]}" --decrypt -o "${dec_tar}" "${archive_path}" 2>/dev/null; then
+                dec_ok=1
+            fi
+        fi
+        if [ "${dec_ok}" -eq 0 ]; then
             echo "Error: GPG decryption failed." >&2; return 1
         fi
         target_tar="${dec_tar}"
@@ -1096,6 +1112,10 @@ cmd_restore() {
             echo "Security Error: Archive member contains dangerous executable git hook: '${member}'" >&2
             return 1
         fi
+        if [[ "${member}" =~ (^|/)\.git/config$ ]]; then
+            echo "Security Error: Archive member contains dangerous .git/config: '${member}'" >&2
+            return 1
+        fi
     done <<< "${tar_members}"
 
     local tar_verbose
@@ -1103,7 +1123,7 @@ cmd_restore() {
         while IFS= read -r line; do
             [ -z "${line}" ] && continue
             local type_char="${line:0:1}"
-            if [ "${type_char}" = "p" ] || [ "${type_char}" = "c" ] || [ "${type_char}" = "b" ]; then
+            if [ "${type_char}" = "p" ] || [ "${type_char}" = "c" ] || [ "${type_char}" = "b" ] || [ "${type_char}" = "l" ]; then
                 echo "Security Error: Archive contains unsafe special file node: ${line}" >&2
                 return 1
             fi

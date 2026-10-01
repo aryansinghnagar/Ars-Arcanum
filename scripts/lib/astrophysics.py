@@ -746,6 +746,10 @@ def main():
             if args.json:
                 print(json.dumps(res, indent=2))
             else:
+                newt_note = res["newtonian_time_formatted"]
+                if res.get("newtonian_peak_velocity_mps", 0) > 299792458:
+                    newt_c = res["newtonian_peak_velocity_mps"] / 299792458.0
+                    newt_note += f" (Unphysical: peak v = {newt_c:.2f}c)"
                 table = [
                     ("Mission Distance", f"{res['distance_formatted']} ({res['distance_m']:,.0f} m)"),
                     ("Constant Acceleration", f"{res['acceleration_g']:.3f} g ({res['acceleration_mps2']:.2f} m/s²)"),
@@ -755,7 +759,7 @@ def main():
                     ("Peak Velocity (Turnover)", f"{res['peak_velocity_c_fraction'] * 100:.3f}% c ({res['peak_velocity_mps']/1000:,.1f} km/s)"),
                     ("Peak Lorentz Factor (γ)", f"{res['peak_gamma']:.4f}"),
                     ("Effective Total Delta-V", f"{res['effective_deltav_kms']:,.1f} km/s"),
-                    ("Classical Newtonian Time", res["newtonian_time_formatted"]),
+                    ("Classical Newtonian Time", newt_note),
                 ]
                 if res["propellant_mass_ratio"]:
                     table.append(("Required Fuel Mass Ratio (m0/mf)", f"{res['propellant_mass_ratio']:.2e}"))

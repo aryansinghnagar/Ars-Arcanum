@@ -1,6 +1,6 @@
 # Ars Arcanum Threat Model & Security Posture (STRIDE-Lite)
 
-**Version:** 1.6.0  
+**Version:** 4.2.1  
 **Scope:** Core CLI (`arcanum`), Scaffolding Scripts, Python Library Engines (`scripts/lib/`), GTK Control Center, Typesetting Bridges (Typst/Pandoc), and Storage/Backup Subsystems.  
 **Target Environment:** Local single-user Linux desktop workstations (Ubuntu, Linux Mint, Debian, Arch, Fedora).
 
@@ -68,22 +68,28 @@ Ars Arcanum operates exclusively as a **local-first desktop platform**. It does 
 * **Threat I2: Path & Username Leakage in Bug Reports.**
   - *Risk:* Sensitive user home directory paths, system usernames, or private novel titles exposed when submitting diagnostic logs.
   - *Mitigation:* `arcanum doctor --report` (`diagnostics.py`) automatically sanitizes and redacts local home directory paths (`~`) and usernames before emitting triage markdown bundles.
+* **Threat I3: Local HTTP Studio Hub CSRF.**
+  - *Risk:* Malicious websites executing cross-origin requests against the local Studio Hub (`localhost:8080`).
+  - *Mitigation:* `_validate_origin()` rejects all cross-origin `POST` requests not originating from `localhost` / `127.0.0.1` or `null`.
 
 ### 5. Denial of Service (D)
 * **Threat D1: Malicious Archive Extraction (Tar-Bomb / Symlink Traversal).**
-  - *Risk:* An untrusted backup archive attempting path traversal (`../../etc/passwd`) or symlink overwrites during restoration.
-  - *Mitigation:* `restore_world.sh` verifies all archive members using Python `tarfile` before extraction, explicitly rejecting symlinks, hardlinks, absolute paths, and parent traversals (`..`), extracting only regular files and directories.
+  - *Risk:* An untrusted backup archive attempting path traversal (`../../etc/passwd`), `.git/config` command injection, or symlink overwrites during restoration.
+  - *Mitigation:* `cmd_restore` in `scripts/arcanum` and `restore_world.sh` inspect all archive members before extraction, explicitly rejecting symlinks (`type_char == 'l'`), device nodes, absolute paths, parent traversals (`..`), executable `.git/hooks/`, and `.git/config` configurations.
 * **Threat D2: Large File Read Exhaustion.**
   - *Risk:* Extremely large files causing out-of-memory errors in linters or parsers.
   - *Mitigation:* `read_capped()` enforces a 2MB per-file read threshold across analysis engines with user-facing warnings upon truncation.
 * **Threat D3: XML Entity Expansion & Zip Bombs (Billion Laughs / Quadratic Blowup).**
   - *Risk:* Malicious or corrupted DOCX XML files containing recursive entity definitions (`<!DOCTYPE`, `<!ENTITY`) or highly compressed zip payloads designed to exhaust memory.
-  - *Mitigation:* `scripts/lib/docx_sync.py` imposes strict size ceilings (20MB total `.docx` file limit and 50MB uncompressed XML stream threshold) and scans the raw byte stream before parsing, immediately aborting if any `<!DOCTYPE` or `<!ENTITY` definitions are present. Safe standard library XML extraction is used (`xml.etree.ElementTree` with `# noqa: S314` triage) without adding unvetted external pip dependencies.
+  - *Mitigation:* `scripts/lib/docx_sync.py` and `scripts/lib/importer.py` enforce strict size ceilings (20MB total `.docx` file limit and 50MB uncompressed XML stream threshold) and scan the raw stream across multiple encodings (UTF-8, UTF-16LE, UTF-16BE), immediately aborting if any `<!DOCTYPE` or `<!ENTITY` declarations are detected.
 
 ### 6. Elevation of Privilege (E)
 * **Threat E1: Installer Privilege Abuse.**
   - *Risk:* System installer executing unvetted scripts or modifying unauthorized system paths with root permissions.
   - *Mitigation:* `setup_arcanum.sh` restricts `sudo` exclusively to explicit package manager calls (`apt-get install` with declared package lists) and verified Typst musl binary installation. All author workspaces, desktop launchers, and configuration files are written under user `${HOME}` without root elevation.
+* **Threat E2: Flatpak Sandbox Breakout.**
+  - *Risk:* Flatpak packaging granting host execution privileges through D-Bus session access.
+  - *Mitigation:* `org.arsarcanum.ArsArcanum.yaml` strictly omits `--talk-name=org.freedesktop.Flatpak`, maintaining container boundary isolation.
 
 ---
 

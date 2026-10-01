@@ -124,7 +124,10 @@ def _parse_iso(ts: str) -> datetime:
 
 def _wpm(words: int, minutes: float) -> float:
     """Calculate words per minute, guarding against near-zero durations."""
-    return round(words / max(minutes, 0.1), 2)
+    if words <= 0:
+        return 0.0
+    effective_minutes = max(minutes, 0.5)  # 30-second duration floor to prevent division-by-zero artifacts
+    return round(words / effective_minutes, 2)
 
 
 # ---------------------------------------------------------------------------
@@ -725,7 +728,7 @@ def _build_table_rows(sessions: list) -> str:
     for idx, s in enumerate(sorted_sessions, start=1):
         met_goal = s.actual_words >= s.target_words
         pill_class = "pill-good" if met_goal else "pill-warn"
-        pill_text = "✓ Met" if met_goal else "✗ Missed"
+        pill_text = "✓ Met" if met_goal else "~ In Progress"
         date_part = s.start_ts[:10]
         time_part = s.start_ts[11:19] if len(s.start_ts) > 10 else ""
         rows.append(
@@ -819,7 +822,7 @@ def _cmd_stop(args: argparse.Namespace) -> int:
     except (FileNotFoundError, ValueError) as exc:
         print(f"✗ Error ending sprint: {exc}")
         return 1
-    goal_str = "✓ Goal met!" if session.actual_words >= session.target_words else "✗ Goal not met."
+    goal_str = "✓ Goal met!" if session.actual_words >= session.target_words else "~ Keep writing!"
     print(
         f"✓ Sprint complete!\n"
         f"   Words    : {session.actual_words} / {session.target_words}  {goal_str}\n"

@@ -13,15 +13,19 @@
 
 | Debt item | Why it exists | Where | Risk if ignored | Suggested fix |
 |-----------|---------------|-------|-----------------|---------------|
-| `world_doctor` cyclomatic complexity | Consolidated 8-point diagnostic engine in single file | `scripts/lib/world_doctor.py` | Maintenance overhead when adding new checks | Decompose individual rule checks into modular sub-checkers |
-| Untyped legacy UI helper bodies | Historical GTK presentation boilerplate | `scripts/lib/ui_gtk3/window.py` | Untyped functions flagged in mypy permissive mode | Add explicit type signatures to legacy GTK3 presentation callbacks |
+| Dual CLI dispatchers (Bash vs Python) | Legacy bash facade maintains backup/restore logic | `scripts/arcanum`, `scripts/lib/cli.py` | Maintenance divergence across platforms | Migrate archive backup/restore to Python `tarfile(filter="data")` |
+| Large static dictionaries in Python source | Embedded metadata in executable code | `scripts/lib/tips.py`, `scripts/lib/registry.py` | Memory footprint and module bloat | Extract static tips and engine catalogs to JSON/TOML data assets |
+| GTK3 accessibility baseline | Historical UI focused on visual aesthetics | `scripts/lib/ui_gtk3/` | Screen-reader inaccessibility | Add mnemonic accelerators and ATK accessible names |
 
 ### 3) Security Concerns
 
 | Risk | OWASP category | Evidence | Current mitigation | Gap |
 |------|----------------|----------|--------------------|-----|
-| Path Traversal in user-provided volume/world names | A01: Broken Access Control | `scripts/lib/_bootstrap.py` | Strict regex validation (`^[A-Za-z0-9_-]+$`) rejecting directory traversal | None (0 vulnerabilities detected) |
-| Untrusted Script Execution in HTML Reports | A03: Injection | `scripts/lib/studio_hub.py`, `scripts/lib/resonance.py` | Mandatory CSP `<meta http-equiv="Content-Security-Policy" content="default-src 'none'...">` | None (Zero external CDN/script calls permitted) |
+| Path Traversal in user-provided volume/world names | A01: Broken Access Control | `scripts/lib/_bootstrap.py` | Strict regex validation (`^[A-Za-z0-9_-]+$`) rejecting directory traversal | Resolved (0 vulnerabilities detected) |
+| Untrusted Script Execution in HTML Reports | A03: Injection | `scripts/lib/studio_hub.py`, `scripts/lib/resonance.py` | Mandatory CSP `<meta http-equiv="Content-Security-Policy" content="default-src 'none'...">` | Resolved (Zero external CDN/script calls permitted) |
+| Restore Archive Symlink & Git Config Injection | A01: Broken Access Control | `scripts/arcanum#L1085-L1110` | Explicit rejection of symlinks, device nodes, `.git/hooks`, and `.git/config` | Resolved |
+| Cross-Origin Requests to Local HTTP Studio Hub | A07: Identification and Auth Failures | `scripts/lib/studio_hub.py#L2106-L2170` | `_validate_origin()` blocks foreign origins on POST requests | Resolved |
+| XML Entity Expansion in DOCX Imports | A03: Injection | `scripts/lib/docx_sync.py`, `scripts/lib/importer.py` | Bounded stream read and multi-encoding DOCTYPE/ENTITY detection | Resolved |
 
 ### 4) Performance and Scaling Concerns
 

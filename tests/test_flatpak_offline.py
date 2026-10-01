@@ -39,7 +39,7 @@ class TestFlatpakOfflinePackaging(unittest.TestCase):
 
         self.assertIn("app-id: org.arsarcanum.ArsArcanum", content)
         self.assertIn("--filesystem=home", content)
-        self.assertIn("--talk-name=org.freedesktop.Flatpak", content)
+        self.assertNotIn("--talk-name=org.freedesktop.Flatpak", content)
         self.assertIn("--talk-name=org.freedesktop.Notifications", content)
         self.assertIn("buildsystem: simple", content)
 

@@ -6,7 +6,7 @@
 [![Release: v4.2.1](https://img.shields.io/badge/Release-v4.2.1-blue.svg)](CHANGELOG.md)
 [![Status: Production Stable](https://img.shields.io/badge/Status-Production%20Stable-brightgreen.svg)](#)
 [![CI](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml/badge.svg)](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml)
-[![Tests: 937](https://img.shields.io/badge/Tests-935%2F937%20Passing-brightgreen.svg)](#)
+[![Tests: 937](https://img.shields.io/badge/Tests-935%2F937%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
 [![Coverage: 86%](https://img.shields.io/badge/Coverage-86%25-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
@@ -31,7 +31,7 @@ Everything you write is stored as **plain Markdown** (`.md`) and standard **Word
 | **🖥️ Control Center** | One-click GTK desktop app — your authoring cockpit. No terminal needed for daily writing. |
 | **🪐 World Bible** | Obsidian-powered lore vault with pre-configured plugins for characters, maps, timelines, and magic systems. |
 | **✍️ Drafting** | Write in Microsoft Word, LibreOffice, or Google Docs. Changes sync back to Markdown automatically. |
-| **🔮 22 Craft Engines** | Astrophysics, hard magic, conlang phonetics, faction politics, narrative pacing, prophecy tracking, and more — all offline. |
+| **🔮 50+ Craft & Utility Engines** | Astrophysics, hard magic, conlang phonetics, faction politics, narrative pacing, prophecy tracking, and more — all offline. |
 | **📚 1-Click Publishing** | Sub-second print PDF (Typst), EPUB (Pandoc), and submission DOCX from a single button click. |
 | **🔒 Vault Safety** | Automatic Git snapshots, SHA-256 verified backups, and USB replication — your work is never at risk. |
 | **🧠 Semantic Search** | Ask questions across your entire lore library with local TF-IDF + SQLite full-text search. No API key needed. |
@@ -42,6 +42,8 @@ Everything you write is stored as **plain Markdown** (`.md`) and standard **Word
 
 > **Works on:** Linux Mint 21/22 · Debian 12/13 · Ubuntu 22.04/24.04 · Fedora · Arch · openSUSE  
 > **Does NOT work on:** Windows or macOS (Linux-native tools required)
+
+> **CI-verified on:** Ubuntu 24.04 (GitHub Actions). Other distributions are community-supported.
 
 **Step 1 — Get the code:**
 ```bash
@@ -99,9 +101,9 @@ Double-click **"Ars Arcanum Control Center"** on your Desktop and follow the wel
 
 ---
 
-## 🔮 22 Speculative Craft Engines
+## 🔮 Featured Craft Engines (22 Highlighted / 53+ Total)
 
-All engines run 100% offline using Python's standard library — no pip, no API keys, no internet.
+All engines run 100% offline using Python's standard library — no pip, no API keys, no internet. The full engine catalog (53 registered engines across 5 domain pillars) is accessible via `arcanum doc` or the Studio Hub Craft Guide tab.
 
 | # | Engine | Key Commands | What It Does |
 |---|---------|-------------|--------------|
@@ -222,7 +224,7 @@ bash scripts/verify.sh                   # Full 7-stage verification harness
 
 | Doc | What it is |
 |:--|:--|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture, invariants, exit codes, ADR-001–ADR-035 |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture, invariants, exit codes, ADR-001–ADR-118 |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Project charter, milestones, hardware baseline |
 | [CHANGELOG.md](CHANGELOG.md) | Notable changes by release |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Ground rules, quality gate, commit style |

@@ -36,7 +36,7 @@ class TestFlatpakManifest(unittest.TestCase):
         self.assertIn("--filesystem=home", content)
         # DBus permissions
         self.assertIn("--talk-name=org.freedesktop.Notifications", content)
-        self.assertIn("--talk-name=org.freedesktop.Flatpak", content)
+        self.assertNotIn("--talk-name=org.freedesktop.Flatpak", content)
         # Verify no actual finish-args entries use deprecated tilde grants
         for line in content.splitlines():
             line_str = line.strip()

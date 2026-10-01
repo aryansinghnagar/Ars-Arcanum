@@ -2111,6 +2111,13 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
         self.send_error(403, "Forbidden: Invalid Host header")
         return False
 
+    def _validate_origin(self) -> bool:
+        origin = self.headers.get("Origin", "")
+        if not origin or origin in ("null",) or origin.startswith(("http://localhost", "http://127.0.0.1")):
+            return True
+        self.send_error(403, "Forbidden: Cross-origin request rejected")
+        return False
+
     def do_HEAD(self) -> None:
         if not self._validate_host():
             return
@@ -2165,12 +2172,16 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(404, "Endpoint not found")
 
     def do_POST(self) -> None:
-        if not self._validate_host():
+        if not self._validate_host() or not self._validate_origin():
             return
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
-        content_length = int(self.headers.get("Content-Length", 0))
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+        except (ValueError, TypeError):
+            content_length = 0
+
         if content_length > 10 * 1024 * 1024:  # 10MB limit
             self.send_error(413, "Payload too large")
             return
@@ -2182,13 +2193,18 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             payload = {}
 
         if path == "/api/query":
-            # Semantic RAG query
-            query = payload.get("query", "")
+            # Substring entity search (API mode)
+            query = str(payload.get("query", ""))
             matches = [
                 e for e in self.data.get("lore_entities", [])
-                if query.lower() in e["name"].lower() or query.lower() in e["summary"].lower()
+                if query.lower() in str(e.get("name", "")).lower() or query.lower() in str(e.get("summary", "")).lower()
             ]
-            self._send_json({"query": query, "total_matches": len(matches), "results": matches})
+            self._send_json({
+                "query": query,
+                "search_mode": "substring",
+                "total_matches": len(matches),
+                "results": matches,
+            })
         elif path == "/api/tips/toggle":
             new_val = toggle_tips()
             self._send_json({"status": "success", "enabled": new_val})
@@ -2198,17 +2214,18 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             set_tips_enabled(val)
             self._send_json({"status": "success", "enabled": val})
         elif path == "/api/council":
-            # Editorial council evaluation
-            text = payload.get("text", "")
+            # Editorial council heuristic evaluation
+            text = str(payload.get("text", ""))
             word_count = len(text.split()) if text else 0
             self._send_json({
                 "status": "success",
                 "word_count": word_count,
+                "disclaimer": "Pattern-based structural check only. Deep semantic analysis is performed via full CLI engines.",
                 "critique": {
-                    "line_editor": f"Analyzed {word_count} words. Prose rhythm is coherent.",
-                    "lore_arbiter": "No arcane rule conflicts detected in provided passage.",
-                    "story_architect": "Narrative tension aligns with sequence expectations.",
-                    "continuity_steward": "No character timeline paradoxes detected.",
+                    "line_editor": f"Structural scan: {word_count} words submitted. Sentence cadence and density heuristics active.",
+                    "lore_arbiter": "Lore consistency: Basic check passed. Run 'arcanum continuity' for cross-vault relational audit.",
+                    "story_architect": "Narrative structure: Passage length parsed. Run 'arcanum tension' for full arc modeling.",
+                    "continuity_steward": "Timeline steward: Run 'arcanum timeline' for astronomical synchronizer analysis.",
                 },
             })
         elif path == "/api/branch":

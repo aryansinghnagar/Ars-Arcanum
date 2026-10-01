@@ -18,7 +18,7 @@ Security priorities for Ars Arcanum focus on:
 - `sudo install -m 755` of the Typst release binary into `/usr/local/bin/typst` — performed **only** after the GitHub-published SHA-256 digest matches; installation is refused when the digest is unavailable.
 - `gio set metadata::trusted true` on the specific desktop launcher files the installer itself created (no bulk filesystem metadata changes).
 
-`uninstall_arcanum.sh` reverts the desktop launchers, and with `--purge-flatpaks` also removes the Flatpak apps and `/usr/local/bin/typst`. No Ars Arcanum script writes outside `${HOME}` (world data), `/usr/local/bin/typst`, and the package/Flatpak targets declared above. Restores additionally refuse archives containing path-traversal members or non-sample git hooks.
+`uninstall_arcanum.sh` reverts the desktop launchers, and with `--purge-flatpaks` also removes the Flatpak apps and `/usr/local/bin/typst`. No Ars Arcanum script writes outside `${HOME}` (world data), `/usr/local/bin/typst`, and the package/Flatpak targets declared above. Restores additionally refuse archives containing path-traversal members, symlinks (`l`), dangerous `.git/config` configurations, or executable git hooks. Flatpak packaging operates without host D-Bus grants. Passphrases are passed via standard input (`--passphrase-fd 0`) rather than process argument lists.
 
 ---
 

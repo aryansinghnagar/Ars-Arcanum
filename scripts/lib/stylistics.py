@@ -99,17 +99,84 @@ def _simple_stem(word: str) -> str:
     return w
 
 
+
+# Exception table for common English words that defeat simple vowel-group heuristics.
+# Placed at module level (not inside the function) for performance — compiled once at import.
+_EXCEPTIONS: dict[str, int] = {
+    "queue": 1,
+    "rhythm": 2, "rhythms": 2,
+    "business": 2, "businesses": 3,
+    "marriage": 2, "marriages": 3,
+    "heaven": 2, "evening": 3,
+    "every": 3, "several": 3,
+    "different": 3, "interest": 3,
+    "natural": 3, "family": 3,
+    "beautiful": 4, "comfortable": 4,
+    "temperature": 4, "literature": 4,
+    "poem": 2, "poems": 2, "poet": 2, "poetry": 3,
+    "quiet": 2, "quieter": 3,
+    "fire": 2, "fired": 2, "fires": 2,
+    "hour": 1, "hours": 1,
+    "wine": 1, "wines": 1,
+    "love": 1, "loved": 1, "lovely": 2,
+    "live": 1, "lived": 1,
+    "give": 1, "given": 2,
+    "come": 1, "comes": 1, "coming": 2,
+    "some": 1, "someone": 2,
+    "where": 1, "there": 1, "here": 1, "were": 1,
+    "have": 1, "gave": 1,
+    "the": 1, "a": 1,
+    "are": 1,
+    "eye": 1, "eyes": 1,
+    "use": 1, "used": 1,
+    "make": 1, "made": 1,
+    "take": 1, "taken": 2,
+    "real": 2, "really": 3,
+    "area": 3, "areas": 3,
+    "idea": 3, "ideas": 3,
+    "ocean": 3,
+    "science": 2,
+    "create": 2, "created": 3,
+    "people": 2,
+    "little": 2, "middle": 2, "bottle": 2,
+    "castle": 2, "table": 2, "stable": 2,
+    "circle": 2, "purple": 2,
+    "simple": 2, "single": 2, "gentle": 2,
+    "twelfth": 1, "strength": 1, "strengths": 1,
+    "changed": 1, "change": 1,
+    "world": 1, "worlds": 1,
+    "voiced": 1,
+}
+
+
 def count_syllables(word: str) -> int:
-    """Estimates syllable count of an English word."""
+    """Estimates syllable count of an English word using improved heuristics."""
     w = re.sub(r'[^a-zA-Z]', '', word.lower())
     if not w:
         return 1
-    if len(w) <= 3:
-        return 1
-    w = re.sub(r'(?:[^laeiouy]e|ed|es)$', '', w)
-    w = re.sub(r'^y', '', w)
-    matches = re.findall(r'[aeiouy]{1,2}', w)
-    return max(1, len(matches))
+
+    # Exception table lookup — most reliable for irregular English words
+    if w in _EXCEPTIONS:
+        return _EXCEPTIONS[w]
+
+    # Character-by-character vowel-group counting
+    count = 0
+    prev_vowel = False
+    for ch in w:
+        is_vowel = ch in 'aeiouy'
+        if is_vowel and not prev_vowel:
+            count += 1
+        prev_vowel = is_vowel
+
+    # Subtract silent trailing 'e' (if not -le or -ee, and preceded by consonant)
+    if w.endswith('e') and not w.endswith(('le', 'ee')) and len(w) > 2 and w[-2] not in 'aeiouy':
+        count -= 1
+
+    # Trailing -ed that is silent (e.g. walked, looked, voiced) unless -ted or -ded
+    if w.endswith('ed') and len(w) > 3 and not w.endswith(('ted', 'ded')) and w[-3] not in 'aeiouy':
+        count -= 1
+
+    return max(1, count)
 
 
 # -----------------------------------------------------------------------------

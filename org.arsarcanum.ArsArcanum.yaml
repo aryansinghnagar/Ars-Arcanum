@@ -13,7 +13,6 @@ finish-args:
   - --filesystem=home
   - --filesystem=xdg-desktop:ro
   - --talk-name=org.freedesktop.Notifications
-  - --talk-name=org.freedesktop.Flatpak
 
 modules:
   - name: ars-arcanum

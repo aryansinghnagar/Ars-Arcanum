@@ -448,10 +448,18 @@ def convert_docx_to_markdown(docx_path: Path) -> str:
             total_uncompressed = sum(info.file_size for info in zf.infolist())
             if total_uncompressed > MAX_DOCX_UNCOMPRESSED_BYTES:
                 raise ValueError(f"DOCX uncompressed payload exceeds safety threshold ({MAX_DOCX_UNCOMPRESSED_BYTES // (1024*1024)} MB)")
-            doc_xml_bytes = zf.read("word/document.xml")
-            
-        if b"<!ENTITY" in doc_xml_bytes or b"<!DOCTYPE" in doc_xml_bytes:
-            raise ValueError("Unsafe XML entity/DOCTYPE declaration detected in DOCX document.xml")
+            with zf.open("word/document.xml") as f:
+                doc_xml_bytes = f.read(MAX_DOCX_UNCOMPRESSED_BYTES + 1)
+            if len(doc_xml_bytes) > MAX_DOCX_UNCOMPRESSED_BYTES:
+                raise ValueError(f"DOCX document.xml exceeds maximum safety threshold ({MAX_DOCX_UNCOMPRESSED_BYTES // (1024*1024)} MB)")
+
+        for sample in (
+            doc_xml_bytes[:4096].decode("utf-8", errors="ignore").lower(),
+            doc_xml_bytes[:4096].decode("utf-16le", errors="ignore").lower(),
+            doc_xml_bytes[:4096].decode("utf-16be", errors="ignore").lower(),
+        ):
+            if "<!entity" in sample or "<!doctype" in sample:
+                raise ValueError("Unsafe XML entity/DOCTYPE declaration detected in DOCX document.xml")
             
         root = ET.fromstring(doc_xml_bytes)  # nosec B314  # noqa: S314
         ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}

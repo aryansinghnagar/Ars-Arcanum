@@ -77,10 +77,28 @@ SENSORY_LEXICON = {
     ],
 }
 
-SENSORY_PATTERNS = {
-    dim: [re.compile(r"\b" + re.escape(w) + r"\b", re.IGNORECASE) for w in words]
-    for dim, words in SENSORY_LEXICON.items()
-}
+# Build a single alternation regex per dimension + a global word→dim reverse-lookup dict.
+# Longest entries sorted first to ensure multi-word phrases like "damp earth" match before subwords.
+_WORD_TO_DIM: dict[str, str] = {}
+SENSORY_PATTERNS: dict[str, re.Pattern[str]] = {}
+for _dim, _words in SENSORY_LEXICON.items():
+    for _w in _words:
+        _WORD_TO_DIM[_w.lower()] = _dim
+    _sorted = sorted(_words, key=len, reverse=True)
+    SENSORY_PATTERNS[_dim] = re.compile(
+        r"\b(?:" + "|".join(re.escape(w) for w in _sorted) + r")\b",
+        re.IGNORECASE,
+    )
+
+# Single unified pattern across all dimensions — one pass instead of 190+ individual searches.
+_ALL_SENSORY_WORDS: list[str] = []
+for _words in SENSORY_LEXICON.values():
+    _ALL_SENSORY_WORDS.extend(_words)
+_ALL_SENSORY_WORDS.sort(key=len, reverse=True)
+_UNIFIED_PATTERN = re.compile(
+    r"\b(?:" + "|".join(re.escape(w) for w in _ALL_SENSORY_WORDS) + r")\b",
+    re.IGNORECASE,
+)
 
 
 def analyze_text_senses(text: str) -> dict:
@@ -90,12 +108,13 @@ def analyze_text_senses(text: str) -> dict:
     words = [w for w in re.findall(r"\b\w+\b", text) if not w.startswith("@")]
     total_words = len(words)
 
-    for dim, patterns in SENSORY_PATTERNS.items():
-        for pat in patterns:
-            for m in pat.finditer(text):
-                counts[dim] += 1
-                if len(matches[dim]) < 5:
-                    matches[dim].append(m.group(0).lower())
+    for m in _UNIFIED_PATTERN.finditer(text):
+        matched = m.group(0).lower()
+        dim = _WORD_TO_DIM.get(matched)
+        if dim:
+            counts[dim] += 1
+            if len(matches[dim]) < 5:
+                matches[dim].append(matched)
 
     total_sensory_anchors = sum(counts.values())
     percentages = {}
@@ -167,6 +186,20 @@ def audit_manuscript_senses(manuscript_dir: Path) -> dict:
     overall_pct = {}
     for dim, cnt in overall_counts.items():
         overall_pct[dim] = round((cnt / max(1, total_sensory_all) * 100.0), 1)
+
+    # SNS-103: Sensory Gap — 3+ entire dimensions have zero coverage across the manuscript.
+    zero_dims = [dim for dim, cnt in overall_counts.items() if cnt == 0]
+    if len(zero_dims) >= 3 and total_words_all > 500:
+        findings.append({
+            "id": "SNS-103",
+            "severity": "WARNING",
+            "scene": "manuscript-wide",
+            "message": (
+                f"Sensory Gap: {len(zero_dims)} dimensions have zero coverage across the entire manuscript: "
+                f"{', '.join(zero_dims)}."
+            ),
+            "file": "manuscript-wide",
+        })
 
     return {
         "manuscript": manuscript_dir.name,

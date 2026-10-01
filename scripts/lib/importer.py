@@ -44,14 +44,23 @@ def extract_docx_text(docx_path: Path) -> str:
     if not zipfile.is_zipfile(docx_path):
         raise ValueError(f"File is not a valid zip/docx archive: {docx_path}")
 
+    MAX_DOCX_XML_BYTES = 50 * 1024 * 1024
     with zipfile.ZipFile(docx_path, "r") as zf:
         if "word/document.xml" not in zf.namelist():
             raise ValueError(f"word/document.xml missing in docx: {docx_path}")
-        doc_xml_bytes = zf.read("word/document.xml")
+        with zf.open("word/document.xml") as f:
+            doc_xml_bytes = f.read(MAX_DOCX_XML_BYTES + 1)
+        if len(doc_xml_bytes) > MAX_DOCX_XML_BYTES:
+            raise ValueError(f"DOCX document.xml exceeds maximum safety limit ({MAX_DOCX_XML_BYTES // (1024*1024)} MB)")
 
-    # Guard against XML bomb / entity expansion
-    if b"<!ENTITY" in doc_xml_bytes or b"<!DOCTYPE" in doc_xml_bytes:
-        raise ValueError(f"Unsafe DOCTYPE/ENTITY detected in {docx_path.name}")
+    # Guard against XML bomb / entity expansion across multiple encodings
+    for sample in (
+        doc_xml_bytes[:4096].decode("utf-8", errors="ignore").lower(),
+        doc_xml_bytes[:4096].decode("utf-16le", errors="ignore").lower(),
+        doc_xml_bytes[:4096].decode("utf-16be", errors="ignore").lower(),
+    ):
+        if "<!entity" in sample or "<!doctype" in sample:
+            raise ValueError(f"Unsafe DOCTYPE/ENTITY detected in {docx_path.name}")
 
     root = ET.fromstring(doc_xml_bytes)  # nosec B314  # noqa: S314
     ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}

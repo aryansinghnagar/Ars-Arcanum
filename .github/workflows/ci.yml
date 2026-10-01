@@ -18,6 +18,7 @@ permissions:
 jobs:
   verify:
     name: Lint, Validate & Smoke Test (Ubuntu 24.04)
+    # CI-01: Primary CI runner. Debian/Mint matrix jobs are tracked in docs/ROADMAP.md.
     runs-on: ubuntu-24.04
 
     steps:
