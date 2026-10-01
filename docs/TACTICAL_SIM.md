@@ -112,8 +112,8 @@ For $N = 1000$ runs, estimation error is bounded to $\pm 1.5\%$, giving authors 
 # Simulate a single battle with detailed prose narrative log
 arcanum tactical --side1 knights.yaml --side2 bandits.yaml --terrain dense_forest --log
 
-# Run 1000-iteration Monte Carlo simulation for encounter balance
-arcanum tactical --side1 garrison.yaml --side2 siege_force.yaml --terrain castle_walls --runs 1000
+# Run 1000-iteration Monte Carlo simulation for encounter balance with custom defending side
+arcanum tactical --side1 garrison.yaml --side2 siege_force.yaml --terrain castle_walls --defending-side 1 --runs 1000
 
 # Output machine-readable JSON battle statistics
 arcanum tactical --side1 heroes.yaml --side2 boss.yaml --json

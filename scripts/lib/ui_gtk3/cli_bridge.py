@@ -7,6 +7,7 @@ Provides bridges between the GTK 3 interface and CLI scripts / external tools.
 
 import logging
 import subprocess
+import sys
 from pathlib import Path
 
 from lib.ui_gtk3.common import PROJECT_ROOT, _cached_which
@@ -82,10 +83,10 @@ def launch_external_app(app_type: str, target_dir: str | Path) -> bool:
             subprocess.Popen(["novelwriter", target_path])
             return True
 
-    # Generic workspace script fallback
-    ws_script = PROJECT_ROOT / "scripts" / "open_workspace.sh"
-    if ws_script.is_file():
-        subprocess.Popen(["bash", str(ws_script), target])
+    # Generic workspace controller fallback
+    ctrl_script = PROJECT_ROOT / "scripts" / "lib" / "ui_controller.py"
+    if ctrl_script.is_file():
+        subprocess.Popen([sys.executable, str(ctrl_script), "open", target])
         return True
 
     return False

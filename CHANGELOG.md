@@ -4,24 +4,36 @@ All notable changes to Ars Arcanum are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Scope decisions
 behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## [4.2.1] - 2026-09-28
+## [4.2.1] - 2026-10-01
 
-### Added & Hardened (Multi-Expert Audit, Coverage Expansion to 86%, Data-Driven CLI Dispatch & Invariant Compliance — Phase 25)
-- **Comprehensive Test Suite Expansion (`tests/`, `pyproject.toml`)**:
-  - Expanded test suite from 806 to **937 automated unit and integration tests** (131 new tests, 0 failures, 2 skipped).
-  - Elevated aggregate test coverage across all 73 `scripts/lib/` modules from 68% to **86% branch + line coverage**.
-  - Ratcheted verified test coverage floor in `pyproject.toml` to **`fail_under = 85`** (`tests/test_coverage_floor.py`).
-  - Added exhaustive branch and error-handler test coverage across `fs_utils`, `lockfile`, `frontmatter`, `frontmatter_builder`, `migrate`, `tactical_sim`, `prophecy`, `economy`, `magic_system`, `ecology`, `genealogy`, `manuscript_diff`, `factions`, `revision_heatmap`, `series_continuity`, and `journey`.
-- **Data-Driven CLI Dispatch Architecture (`scripts/lib/cli.py`, `ADR-118`)**:
-  - Refactored 380-line procedural `if/elif` chain into a modular, declarative `_DISPATCH_TABLE` architecture.
-  - Consolidated sub-dispatch for `new`, `calc`, `audit`, `matter`, `polish`, `ambient`, `sim`, `magic`, `conlang`, `pace`, `doctor`, and `resonance`.
-  - Unified `_DISPATCH_TABLE.keys()` as the authoritative single source of truth for fuzzy command matching (`difflib.get_close_matches`), eliminating redundant arrays.
-- **Strict Atomic File Write Contract Enforcement (`_bootstrap.py`, `branching_graph.py`, `local_rag.py`, `manuscript_scaffold.py`, `resonance.py`)**:
-  - Upgraded all fallback `atomic_write()` implementations to strictly enforce the crash-resilient `mkstemp` $\to$ `fdopen` $\to$ `flush` $\to$ `fsync` $\to$ `os.replace` protocol per `AGENTS.md §2.1`.
-- **Static Type Safety Hardening (`mypy.ini`)**:
-  - Enabled `check_untyped_defs = True` to type-check unannotated function bodies, passing cleanly across all 73 source files.
-- **Multi-Expert Architectural & Security Audit (`scriptorium_comprehensive_audit.md`, `walkthrough.md`)**:
-  - Completed 5-viewpoint deep audit covering Architecture Review, Code Review, Security & Safety Invariants, Multi-Scale Planning Operations, and Codebase Knowledge Mapping.
+### Added & Hardened (Sovereign Pure-Python Modernization, Multi-Scale Audit Remediation & Invariant Verification)
+- **Pure-Python Cross-Platform Lifecycle Engines (`scripts/lib/backup.py`, `restore.py`, `snapshot.py`, `ARCH-01`)**:
+  - Implemented zero-pip, standard-library-only backup, restore, and snapshot engines using `tarfile(filter="data")`, `hashlib` SHA-256 streaming, `ArcanumLock`, and GPG symmetric encryption.
+  - Eliminated external bash dependencies for archive creation, verification, and restoration; integrated directly into `scripts/lib/cli.py` dispatch table.
+  - Decoupled desktop GTK3 UI actions (`scripts/arcanum_app.py`, `cli_bridge.py`, `safety.py`) from legacy shell scripts, routing directly to `sys.executable` and `cli.py` (`ARCH-03`).
+  - Added dedicated test suite `tests/test_backup_pure_python.py`.
+- **Security & Data Integrity Hardening (P0 / SEC-01, SEC-02, SEC-03, SEC-05, DATA-01)**:
+  - **SEC-01**: Eliminated dynamic `eval "$(...)"` parameter extraction in `scripts/arcanum` and enforced strict `^[A-Za-z0-9_-]+$` token sanitization in `manuscript_scaffold.py`.
+  - **SEC-02**: Sanitized inline JSON script tags (`.replace("</", "<\\/")`) in `zen_studio.py` to prevent DOM XSS and script breakout attacks.
+  - **SEC-03**: Replaced 4KB buffer truncation with full XML payload stream scanning for `<!ENTITY` / `<!DOCTYPE` across UTF-8, UTF-16, and ASCII in `docx_sync.py` and `importer.py`.
+  - **DATA-01**: Protected Markdown thematic scene breaks (`---`, `***`, `* * *`, `___`, `- - -`) in `typography_cleaner.py` from destructive em-dash replacement (`tests/test_scene_break_preservation.py`).
+  - **SEC-05**: Added `try...finally` descriptor cleanup in `_bootstrap.py:atomic_write` to eliminate Windows file locking descriptor leaks (`tests/test_security_remediations.py`).
+  - **ARCH-04**: Routed `.arcanum.json` updates through `atomic_write()` in `config.py` to prevent race conditions.
+- **Craft Engine Mathematical & Algorithmic Invariants (P2 / CRAFT-01, CRAFT-02, CRAFT-03, CRAFT-04)**:
+  - **CRAFT-01**: Implemented Roche tidal disruption limit formulas (`calc_roche_limit`) for rigid and fluid satellites in `astrophysics.py` with CLI integration and tests (`tests/test_roche_limit.py`).
+  - **CRAFT-02**: Enhanced `economy.py:audit_manuscript_prices` with currency denomination normalization against base currencies and PPP cross-currency rate conversion (`tests/test_economy_normalization.py`).
+  - **CRAFT-03**: Generalized `tactical_sim.py` fortification defense mechanics to support arbitrary defending sides (1 or 2) via `--defending-side`.
+  - **CRAFT-04**: Upgraded `ecology.py:audit_ecosystem` from pairwise mutual predation checks to full 3-color DFS cycle detection for arbitrary N-tier food-web loops (`ECO-303`).
+- **Performance Optimizations (PERF-01, PERF-02, PERF-03)**:
+  - **PERF-01 / PERF-02**: Replaced $O(N^2)$ repetitive string buffer concatenations with buffered list joins in `prophecy.py` and `series_continuity.py`; converted character trait regexes to non-greedy matching.
+  - **PERF-03**: Optimized `resonance.py` graph traversal from $O(V^2)$ to $O(V+E)$ using `collections.deque.popleft()`.
+- **Studio Hub Heuristic Analytics (`scripts/lib/studio_hub.py`, ARCH-05)**:
+  - Implemented multi-agent editorial heuristics (`/api/council`) and scored relevance search (`/api/query`).
+- **Quality Gates & Test Suite Expansion (`tests/`, `pyproject.toml`, `.github/workflows/ci.yml`)**:
+  - Expanded test suite to **952 automated unit and integration tests** (950 passed, 2 skipped, 0 failures).
+  - Maintained 0 Ruff linter violations across the repository.
+  - Strict Mypy static type checking passing across all 76 source files.
+  - Added Windows and macOS runner matrix to `.github/workflows/ci.yml`.
 
 ### Added (Universal Ecosystem Cohesion, Zero Isolated Mesh Nodes & Comprehensive CLI Alias Resolution — Phase 24)
 - **Universal Resonance Mesh Topology Expansion (`scripts/lib/resonance.py`, `ADR-117`)**:

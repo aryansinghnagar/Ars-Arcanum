@@ -278,20 +278,71 @@ def calculate_ppp_rates(economies: dict) -> dict:
 
 
 def audit_manuscript_prices(manuscript_dir: Path, economies: dict) -> list:
-    """Audits manuscript scene files for price anomalies and unregistered currencies."""
+    """Audits manuscript scene files for price anomalies and unregistered currencies with currency & PPP normalization."""
     findings = []
     if not manuscript_dir or not manuscript_dir.is_dir():
         return findings
 
-    # Collect all known currency names across economies
+    ppp_matrix = calculate_ppp_rates(economies)
+
+    # Collect known currencies and build mapping: currency_norm -> list of (economy_dict, denomination_rate)
     known_currencies = set()
-    global_basket = {}
+    curr_map = {}
     for e in economies.values():
-        for c in e.get("currencies", {}):
-            known_currencies.add(normalize_name(c))
-        for item, price in e.get("commodity_basket", {}).items():
-            if isinstance(price, (int, float)):
-                global_basket[normalize_name(item)] = float(price)
+        e_currencies = e.get("currencies", {})
+        for c, rate in e_currencies.items():
+            c_norm = normalize_name(c)
+            known_currencies.add(c_norm)
+            rate_val = float(rate) if isinstance(rate, (int, float)) and float(rate) > 0 else 1.0
+            if c_norm not in curr_map:
+                curr_map[c_norm] = []
+            curr_map[c_norm].append((e, rate_val))
+
+    def get_basket_price(basket: dict, item_norm: str) -> float | None:
+        for k, v in basket.items():
+            if normalize_name(k) == item_norm and isinstance(v, (int, float)):
+                return float(v)
+        return None
+
+    def resolve_baseline_and_amount(amount: float, curr_name: str, item_name: str) -> tuple[float, float | None]:
+        """Converts price to base currency and finds the baseline basket price."""
+        curr_norm = normalize_name(curr_name)
+        item_norm = normalize_name(item_name)
+
+        candidates = curr_map.get(curr_norm, [])
+        if candidates:
+            # Pick candidate whose economy defines the item, or fallback to first candidate
+            selected_econ, denom_rate = candidates[0]
+            for econ, rate_val in candidates:
+                if get_basket_price(econ.get("commodity_basket", {}), item_norm) is not None:
+                    selected_econ, denom_rate = econ, rate_val
+                    break
+
+            amount_base = amount * denom_rate
+            e_basket = selected_econ.get("commodity_basket", {})
+            direct_price = get_basket_price(e_basket, item_norm)
+            if direct_price is not None:
+                return amount_base, direct_price
+
+            # Try PPP cross-rate from other economies
+            e_name = selected_econ.get("name")
+            if e_name and e_name in ppp_matrix:
+                for other_name, ppp_rate in ppp_matrix[e_name].items():
+                    if ppp_rate and other_name in economies:
+                        other_basket = economies[other_name].get("commodity_basket", {})
+                        other_price = get_basket_price(other_basket, item_norm)
+                        if other_price is not None:
+                            return amount_base, other_price * ppp_rate
+
+            return amount_base, None
+        else:
+            # Unregistered currency fallback: search any economy basket
+            for econ in economies.values():
+                e_basket = econ.get("commodity_basket", {})
+                price = get_basket_price(e_basket, item_norm)
+                if price is not None:
+                    return amount, price
+            return amount, None
 
     # Regex for @price: amount currency for item
     price_tag_regex = re.compile(r"@price:\s*([\d\.]+)\s+([A-Za-z\s]+?)\s+(?:for|on)\s+([A-Za-z\s_-]+)", re.IGNORECASE)
@@ -312,7 +363,6 @@ def audit_manuscript_prices(manuscript_dir: Path, economies: dict) -> list:
                     item_name = m.group(3).strip()
 
                     curr_norm = normalize_name(curr_name)
-                    item_norm = normalize_name(item_name)
 
                     if known_currencies and curr_norm not in known_currencies:
                         findings.append({
@@ -323,33 +373,31 @@ def audit_manuscript_prices(manuscript_dir: Path, economies: dict) -> list:
                             "line": line_idx,
                         })
 
-                    if item_norm in global_basket:
-                        base_price = global_basket[item_norm]
-                        if base_price > 0:
-                            ratio = amount / base_price
-                            if ratio > 20.0:
-                                findings.append({
-                                    "id": "ECO-101",
-                                    "severity": "WARNING",
-                                    "message": f"Severe Price Inflation Anomaly: '{item_name}' costs {amount} {curr_name} (baseline basket: {base_price}). Ratio is {ratio:.1f}x normal.",
-                                    "file": str(md_file.relative_to(manuscript_dir)),
-                                    "line": line_idx,
-                                })
-                            elif ratio < 0.05:
-                                findings.append({
-                                    "id": "ECO-101",
-                                    "severity": "WARNING",
-                                    "message": f"Severe Price Deflation Anomaly: '{item_name}' costs {amount} {curr_name} (baseline basket: {base_price}). Ratio is {ratio:.2f}x normal.",
-                                    "file": str(md_file.relative_to(manuscript_dir)),
-                                    "line": line_idx,
-                                })
+                    amount_base, base_price = resolve_baseline_and_amount(amount, curr_name, item_name)
+                    if base_price is not None and base_price > 0:
+                        ratio = amount_base / base_price
+                        if ratio > 20.0:
+                            findings.append({
+                                "id": "ECO-101",
+                                "severity": "WARNING",
+                                "message": f"Severe Price Inflation Anomaly: '{item_name}' costs {amount} {curr_name} (baseline basket: {base_price:.2f}). Ratio is {ratio:.1f}x normal.",
+                                "file": str(md_file.relative_to(manuscript_dir)),
+                                "line": line_idx,
+                            })
+                        elif ratio < 0.05:
+                            findings.append({
+                                "id": "ECO-101",
+                                "severity": "WARNING",
+                                "message": f"Severe Price Deflation Anomaly: '{item_name}' costs {amount} {curr_name} (baseline basket: {base_price:.2f}). Ratio is {ratio:.2f}x normal.",
+                                "file": str(md_file.relative_to(manuscript_dir)),
+                                "line": line_idx,
+                            })
 
                 # Check prose patterns
                 for m in prose_price_regex.finditer(line):
                     amount = float(m.group(1))
                     curr_name = m.group(2).strip()
                     item_name = m.group(3).strip()
-                    item_norm = normalize_name(item_name)
                     curr_norm = normalize_name(curr_name)
 
                     if known_currencies and curr_norm not in known_currencies:
@@ -361,16 +409,15 @@ def audit_manuscript_prices(manuscript_dir: Path, economies: dict) -> list:
                             "line": line_idx,
                         })
 
-                    if item_norm in global_basket:
-                        base_price = global_basket[item_norm]
-                        if base_price > 0 and (amount / base_price > 50.0):
-                            findings.append({
-                                "id": "ECO-101",
-                                "severity": "WARNING",
-                                "message": f"Prose Price Discrepancy: '{item_name}' mentioned as costing {amount} {curr_name} (baseline: {base_price}).",
-                                "file": str(md_file.relative_to(manuscript_dir)),
-                                "line": line_idx,
-                            })
+                    amount_base, base_price = resolve_baseline_and_amount(amount, curr_name, item_name)
+                    if base_price is not None and base_price > 0 and (amount_base / base_price > 50.0):
+                        findings.append({
+                            "id": "ECO-101",
+                            "severity": "WARNING",
+                            "message": f"Prose Price Discrepancy: '{item_name}' mentioned as costing {amount} {curr_name} (baseline: {base_price:.2f}).",
+                            "file": str(md_file.relative_to(manuscript_dir)),
+                            "line": line_idx,
+                        })
         except Exception as e:
             logger.warning("Failed to audit manuscript file %s: %s", md_file, e)
 

@@ -45,7 +45,7 @@ Your writing represents years of intellectual effort. Ars Arcanum adheres to the
 
 ## Native Ars Arcanum Dual-Target Disaster Recovery Backups
 
-In addition to system-level Déjà Dup backups, Ars Arcanum includes a native, standalone dual-target archive manager (`arcanum backup`) with SHA-256 integrity validation.
+In addition to system-level Déjà Dup backups, Ars Arcanum includes a native, standalone, pure-Python dual-target archive manager (`arcanum backup` / `scripts/lib/backup.py`) with SHA-256 integrity validation and cross-platform file locking (`ArcanumLock`).
 
 ### 1. Configure Secondary Secure Destination (External / USB)
 You can configure a persistent secondary replication target via CLI or the GTK Desktop Control Center:
@@ -53,6 +53,9 @@ You can configure a persistent secondary replication target via CLI or the GTK D
 ```bash
 # Set secondary backup destination to an external drive or USB stick:
 arcanum backup-dest set /media/username/SecureUSB/ArsArcanumBackups
+
+# Cross-platform Python CLI equivalent (Windows / macOS / Linux):
+python scripts/lib/cli.py backup-dest set D:/SecureUSB/ArsArcanumBackups
 
 # View currently configured backup destination:
 arcanum backup-dest get
@@ -64,8 +67,8 @@ arcanum backup-dest clear
 In the **GTK Control Center** (Tab 4: Snapshots & Backups), click **"📁 Set Secondary Backup Path..."** to select your connected external storage volume.
 
 ### 2. Creating Verified Dual-Target Archives
-Whenever you run `arcanum backup <project>` or click **"📦 Create Verified Backup Archive"** in the Control Center:
-1. A compressed, standalone `.tar.gz` archive is compiled and stored in the primary project backup directory (`~/Backups/` or `<project>/05-Backups/`).
+Whenever you run `arcanum backup <project>` (or `python scripts/lib/cli.py backup <project>`):
+1. A compressed, standalone `.tar.gz` archive is compiled using Python's standard `tarfile(filter="data")` and stored in the primary project backup directory (`~/Backups/` or `<project>/05-Backups/`).
 2. An SHA-256 checksum manifest (`.sha256`) is computed and validated immediately.
 3. If a secondary destination is configured and mounted, the verified archive and checksum are automatically replicated to the external drive.
 4. If the external drive is unmounted or unplugged, the tool logs an advisory warning without failing your primary local backup.
@@ -75,9 +78,11 @@ Whenever you run `arcanum backup <project>` or click **"📦 Create Verified Bac
 ## Step 4: Testing Restoration (Fire Drill)
 
 A backup is only as good as its restore test. Once a month:
-1. **Via Ars Arcanum Restore Engine**:
+1. **Via Ars Arcanum Pure-Python Restore Engine**:
    ```bash
    arcanum restore /path/to/backup_archive.tar.gz
+   # Or directly on Windows / macOS:
+   python scripts/lib/cli.py restore /path/to/backup_archive.tar.gz
    ```
 2. **Via Déjà Dup**:
    - Open **Backups**.

@@ -8,6 +8,7 @@ external drive replication, and disaster recovery restore drills.
 
 import logging
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -122,7 +123,7 @@ class SafetyStudioMixin:
         target = self.current_manuscript_path or self.current_world_path or str(UNIVERSES_DIR)
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
         note = f"Quick Snapshot: {now_str}"
-        cmd = ["bash", str(PROJECT_ROOT / "scripts" / "arcanum"), "snapshot", target, "-m", note]
+        cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "cli.py"), "snapshot", target, "-m", note]
 
         def _worker():
             res = subprocess.run(cmd, capture_output=True, text=True)
@@ -138,7 +139,7 @@ class SafetyStudioMixin:
     def on_save_snapshot_clicked(self, btn):
         target = self.current_manuscript_path or self.current_world_path or str(UNIVERSES_DIR)
         note = self.entry_snap_note.get_text().strip() or f"Snapshot: {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-        cmd = ["bash", str(PROJECT_ROOT / "scripts" / "arcanum"), "snapshot", target, "-m", note]
+        cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "cli.py"), "snapshot", target, "-m", note]
 
         def _worker():
             res = subprocess.run(cmd, capture_output=True, text=True)
@@ -158,7 +159,7 @@ class SafetyStudioMixin:
             self.show_error("Please select an active World or Manuscript first.")
             return
 
-        cmd = ["bash", str(PROJECT_ROOT / "scripts" / "arcanum"), "backup", target]
+        cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "cli.py"), "backup", target]
         self.set_status(f"Creating verified backup for {Path(target).name}...")
 
         def _worker():
@@ -189,7 +190,7 @@ class SafetyStudioMixin:
         dialog.destroy()
 
         if res == Gtk.ResponseType.OK and archive_path:
-            cmd = ["bash", str(PROJECT_ROOT / "scripts" / "arcanum"), "restore", archive_path]
+            cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "cli.py"), "restore", archive_path]
             self.set_status(f"Restoring {Path(archive_path).name}...")
 
             def _worker():

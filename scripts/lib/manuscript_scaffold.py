@@ -405,7 +405,8 @@ def read_manifest_structure(manuscript_dir: Path | str) -> tuple[str, list[str] 
     try:
         content = yaml_file.read_text(encoding="utf-8", errors="replace")
         structure_match = re.search(r'^\s*structure:\s*["\']?([^"\n\r\']+)["\']?', content, re.MULTILINE)
-        structure_key = structure_match.group(1).strip() if structure_match else "three_act"
+        raw_struct = structure_match.group(1).strip() if structure_match else "three_act"
+        structure_key = re.sub(r"[^A-Za-z0-9_-]", "", raw_struct) or "three_act"
 
         custom_divs: list[str] = []
         if "custom_divisions:" in content:
@@ -413,8 +414,9 @@ def read_manifest_structure(manuscript_dir: Path | str) -> tuple[str, list[str] 
             for line in div_block.splitlines():
                 if line.strip().startswith("-"):
                     val = re.sub(r'^\s*-\s*["\']?([^"\n\r\']+)["\']?', r'\1', line).strip()
-                    if val:
-                        custom_divs.append(val)
+                    val_clean = re.sub(r"[^A-Za-z0-9_ -]", "", val).strip()
+                    if val_clean:
+                        custom_divs.append(val_clean)
                 elif line.strip() and not line.startswith(" ") and not line.startswith("\t"):
                     break
         return structure_key, (custom_divs if custom_divs else None)

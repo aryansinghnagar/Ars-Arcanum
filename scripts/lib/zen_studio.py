@@ -124,13 +124,13 @@ def build_zen_studio_bundle(
 
     tip_db = get_tip_database()
     tips_list = [t.to_dict() for t in tip_db.get_by_context("drafting")] + [t.to_dict() for t in tip_db.get_all()[:35]]
-    tips_json = json.dumps(tips_list)
+    tips_json = json.dumps(tips_list).replace("</", "<\\/")
     tips_enabled_val = "true" if are_tips_enabled() else "false"
 
-    chapters_json = json.dumps(chapters)
-    lore_json = json.dumps(lore_entities)
-    catalog_json = json.dumps(engine_catalog)
-    sparks_json = json.dumps(sparks)
+    chapters_json = json.dumps(chapters).replace("</", "<\\/")
+    lore_json = json.dumps(lore_entities).replace("</", "<\\/")
+    catalog_json = json.dumps(engine_catalog).replace("</", "<\\/")
+    sparks_json = json.dumps(sparks).replace("</", "<\\/")
 
     target_out = output_path or Path("dist") / "zen_studio.html"
 

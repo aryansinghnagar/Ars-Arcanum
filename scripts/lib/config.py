@@ -71,20 +71,20 @@ def load_config() -> dict:
 def save_config(config_data: dict) -> bool:
     """Saves configuration dictionary to disk with restrictive 0o600 permissions."""
     config_path = get_config_file_path()
-    config_dir = config_path.parent
     try:
-        config_dir.mkdir(parents=True, exist_ok=True)
-        tmp_path = config_path.with_suffix(".tmp")
-        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-        fd = os.open(tmp_path, flags, 0o600)
-        with open(fd, "w", encoding="utf-8") as f:
-            json.dump(config_data, f, indent=2, ensure_ascii=False)
-            f.write("\n")
         try:
-            os.chmod(tmp_path, 0o600)
+            from lib.fs_utils import atomic_write
+        except ImportError:
+            try:
+                from fs_utils import atomic_write
+            except ImportError:
+                from lib._bootstrap import atomic_write
+        data_str = json.dumps(config_data, indent=2, ensure_ascii=False) + "\n"
+        atomic_write(config_path, data_str)
+        try:
+            os.chmod(config_path, 0o600)
         except OSError:
             pass
-        tmp_path.replace(config_path)
         return True
     except Exception as e:
         logger.error("Failed to write configuration file at %s: %s", config_path, e)
@@ -148,6 +148,9 @@ def get_backup_dest() -> str:
     cfg = load_config()
     dest = cfg.get("secure_backup_destination") or cfg.get("backup_destination") or ""
     return str(dest).strip()
+
+
+get_backup_destination = get_backup_dest
 
 
 def set_backup_dest(dest_path: str) -> bool:

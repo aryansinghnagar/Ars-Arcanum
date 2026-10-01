@@ -7,10 +7,10 @@
 | Path | Purpose | Evidence |
 |------|---------|----------|
 | `scripts/` | Main application entry points (`arcanum`, `arcanum_app.py`, `package_distribution.py`) | `scripts/arcanum`, `scripts/arcanum_app.py` |
-| `scripts/lib/` | 53 core and craft domain engines, presentation modules, and bootstrap safety utilities | `scripts/lib/registry.py`, `scripts/lib/_bootstrap.py` |
+| `scripts/lib/` | 53 core and craft domain engines, lifecycle managers (`backup.py`, `restore.py`, `snapshot.py`), presentation modules, and bootstrap safety utilities | `scripts/lib/registry.py`, `scripts/lib/_bootstrap.py` |
 | `scripts/lib/ui_gtk3/` | Modular PyGObject GTK3 desktop interface package (<800 lines/file) | `scripts/lib/ui_gtk3/window.py` |
 | `docs/` | Comprehensive craft documentation, user guides, and master engine encyclopedia | `docs/README.md`, `docs/ENGINE_LOGIC_ENCYCLOPEDIA.md` |
-| `tests/` | Exhaustive 937-test suite covering unit, integration, and security constraints | `tests/test_*.py` |
+| `tests/` | Exhaustive 952-test suite covering unit, integration, and security constraints | `tests/test_*.py` |
 | `templates/` | Standardized world bibles, demo cosmos (`Eldoria`), novelWriter project templates | `templates/demo-cosmos/`, `templates/world-bible/` |
 | `flatpak/` | Flathub manifest validator and packaging scripts | `flatpak/flathub_submission_validate.py` |
 | `launchers/` | FreeDesktop desktop entry files and application icons | `launchers/org.arsarcanum.ArsArcanum.desktop` |

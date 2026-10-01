@@ -6,7 +6,7 @@
 [![Release: v4.2.1](https://img.shields.io/badge/Release-v4.2.1-blue.svg)](CHANGELOG.md)
 [![Status: Production Stable](https://img.shields.io/badge/Status-Production%20Stable-brightgreen.svg)](#)
 [![CI](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml/badge.svg)](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml)
-[![Tests: 937](https://img.shields.io/badge/Tests-935%2F937%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
+[![Tests: 952](https://img.shields.io/badge/Tests-950%2F952%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
 [![Coverage: 86%](https://img.shields.io/badge/Coverage-86%25-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
@@ -15,7 +15,7 @@
 
 ## What Is Ars Arcanum?
 
-Ars Arcanum (code-named *Scriptorium*) is a **sovereign, local-first authoring platform** built for Linux. It gives fiction writers a complete professional studio — from world-bible lore notes all the way to print-ready PDFs — without a single cloud subscription, telemetry call, or pip dependency.
+Ars Arcanum (code-named *Scriptorium*) is a **sovereign, local-first authoring platform** and craft studio. It gives fiction writers a complete professional studio — from world-bible lore notes all the way to print-ready PDFs — without a single cloud subscription, telemetry call, or pip dependency.
 
 Everything you write is stored as **plain Markdown** (`.md`) and standard **Word format** (`.docx`) on your own hard drive. You can open your manuscript 50 years from now on any computer.
 
@@ -28,22 +28,21 @@ Everything you write is stored as **plain Markdown** (`.md`) and standard **Word
 
 | Studio | What it does |
 |:--|:--|
-| **🖥️ Control Center** | One-click GTK desktop app — your authoring cockpit. No terminal needed for daily writing. |
+| **🖥️ Control Center** | One-click GTK desktop app (Linux) & browser-based Studio Hub (Cross-Platform) — your authoring cockpit. No terminal needed for daily writing. |
 | **🪐 World Bible** | Obsidian-powered lore vault with pre-configured plugins for characters, maps, timelines, and magic systems. |
 | **✍️ Drafting** | Write in Microsoft Word, LibreOffice, or Google Docs. Changes sync back to Markdown automatically. |
-| **🔮 50+ Craft & Utility Engines** | Astrophysics, hard magic, conlang phonetics, faction politics, narrative pacing, prophecy tracking, and more — all offline. |
+| **🔮 53+ Craft & Utility Engines** | Astrophysics, hard magic, conlang phonetics, faction politics, narrative pacing, prophecy tracking, and more — all offline. |
 | **📚 1-Click Publishing** | Sub-second print PDF (Typst), EPUB (Pandoc), and submission DOCX from a single button click. |
-| **🔒 Vault Safety** | Automatic Git snapshots, SHA-256 verified backups, and USB replication — your work is never at risk. |
+| **🔒 Vault Safety** | Pure-Python Git snapshots, SHA-256 verified backups, and USB replication — your work is never at risk. |
 | **🧠 Semantic Search** | Ask questions across your entire lore library with local TF-IDF + SQLite full-text search. No API key needed. |
 
 ---
 
 ## ⚡ 5-Minute Setup
 
-> **Works on:** Linux Mint 21/22 · Debian 12/13 · Ubuntu 22.04/24.04 · Fedora · Arch · openSUSE  
-> **Does NOT work on:** Windows or macOS (Linux-native tools required)
-
-> **CI-verified on:** Ubuntu 24.04 (GitHub Actions). Other distributions are community-supported.
+> **Full GUI Suite & Launchers:** Linux Mint 21/22 · Debian 12/13 · Ubuntu 22.04/24.04 · Fedora · Arch · openSUSE  
+> **Core CLI, Studio Hub & 53 Craft Engines:** Cross-Platform (Linux, macOS, Windows with Python 3.10+)  
+> **CI-verified on:** Ubuntu 24.04, macOS, Windows (GitHub Actions matrix).
 
 **Step 1 — Get the code:**
 ```bash

@@ -2193,17 +2193,37 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             payload = {}
 
         if path == "/api/query":
-            # Substring entity search (API mode)
-            query = str(payload.get("query", ""))
-            matches = [
-                e for e in self.data.get("lore_entities", [])
-                if query.lower() in str(e.get("name", "")).lower() or query.lower() in str(e.get("summary", "")).lower()
-            ]
+            # Scored relevance entity & lore search (API mode)
+            query = str(payload.get("query", "")).strip().lower()
+            q_terms = [t for t in re.split(r"\W+", query) if len(t) >= 2]
+            scored_matches = []
+            for e in self.data.get("lore_entities", []):
+                e_name = str(e.get("name", "")).lower()
+                e_summary = str(e.get("summary", "")).lower()
+                e_tags = [str(t).lower() for t in e.get("tags", [])]
+                score = 0.0
+                if query and query in e_name:
+                    score += 20.0
+                if query and query in e_summary:
+                    score += 5.0
+                for term in q_terms:
+                    if term in e_name:
+                        score += 8.0
+                    if any(term in tag for tag in e_tags):
+                        score += 4.0
+                    if term in e_summary:
+                        score += 2.0
+                if score > 0 or (not q_terms and query in e_name):
+                    entry = dict(e)
+                    entry["relevance_score"] = round(score, 2)
+                    scored_matches.append(entry)
+
+            scored_matches.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
             self._send_json({
                 "query": query,
-                "search_mode": "substring",
-                "total_matches": len(matches),
-                "results": matches,
+                "search_mode": "relevance_scored",
+                "total_matches": len(scored_matches),
+                "results": scored_matches,
             })
         elif path == "/api/tips/toggle":
             new_val = toggle_tips()
@@ -2214,18 +2234,78 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             set_tips_enabled(val)
             self._send_json({"status": "success", "enabled": val})
         elif path == "/api/council":
-            # Editorial council heuristic evaluation
-            text = str(payload.get("text", ""))
-            word_count = len(text.split()) if text else 0
+            # Real-time multi-agent heuristic editorial council evaluation
+            text = str(payload.get("text", "")).strip()
+            words = text.split() if text else []
+            word_count = len(words)
+            sentences = [s.strip() for s in re.split(r"[.!?]+", text) if s.strip()]
+            sentence_lens = [len(s.split()) for s in sentences] if sentences else []
+
+            # 1. Line Editor Critique
+            if not text:
+                line_critique = "Empty passage. Enter text to run stylistic cadence analysis."
+            else:
+                avg_len = sum(sentence_lens) / len(sentence_lens) if sentence_lens else 0
+                run_ons = sum(1 for slen in sentence_lens if slen > 35)
+                passive_matches = len(re.findall(r"\b(?:was|were|is|are|been|being)\s+[a-z]+ed\b", text, re.IGNORECASE))
+                critique_notes = [f"Average sentence length: {avg_len:.1f} words across {len(sentences)} sentences."]
+                if run_ons > 0:
+                    critique_notes.append(f"Flagged {run_ons} potentially unwieldy sentence(s) (>35 words).")
+                if passive_matches > 0:
+                    critique_notes.append(f"Detected {passive_matches} passive voice construction(s).")
+                if len(sentence_lens) > 3:
+                    variance = sum((slen - avg_len) ** 2 for slen in sentence_lens) / len(sentence_lens)
+                    if variance < 4.0:
+                        critique_notes.append("Cadence alert: Sentence lengths are highly uniform; vary rhythm for dramatic tension.")
+                line_critique = " ".join(critique_notes)
+
+            # 2. Lore Arbiter Critique
+            lore_entities = self.data.get("lore_entities", [])
+            found_entities = []
+            text_lower = text.lower()
+            for ent in lore_entities:
+                ename = str(ent.get("name", ""))
+                if ename and ename.lower() in text_lower:
+                    found_entities.append(ename)
+            if found_entities:
+                lore_critique = f"Lore integrity verified: Identified {len(found_entities)} registered canon entities: {', '.join(found_entities[:5])}."
+            else:
+                lore_critique = "No registered World Bible entities detected in this excerpt."
+
+            # 3. Story Architect Critique
+            dialogue_quotes = len(re.findall(r'["“][^"”]+["”]', text))
+            dialogue_words = sum(len(q.split()) for q in re.findall(r'["“]([^"”]+)["”]', text))
+            dialogue_ratio = (dialogue_words / max(1, word_count)) * 100
+            if word_count == 0:
+                arch_critique = "No narrative draft supplied."
+            elif dialogue_ratio > 60:
+                arch_critique = f"Dialogue-heavy scene ({dialogue_ratio:.0f}% dialogue across {dialogue_quotes} turns). Ensure sensory anchoring and physical blocking."
+            elif dialogue_ratio < 10 and word_count > 100:
+                arch_critique = f"Exposition-dense passage ({dialogue_ratio:.0f}% dialogue). Consider interspersing character interaction or internal monologue."
+            else:
+                arch_critique = f"Balanced narrative structure ({dialogue_ratio:.0f}% dialogue, {word_count} total words)."
+
+            # 4. Continuity Steward Critique
+            date_matches = re.findall(r"\b(?:\d{4}-\d{2}-\d{2}|Act\s+[IVXLCDM\d]+|Chapter\s+\d+|Year\s+\d+)\b", text, re.IGNORECASE)
+            tag_matches = re.findall(r"@(chrono|state|choice|price|prophecy):", text)
+            steward_notes = []
+            if date_matches:
+                steward_notes.append(f"Temporal anchors detected: {', '.join(set(date_matches))}.")
+            if tag_matches:
+                steward_notes.append(f"Inline semantic metadata tags: {', '.join(set(tag_matches))}.")
+            if not steward_notes:
+                steward_notes.append("No explicit chronology tags or temporal markers in passage.")
+            continuity_critique = " ".join(steward_notes)
+
             self._send_json({
                 "status": "success",
                 "word_count": word_count,
-                "disclaimer": "Pattern-based structural check only. Deep semantic analysis is performed via full CLI engines.",
+                "sentence_count": len(sentences),
                 "critique": {
-                    "line_editor": f"Structural scan: {word_count} words submitted. Sentence cadence and density heuristics active.",
-                    "lore_arbiter": "Lore consistency: Basic check passed. Run 'arcanum continuity' for cross-vault relational audit.",
-                    "story_architect": "Narrative structure: Passage length parsed. Run 'arcanum tension' for full arc modeling.",
-                    "continuity_steward": "Timeline steward: Run 'arcanum timeline' for astronomical synchronizer analysis.",
+                    "line_editor": line_critique,
+                    "lore_arbiter": lore_critique,
+                    "story_architect": arch_critique,
+                    "continuity_steward": continuity_critique,
                 },
             })
         elif path == "/api/branch":

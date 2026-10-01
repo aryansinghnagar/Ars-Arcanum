@@ -45,17 +45,27 @@ except ImportError:
             p.parent.mkdir(parents=True, exist_ok=True)
             is_bytes = isinstance(data, (bytes, bytearray))
             fd, tmp = _tf.mkstemp(dir=p.parent, prefix=f".{p.name}.", suffix=".tmp")
+            fd_closed = False
             try:
-                if is_bytes:
-                    with _os.fdopen(fd, "wb") as f:
-                        f.write(data)
-                        f.flush()
-                        _os.fsync(f.fileno())
-                else:
-                    with _os.fdopen(fd, "w", encoding=encoding, newline="") as f:
-                        f.write(str(data))
-                        f.flush()
-                        _os.fsync(f.fileno())
+                try:
+                    if is_bytes:
+                        with _os.fdopen(fd, "wb") as f:
+                            fd_closed = True
+                            f.write(data)
+                            f.flush()
+                            _os.fsync(f.fileno())
+                    else:
+                        with _os.fdopen(fd, "w", encoding=encoding, newline="") as f:
+                            fd_closed = True
+                            f.write(str(data))
+                            f.flush()
+                            _os.fsync(f.fileno())
+                finally:
+                    if not fd_closed:
+                        try:
+                            _os.close(fd)
+                        except OSError:
+                            pass
                 _os.replace(tmp, p)
             except BaseException:
                 try:

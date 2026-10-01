@@ -454,6 +454,56 @@ def calc_habitability_gravity(mass_kg: float, radius_m: float, star_luminosity_w
     }
 
 
+def calc_roche_limit(
+    planet_radius_m: float,
+    density_planet_kgm3: float = 5515.0,
+    density_moon_kgm3: float = 3344.0,
+    density_ratio: float | None = None,
+) -> dict:
+    """Calculates rigid and fluid Roche tidal disruption limits and ring formation zones.
+
+    Formulas:
+      - Rigid Roche Limit: d_rigid = R_M * (2 * rho_M / rho_m)^(1/3)
+      - Fluid Roche Limit: d_fluid = 2.44 * R_M * (rho_M / rho_m)^(1/3)
+    """
+    if planet_radius_m <= 0:
+        raise ValueError("Planetary radius must be greater than zero.")
+
+    if density_ratio is not None and density_ratio > 0:
+        ratio = float(density_ratio)
+    else:
+        if density_planet_kgm3 <= 0 or density_moon_kgm3 <= 0:
+            raise ValueError("Densities must be greater than zero.")
+        ratio = density_planet_kgm3 / density_moon_kgm3
+
+    c_root = ratio ** (1.0 / 3.0)
+    d_rigid_m = planet_radius_m * (2.0 ** (1.0 / 3.0)) * c_root
+    d_fluid_m = 2.44 * planet_radius_m * c_root
+
+    return {
+        "planet_radius_m": planet_radius_m,
+        "planet_radius_km": planet_radius_m / 1000.0,
+        "density_ratio": round(ratio, 4),
+        "rigid_roche_limit_m": d_rigid_m,
+        "rigid_roche_limit_km": d_rigid_m / 1000.0,
+        "rigid_roche_limit_radii": round(d_rigid_m / planet_radius_m, 3),
+        "fluid_roche_limit_m": d_fluid_m,
+        "fluid_roche_limit_km": d_fluid_m / 1000.0,
+        "fluid_roche_limit_radii": round(d_fluid_m / planet_radius_m, 3),
+        "ring_formation_zone": {
+            "inner_km": round(planet_radius_m / 1000.0, 1),
+            "outer_km": round(d_fluid_m / 1000.0, 1),
+        },
+    }
+
+
+# Canonical aliases
+calc_roche_limits = calc_roche_limit
+roche_limit = calc_roche_limit
+calc_roche = calc_roche_limit
+calc_brachistochrone_transit = calc_brachistochrone
+
+
 
 def calc_planetary_dossier(
     mass_kg: float, radius_m: float, star_luminosity_watts: float,
@@ -719,6 +769,15 @@ def main():
     p_hab.add_argument("--star-lum", default="1.0", help="Host star luminosity relative to Sun (default: 1.0)")
     p_hab.add_argument("--json", action="store_true", help="Output machine-readable JSON")
 
+    # 6. Roche Limit & Ring Formation
+    p_roche = subparsers.add_parser("roche", help="Calculate planetary tidal Roche limits and ring boundaries")
+    p_roche.add_argument("--planet-radius", default="6371km", help="Primary body radius (e.g. '6371km', '1.0 Earth', or '70000km')")
+    p_roche.add_argument("--density-planet", type=float, default=5515.0, help="Primary body density in kg/m^3 (default: 5515 Earth)")
+    p_roche.add_argument("--density-moon", type=float, default=3344.0, help="Satellite density in kg/m^3 (default: 3344 Moon)")
+    p_roche.add_argument("--density-ratio", type=float, default=None, help="Direct density ratio (rho_M / rho_m)")
+    p_roche.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    p_roche.add_argument("--html", help="Path to export interactive HTML report")
+
     
     p_dossier = subparsers.add_parser("dossier", help="Generate comprehensive Star System Dossier for non-standard planets")
     p_dossier.add_argument("--mass", default="1.0", help="Planet mass in Earth masses")
@@ -918,6 +977,43 @@ def main():
                     ("Conservative Habitable Zone", f"{hz['inner_au']:.2f} AU – {hz['outer_au']:.2f} AU"),
                 ]
                 print_table("Planetary Habitability & Gravity Analysis", table)
+
+        elif args.subcommand == "roche":
+            # parse radius
+            r_str = str(args.planet_radius).strip().lower()
+            if r_str.endswith("km"):
+                r_m = float(r_str[:-2]) * 1000.0
+            elif r_str.endswith("m"):
+                r_m = float(r_str[:-1])
+            elif "earth" in r_str:
+                r_m = float(r_str.replace("earth", "").strip() or "1.0") * EARTH_RADIUS
+            elif "jupiter" in r_str:
+                r_m = float(r_str.replace("jupiter", "").strip() or "1.0") * 71492000.0
+            else:
+                r_m = float(r_str) * 1000.0 if float(r_str) < 1000000 else float(r_str)
+
+            res = calc_roche_limit(
+                planet_radius_m=r_m,
+                density_planet_kgm3=float(args.density_planet),
+                density_moon_kgm3=float(args.density_moon),
+                density_ratio=float(args.density_ratio) if args.density_ratio is not None else None,
+            )
+
+            if args.json:
+                print(json.dumps(res, indent=2))
+            else:
+                table = [
+                    ("Primary Body Radius", f"{res['planet_radius_km']:,.1f} km"),
+                    ("Density Ratio (ρ_planet / ρ_moon)", f"{res['density_ratio']:.4f}"),
+                    ("Rigid Roche Limit", f"{res['rigid_roche_limit_km']:,.1f} km ({res['rigid_roche_limit_radii']:.2f} R_planet)"),
+                    ("Fluid Roche Limit", f"{res['fluid_roche_limit_km']:,.1f} km ({res['fluid_roche_limit_radii']:.2f} R_planet)"),
+                    ("Stable Ring Formation Zone", f"{res['ring_formation_zone']['inner_km']:,.1f} km – {res['ring_formation_zone']['outer_km']:,.1f} km"),
+                ]
+                print_table("Planetary Tidal Roche Limits & Ring Boundaries", table)
+
+            if getattr(args, "html", None):
+                out_p = Path(args.html)
+                generate_astrophysics_html_report(f"Roche Limits ({res['planet_radius_km']} km body)", {"Tidal Boundaries": res}, out_p)
 
     except Exception as e:
         print(f"\033[31mError: {e}\033[0m", file=sys.stderr)

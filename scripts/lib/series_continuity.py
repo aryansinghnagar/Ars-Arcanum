@@ -44,8 +44,8 @@ PRONOUN_EXCLUSIONS = {
 }
 
 # Physical trait extraction patterns
-EYE_COLOR_PATTERN = re.compile(r'\b([A-Z][a-zA-Z]{1,20})\b[^\.\n]{0,80}\b(?:had|with|of|,|and)\s+([a-z]+)\s+eyes\b', re.IGNORECASE)
-HAIR_COLOR_PATTERN = re.compile(r'\b([A-Z][a-zA-Z]{1,20})\b[^\.\n]{0,80}\b(?:had|with|of|,|and)\s+([a-z]+)\s+hair\b', re.IGNORECASE)
+EYE_COLOR_PATTERN = re.compile(r'\b([A-Z][a-zA-Z]{1,20})\b[^\.\n]{0,80}?\b(?:had|with|of|,|and)\s+([a-z]+)\s+eyes\b', re.IGNORECASE)
+HAIR_COLOR_PATTERN = re.compile(r'\b([A-Z][a-zA-Z]{1,20})\b[^\.\n]{0,80}?\b(?:had|with|of|,|and)\s+([a-z]+)\s+hair\b', re.IGNORECASE)
 DEATH_PATTERNS = [
     re.compile(
         r'\b([A-Z][a-zA-Z]{1,20})\b\s+(?:died|was slain|perished|succumbed|fell in battle|was executed|'
@@ -61,14 +61,14 @@ DEATH_PATTERNS = [
 
 def extract_book_entities(book_dir: Path) -> dict:
     """Extracts characters, physical traits, and deaths mentioned within a book volume."""
-    text_content = ""
+    text_chunks = []
     deaths = set()
     character_traits: dict[str, dict[str, Any]] = defaultdict(lambda: {"eyes": set(), "hair": set(), "mentions": 0, "custom": {}})
 
     for md_file in sorted(book_dir.rglob("*.md")):
         if not md_file.name.startswith((".", "_")) and "04_Back_Matter" not in md_file.parts:
             file_text = md_file.read_text(encoding="utf-8", errors="replace")
-            text_content += f"\n\n# {md_file.name}\n" + file_text
+            text_chunks.append(f"\n\n# {md_file.name}\n{file_text}")
 
             # Check for canonical mortality frontmatter in character files or notes
             if file_text.startswith("---"):
@@ -101,8 +101,9 @@ def extract_book_entities(book_dir: Path) -> dict:
                     if norm_c not in PRONOUN_EXCLUSIONS and is_dead:
                         deaths.add(norm_c)
 
-    # Characters mentioned
+    text_content = "".join(text_chunks)
 
+    # Characters mentioned
     for line in text_content.splitlines():
         # Eye colors
         for m in EYE_COLOR_PATTERN.finditer(line):

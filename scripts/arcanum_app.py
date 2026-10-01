@@ -41,24 +41,16 @@ def try_launch_gtk3(active_tab: str | None = None) -> bool:
 
 
 def fallback_zenity(active_tab: str | None = None) -> int:
-    """Invokes lightweight Zenity dialog control dashboard or browser Studio Hub."""
-    zenity_script = SCRIPT_DIR / "control_center.sh"
-    if zenity_script.is_file():
-        import subprocess
-        args = ["bash", str(zenity_script)]
-        if active_tab:
-            args.extend(["--tab", active_tab])
-        res = subprocess.run(args)
-        return res.returncode
+    """Invokes browser-based Studio Hub when PyGObject is not available."""
     try:
         from lib.studio_hub import start_studio_hub_server
-        print("[i] PyGObject / GTK is not installed. Launching browser-based Studio Hub...", file=sys.stderr)
+        print("[i] PyGObject / GTK is not installed in the current Python environment.", file=sys.stderr)
+        print("[i] Launching sovereign browser-based Studio Hub...", file=sys.stderr)
         start_studio_hub_server(open_browser=True)
         return 0
     except Exception as e:
         logger.error("Failed to launch Studio Hub fallback: %s", e)
-    print("[!] PyGObject / GTK is not installed in the current Python environment.", file=sys.stderr)
-    print("[i] Run 'python scripts/lib/studio_hub.py' or 'bash scripts/arcanum' for CLI operations.", file=sys.stderr)
+    print("[!] Studio Hub fallback failed. Run 'python scripts/lib/cli.py' for CLI operations.", file=sys.stderr)
     return 2
 
 

@@ -13,7 +13,7 @@
 
 | Debt item | Why it exists | Where | Risk if ignored | Suggested fix |
 |-----------|---------------|-------|-----------------|---------------|
-| Dual CLI dispatchers (Bash vs Python) | Legacy bash facade maintains backup/restore logic | `scripts/arcanum`, `scripts/lib/cli.py` | Maintenance divergence across platforms | Migrate archive backup/restore to Python `tarfile(filter="data")` |
+| Dual CLI dispatchers (Bash vs Python) | Legacy bash facade maintains historical wrappers | `scripts/arcanum`, `scripts/lib/cli.py` | Maintenance divergence across platforms | Resolved: Archive backup/restore/snapshot fully migrated to pure-Python `scripts/lib/backup.py`, `restore.py`, `snapshot.py` |
 | Large static dictionaries in Python source | Embedded metadata in executable code | `scripts/lib/tips.py`, `scripts/lib/registry.py` | Memory footprint and module bloat | Extract static tips and engine catalogs to JSON/TOML data assets |
 | GTK3 accessibility baseline | Historical UI focused on visual aesthetics | `scripts/lib/ui_gtk3/` | Screen-reader inaccessibility | Add mnemonic accelerators and ATK accessible names |
 
@@ -21,11 +21,12 @@
 
 | Risk | OWASP category | Evidence | Current mitigation | Gap |
 |------|----------------|----------|--------------------|-----|
-| Path Traversal in user-provided volume/world names | A01: Broken Access Control | `scripts/lib/_bootstrap.py` | Strict regex validation (`^[A-Za-z0-9_-]+$`) rejecting directory traversal | Resolved (0 vulnerabilities detected) |
-| Untrusted Script Execution in HTML Reports | A03: Injection | `scripts/lib/studio_hub.py`, `scripts/lib/resonance.py` | Mandatory CSP `<meta http-equiv="Content-Security-Policy" content="default-src 'none'...">` | Resolved (Zero external CDN/script calls permitted) |
-| Restore Archive Symlink & Git Config Injection | A01: Broken Access Control | `scripts/arcanum#L1085-L1110` | Explicit rejection of symlinks, device nodes, `.git/hooks`, and `.git/config` | Resolved |
+| Path Traversal in user-provided volume/world names | A01: Broken Access Control | `scripts/lib/_bootstrap.py`, `scripts/lib/manuscript_scaffold.py` | Strict regex validation (`^[A-Za-z0-9_-]+$`) rejecting directory traversal | Resolved (0 vulnerabilities detected) |
+| Untrusted Script Execution in HTML Reports | A03: Injection | `scripts/lib/studio_hub.py`, `scripts/lib/zen_studio.py`, `scripts/lib/resonance.py` | Mandatory CSP `<meta http-equiv="Content-Security-Policy" content="default-src 'none'...">` and JSON closing tag sanitization (`<\\/`) | Resolved (Zero external CDN/script calls permitted) |
+| Restore Archive Symlink & Git Config Injection | A01: Broken Access Control | `scripts/lib/restore.py`, `scripts/arcanum#L1085-L1110` | Pure Python stream validation explicitly rejecting symlinks, device nodes, `.git/hooks`, and `.git/config` | Resolved |
 | Cross-Origin Requests to Local HTTP Studio Hub | A07: Identification and Auth Failures | `scripts/lib/studio_hub.py#L2106-L2170` | `_validate_origin()` blocks foreign origins on POST requests | Resolved |
-| XML Entity Expansion in DOCX Imports | A03: Injection | `scripts/lib/docx_sync.py`, `scripts/lib/importer.py` | Bounded stream read and multi-encoding DOCTYPE/ENTITY detection | Resolved |
+| XML Entity Expansion in DOCX Imports | A03: Injection | `scripts/lib/docx_sync.py`, `scripts/lib/importer.py` | Full multi-encoding DOCTYPE/ENTITY detection and stream bounding | Resolved |
+| Atomic Write Descriptor Leak on Windows | A04: Insecure Design | `scripts/lib/_bootstrap.py#L41-L66` | Added `try...finally` descriptor cleanup before `os.replace` to prevent file lock contention | Resolved |
 
 ### 4) Performance and Scaling Concerns
 

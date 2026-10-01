@@ -75,7 +75,7 @@ Ars Arcanum operates exclusively as a **local-first desktop platform**. It does 
 ### 5. Denial of Service (D)
 * **Threat D1: Malicious Archive Extraction (Tar-Bomb / Symlink Traversal).**
   - *Risk:* An untrusted backup archive attempting path traversal (`../../etc/passwd`), `.git/config` command injection, or symlink overwrites during restoration.
-  - *Mitigation:* `cmd_restore` in `scripts/arcanum` and `restore_world.sh` inspect all archive members before extraction, explicitly rejecting symlinks (`type_char == 'l'`), device nodes, absolute paths, parent traversals (`..`), executable `.git/hooks/`, and `.git/config` configurations.
+  - *Mitigation:* `scripts/lib/restore.py` and `cmd_restore` in `scripts/arcanum` inspect all archive members before extraction, explicitly rejecting symlinks, hardlinks, device nodes, absolute paths, parent traversals (`..`), executable `.git/hooks/`, and `.git/config` configurations.
 * **Threat D2: Large File Read Exhaustion.**
   - *Risk:* Extremely large files causing out-of-memory errors in linters or parsers.
   - *Mitigation:* `read_capped()` enforces a 2MB per-file read threshold across analysis engines with user-facing warnings upon truncation.

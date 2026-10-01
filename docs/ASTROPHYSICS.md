@@ -168,6 +168,9 @@ arcanum astrophysics --system World/Cosmology/world.yaml
 # Calculate relativistic spaceflight transit to Epsilon Eridani (10.5 ly at 1G)
 arcanum astrophysics --transit --distance 10.5ly --accel 1.0G
 
+# Calculate Roche tidal disruption limit for planetary ring formation
+arcanum calc roche --primary-radius 6371 --primary-density 5515 --satellite-density 3340
+
 # Output machine-readable JSON astronomical data
 arcanum astrophysics --system World/Cosmology/world.yaml --json
 

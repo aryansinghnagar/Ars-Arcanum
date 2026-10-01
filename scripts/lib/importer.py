@@ -55,9 +55,9 @@ def extract_docx_text(docx_path: Path) -> str:
 
     # Guard against XML bomb / entity expansion across multiple encodings
     for sample in (
-        doc_xml_bytes[:4096].decode("utf-8", errors="ignore").lower(),
-        doc_xml_bytes[:4096].decode("utf-16le", errors="ignore").lower(),
-        doc_xml_bytes[:4096].decode("utf-16be", errors="ignore").lower(),
+        doc_xml_bytes.decode("utf-8", errors="ignore").lower(),
+        doc_xml_bytes.decode("utf-16le", errors="ignore").lower(),
+        doc_xml_bytes.decode("utf-16be", errors="ignore").lower(),
     ):
         if "<!entity" in sample or "<!doctype" in sample:
             raise ValueError(f"Unsafe DOCTYPE/ENTITY detected in {docx_path.name}")

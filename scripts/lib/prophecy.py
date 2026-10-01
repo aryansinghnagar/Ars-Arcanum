@@ -139,7 +139,7 @@ def audit_prophecy_resolution(prophecies: dict, manuscript_dir: Path | None = No
                     pass
 
     # If manuscript provided, extract scene texts and @prophecy: tags
-    ms_text_corpus = ""
+    ms_text_corpus_chunks = []
     scene_prophecy_tags = {}
     if manuscript_dir and manuscript_dir.is_dir():
         for md_file in sorted(manuscript_dir.rglob("*.md")):
@@ -147,7 +147,7 @@ def audit_prophecy_resolution(prophecies: dict, manuscript_dir: Path | None = No
                 continue
             try:
                 txt = md_file.read_text(encoding="utf-8", errors="ignore")
-                ms_text_corpus += " " + txt
+                ms_text_corpus_chunks.append(txt)
                 rel_p = str(md_file.relative_to(manuscript_dir))
                 for line in txt.splitlines():
                     m = TAG_REGEX.match(line.strip())
@@ -159,7 +159,7 @@ def audit_prophecy_resolution(prophecies: dict, manuscript_dir: Path | None = No
             except Exception as e:
                 logger.warning("Failed to read manuscript scene %s: %s", md_file, e)
 
-    ms_corpus_lower = ms_text_corpus.lower()
+    ms_corpus_lower = " ".join(ms_text_corpus_chunks).lower()
 
     for pname, pinfo in prophecies.items():
         pname_norm = normalize_name(pname)

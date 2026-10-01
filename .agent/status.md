@@ -1,15 +1,15 @@
 # Ars Arcanum (Scriptorium) — System Status & Quality Metrics
 
-## Project Status: The Sovereign Cohesive Ecosystem & Universal Synergy Mesh Milestone (v4.2.1)
+## Project Status: Sovereign Pure-Python Modernization & Multi-Scale Invariant Verification (v4.2.1)
 - **Current Version**: `4.2.1`
 - **Audit Grade Progression**: `B` (GPA 2.93) $\to$ `A−` (GPA 3.4) $\to$ `A` (GPA 3.8) $\to$ **`A+` (GPA 4.0/4.0 Sovereign Operating System)**.
-- **Test Suite Status**: **937 tests collected, 100% passing, 2 skipped, 0 failures** (`python -m unittest discover tests`).
-- **Test Coverage**: **86% aggregate branch + statement coverage** across all 73 `scripts/lib/` modules with **`fail_under = 85`** enforced in `pyproject.toml`.
+- **Test Suite Status**: **952 tests collected, 100% passing, 2 skipped, 0 failures** (`python -m unittest discover tests`).
+- **Test Coverage**: **86% aggregate branch + statement coverage** across all 76 `scripts/lib/` modules with **`fail_under = 85`** enforced in `pyproject.toml`.
 - **Linter Status**: `ruff check .` **100% Clean (0 violations)** across expanded rules (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`).
-- **Static Typing**: `mypy` static type checking passing cleanly across all 73 `scripts/lib` modules with `check_untyped_defs = True` (`Success: no issues found in 73 source files`).
-- **CLI Architecture**: Data-driven declarative `_DISPATCH_TABLE` architecture in `scripts/lib/cli.py` (`ADR-118`).
+- **Static Typing**: `mypy` static type checking passing cleanly across all 76 `scripts/lib` modules with `check_untyped_defs = True` (`Success: no issues found in 76 source files`).
+- **Lifecycle Architecture**: Pure-Python zero-pip lifecycle engines (`backup.py`, `restore.py`, `snapshot.py`) with cross-platform file locking (`ArcanumLock`) and GPG symmetric encryption.
 - **Engines & Subfeatures**: 53 registered domain engines, 126 subfeatures across 5 master domain pillars, 74 resonance relational edges (0 isolated nodes, degree $\ge 2$).
-- **Security Posture**: Path traversal defense, strict fallback atomic writes, GPG symmetric/asymmetric backup encryption, bandit SAST, AST sandbox checking, CSP air-gapping, and CI Dependabot.
+- **Security Posture**: Path traversal defense, strict fallback atomic writes with Windows descriptor cleanup, full XML stream DOCTYPE/ENTITY scanning, inline JSON script tag sanitization, GPG symmetric/asymmetric backup encryption, CSP air-gapping.
 
 ---
 
@@ -219,18 +219,24 @@
 3. [x] **P24-M3**: Universal CLI Alias Routing & Conflict Elimination (`scripts/lib/cli.py`): Wired first-class routes for all 58+ registered engine aliases (`journey`, `travel`, `voice`, `scene`, `style`, `stylistics`, `rhythm`, `typography`, `heatmap`, `battle`, `combat`, `tactical`, `dynasty`, `diplomacy`, `currency`, `prices`, `biomes`, `weather`, `ephemeris`, `bestiary`, `traits`, `ledger`, `health`, `prepress`, `index`, `craft-tips`, `advice`, `lore-check`, `scrivener-import`, etc.). Resolved routing collision between `timeline` and `causality`.
 4. [x] **P24-M4**: Ecosystem Cohesion Integration Test Suite (`tests/test_ecosystem_cohesion.py`, `tests/test_resonance.py`): Created test suites enforcing zero isolated nodes and verifying end-to-end multi-engine pipelines (Scaffolding $\to$ Corkboard Canvas $\to$ Timeline $\to$ Structure $\to$ Corpus $\to$ Local RAG $\to$ World Doctor). Elevated test suite to **797 tests** (795 passed, 2 skipped, 0 failures), 0 Ruff violations, strict Mypy clean across 161 source files.
 
+### Phase 25: Sovereign Pure-Python Modernization & Multi-Scale Invariant Verification (4/4)
+1. [x] **P25-M1**: Pure-Python Cross-Platform Lifecycle Engine: Implemented `backup.py`, `restore.py`, and `snapshot.py` using standard `tarfile(filter="data")`, `hashlib` SHA-256 manifests, GPG symmetric encryption, and `ArcanumLock`. Decoupled GUI actions from bash scripts (`tests/test_backup_pure_python.py`).
+2. [x] **P25-M2**: Security & Invariant Hardening: Eliminated `eval` parameter parsing in `scripts/arcanum`, sanitized inline JSON script tags in `zen_studio.py`, expanded XML DOCTYPE/ENTITY scanning to full payload streams in `docx_sync.py` and `importer.py`, protected scene breaks in `typography_cleaner.py` (`tests/test_scene_break_preservation.py`), and resolved atomic write file descriptor cleanup on Windows (`tests/test_security_remediations.py`).
+3. [x] **P25-M3**: Craft Engine Algorithmic Corrections: Implemented Roche tidal disruption limit formulas in `astrophysics.py` (`tests/test_roche_limit.py`), currency denomination normalization and PPP conversion in `economy.py` (`tests/test_economy_normalization.py`), generalized `--defending-side` in `tactical_sim.py`, and 3-color DFS cycle detection in `ecology.py`.
+4. [x] **P25-M4**: Release Modernization & Multi-Platform CI: Expanded CI matrix for Linux, macOS, and Windows in `.github/workflows/ci.yml`. Validated 952 tests passing (0 failures, 2 skipped), 0 Ruff linter violations, and clean Mypy static type checking across 76 library source files.
+
 ---
 
 ## Quality Metrics Snapshot
-| Metric | Baseline (v1.6.0) | Phase 5 Baseline | Phase 19 Baseline | Current (Universal Ecosystem Cohesion & Resonance Mesh v4.2.1) |
+| Metric | Baseline (v1.6.0) | Phase 5 Baseline | Phase 19 Baseline | Current (Sovereign Modernized OS v4.2.1) |
 | :--- | :--- | :--- | :--- | :--- |
-| **Passing Tests** | 281 | 339 | 795 | **797 (795 passed, 2 skipped, 0 failures)** |
+| **Passing Tests** | 281 | 339 | 795 | **952 (950 passed, 2 skipped, 0 failures)** |
 | **Bash Test Suites** | 0/8 verified | 8/8 verified | 8/8 verified | **8/8 (100% clean pass)** |
 | **Test Pass Rate** | 99.6% | 100% | 100% | **100% (0 failures)** |
 | **Linter Violations** | 12 warnings | 0 violations | 0 violations | **0 violations (Strict Expanded Rules)** |
-| **Type Checking** | None | Mypy Clean | Mypy Clean | **Mypy Clean across all 53 Modules (161 source files)** |
+| **Type Checking** | None | Mypy Clean | Mypy Clean | **Mypy Clean across all 76 Library Modules** |
 | **Path Traversal Defense** | Partial | Complete | Complete | **Complete (Bash + Python Regex Invariant)** |
-| **Backup Encryption** | Plaintext only | AES-256 + GPG | AES-256 + GPG | **AES-256 Symmetric & GPG Asymmetric** |
+| **Backup Encryption** | Plaintext only | AES-256 + GPG | AES-256 + GPG | **Pure-Python AES-256 Symmetric & GPG Asymmetric** |
 | **Creative Freedom & Advisory** | None | None | Partial | **100% Advisory-First Multi-Option Resolution (ADR-115)** |
 | **Resonance & Synergy Mesh** | None | None | None | **Universal 5-Pillar Bi-Directional Graph & Causal Cascades (53 Nodes, 74 Edges, 0 Isolated Nodes) (`arcanum resonance`)** |
 | **Dynamic Intelligent Tips** | None | None | None | **Contextual 137-Tip Masterclass Database & Zero-Stall Rotation across 100% Engines (`arcanum tip`)** |
@@ -255,7 +261,7 @@
 | **6D Sensory Palette** | None | None | Sensory Palette | **White Room Syndrome & Perceptual Monotony Linter (`arcanum senses`)** |
 | **Flathub Upstream Validator**| None | None | Flathub Validator | **AppStream 0.16+ XML Linter & Finish-Args Validator** |
 | **Dramatis Personae & Cast** | None | None | Cast Matrix | **Cross-Volume Character Matrix & HTML Gallery (`arcanum cast`)** |
-| **Astrophysics Engine** | None | None | Classical Orbitals | **Exotic Systems (Eyeballs, Brown Dwarfs), Sweet-Spot Guidance & Dossier Export** |
+| **Astrophysics Engine** | None | None | Classical Orbitals | **Roche Tidal Disruption Limits, Exotic Systems (Eyeballs, Brown Dwarfs), Sweet-Spot Guidance** |
 | **Cartography Engine** | None | None | Static SVG Maps | **Interactive HTML5/SVG Map Creator & Landmark Coordinate Editor** |
 | **Conlang Engine** | None | None | Phonology Matrix | **Granular IPA Phonetics, Syllables, Sound-Law Shifts & Family Trees** |
 | **Dynastic Genealogy** | None | None | Strict Family Tree | **Relaxed Generations, Unrecorded Lineages & Disputed Succession Claims** |

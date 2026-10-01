@@ -90,5 +90,5 @@ install -m 0644 configs/systemd/arcanum-backup.timer %{buildroot}%{_userunitdir}
 %{_userunitdir}/arcanum-backup.timer
 
 %changelog
-* Mon Sep 21 2026 Aryan Singh Nagar <aryan@example.com> - 1.6.1-1
-- Release version 1.6.1: Full architectural refactor, GPG backup encryption, and multi-distro packaging.
+* Mon Sep 21 2026 Aryan Singh Nagar <aryan@example.com> - 4.2.1-1
+- Release version 4.2.1: Sovereign worldbuilding studio, pure-Python architecture, cross-platform locking, and multi-distro packaging.

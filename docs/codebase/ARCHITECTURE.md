@@ -27,17 +27,20 @@
 
 | Layer or module | Owns | Must not own | Evidence |
 |-----------------|------|--------------|----------|
-| Bootstrap & Safety (`_bootstrap.py`, `lockfile.py`) | Atomic file write primitives, concurrency locks, regex token sanitization | Domain business logic, UI state | `scripts/lib/_bootstrap.py#L1-L60` |
+| Bootstrap & Safety (`_bootstrap.py`, `lockfile.py`) | Atomic file write primitives, concurrency locks, regex token sanitization | Domain business logic, UI state | `scripts/lib/_bootstrap.py#L1-L70` |
+| Lifecycle & Vault Engines (`backup.py`, `restore.py`, `snapshot.py`) | Pure-Python tarfile archive creation, SHA-256 manifests, GPG symmetric encryption, restore validation | Direct shell dependencies, UI rendering | `scripts/lib/backup.py#L1-L150`, `scripts/lib/restore.py#L1-L150` |
 | Registry (`registry.py`) | Engine metadata, CLI aliases, documentation, subfeature catalog | Heavy computational loops | `scripts/lib/registry.py#L1-L100` |
-| Domain Engines (`resonance.py`, `causality.py`, etc.) | Mathematical invariants, graph DAGs, simulation calculations | GUI widgets, unsanitized file I/O | `scripts/lib/resonance.py#L1-L100` |
+| Domain Engines (`astrophysics.py`, `economy.py`, `ecology.py`, `resonance.py`, `causality.py`, etc.) | Mathematical invariants, graph DAGs, simulation calculations | GUI widgets, unsanitized file I/O | `scripts/lib/resonance.py#L1-L100`, `scripts/lib/astrophysics.py#L1-L100` |
 | Presentation (`ui_gtk3/`, `studio_hub.py`, `zen_studio.py`) | User interaction, event loops, rendering, HTML/CSS generation | Direct unbuffered disk writes | `scripts/lib/ui_gtk3/window.py#L1-L100` |
 
 ### 4) Reused Patterns
 
 | Pattern | Where found | Why it exists |
 |---------|-------------|---------------|
-| Atomic File Write (`atomic_write`) | `scripts/lib/_bootstrap.py` | Guarantees zero corrupted files on crash or power failure |
+| Atomic File Write (`atomic_write`) | `scripts/lib/_bootstrap.py` | Guarantees zero corrupted files on crash or power failure with descriptor cleanup |
+| Cross-Platform Lockfile (`ArcanumLock`) | `scripts/lib/lockfile.py` | Abstracted `fcntl.flock` (POSIX) and `msvcrt.locking` (Windows) concurrency control |
 | Bi-Directional Graph & Causal DAG | `scripts/lib/causality.py`, `scripts/lib/resonance.py` | Evaluates multi-hop causality, Novikov consistency, and cross-domain resonance |
+| 3-Color DFS Cycle Detection | `scripts/lib/ecology.py` | Detects arbitrary N-tier circular predation loops across food webs |
 | Inverted Index & SQLite FTS5 | `scripts/lib/local_rag.py`, `scripts/lib/concordance.py` | Delivers sub-millisecond local semantic lore search without vector APIs |
 | Non-Repeating LRU History Cycling | `scripts/lib/tips.py` | Ensures novel craft tip rotation without immediate repetition |
 
@@ -48,8 +51,14 @@
 
 ### 6) Evidence
 
-- `scripts/lib/_bootstrap.py#L1-L60`
+- `scripts/lib/_bootstrap.py#L1-L70`
+- `scripts/lib/backup.py#L1-L180`
+- `scripts/lib/restore.py#L1-L180`
+- `scripts/lib/snapshot.py#L1-L120`
 - `scripts/lib/registry.py#L1-L120`
 - `scripts/lib/cli.py#L1-L100`
+- `scripts/lib/astrophysics.py#L457-L505`
+- `scripts/lib/economy.py#L280-L375`
+- `scripts/lib/ecology.py#L195-L260`
 - `scripts/lib/resonance.py#L1-L150`
 - `scripts/lib/tips.py#L1-L120`

@@ -28,6 +28,7 @@ import json
 import math
 import re
 import sys
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -906,12 +907,12 @@ class ResonanceMesh:
             d_b = match_b or d_b
 
         # BFS shortest path search on directed/undirected graph
-        queue: list[list[str]] = [[d_a]]
+        queue: deque[list[str]] = deque([[d_a]])
         visited = {d_a}
         path_found: list[str] = []
 
         while queue:
-            current_path = queue.pop(0)
+            current_path = queue.popleft()
             curr = current_path[-1]
 
             if curr == d_b:

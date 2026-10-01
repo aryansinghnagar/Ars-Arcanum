@@ -195,20 +195,6 @@ def audit_ecosystem(species: dict) -> list:
                             "file": sinfo["file"],
                         })
 
-        # 2. Check for circular predation / mutual apex loop (ECO-303)
-        for p in prey:
-            pnorm = normalize_name(p)
-            if pnorm in norm_map:
-                prey_info = species[norm_map[pnorm]]
-                if normalize_name(sname) in [normalize_name(x) for x in prey_info["dietary_prey"]]:
-                    findings.append({
-                        "id": "ECO-303",
-                        "severity": "WARNING",
-                        "species": sname,
-                        "message": f"Circular Predation Loop: '{sname}' and '{prey_info['name']}' list each other as mutual prey.",
-                        "file": sinfo["file"],
-                    })
-
         # 3. Energy Starvation / Trophic deficit (ECO-302)
         # Verify that total prey biomass density supports predator demand
         if lvl >= 3 and prey:
@@ -217,12 +203,12 @@ def audit_ecosystem(species: dict) -> list:
                 pnorm = normalize_name(p)
                 if pnorm in norm_map:
                     total_prey_density += species[norm_map[pnorm]]["population_density"] * species[norm_map[pnorm]]["biomass_kg"]
-            
+
             predator_biomass_density = sinfo["population_density"] * sinfo["biomass_kg"]
             # Lindeman: predator biomass should typically not exceed 10-15% of prey biomass
             if total_prey_density > 0:
                 trophic_ratio = predator_biomass_density / total_prey_density
-                if trophic_ratio > 0.35: # Exceeds sustainable carrying capacity
+                if trophic_ratio > 0.35:  # Exceeds sustainable carrying capacity
                     findings.append({
                         "id": "ECO-302",
                         "severity": "WARNING",
@@ -230,6 +216,58 @@ def audit_ecosystem(species: dict) -> list:
                         "message": f"Trophic Deficit: Predator '{sname}' biomass density ({predator_biomass_density:.1f} kg/km²) exceeds 35% of prey biomass ({total_prey_density:.1f} kg/km²). Ecological collapse risk.",
                         "file": sinfo["file"],
                     })
+
+    # 2. Check for circular predation / food web cycles using 3-color DFS (ECO-303)
+    graph = {}
+    for sname, sinfo in species.items():
+        snorm = normalize_name(sname)
+        graph[snorm] = []
+        for p in sinfo["dietary_prey"]:
+            pnorm = normalize_name(p)
+            if pnorm in norm_map:
+                graph[snorm].append(pnorm)
+
+    color = {node: 0 for node in graph}
+    parent_stack = []
+    seen_cycles = set()
+
+    def dfs(node: str) -> None:
+        color[node] = 1
+        parent_stack.append(node)
+
+        for neighbor in graph.get(node, []):
+            if color[neighbor] == 1:
+                idx = parent_stack.index(neighbor)
+                cycle_nodes = parent_stack[idx:]
+                cycle_tuple = tuple(cycle_nodes)
+                min_idx = cycle_tuple.index(min(cycle_tuple))
+                canonical_cycle = cycle_tuple[min_idx:] + cycle_tuple[:min_idx]
+
+                if canonical_cycle not in seen_cycles:
+                    seen_cycles.add(canonical_cycle)
+                    orig_names = [species[norm_map[n]]["name"] for n in cycle_nodes]
+                    if len(cycle_nodes) == 2:
+                        msg = f"Circular Predation Loop: '{orig_names[0]}' and '{orig_names[1]}' list each other as mutual prey."
+                    else:
+                        path_str = " -> ".join([*orig_names, orig_names[0]])
+                        msg = f"Circular Food Web Cycle: {path_str}."
+
+                    findings.append({
+                        "id": "ECO-303",
+                        "severity": "WARNING",
+                        "species": orig_names[0],
+                        "message": msg,
+                        "file": species[norm_map[cycle_nodes[0]]]["file"],
+                    })
+            elif color[neighbor] == 0:
+                dfs(neighbor)
+
+        parent_stack.pop()
+        color[node] = 2
+
+    for node in graph:
+        if color[node] == 0:
+            dfs(node)
 
     return findings
 

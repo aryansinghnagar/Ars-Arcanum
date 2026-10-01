@@ -454,9 +454,9 @@ def convert_docx_to_markdown(docx_path: Path) -> str:
                 raise ValueError(f"DOCX document.xml exceeds maximum safety threshold ({MAX_DOCX_UNCOMPRESSED_BYTES // (1024*1024)} MB)")
 
         for sample in (
-            doc_xml_bytes[:4096].decode("utf-8", errors="ignore").lower(),
-            doc_xml_bytes[:4096].decode("utf-16le", errors="ignore").lower(),
-            doc_xml_bytes[:4096].decode("utf-16be", errors="ignore").lower(),
+            doc_xml_bytes.decode("utf-8", errors="ignore").lower(),
+            doc_xml_bytes.decode("utf-16le", errors="ignore").lower(),
+            doc_xml_bytes.decode("utf-16be", errors="ignore").lower(),
         ):
             if "<!entity" in sample or "<!doctype" in sample:
                 raise ValueError("Unsafe XML entity/DOCTYPE declaration detected in DOCX document.xml")

@@ -73,7 +73,7 @@ $$\text{Economic Viability Condition} \iff \Pi > 0 \quad \land \quad \text{Margi
 | Subfeature | Algorithmic Mechanism | Diagnostic Output / Rule | Narrative Craft Significance |
 |---|---|---|---|
 | **Commodity Basket & PPP Engine**| Computes relative purchasing power across defined economies. | Emits normalized cross-realm exchange tables. | Enables realistic currency exchange and international trade. |
-| **Price Anomaly Auditor** | Compares scene transactions against baseline commodity basket prices. | Flags `ECO-101: PRICE_ANOMALY` ($> 20\times$ deviation). | Catches unintentional economic hallucinations in dialogue and narration. |
+| **Price Anomaly Auditor** | Normalizes transaction currency denominations against base currencies and evaluates PPP cross-economy rates. | Flags `ECO-101: PRICE_ANOMALY` ($> 20\times$ deviation). | Catches unintentional economic hallucinations in dialogue and narration across all coin denominations. |
 | **Unregistered Currency Guard** | Scans prose currency references against `World/Economies/`. | Flags `ECO-102: UNREGISTERED_CURRENCY`. | Ensures every coin or monetary scrip is tied to a sovereign issuer. |
 | **Trade Logistics Modeler** | Calculates freight costs, tariffs, and net margins across trade routes. | Emits trade route profitability and breakeven distance. | Prevents characters from pursuing economically impossible mercantile journeys. |
 | **Era Anachronism Scanner** | Cross-references prose vocabulary against technological era lexicons. | Flags `ECO-201: ERA_ANACHRONISM` with line reference. | Protects medieval and ancient settings from modern linguistic slips. |

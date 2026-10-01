@@ -89,6 +89,12 @@ def normalize_typography_text(text: str) -> tuple[str, dict]:
             new_lines.append(line + newline_char)
             continue
 
+        # Guard markdown horizontal rules / thematic scene breaks
+        stripped_line = line.strip()
+        if stripped_line in ("---", "***", "* * *", "- - -", "___", "_ _ _"):
+            new_lines.append(line + newline_char)
+            continue
+
         # 2. Ellipses: ... or . . . -> …
         ellipsis_count = len(re.findall(r'\.\s*\.\s*\.', line))
         if ellipsis_count > 0:

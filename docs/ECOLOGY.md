@@ -115,7 +115,7 @@ According to ecological energetic constraints, predator biomass density should n
 |---|---|---|---|
 | `ECO-301` | **WARNING** | Apex Predator Without Prey | An apex predator (Level $\ge 3$) has no registered `dietary_prey` listed in its profile. |
 | `ECO-302` | **WARNING** | Trophic Biomass Deficit | Total predator biomass density exceeds 35% of registered prey biomass density within the habitat. |
-| `ECO-303` | **ERROR** | Circular Predation Loop | Two or more species have mutual predation dependencies ($A$ eats $B$, and $B$ eats $A$). |
+| `ECO-303` | **ERROR** | Circular Predation Loop | Depth-First Search detected a circular predation dependency loop across arbitrary N-tier food webs ($A \to B \to \dots \to A$). |
 | `ECO-304` | **WARNING** | Missing Primary Producers | A non-global habitat contains consumers (Levels 2–4) but zero registered Level 1 autotrophs/flora. |
 | `ECO-305` | **WARNING** | Unregistered Prey Species | A `dietary_prey` entry references a species name that does not exist in any parsed file. |
 

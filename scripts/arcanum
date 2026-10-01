@@ -538,25 +538,18 @@ cmd_volume() {
     fi
 
     if [ -z "${structure}" ] && [ -f "${resolved_ms}/manuscript.yaml" ]; then
+        local py_bin=""
         if command -v python3 &>/dev/null; then
-            eval "$(python3 - "${PROJECT_ROOT}" "${resolved_ms}" << 'PYEOF'
-import sys
-from pathlib import Path
-root = Path(sys.argv[1])
-sys.path.insert(0, str(root / "scripts"))
-try:
-    from lib.manuscript_scaffold import read_manifest_structure
-    s, d = read_manifest_structure(sys.argv[2])
-    print(f"structure=\"{s}\"")
-    if d:
-        divs_str = ",".join(d)
-        print(f"divisions=\"{divs_str}\"")
-except Exception:
-    pass
-PYEOF
-)"
+            py_bin="python3"
         elif command -v python &>/dev/null; then
-            eval "$(python - "${PROJECT_ROOT}" "${resolved_ms}" << 'PYEOF'
+            py_bin="python"
+        fi
+
+        if [ -n "${py_bin}" ]; then
+            local parsed_s=""
+            local parsed_d=""
+            read -r parsed_s parsed_d < <("${py_bin}" - "${PROJECT_ROOT}" "${resolved_ms}" << 'PYEOF'
+import re
 import sys
 from pathlib import Path
 root = Path(sys.argv[1])
@@ -564,16 +557,17 @@ sys.path.insert(0, str(root / "scripts"))
 try:
     from lib.manuscript_scaffold import read_manifest_structure
     s, d = read_manifest_structure(sys.argv[2])
-    print(f"structure=\"{s}\"")
-    if d:
-        divs_str = ",".join(d)
-        print(f"divisions=\"{divs_str}\"")
+    s_safe = re.sub(r"[^A-Za-z0-9_-]", "", s or "")
+    d_safe = ",".join(re.sub(r"[^A-Za-z0-9_-]", "", x) for x in (d or []))
+    print(f"{s_safe} {d_safe}")
 except Exception:
-    pass
+    print("")
 PYEOF
-)"
+            )
+            [ -n "${parsed_s}" ] && structure="${parsed_s}"
+            [ -n "${parsed_d}" ] && divisions="${parsed_d}"
         else
-            structure="$(grep -E '^[[:space:]]*structure:' "${resolved_ms}/manuscript.yaml" | head -n1 | sed -E 's/.*structure:[[:space:]]*"?([^"\r\n]+)"?/\1/' | tr -d '[:space:]')"
+            structure="$(grep -E '^[[:space:]]*structure:' "${resolved_ms}/manuscript.yaml" | head -n1 | sed -E 's/.*structure:[[:space:]]*"?([^"\r\n]+)"?/\1/' | tr -cd 'A-Za-z0-9_-')"
         fi
     fi
     structure="${structure:-three_act}"
