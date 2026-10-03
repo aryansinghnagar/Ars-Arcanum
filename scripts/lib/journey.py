@@ -96,10 +96,10 @@ def parse_distance_km(val_str: str) -> float:
     s = val_str.strip().lower()
     if s.endswith("km"):
         return float(s[:-2].strip())
-    if s.endswith("miles") or s.endswith("mi"):
+    if s.endswith(("miles", "mi")):
         num = float(s.split("mi")[0].strip())
         return num * 1.60934
-    if s.endswith("leagues") or s.endswith("league"):
+    if s.endswith(("leagues", "league")):
         num = float(s.split("league")[0].strip())
         return num * 4.82803  # 1 league ~ 3 miles ~ 4.8 km
     if s.endswith("m") and not s.endswith("km"):

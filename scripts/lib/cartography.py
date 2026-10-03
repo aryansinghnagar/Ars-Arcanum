@@ -210,7 +210,7 @@ def generate_vector_svg_map(locations: list[dict], title: str = "World Map", gri
     for loc in locations:
         x, y = loc["x"], loc["y"]
         icon = TYPE_ICONS.get(loc["type"], TYPE_ICONS["default"])
-        
+
         # Glow / halo ring
         svg_elements.append(f'<circle cx="{x}" cy="{y}" r="16" fill="#38bdf8" fill-opacity="0.15" stroke="#38bdf8" stroke-width="1.5" />')
         # Pin center
@@ -269,7 +269,7 @@ def generate_vector_svg_map(locations: list[dict], title: str = "World Map", gri
 def generate_cartography_html_viewer(locations: list[dict], title: str, output_path: Path) -> Path:
     """Generates an interactive HTML map viewer and editor with pan/zoom and sidebar cards."""
     svg_map = generate_vector_svg_map(locations, title=title, grid_mode="hex", show_routes=True)
-    
+
     locations_json = json.dumps(locations)
 
     html_content = f"""<!DOCTYPE html>
@@ -386,7 +386,7 @@ function getMouseCoords(e) {{
 
 function handleMouseDown(e) {{
   if (e.target.closest('.controls') || e.target.closest('.tool-btn') || e.target.closest('#sidebar')) return;
-  
+
   if (mode === 'pan') {{
     isDrawing = true;
     startX = e.clientX - panX;
@@ -425,7 +425,7 @@ function handleMouseDown(e) {{
   }} else if (mode === 'poi') {{
     const coords = getMouseCoords(e);
     const svg = document.querySelector('svg');
-    
+
     // Add simple POI marker
     const name = prompt("Enter POI Name:");
     if (name) {{
@@ -437,7 +437,7 @@ function handleMouseDown(e) {{
         <text x="${{coords.x}}" y="${{coords.y+22}}" fill="#f8fafc" font-size="12" font-weight="700" text-anchor="middle" filter="drop-shadow(0 1px 2px #000)">${{name}}</text>
       `;
       svg.appendChild(g);
-      
+
       locations.push({{name: name, type: 'default', faction: 'Unknown', x: coords.x, y: coords.y, description: 'User added POI'}});
       renderList(locations);
     }}
@@ -455,13 +455,13 @@ function doDrawLine(e) {{
   if (!isDrawing || !currentPath) return;
   const coords = getMouseCoords(e);
   currentPoints.push(coords);
-  
+
   let d = `M ${{currentPoints[0].x}},${{currentPoints[0].y}} `;
   for (let i = 1; i < currentPoints.length; i++) {{
     d += `L ${{currentPoints[i].x}},${{currentPoints[i].y}} `;
   }}
   if (mode === 'landmass' || mode === 'boundary') d += 'Z';
-  
+
   currentPath.setAttribute('d', d);
 }}
 

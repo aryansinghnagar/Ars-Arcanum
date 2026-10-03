@@ -56,7 +56,7 @@ def _parse_yaml_lines(lines: list[str]) -> dict[str, Any]:
             continue
 
         # Check list item under current key
-        if raw_line.startswith("  - ") or raw_line.startswith("    - ") or (raw_line.startswith("- ") and current_key):
+        if raw_line.startswith(("  - ", "    - ")) or (raw_line.startswith("- ") and current_key):
             item_val = line.lstrip("- ").strip()
             item_val = _coerce_scalar(item_val)
             if current_key:

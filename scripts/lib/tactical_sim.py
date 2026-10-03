@@ -114,7 +114,7 @@ def simulate_single_battle(
             opponents = [f for f in (team2 if attacker.side == 1 else team1) if f.is_alive and not f.is_routed]
             if not opponents:
                 break
-            
+
             # Prefer lowest HP target or random
             target = min(opponents, key=lambda f: f.hp)
 
@@ -218,7 +218,7 @@ def plan_warfare_scenario(
 ) -> dict:
     """High-level author warfare scenario planner providing qualitative narrative dynamics and Lanchester analysis."""
     t_mod = TERRAIN_MODIFIERS.get(terrain, TERRAIN_MODIFIERS["open_field"])
-    
+
     att_troops = max(1, attacker.get("troops", 1000))
     def_troops = max(1, defender.get("troops", 1000))
     att_tech = attacker.get("tech_level", "medieval")
@@ -301,7 +301,7 @@ When crafting realistic battles, narrative tension often hinges on the distincti
 ### 1.1 Lanchester's Linear Law (Ancient / Unaimed Melee Warfare)
 Applicable when combatants fight in individual one-on-one duels (e.g. ancient shield walls, dense sword skirmishes, or blind area bombardment):
 $$\\frac{dx}{dt} = -\\beta \\cdot y, \\quad \\frac{dy}{dt} = -\\alpha \\cdot x$$
-- **Key Takeaway for Writers**: Combat power is **linear** with troop counts: $P \\propto N$. 
+- **Key Takeaway for Writers**: Combat power is **linear** with troop counts: $P \\propto N$.
 - Two armies of equal skill will suffer casualties directly proportional to their size. A 2:1 numerical advantage simply requires the larger army to lose half its forces to wipe out the smaller army.
 
 ### 1.2 Lanchester's Square Law (Modern / Concentrated Ranged Warfare)
@@ -416,7 +416,7 @@ def main():
             print(f"Side 1 Casualties: {battle['team1_casualties']}/{len(side1)}")
             print(f"Side 2 Casualties: {battle['team2_casualties']}/{len(side2)}")
             print(f"MVP Combatant: {battle['mvp']['name']} ({battle['mvp']['damage']} dmg, {battle['mvp']['kills']} kills)")
-            
+
             print("\n=== Blow-by-Blow Narrative Combat Log ===")
             for line in battle["log"]:
                 print(line)

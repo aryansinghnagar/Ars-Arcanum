@@ -111,33 +111,33 @@ def parse_distance(val_str: str) -> float:
     s = val_str.strip().lower()
     if s in DISTANCE_PRESETS:
         return DISTANCE_PRESETS[s]
-    
+
     # Check suffixes (longest / multi-word first)
-    if s.endswith("million-km") or s.endswith("million km") or s.endswith("mkm") or s.endswith("million kilometers") or s.endswith("million kilometer"):
+    if s.endswith(("million-km", "million km", "mkm", "million kilometers", "million kilometer")):
         num_str = re.split(r"(?:million[-\s]?km|mkm|million[-\s]?kilometer[s]?)", s)[0].strip()
         return float(num_str) * 1e9
-    if s.endswith("billion-km") or s.endswith("billion km") or s.endswith("bkm") or s.endswith("billion kilometers") or s.endswith("billion kilometer"):
+    if s.endswith(("billion-km", "billion km", "bkm", "billion kilometers", "billion kilometer")):
         num_str = re.split(r"(?:billion[-\s]?km|bkm|billion[-\s]?kilometer[s]?)", s)[0].strip()
         return float(num_str) * 1e12
-    if s.endswith("kpc") or s.endswith("kiloparsec") or s.endswith("kiloparsecs"):
+    if s.endswith(("kpc", "kiloparsec", "kiloparsecs")):
         num_str = re.split(r"(?:kpc|kiloparsec[s]?)", s)[0].strip()
         return float(num_str) * 1e3 * PARSEC
-    if s.endswith("mpc") or s.endswith("megaparsec") or s.endswith("megaparsecs"):
+    if s.endswith(("mpc", "megaparsec", "megaparsecs")):
         num_str = re.split(r"(?:mpc|megaparsec[s]?)", s)[0].strip()
         return float(num_str) * 1e6 * PARSEC
-    if s.endswith("parsec") or s.endswith("parsecs") or s.endswith("pc"):
+    if s.endswith(("parsec", "parsecs", "pc")):
         num_str = re.split(r"(?:parsec[s]?|pc)", s)[0].strip()
         return float(num_str) * PARSEC
-    if s.endswith("light-years") or s.endswith("light-year") or s.endswith("lightyear") or s.endswith("lightyears") or s.endswith("ly"):
+    if s.endswith(("light-years", "light-year", "lightyear", "lightyears", "ly")):
         num_str = re.split(r"(?:light[-\s]?year[s]?|ly)", s)[0].strip()
         return float(num_str) * LIGHT_YEAR
-    if s.endswith("astronomical unit") or s.endswith("astronomical units") or s.endswith("au"):
+    if s.endswith(("astronomical unit", "astronomical units", "au")):
         num_str = re.split(r"(?:astronomical\s+unit[s]?|au)", s)[0].strip()
         return float(num_str) * AU
-    if s.endswith("kilometer") or s.endswith("kilometers") or s.endswith("km"):
+    if s.endswith(("kilometer", "kilometers", "km")):
         num_str = re.split(r"(?:kilometer[s]?|km)", s)[0].strip()
         return float(num_str) * 1000.0
-    if s.endswith("meter") or s.endswith("meters") or s.endswith("m"):
+    if s.endswith(("meter", "meters", "m")):
         num_str = re.split(r"(?:meter[s]?|m)", s)[0].strip()
         return float(num_str)
 
@@ -150,9 +150,8 @@ def parse_acceleration(val_str: str) -> float:
     if s.endswith("g"):
         num = float(s[:-1].strip() or "1")
         return num * G0
-    if s.endswith("m/s^2") or s.endswith("m/s2"):
-        num = float(s.split("m/s")[0].strip())
-        return num
+    if s.endswith(("m/s^2", "m/s2")):
+        return float(s.split("m/s")[0].strip())
     return float(s)
 
 
@@ -173,7 +172,7 @@ def format_duration(seconds: float) -> str:
         days = seconds / SECONDS_PER_DAY
         h = int((seconds % SECONDS_PER_DAY) // 3600)
         return f"{days:.2f} days ({int(days)}d {h}h)"
-    
+
     years = seconds / SECONDS_PER_YEAR
     rem_days = (seconds % SECONDS_PER_YEAR) / SECONDS_PER_DAY
     return f"{years:.3f} years ({int(years)}y {int(rem_days)}d)"
@@ -213,7 +212,7 @@ def calc_brachistochrone(distance_m: float, acc_mps2: float = G0, exhaust_vel_mp
     # Relativistic parameter alpha = a * d_half / c^2
     alpha = (a * half_d) / C_SQ
     gamma_max = 1.0 + alpha
-    
+
     # Peak velocity at turnover midpoint
     if gamma_max > 1.0:
         beta_max = math.sqrt(1.0 - 1.0 / (gamma_max * gamma_max))
@@ -244,7 +243,7 @@ def calc_brachistochrone(distance_m: float, acc_mps2: float = G0, exhaust_vel_mp
     mass_ratio = None
     if exhaust_vel_mps and exhaust_vel_mps > 0:
         mass_ratio = math.exp(effective_deltav / exhaust_vel_mps)
-    
+
     # Photon rocket ideal mass ratio: sqrt((1 + beta_max)/(1 - beta_max)) for each leg
     photon_mass_ratio = ((1.0 + beta_max) / (1.0 - beta_max)) if beta_max < 1.0 else float("inf")
 
@@ -512,30 +511,30 @@ def calc_planetary_dossier(
     rotation_hours: float = 24.0
 ) -> dict:
     hab = calc_habitability_gravity(mass_kg, radius_m, star_luminosity_watts)
-    
+
     climate_ins = calc_planetary_insolation(
         stellar_luminosity=star_luminosity_watts / SOLAR_LUMINOSITY,
         semi_major_axis_au=semi_major_axis_au,
         bond_albedo=albedo,
         greenhouse_warming_k=greenhouse_k
     )
-    
+
     if planet_type == "tidally-locked":
         # Orbital period accounting for stellar mass via main-sequence mass-luminosity scaling (L ~ M^3.5)
         l_solar = max(1e-6, star_luminosity_watts / SOLAR_LUMINOSITY)
         star_mass_solar = max(0.08, l_solar ** (1.0 / 3.5))
         rotation_hours = math.sqrt((semi_major_axis_au ** 3) / star_mass_solar) * 365.25 * 24.0
-    
+
     climate_circ = calc_atmospheric_circulation(rotation_period_hours=rotation_hours)
 
     warnings = []
-    
+
     g_ratio = hab["surface_gravity_g"]
     if g_ratio > 3.0:
         warnings.append("High surface gravity: Biological structures would need to be exceptionally squat and robust. Atmosphere will be highly compressed.")
     elif g_ratio < 0.3:
         warnings.append("Low surface gravity: May struggle to retain a dense atmosphere over geological timecales.")
-        
+
     if planet_type == "tidally-locked":
         warnings.append("Tidally locked: Permanent dayside and nightside. Expected 'eyeball' world configuration with habitable terminator zone if atmosphere transfers heat.")
     elif planet_type == "gas-giant-exomoon":
@@ -778,7 +777,7 @@ def main():
     p_roche.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_roche.add_argument("--html", help="Path to export interactive HTML report")
 
-    
+
     p_dossier = subparsers.add_parser("dossier", help="Generate comprehensive Star System Dossier for non-standard planets")
     p_dossier.add_argument("--mass", default="1.0", help="Planet mass in Earth masses")
     p_dossier.add_argument("--radius", default="1.0", help="Planet radius in Earth radii")
@@ -829,7 +828,7 @@ def main():
                 generate_astrophysics_html_report(f"Brachistochrone Flight ({args.distance})", {"Trajectory Metrics": res}, out_p)
                 print(f"Interactive HTML report written to: {out_p}")
 
-        
+
         elif args.subcommand == "dossier":
             m_str = str(args.mass).strip().lower()
             m_kg = float(m_str[:-2]) if m_str.endswith("kg") else float(m_str) * EARTH_MASS

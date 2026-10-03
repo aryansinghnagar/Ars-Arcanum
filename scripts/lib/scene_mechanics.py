@@ -195,11 +195,11 @@ def scan_manuscript_scenes(target_path: Path) -> dict:
 def generate_scene_mechanics_html(report: dict, output_path: Path) -> Path:
     """Generates an offline interactive HTML report for scene MRU mechanics."""
     scenes = report.get("scenes", [])
-    
+
     scene_cards = []
     for sc in scenes:
         badge_type = "<span style='background:#0284c7;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.75rem;'>Proactive Scene</span>" if sc["scene_type"] == "Proactive Scene" else "<span style='background:#7c3aed;color:#fff;padding:2px 8px;border-radius:4px;font-size:0.75rem;'>Reactive Sequel</span>"
-        
+
         flaws_html = "".join(
             f"<div style='background:#7f1d1d;color:#fecaca;padding:6px;border-radius:4px;font-size:0.8rem;margin-top:6px;'>⚠️ {html.escape(flaw['message'])}</div>"
             for flaw in sc.get("mru_flaws", [])

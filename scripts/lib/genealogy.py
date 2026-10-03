@@ -122,7 +122,7 @@ def load_characters_and_houses(world_dir: Path) -> dict:
                 content = md_file.read_text(encoding="utf-8", errors="replace")
                 fm = parse_yaml_frontmatter(content)
                 name = fm.get("name") or md_file.stem
-                
+
                 # Normalize parents
                 parents_raw = fm.get("parents") or fm.get("parent") or []
                 if isinstance(parents_raw, str):
@@ -131,7 +131,7 @@ def load_characters_and_houses(world_dir: Path) -> dict:
                     parents_raw.append(fm["father"])
                 if "mother" in fm and fm["mother"] not in parents_raw:
                     parents_raw.append(fm["mother"])
-                
+
                 parents = []
                 fuzzy_parents = set()
                 for p_raw in parents_raw:
@@ -139,7 +139,7 @@ def load_characters_and_houses(world_dir: Path) -> dict:
                         continue
                     p_str = str(p_raw).strip()
                     is_fuzzy = "~" in p_str or "unknown" in p_str.lower()
-                    
+
                     m = re.search(r"\[\[(.*?)\]\]", p_str)
                     if m:
                         target = m.group(1).split("|")[0].strip()
@@ -150,7 +150,7 @@ def load_characters_and_houses(world_dir: Path) -> dict:
                             target = p_str.split(" to ")[-1].strip().strip("\"'")
                         else:
                             target = clean_wikilink(p_str)
-                    
+
                     if target and target.lower() != "unknown":
                         parents.append(target)
                         if is_fuzzy:
@@ -172,7 +172,7 @@ def load_characters_and_houses(world_dir: Path) -> dict:
                 # Dates
                 born = fm.get("born") or fm.get("birth_year") or fm.get("birth")
                 died = fm.get("died") or fm.get("death_year") or fm.get("death")
-                
+
                 # Succession
                 succ = fm.get("succession_order") or fm.get("reign_order") or fm.get("lineage_rank")
                 try:
@@ -295,7 +295,7 @@ def validate_genealogy(chars: dict) -> list:
 
     # 3. Succession Order gaps / duplicates
     houses = defaultdict(list)
-    for _name, c in chars.items():
+    for c in chars.values():
         if c.get("house") and c.get("succession_order") is not None:
             houses[c["house"]].append(c)
 
@@ -388,7 +388,7 @@ def generate_mermaid_flowchart(chars: dict, target_query: str | None = None) -> 
     for name in sorted(nodes_to_include):
         c = chars.get(name, {"name": name, "house": "", "title": "", "born": None, "died": None, "succession_order": None})
         n_id = node_id(name)
-        
+
         # Label formatting
         label_parts = [f"<b>{html.escape(c['name'])}</b>"]
         if c.get("title"):
@@ -415,7 +415,7 @@ def generate_mermaid_flowchart(chars: dict, target_query: str | None = None) -> 
             continue
         c = chars[name]
         u_id = node_id(name)
-        
+
         # Parent -> Child
         for ch in c.get("children", []):
             if ch in nodes_to_include:
@@ -547,7 +547,7 @@ def print_terminal_tree(chars: dict, root_name: str, prefix: str = "", visited: 
     rank_str = f" [👑 #{c['succession_order']}]" if c.get("succession_order") else ""
     dates_str = f" ({c.get('born') or '?'} - {c.get('died') or 'Present'})" if c.get("born") or c.get("died") else ""
     title_str = f" - {c.get('title')}" if c.get("title") else ""
-    
+
     print(f"{prefix}\033[1;33m{c['name']}\033[0m\033[36m{title_str}\033[0m\033[32m{rank_str}\033[0m\033[90m{dates_str}\033[0m")
 
     if c.get("spouses"):
@@ -585,7 +585,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
     universes = [p for p in universes if p.is_dir() and p.name not in ("Worlds", ".git")]
     if len(universes) == 1:
         return str(universes[0])
-    elif len(universes) > 1:
+    if len(universes) > 1:
         print("Error: Multiple worlds discovered — specify one with -w/--world.", file=sys.stderr)
         sys.exit(2)
     else:
@@ -593,7 +593,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
         worlds = [p for p in worlds if p.is_dir()]
         if len(worlds) == 1:
             return str(worlds[0])
-        elif len(worlds) > 1:
+        if len(worlds) > 1:
             print("Error: Multiple legacy worlds discovered — specify one with -w/--world.", file=sys.stderr)
             sys.exit(2)
     return ""

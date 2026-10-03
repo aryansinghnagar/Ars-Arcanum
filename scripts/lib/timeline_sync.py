@@ -66,7 +66,7 @@ class TimelineEvent:
 
 def parse_time_coordinate(raw_time: str, fallback_idx: int) -> tuple[float, bool, bool]:
     """Parses a time string into a sortable numeric coordinate and flags flashbacks/forwards.
-    
+
     Supports:
     - Years / Epochs: "1422 3E", "Year 304", "Year -500"
     - Day offsets: "Day 14, 08:00", "Day 1"
@@ -199,7 +199,7 @@ def analyze_timeline_synchronization(events: list[TimelineEvent]) -> dict[str, A
     for e in events:
         by_time.setdefault(e.normalized_time, []).append(e)
 
-    for _t_val, concurrent in by_time.items():
+    for concurrent in by_time.values():
         if len(concurrent) > 1:
             # Check if any character appears in 2 different locations at same time
             for i in range(len(concurrent)):

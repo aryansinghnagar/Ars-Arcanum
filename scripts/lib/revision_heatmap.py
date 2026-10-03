@@ -104,7 +104,7 @@ def diff_line_counts(current_text: str, snapshot_text: str) -> tuple[int, int]:
     deletions = 0
 
     for line in difflib.unified_diff(snapshot_lines, current_lines, lineterm=""):
-        if line.startswith("+++") or line.startswith("---"):
+        if line.startswith(("+++", "---")):
             continue
         if line.startswith("+"):
             insertions += 1

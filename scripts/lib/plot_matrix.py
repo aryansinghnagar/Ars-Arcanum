@@ -84,7 +84,7 @@ def extract_chapter_plot_metadata(file_path: Path, chapter_index: int) -> dict:
                 if item.strip():
                     arcs.add(item.strip())
 
-    all_tracks = sorted(list(plots | threads | arcs))
+    all_tracks = sorted(plots | threads | arcs)
     return {
         "index": chapter_index,
         "file": str(file_path),
@@ -92,9 +92,9 @@ def extract_chapter_plot_metadata(file_path: Path, chapter_index: int) -> dict:
         "title": title,
         "pov": pov,
         "word_count": word_count,
-        "plots": sorted(list(plots)),
-        "threads": sorted(list(threads)),
-        "arcs": sorted(list(arcs)),
+        "plots": sorted(plots),
+        "threads": sorted(threads),
+        "arcs": sorted(arcs),
         "all_tracks": all_tracks,
         "track_count": len(all_tracks)
     }

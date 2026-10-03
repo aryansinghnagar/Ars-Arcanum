@@ -148,7 +148,7 @@ def audit_ecosystem(species: dict) -> list:
 
     # Group by trophic level and habitat
     by_habitat = {}
-    for _sname, sinfo in species.items():
+    for sinfo in species.values():
         hab = normalize_name(sinfo["habitat"])
         if hab not in by_habitat:
             by_habitat[hab] = []
@@ -227,7 +227,7 @@ def audit_ecosystem(species: dict) -> list:
             if pnorm in norm_map:
                 graph[snorm].append(pnorm)
 
-    color = {node: 0 for node in graph}
+    color = dict.fromkeys(graph, 0)
     parent_stack = []
     seen_cycles = set()
 
@@ -446,7 +446,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
     universes = [p for p in universes if p.is_dir() and p.name not in ("Worlds", ".git")]
     if len(universes) == 1:
         return str(universes[0])
-    elif len(universes) > 1:
+    if len(universes) > 1:
         print("Error: Multiple worlds discovered — specify one explicitly.", file=sys.stderr)
         sys.exit(2)
     else:
@@ -454,7 +454,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
         worlds = [p for p in worlds if p.is_dir()]
         if len(worlds) == 1:
             return str(worlds[0])
-        elif len(worlds) > 1:
+        if len(worlds) > 1:
             print("Error: Multiple legacy worlds discovered — specify one explicitly.", file=sys.stderr)
             sys.exit(2)
     return ""

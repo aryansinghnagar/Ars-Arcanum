@@ -53,7 +53,7 @@ PROFILES = {
 def synthesize_wav(output_path: Path, duration_sec: int = 10, noise_type: str = "brown", binaural_beat: float = 10.0, carrier_freq: float = 216.0, ambient_mode: str = "rain"):
     """Synthesizes a stereo WAV file with procedural noise and binaural beats."""
     total_samples = int(SAMPLE_RATE * duration_sec)
-    
+
     # Binaural frequencies
     left_freq = carrier_freq
     right_freq = carrier_freq + binaural_beat
@@ -201,7 +201,7 @@ let noiseNode, rainGain, rainFilter, noiseGain, oscL, oscR, masterGain;
 
 function initAudio() {
   ctx = new (window.AudioContext || window.webkitAudioContext)();
-  
+
   // Master Gain
   masterGain = ctx.createGain();
   masterGain.connect(ctx.destination);
@@ -245,7 +245,7 @@ function initAudio() {
   // Binaural Beat Oscillators (Carrier 216 Hz)
   const carrier = 216.0;
   const beat = parseFloat(document.getElementById("beatSlider").value);
-  
+
   oscL = ctx.createOscillator();
   oscR = ctx.createOscillator();
   oscL.frequency.value = carrier;
@@ -267,7 +267,7 @@ function initAudio() {
 function toggleAudio() {
   if (!ctx) initAudio();
   if (ctx.state === 'suspended') ctx.resume();
-  
+
   isPlaying = !isPlaying;
   document.getElementById("playBtn").innerText = isPlaying ? "⏸ Pause Audio" : "▶ Resume Audio";
   masterGain.gain.value = isPlaying ? parseFloat(document.getElementById("volSlider").value) : 0;
@@ -344,7 +344,7 @@ def main():
 
         out_wav = Path(args.output or f"ambient_{args.profile}.wav")
         prof = PROFILES.get(args.profile, {"noise": args.profile, "carrier": 216.0, "beat": 10.0, "type": "noise"})
-        
+
         binaural_map = {"alpha": 10.0, "theta": 6.0, "beta": 18.0, "gamma": 40.0}
         raw_beat = binaural_map.get(args.binaural, prof.get("beat", 10.0))
         beat_freq = float(raw_beat) if raw_beat is not None else 10.0

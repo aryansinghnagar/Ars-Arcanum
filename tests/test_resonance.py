@@ -97,7 +97,7 @@ class TestResonanceMeshPrimitives(unittest.TestCase):
 
     def test_zero_isolated_nodes_across_ecosystem(self) -> None:
         """Verifies that 100% of the 53 registered engines have degree >= 2 in the resonance mesh."""
-        node_degrees: dict[str, int] = {k: 0 for k in self.mesh.nodes}
+        node_degrees: dict[str, int] = dict.fromkeys(self.mesh.nodes, 0)
         for e in self.mesh.edges:
             node_degrees[e.source_id] = node_degrees.get(e.source_id, 0) + 1
             node_degrees[e.target_id] = node_degrees.get(e.target_id, 0) + 1

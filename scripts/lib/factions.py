@@ -76,7 +76,7 @@ def extract_faction_profiles(world_dir: Path) -> dict:
         world_dir / "Factions",
         world_dir / "00-World-Bible" / "Factions",
     ]
-    
+
     seen_files = set()
     for fdir in dirs_to_check:
         if not fdir.is_dir():
@@ -89,28 +89,28 @@ def extract_faction_profiles(world_dir: Path) -> dict:
                 content = md_file.read_text(encoding="utf-8", errors="ignore")
                 fm = parse_yaml_frontmatter(content)
                 name = fm.get("name") or md_file.stem.replace("_", " ").replace("-", " ")
-                
+
                 # Extract allies
                 raw_allies = fm.get("allies") or fm.get("ally") or []
                 if isinstance(raw_allies, str):
                     raw_allies = [raw_allies]
                 allies = [clean_link_name(a) for a in raw_allies if clean_link_name(a)]
-                
+
                 # Extract rivals
                 raw_rivals = fm.get("rivals") or fm.get("rival") or fm.get("enemies") or []
                 if isinstance(raw_rivals, str):
                     raw_rivals = [raw_rivals]
                 rivals = [clean_link_name(r) for r in raw_rivals if clean_link_name(r)]
-                
+
                 # Extract vassals
                 raw_vassals = fm.get("vassals") or fm.get("vassal") or []
                 if isinstance(raw_vassals, str):
                     raw_vassals = [raw_vassals]
                 vassals = [clean_link_name(v) for v in raw_vassals if clean_link_name(v)]
-                
+
                 # Extract overlord
                 overlord = clean_link_name(fm.get("overlord") or fm.get("suzerain") or "")
-                
+
                 # Extract treaties
                 raw_treaties = fm.get("treaties") or fm.get("pacts") or []
                 if isinstance(raw_treaties, str):
@@ -180,7 +180,7 @@ def audit_faction_diplomacy(factions: dict) -> list:
                 target_info = factions[target_real]
                 target_allies_norm = [normalize_name(x) for x in target_info["allies"]]
                 target_rivals_norm = [normalize_name(x) for x in target_info["rivals"]]
-                
+
                 if fn_norm in target_rivals_norm:
                     findings.append({
                         "id": "FAC-101",
@@ -311,7 +311,7 @@ def calc_lanchester_battle(
 ) -> dict:
     """
     Computes Lanchester combat engagement casualty curves and victor prediction.
-    
+
     Laws:
     - square: Modern/aimed ranged firepower. dA/dt = -beta * D, dD/dt = -alpha * A
     - linear: Melee/un-aimed area fire. dA/dt = -beta * (A*D) / D or constant rate
@@ -320,7 +320,7 @@ def calc_lanchester_battle(
     d = float(defender_force)
     alpha = float(attacker_eff)
     beta = float(defender_eff) * float(fort_bonus)
-    
+
     a_initial = a
     d_initial = d
     a_morale_limit = a_initial * (1.0 - morale_threshold)
@@ -343,7 +343,7 @@ def calc_lanchester_battle(
     for step in range(1, total_steps + 1):
         if a <= 0 or d <= 0 or a <= a_morale_limit or d <= d_morale_limit:
             break
-        
+
         if law == "square":
             da = beta * d * dt
             dd = alpha * a * dt
@@ -418,7 +418,7 @@ def calc_campaign_logistics(
     daily_food_kg = total_soldiers * ration_kg_soldier * (1.0 - forage_pct)
     daily_water_liters = total_soldiers * water_liters_soldier
     daily_fodder_kg = total_mounts * fodder_kg_mount * (1.0 - forage_pct)
-    
+
     total_daily_supply_kg = daily_food_kg + daily_water_liters + daily_fodder_kg
     daily_metric_tons = total_daily_supply_kg / 1000.0
 
@@ -428,7 +428,7 @@ def calc_campaign_logistics(
     # Wagon train calculation
     # Each wagon carries wagon_payload_kg. Draft animals also consume fodder!
     draft_animal_consumption_day_per_wagon = draft_horses_per_wagon * fodder_kg_mount * (1.0 - forage_pct)
-    
+
     # Wagon Radius formula: R_max = (Wagon Payload / (2 * Draft Animal Daily Fodder)) * March Speed
     if draft_animal_consumption_day_per_wagon > 0:
         max_wagon_days = wagon_payload_kg / (2.0 * draft_animal_consumption_day_per_wagon)
@@ -630,7 +630,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
     universes = [p for p in universes if p.is_dir() and p.name not in ("Worlds", ".git")]
     if len(universes) == 1:
         return str(universes[0])
-    elif len(universes) > 1:
+    if len(universes) > 1:
         print("Error: Multiple worlds discovered — specify one explicitly.", file=sys.stderr)
         sys.exit(2)
     else:
@@ -638,7 +638,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
         worlds = [p for p in worlds if p.is_dir()]
         if len(worlds) == 1:
             return str(worlds[0])
-        elif len(worlds) > 1:
+        if len(worlds) > 1:
             print("Error: Multiple legacy worlds discovered — specify one explicitly.", file=sys.stderr)
             sys.exit(2)
     return ""

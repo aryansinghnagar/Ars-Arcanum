@@ -198,7 +198,7 @@ def generate_story_canvas_html(
   button:hover {{ border-color: var(--accent); background: var(--panel-hover); }}
   .btn-primary {{ background: #0284c7; color: white; border: none; font-weight: 600; }}
   .btn-primary:hover {{ background: #0369a1; }}
-  
+
   .stats-bar {{
     background: #0f172a; border-bottom: 1px solid var(--border);
     padding: 0.5rem 1.5rem; display: flex; gap: 2rem; font-size: 0.85rem; color: var(--muted);
@@ -223,7 +223,7 @@ def generate_story_canvas_html(
   .cards-list {{
     flex: 1; overflow-y: auto; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem;
   }}
-  
+
   .card {{
     background: var(--card-bg); border: 1px solid var(--card-border);
     border-radius: 6px; padding: 0.875rem; cursor: grab; user-select: none;
@@ -432,7 +432,7 @@ def generate_story_canvas_html(
           break;
         }}
       }}
-      
+
       const list = document.getElementById(`list_beat_${{assignedBeatIdx}}`);
       if (list) {{
         list.appendChild(createCardElement(card));

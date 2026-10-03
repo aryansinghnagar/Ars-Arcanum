@@ -202,13 +202,13 @@ class TestBranchingNarrativeGraph(unittest.TestCase):
             "@ending: true\n",
             encoding="utf-8",
         )
-        
+
         engine = BranchingNarrativeEngine()
         engine.load_from_directory(sub_dir)
-        
+
         self.assertIn("Kaelen", engine.nodes["start"].povs)
         self.assertIn("Elara", engine.nodes["elara_path"].povs)
-        
+
         subway_html = engine.export_subway_html()
         self.assertIn("Kaelen", subway_html)
         self.assertIn("Elara", subway_html)

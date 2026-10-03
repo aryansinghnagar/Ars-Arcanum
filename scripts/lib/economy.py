@@ -196,7 +196,7 @@ def extract_economy_profiles(world_dir: Path) -> dict:
 
                 base_currency = fm.get("base_currency") or "Standard Coin"
                 currencies = fm.get("currencies") or {}
-                
+
                 # If currencies was parsed as list, convert to standard dict
                 if isinstance(currencies, list):
                     c_dict = {}
@@ -335,14 +335,13 @@ def audit_manuscript_prices(manuscript_dir: Path, economies: dict) -> list:
                             return amount_base, other_price * ppp_rate
 
             return amount_base, None
-        else:
-            # Unregistered currency fallback: search any economy basket
-            for econ in economies.values():
-                e_basket = econ.get("commodity_basket", {})
-                price = get_basket_price(e_basket, item_norm)
-                if price is not None:
-                    return amount, price
-            return amount, None
+        # Unregistered currency fallback: search any economy basket
+        for econ in economies.values():
+            e_basket = econ.get("commodity_basket", {})
+            price = get_basket_price(e_basket, item_norm)
+            if price is not None:
+                return amount, price
+        return amount, None
 
     # Regex for @price: amount currency for item
     price_tag_regex = re.compile(r"@price:\s*([\d\.]+)\s+([A-Za-z\s]+?)\s+(?:for|on)\s+([A-Za-z\s_-]+)", re.IGNORECASE)
@@ -451,7 +450,7 @@ def audit_technological_anachronisms(
                 # Ignore tag lines
                 if line.strip().startswith("@"):
                     continue
-                
+
                 line_lower = line.lower()
                 for tech_term, earliest_era in TECH_ERA_DICTIONARY.items():
                     if normalize_name(tech_term) in whitelist:
@@ -491,7 +490,7 @@ def calc_trade_margin(
     """Calculates trade route profitability, break-even threshold, and net margin."""
     total_cargo_buy_cost = buy_price_per_ton * cargo_tons
     gross_revenue_potential = sell_price_per_ton * cargo_tons * (1.0 - spoilage_pct)
-    
+
     total_transit_cost = transit_cost_per_ton_unit * distance_km_or_ly * cargo_tons
     total_tariffs = gross_revenue_potential * tariff_pct
 
@@ -639,7 +638,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
     universes = [p for p in universes if p.is_dir() and p.name not in ("Worlds", ".git")]
     if len(universes) == 1:
         return str(universes[0])
-    elif len(universes) > 1:
+    if len(universes) > 1:
         print("Error: Multiple worlds discovered — specify one explicitly.", file=sys.stderr)
         sys.exit(2)
     else:
@@ -647,7 +646,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
         worlds = [p for p in worlds if p.is_dir()]
         if len(worlds) == 1:
             return str(worlds[0])
-        elif len(worlds) > 1:
+        if len(worlds) > 1:
             print("Error: Multiple legacy worlds discovered — specify one explicitly.", file=sys.stderr)
             sys.exit(2)
     return ""

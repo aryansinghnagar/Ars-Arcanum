@@ -3,7 +3,7 @@ target-version = "py310"
 line-length = 120
 
 [tool.ruff.lint]
-select = ["E", "F", "B", "S", "UP", "SIM", "I", "RUF", "C901"]
+select = ["E", "W", "F", "B", "S", "UP", "SIM", "I", "RUF", "C901", "C4", "PIE", "RET", "RSE", "FLY"]
 ignore = [
     "E501", # line length handled separately
     "S603", # subprocess call - check for execution of untrusted input
@@ -21,8 +21,9 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "S105", "E402", "I001"]
+"tests/*" = ["S101", "S105", "S314", "E402", "I001"]
 "scripts/lib/cli.py" = ["C901"]
+"scripts/init_query.py" = ["W291"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 40

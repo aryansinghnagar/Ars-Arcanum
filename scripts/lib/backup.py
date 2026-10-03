@@ -100,7 +100,7 @@ def resolve_backup_destination(target_path: Path, custom_dest: Path | str | None
 def should_exclude(rel_posix_path: str) -> bool:
     """Checks if a relative path matches any exclusion patterns."""
     parts = rel_posix_path.split("/")
-    return any(p in EXCLUDE_PATTERNS or p.endswith(".tmp") or p.endswith(".bak") for p in parts)
+    return any(p in EXCLUDE_PATTERNS or p.endswith((".tmp", ".bak")) for p in parts)
 
 
 def create_backup(

@@ -130,11 +130,11 @@ parents: ["direct descendant via ~4 unrecorded generations from [[AncientAncesto
 born: "300 AC"
 ---
 """, encoding="utf-8")
-        
+
         chars = load_characters_and_houses(self.world_dir)
         self.assertIn("AncientAncestor", chars["LateDescendant"]["parents"])
         self.assertIn("AncientAncestor", chars["LateDescendant"]["fuzzy_parents"])
-        
+
         findings = validate_genealogy(chars)
         self.assertFalse(any(f["id"] == "GEN-101" and f["character"] == "LateDescendant" for f in findings))
 

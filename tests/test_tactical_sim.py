@@ -66,7 +66,7 @@ class TestTacticalSimulator(unittest.TestCase):
     def test_terrain_modifiers_schema(self):
         """Each terrain modifier must have name, ranged_mod, def_bonus, and desc."""
         required = {"name", "ranged_mod", "def_bonus", "desc"}
-        for _terrain, mod in TERRAIN_MODIFIERS.items():
+        for mod in TERRAIN_MODIFIERS.values():
             self.assertTrue(required.issubset(mod.keys()))
 
     def test_monte_carlo_win_rates_sum_to_100(self):

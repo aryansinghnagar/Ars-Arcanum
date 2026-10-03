@@ -793,7 +793,7 @@ def load_idioms_config(custom_config_path: Path | None = None) -> dict:
     candidates = []
     if custom_config_path:
         candidates.append(Path(custom_config_path))
-    
+
     script_dir = Path(__file__).resolve().parent
     repo_root = script_dir.parent.parent
     candidates.extend([
@@ -861,7 +861,7 @@ def audit_manuscript_idioms(
         return findings
 
     cfg = config or load_idioms_config()
-    whitelist = set([str(w).lower().strip() for w in cfg.get("whitelist", [])])
+    whitelist = {str(w).lower().strip() for w in cfg.get("whitelist", [])}
     if custom_whitelist:
         for w in custom_whitelist:
             whitelist.add(str(w).lower().strip())
@@ -927,7 +927,7 @@ def generate_idioms_html_report(audit_data: dict, output_path: Path):
             <strong>{html.escape(fd.get('phrase', ''))}</strong> — <span style="color: #94a3b8;">{html.escape(fd.get('category', ''))}</span>
             <p style="margin: 0.5rem 0;"><em>"{html.escape(fd.get('snippet', ''))}"</em></p>
             <p style="margin: 0; font-size: 0.9em; color: #38bdf8;">
-                <strong>Origin:</strong> {html.escape(fd.get('origin', ''))} | 
+                <strong>Origin:</strong> {html.escape(fd.get('origin', ''))} |
                 <strong>Suggestion:</strong> {html.escape(fd.get('suggestion', ''))}
             </p>
             <div style="font-size: 0.8em; color: #64748b; margin-top: 4px;">File: {html.escape(fd.get('file', ''))}:{fd.get('line', '')}</div>
@@ -1016,7 +1016,7 @@ def resolve_manuscript_dir(target_str: str | None = None) -> str:
     manuscripts = [p for p in manuscripts if p.is_dir()]
     if len(manuscripts) == 1:
         return str(manuscripts[0])
-    elif len(manuscripts) > 1:
+    if len(manuscripts) > 1:
         print("Error: Multiple manuscripts discovered — specify one explicitly.", file=sys.stderr)
         sys.exit(2)
     return ""

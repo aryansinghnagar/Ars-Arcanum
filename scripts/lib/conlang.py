@@ -177,7 +177,7 @@ def print_family_tree(langs: dict, root_name: str, prefix: str = "", visited: se
         return
     visited.add(root_name)
     print(f"{prefix}\033[1;36m{root_name}\033[0m")
-    
+
     children = [name for name, p in langs.items() if p.get("proto_language") == root_name]
     for i, child in enumerate(children):
         is_last = (i == len(children) - 1)
@@ -286,8 +286,7 @@ def compile_sound_rule(rule_str: str, vowels: list, consonants: list):
         def _repl_b(m):
             items = [re.escape(x.strip()) for x in m.group(1).split(",") if x.strip()]
             return f"(?:{'|'.join(items)})"
-        s = re.sub(r"\[(.*?)\]", _repl_b, s)
-        return s
+        return re.sub(r"\[(.*?)\]", _repl_b, s)
 
     left_re = prep_env(left_env, True)
     right_re = prep_env(right_env, False)
@@ -331,7 +330,7 @@ def compile_sound_rule(rule_str: str, vowels: list, consonants: list):
 def mutate_text(text: str, rules: list, vowels: list, consonants: list) -> str:
     """Applies a sequence of historical sound change rules to a word or prose text."""
     compiled_rules = [compile_sound_rule(r, vowels, consonants) for r in rules if r.strip()]
-    
+
     def mutate_single_word(w: str) -> str:
         is_cap = w.istitle()
         curr = w.lower()
@@ -369,7 +368,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
     universes = [p for p in universes if p.is_dir() and p.name not in ("Worlds", ".git")]
     if len(universes) == 1:
         return str(universes[0])
-    elif len(universes) > 1:
+    if len(universes) > 1:
         print("Error: Multiple worlds discovered — specify one with -w/--world.", file=sys.stderr)
         sys.exit(2)
     else:
@@ -377,7 +376,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
         worlds = [p for p in worlds if p.is_dir()]
         if len(worlds) == 1:
             return str(worlds[0])
-        elif len(worlds) > 1:
+        if len(worlds) > 1:
             print("Error: Multiple legacy worlds discovered — specify one with -w/--world.", file=sys.stderr)
             sys.exit(2)
     return ""

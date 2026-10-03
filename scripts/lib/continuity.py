@@ -110,7 +110,7 @@ def extract_lore_profiles(world_dir: Path) -> dict:
         char_dirs.append(world_dir / "00-World-Bible" / "Characters")
     if not char_dirs:
         char_dirs.append(world_dir)
-    
+
     seen_files = set()
     for cdir in char_dirs:
         for md_file in sorted(cdir.rglob("*.md")):
@@ -120,7 +120,7 @@ def extract_lore_profiles(world_dir: Path) -> dict:
             try:
                 content = md_file.read_text(encoding="utf-8", errors="replace")
                 entity_name = md_file.stem
-                
+
                 # Check YAML frontmatter name
                 fm_match = FRONTMATTER_REGEX.match(content)
                 if fm_match:
@@ -203,7 +203,7 @@ def attribute_sentence_trait(sentence: str, scene_chars: list, profiles: dict) -
 
     # 3. No explicit mention: fall back to scene context only when it is
     # unambiguous (exactly one active character).
-    ctx = [c for c in scene_chars]
+    ctx = list(scene_chars)
     if len(ctx) == 1:
         owner = lower_profiles.get(ctx[0].lower(), ctx[0])
         return [(owner, "medium")]
@@ -250,7 +250,7 @@ def scan_manuscript_scenes(manuscript_dir: Path, profiles: dict) -> list:
 
             # Analyze text for trait assertions (sentence-level, CNT-01)
             for line_idx, line in enumerate(lines, 1):
-                if line.startswith("@") or line.startswith("#") or not line.strip():
+                if line.startswith(("@", "#")) or not line.strip():
                     continue
 
                 for sentence in SENTENCE_SPLIT.split(line):
@@ -312,7 +312,7 @@ def scan_manuscript_scenes(manuscript_dir: Path, profiles: dict) -> list:
             by_trait[t_type].append((file_path, line_no, val))
 
         for t_type, occurrences in by_trait.items():
-            distinct_vals = set(val for _, _, val in occurrences)
+            distinct_vals = {val for _, _, val in occurrences}
             if len(distinct_vals) > 1:
                 # Contradiction across scenes!
                 first_f, first_l, first_v = occurrences[0]

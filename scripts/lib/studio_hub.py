@@ -171,19 +171,19 @@ def scan_lore_entities(world_dir: Path | None) -> list[dict[str, Any]]:
             if "character" in low or "people" in low or "dramatis" in low:
                 category = "Characters"
                 break
-            elif "place" in low or "location" in low or "geography" in low or "settlement" in low:
+            if "place" in low or "location" in low or "geography" in low or "settlement" in low:
                 category = "Locations"
                 break
-            elif "magic" in low or "spell" in low or "arcana" in low or "power" in low:
+            if "magic" in low or "spell" in low or "arcana" in low or "power" in low:
                 category = "Magic Systems"
                 break
-            elif "faction" in low or "guild" in low or "order" in low or "house" in low or "nation" in low:
+            if "faction" in low or "guild" in low or "order" in low or "house" in low or "nation" in low:
                 category = "Factions"
                 break
-            elif "history" in low or "timeline" in low or "event" in low or "era" in low:
+            if "history" in low or "timeline" in low or "event" in low or "era" in low:
                 category = "History & Events"
                 break
-            elif "language" in low or "conlang" in low or "dialect" in low or "lexicon" in low:
+            if "language" in low or "conlang" in low or "dialect" in low or "lexicon" in low:
                 category = "Languages"
                 break
 
@@ -1518,10 +1518,10 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
             </div>
             <h4 style="font-size: 16px; margin-top: 4px;">{eng['name']}</h4>
             <p style="color: var(--text-primary); font-size: 13px;">{eng['desc']}</p>
-            
+
             <div style="background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; margin-top: 8px; display: flex; flex-direction: column; gap: 10px;">
               <div><strong>⚙️ Logic & Scientific / Structural Foundations:</strong><br><div class="code-block" style="margin-top: 4px;">{eng.get('scientific_logic', eng.get('logic_documentation', 'Standard calculation engine.'))}</div></div>
-              
+
               {"<div><strong>💡 Why It Works This Way (Rationale):</strong><br><span style='color: var(--text-secondary); font-size: 12.5px;'>" + eng.get('why_this_way', '') + "</span></div>" if eng.get('why_this_way') else ""}
 
               {"<div><strong>⚡ Key Subfeatures:</strong><br>" + "".join("<div style='margin-top: 4px; font-size: 12px;'>• <strong>" + sf.get('name', '') + "</strong>: " + sf.get('rule', '') + " <code style='color: var(--accent-cyan);'>(" + sf.get('example', '') + ")</code></div>" for sf in eng.get('subfeatures', [])) + "</div>" if eng.get('subfeatures') else ""}
@@ -1531,7 +1531,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
               <div><strong>🌍 Worldbuilding Application:</strong><br><span style="color: var(--text-secondary); font-size: 12.5px;">{eng.get('worldbuilding_relevance', 'Worldbuilding lore consistency.')}</span></div>
               <div><strong>📐 Storytelling Relevance:</strong><br><span style="color: var(--text-secondary); font-size: 12.5px;">{eng.get('storytelling_relevance', 'Plot and pacing integration.')}</span></div>
               <div><strong>✍️ Prose Writing Relevance:</strong><br><span style="color: var(--text-secondary); font-size: 12.5px;">{eng.get('writing_relevance', 'Writing and line-editing polish.')}</span></div>
-              
+
               {"<div style='margin-top: 6px; border-top: 1px solid var(--border-color); padding-top: 8px;'><strong>💡 Creative Advisory Resolution Pathways:</strong><br>" + "".join("<div style='margin-top: 6px; font-size: 12px;'><span style='color: var(--accent-gold);'>• Pattern: " + adv.get("pattern", "Unconventional input") + "</span><br>&nbsp;&nbsp;<span style='color: var(--accent-cyan);'>Option A (Realism):</span> " + adv.get("option_a", "Standard convention") + "<br>&nbsp;&nbsp;<span style='color: var(--accent-purple);'>Option B (Trope/Magic):</span> " + adv.get("option_b", "In-world grounding") + "<br>&nbsp;&nbsp;<span style='color: var(--accent-emerald);'>Option C (Sovereignty):</span> " + adv.get("option_c", "Author creative control") + "</div>" for adv in eng.get("advisory_guidance", [])) + "</div>" if eng.get("advisory_guidance") else ""}
             </div>
           </div>''' for eng in data['engine_catalog'])}
@@ -1644,12 +1644,12 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
   function switchTab(tabId) {{
     document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-    
+
     const target = document.getElementById(tabId);
     if (target) target.classList.add('active');
-    
+
     event.currentTarget.classList.add('active');
-    
+
     const titles = {{
       'tab-overview': 'Overview Dashboard',
       'tab-manuscript': 'Manuscripts & Chapters',
@@ -1908,14 +1908,14 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     CURRENT_TAB = tabId;
     document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-    
+
     const target = document.getElementById(tabId);
     if (target) target.classList.add('active');
-    
+
     if (event && event.currentTarget) {{
       event.currentTarget.classList.add('active');
     }}
-    
+
     const titles = {{
       'tab-overview': 'Overview Dashboard',
       'tab-manuscript': 'Manuscripts & Chapters',
@@ -1997,8 +1997,8 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
 
     if (!IS_API_MODE) {{
       // Offline static filter fallback
-      const matches = HUB_DATA.lore_entities.filter(e => 
-        e.name.toLowerCase().includes(q.toLowerCase()) || 
+      const matches = HUB_DATA.lore_entities.filter(e =>
+        e.name.toLowerCase().includes(q.toLowerCase()) ||
         e.summary.toLowerCase().includes(q.toLowerCase())
       );
       if (matches.length === 0) {{

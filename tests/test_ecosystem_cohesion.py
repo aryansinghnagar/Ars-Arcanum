@@ -179,7 +179,7 @@ class TestResonanceMeshIntegrity(unittest.TestCase):
         self.assertEqual(len(mesh.nodes), 53)
         self.assertEqual(len(mesh.edges), 74)
 
-        node_degrees: dict[str, int] = {k: 0 for k in mesh.nodes}
+        node_degrees: dict[str, int] = dict.fromkeys(mesh.nodes, 0)
         for e in mesh.edges:
             node_degrees[e.source_id] = node_degrees.get(e.source_id, 0) + 1
             node_degrees[e.target_id] = node_degrees.get(e.target_id, 0) + 1

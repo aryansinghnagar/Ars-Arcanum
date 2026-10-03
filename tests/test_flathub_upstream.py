@@ -24,7 +24,7 @@ class TestFlathubUpstream(unittest.TestCase):
         self.assertTrue(self.metainfo_path.exists(), f"Missing AppStream metainfo file: {self.metainfo_path}")
 
     def test_metainfo_xml_structure_and_tags(self):
-        tree = ET.parse(self.metainfo_path)  # noqa: S314
+        tree = ET.parse(self.metainfo_path)
         root = tree.getroot()
         self.assertIn(root.tag, ("component", "component type=\"desktop\"", "component type=\"desktop-application\""))
 

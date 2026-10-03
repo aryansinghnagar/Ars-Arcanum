@@ -495,7 +495,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
     universes = [p for p in universes if p.is_dir() and p.name not in ("Worlds", ".git")]
     if len(universes) == 1:
         return str(universes[0])
-    elif len(universes) > 1:
+    if len(universes) > 1:
         print("Error: Multiple worlds discovered — specify one explicitly.", file=sys.stderr)
         sys.exit(2)
     else:
@@ -503,7 +503,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
         worlds = [p for p in worlds if p.is_dir()]
         if len(worlds) == 1:
             return str(worlds[0])
-        elif len(worlds) > 1:
+        if len(worlds) > 1:
             print("Error: Multiple legacy worlds discovered — specify one explicitly.", file=sys.stderr)
             sys.exit(2)
     return ""
@@ -600,7 +600,7 @@ def main():
 
             if events:
                 print("\033[1mCausal Sequence Events:\033[0m")
-                for _eid, einfo in events.items():
+                for einfo in events.values():
                     print(f"  📍 \033[1;36m{einfo['name']}\033[0m (Timeline: {einfo['timeline']}) — Coord: {einfo['time_coord'] or 'N/A'}")
                     if einfo["causal_origins"]:
                         print(f"     Prereq : {', '.join(einfo['causal_origins'])}")

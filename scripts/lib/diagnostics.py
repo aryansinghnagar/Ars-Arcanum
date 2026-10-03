@@ -86,8 +86,7 @@ def redact_sensitive_paths(text: str) -> str:
     home = str(Path.home())
     text = text.replace(home, "~")
     home_win = home.replace("/", "\\")
-    text = text.replace(home_win, "~")
-    return text
+    return text.replace(home_win, "~")
 
 
 def get_command_version(cmd: list[str]) -> str | None:

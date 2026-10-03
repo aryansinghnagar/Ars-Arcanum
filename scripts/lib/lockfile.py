@@ -31,12 +31,10 @@ except ImportError:
 
 class LockError(Exception):
     """Base exception for file locking errors."""
-    pass
 
 
 class LockTimeoutError(LockError):
     """Raised when acquiring a lock exceeds the timeout."""
-    pass
 
 
 class ArcanumLock(AbstractContextManager):

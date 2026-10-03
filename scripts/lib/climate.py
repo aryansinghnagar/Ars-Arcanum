@@ -54,10 +54,10 @@ def calc_planetary_insolation(
     d = max(1e-6, float(semi_major_axis_au))
     lum = max(0.0, float(stellar_luminosity))
     albedo = min(0.999, max(0.0, float(bond_albedo)))
-    
+
     # S = S0 * (L / d^2)
     stellar_flux = SOLAR_CONSTANT_EARTH * (lum / (d ** 2))
-    
+
     # T_eq = [ S * (1 - A) / (4 * sigma) ]^(1/4)
     absorbed_flux = stellar_flux * (1.0 - albedo)
     t_eq_k = (absorbed_flux / (4.0 * SIGMA)) ** 0.25
@@ -123,34 +123,30 @@ def classify_koppen_biome(temp_c: float, annual_precip_mm: float) -> str:
     """Classifies terrestrial biome according to Köppen-Geiger logic."""
     if temp_c < -10.0:
         return "Polar Ice Cap"
-    elif temp_c < 0.0:
+    if temp_c < 0.0:
         return "Tundra / Alpine Permafrost" if annual_precip_mm < 400 else "Glacial Taiga"
-    elif temp_c < 10.0:
+    if temp_c < 10.0:
         if annual_precip_mm < 250:
             return "Cold Boreal Steppe"
-        elif annual_precip_mm < 600:
+        if annual_precip_mm < 600:
             return "Boreal Forest / Taiga"
-        else:
-            return "Temperate Oceanic Rain Forest"
-    elif temp_c < 22.0:
+        return "Temperate Oceanic Rain Forest"
+    if temp_c < 22.0:
         if annual_precip_mm < 250:
             return "Arid Mid-Latitude Desert"
-        elif annual_precip_mm < 500:
+        if annual_precip_mm < 500:
             return "Semiarid Steppe / Scrubland"
-        elif annual_precip_mm < 1200:
+        if annual_precip_mm < 1200:
             return "Temperate Deciduous Woodland"
-        else:
-            return "Temperate Rainforest"
-    else:
-        # Hot Tropical / Subtropical
-        if annual_precip_mm < 250:
-            return "Hyper-Arid Subtropical Desert"
-        elif annual_precip_mm < 600:
-            return "Tropical Semiarid Savanna"
-        elif annual_precip_mm < 1800:
-            return "Tropical Monsoon Forest"
-        else:
-            return "Tropical Rainforest (Equatorial)"
+        return "Temperate Rainforest"
+    # Hot Tropical / Subtropical
+    if annual_precip_mm < 250:
+        return "Hyper-Arid Subtropical Desert"
+    if annual_precip_mm < 600:
+        return "Tropical Semiarid Savanna"
+    if annual_precip_mm < 1800:
+        return "Tropical Monsoon Forest"
+    return "Tropical Rainforest (Equatorial)"
 
 
 def calc_orographic_rain_shadow(
@@ -166,7 +162,7 @@ def calc_orographic_rain_shadow(
     # Moist adiabatic lapse rate = 5.0°C / km
     elev = max(0.0, float(mountain_elevation_m))
     crest_temp_c = float(base_temp_c) - (elev / 1000.0) * 6.5
-    
+
     # Windward side: precipitation enhancement
     # Precip increases with elevation up to ~2500m
     windward_factor = 1.0 + min(1.8, (elev / 1000.0) * 0.45)

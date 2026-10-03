@@ -188,7 +188,7 @@ def scan_manuscript_pacing(manuscript_dir: Path, target_book: str | None = None)
     for idx, f in enumerate(md_files, 1):
         content = f.read_text(encoding="utf-8", errors="replace")
         rel_path = str(f.relative_to(manuscript_dir)).replace("\\", "/")
-        
+
         # Determine chapter title
         title = f.stem.replace("_", " ")
         for line_text in content.splitlines()[:5]:
@@ -270,7 +270,7 @@ def scan_manuscript_pacing(manuscript_dir: Path, target_book: str | None = None)
 def generate_pacing_html_report(report: dict, output_file: Path):
     """Generates an interactive HTML pacing & tension curve report with pure SVG charts."""
     chaps = report["chapters"]
-    
+
     # Generate SVG Tension Curve
     svg_width = 800
     svg_height = 240
@@ -433,7 +433,7 @@ def print_sparkline(values: list) -> str:
     max_v = max(values)
     if max_v == min_v:
         return "".join([bars[3] for _ in values])
-    
+
     line = ""
     for v in values:
         idx = int((v - min_v) / (max_v - min_v) * (len(bars) - 1))
@@ -460,7 +460,7 @@ def resolve_manuscript_dir(target_str: str | None = None) -> str:
     mss = [p for p in mss if p.is_dir()]
     if len(mss) == 1:
         return str(mss[0])
-    elif len(mss) > 1:
+    if len(mss) > 1:
         print("Error: Multiple manuscripts discovered — specify one explicitly with -m/--manuscript.", file=sys.stderr)
         sys.exit(2)
     return ""

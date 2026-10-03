@@ -184,7 +184,7 @@ def parse_markdown_file(file_path: Path) -> dict:
 
         # Extract wikilinks
         raw_links = [m.rstrip("\\").strip() for m in WIKILINK_REGEX.findall(content)]
-        wikilinks = sorted(list(set(k for k in raw_links if k)))
+        wikilinks = sorted({k for k in raw_links if k})
 
         # Frontmatter
         frontmatter = parse_frontmatter(content)

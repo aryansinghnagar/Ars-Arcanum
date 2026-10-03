@@ -174,11 +174,11 @@ class TestExpandedTemplates(unittest.TestCase):
     def test_tip_engine_integration_for_templates(self) -> None:
         """Verifies that the tips engine provides specialized guidance for educational templates."""
         db = get_tip_database()
-        
+
         # Test direct query search
         results = db.search("educational templates")
         self.assertTrue(len(results) > 0, "Should find tips matching 'educational templates'")
-        
+
         # Test domain coverage tip exists
         tip_cov = db.get_by_id("tip_templates_comprehensive_domain_coverage")
         self.assertIsNotNone(tip_cov, "Missing tip_templates_comprehensive_domain_coverage in tip DB")

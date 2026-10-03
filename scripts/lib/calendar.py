@@ -224,12 +224,12 @@ def format_date(year: int, month_idx: int, day: int, cal_spec: dict) -> str:
         if year >= era.get("offset", 0):
             applicable_era = era
             break
-            
+
     fmt = applicable_era.get("format", "{weekday}, {month} {day}, Year {year} {era}")
     era_year = year - applicable_era.get("offset", 0)
     if era_year <= 0:
         era_year = abs(era_year) + 1
-        
+
     return fmt.format(
         day=day,
         month=m_name,
@@ -244,7 +244,7 @@ def get_moon_phase(abs_day: int, moon: dict) -> dict:
     """Calculates moon phase, illumination percentage, and Unicode glyph for a given day."""
     period = float(moon.get("period", 28.0))
     offset = float(moon.get("offset", 0.0))
-    
+
     cycle_pos = ((abs_day + offset) % period) / period  # 0.0 to 1.0
 
     # Illumination fraction (0% at 0.0/1.0, 100% at 0.5)
@@ -313,14 +313,14 @@ def render_month_terminal_grid(year: int, month_idx: int, cal_spec: dict) -> str
     months = cal_spec["months"]
     weekdays = cal_spec["weekdays"]
     m_info = months[month_idx]
-    
+
     first_day_abs = date_to_absolute_day(year, month_idx, 1, cal_spec)
     start_dow = first_day_abs % len(weekdays)
 
     lines = []
     title = f"{m_info['name']} {year} ({cal_spec['world']})"
     lines.append(f"\033[1;36m=== {title} ===\033[0m")
-    
+
     # Weekday headers
     hdr = "  ".join(f"\033[1m{w[:3]:<4}\033[0m" for w in weekdays)
     lines.append(hdr)
@@ -331,7 +331,7 @@ def render_month_terminal_grid(year: int, month_idx: int, cal_spec: dict) -> str
         cur_abs = first_day_abs + (d - 1)
         m_phases = [get_moon_phase(cur_abs, m) for m in cal_spec["moons"]]
         glyph = m_phases[0]["glyph"] if m_phases else ""
-        
+
         day_str = f"{d:>2}{glyph}"
         cur_row.append(f"{day_str:<4}")
 
@@ -447,7 +447,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
     universes = [p for p in universes if p.is_dir() and p.name not in ("Worlds", ".git")]
     if len(universes) == 1:
         return str(universes[0])
-    elif len(universes) > 1:
+    if len(universes) > 1:
         print("Error: Multiple worlds discovered — specify one with -w/--world.", file=sys.stderr)
         sys.exit(2)
     else:
@@ -455,7 +455,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
         worlds = [p for p in worlds if p.is_dir()]
         if len(worlds) == 1:
             return str(worlds[0])
-        elif len(worlds) > 1:
+        if len(worlds) > 1:
             print("Error: Multiple legacy worlds discovered — specify one with -w/--world.", file=sys.stderr)
             sys.exit(2)
     return ""
@@ -489,7 +489,7 @@ def main():
     m_idx = max(0, min(len(cal_spec["months"]) - 1, args.month - 1))
     abs_day = date_to_absolute_day(args.year, m_idx, args.day, cal_spec) + args.advance
     calc_yr, calc_m_idx, calc_day, calc_dow_idx = absolute_day_to_date(abs_day, cal_spec)
-    
+
     current_m_name = cal_spec["months"][calc_m_idx]["name"]
     current_dow = cal_spec["weekdays"][calc_dow_idx]
 

@@ -360,19 +360,18 @@ def main(argv: list[str] | None = None) -> int:
             set_tips_enabled(True)
             print("[CONFIG] Dynamic tips display enabled.")
             return 0
-        elif action == "disable" or (action == "set" and getattr(args, "state", "").lower() in ("false", "0", "no", "off")):
+        if action == "disable" or (action == "set" and getattr(args, "state", "").lower() in ("false", "0", "no", "off")):
             set_tips_enabled(False)
             print("[CONFIG] Dynamic tips display disabled.")
             return 0
-        elif action == "toggle":
+        if action == "toggle":
             new_val = toggle_tips()
             print(f"[CONFIG] Dynamic tips display {'enabled' if new_val else 'disabled'}.")
             return 0
-        else:
-            # Default or "get"
-            enabled = get_tips_enabled()
-            print(f"tips_enabled: {enabled}")
-            return 0
+        # Default or "get"
+        enabled = get_tips_enabled()
+        print(f"tips_enabled: {enabled}")
+        return 0
 
     return 0
 

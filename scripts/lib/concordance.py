@@ -86,8 +86,8 @@ def extract_summary_or_quote(body: str) -> str:
         if re.match(r"^##\s+.*(Summary|Overview|Description)", s, re.IGNORECASE):
             in_summary = True
             continue
-        elif in_summary:
-            if s.startswith("##") or s.startswith("---"):
+        if in_summary:
+            if s.startswith(("##", "---")):
                 break
             if s and not s.startswith("- **") and not s.startswith(">"):
                 summary_lines.append(s)

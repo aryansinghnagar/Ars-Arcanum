@@ -64,7 +64,7 @@ class VolumeData:
 def discover_series_volumes(target_path: Path) -> list[VolumeData]:
     """Discovers all volumes/books within a universe, cosmos, or manuscript directory."""
     volumes: list[VolumeData] = []
-    
+
     # Check if target is a universe containing Manuscripts/
     manuscripts_dir = target_path / "Manuscripts" if (target_path / "Manuscripts").is_dir() else target_path
 
@@ -113,12 +113,12 @@ def discover_series_volumes(target_path: Path) -> list[VolumeData]:
             meta = parse_yaml_frontmatter(content)
             body = FRONTMATTER_REGEX.sub("", content)
             pov = meta.get("pov", meta.get("character", ""))
-            
+
             for line in body.splitlines():
                 m = TAG_REGEX.match(line.strip())
                 if m and m.group(1).lower() == "pov" and not pov:
                     pov = m.group(2).strip()
-            
+
             if pov:
                 vol_povs.add(pov)
 

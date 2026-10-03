@@ -88,7 +88,7 @@ class ArcanumAppAdw:
         # Header Bar with View Switcher Title
         header = Adw.HeaderBar()
         self.view_stack = Adw.ViewStack()
-        
+
         view_switcher_title = Adw.ViewSwitcherTitle()
         view_switcher_title.set_stack(self.view_stack)
         view_switcher_title.set_title("Ars Arcanum")
@@ -177,7 +177,7 @@ class ArcanumAppAdw:
     def _create_cosmos_page(self) -> Gtk.Widget:
         page = Adw.PreferencesPage()
         group = make_pref_group("World Lore Vaults & Cartography", "Manage Obsidian worldbuilding vaults, maps, and codices")
-        
+
         row_new_univ = make_action_row("Create New Universe", "Scaffold an overarching cosmos container")
         btn_u = Gtk.Button(label="New Universe")
         btn_u.set_valign(Gtk.Align.CENTER)
@@ -456,7 +456,7 @@ def run_adw_app(active_tab: str | None = None):
     if not HAS_ADW:
         return False
     app = Adw.Application(application_id="org.arsarcanum.ArsArcanum")
-    
+
     def on_activate(application):
         win = ArcanumAppAdw(application, active_tab=active_tab)
         win.present()

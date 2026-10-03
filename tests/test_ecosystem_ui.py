@@ -236,7 +236,7 @@ class TestArcanumCliFacade(unittest.TestCase):
             ["causality", "check", "--help"],
             ["climate", "--help"],
             ["ecology", "check", "--help"],
-            
+
             ["audit", "senses", "--help"],
             ["audit", "tech", "--help"],
             ["audit", "dialogue", "--help"],
@@ -248,8 +248,8 @@ class TestArcanumCliFacade(unittest.TestCase):
             ["preflight", "--help"],
             ["matter", "build", "--help"],
             ["query", "--help"],
-            
-            
+
+
             ["plot", "--help"],
             ["structure", "--help"],
             ["ambient", "--help"],

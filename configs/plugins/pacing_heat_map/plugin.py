@@ -69,7 +69,7 @@ def hook_custom_metric(text: str, context: dict[str, Any]) -> dict[str, Any]:
     total_w = len(words)
     dialogue_matches = re.findall(r'["“][^"”]+["”]', text)
     dialogue_words = sum(len(m.split()) for m in dialogue_matches)
-    
+
     return {
         "word_count": total_w,
         "dialogue_word_count": dialogue_words,

@@ -30,7 +30,7 @@ class TestRegistry(unittest.TestCase):
     def test_registry_contains_core_and_craft_engines(self):
         reg = get_registry()
         self.assertGreater(len(reg), 25)
-        
+
         # Check core engines present
         core = get_core_engines()
         core_names = {e.name for e in core}
@@ -74,7 +74,7 @@ class TestRegistry(unittest.TestCase):
         self.assertTrue(is_engine_enabled("astrophysics"))
         disable_engine("astrophysics")
         self.assertFalse(is_engine_enabled("astrophysics"))
-        
+
         # list_engines with enabled_only=True should exclude it
         enabled_craft = get_craft_engines(enabled_only=True)
         self.assertNotIn("astrophysics", {e.name for e in enabled_craft})

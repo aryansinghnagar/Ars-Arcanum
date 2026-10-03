@@ -825,7 +825,7 @@ class ResonanceMesh:
         report.impacts = impacts
         report.summary = (
             f"Cascading change from [{origin_node_id}.{param_key} = {new_value}] "
-            f"propagated across {len(impacts)} downstream domain nodes spanning {len(set(i.pillar for i in impacts))} pillars."
+            f"propagated across {len(impacts)} downstream domain nodes spanning {len({i.pillar for i in impacts})} pillars."
         )
         report.advisory_resolutions = [
             {"mode": "Hard Realism", "description": "Apply all calculated downstream physical, economic, and tactical impacts to maintain strict causal plausibility."},
@@ -1479,7 +1479,7 @@ function updateSidebar() {{
                         <div class="card-body" style="display: flex; flex-direction: column; gap: 8px;">
                             ${{connectedEdges.map(e => `
                                 <div class="palette-item">
-                                    <strong>${{e.source_id === selectedNode.id ? '-> ' + e.target_id : '<- ' + e.source_id}}</strong>: 
+                                    <strong>${{e.source_id === selectedNode.id ? '-> ' + e.target_id : '<- ' + e.source_id}}</strong>:
                                     <span>${{e.description || e.relation}}</span>
                                 </div>
                             `).join('')}}
@@ -1701,7 +1701,7 @@ def main(argv: list[str] | None = None) -> int:
             atomic_write(out_file, html_content)
             print(f"[*] Exported interactive Knowledge Mesh Visualizer to: {out_file.resolve()}")
             return 0
-        elif getattr(args, "json", False):
+        if getattr(args, "json", False):
             payload = {
                 "version": VERSION,
                 "node_count": len(mesh.nodes),
@@ -1711,24 +1711,23 @@ def main(argv: list[str] | None = None) -> int:
             }
             print(json.dumps(payload, indent=2))
             return 0
-        else:
-            print(f"Ars Arcanum Universal Resonance Mesh — v{VERSION}")
-            print("=" * 65)
-            print(f"Indexed Nodes : {len(mesh.nodes)} across 5 Domain Pillars")
-            print(f"Cross-Domain  : {len(mesh.edges)} active causal/thematic relational edges")
-            print("\nPillars:")
-            for p in DomainPillar:
-                count = sum(1 for n in mesh.nodes.values() if n.pillar == p)
-                print(f"  - {p.value:<22}: {count:>2} nodes")
-            print("\nCommands:")
-            print("  arcanum resonance mesh --html report.html   (Open interactive visual graph)")
-            print("  arcanum resonance cascade <node> --param k --val v (Simulate domino effects)")
-            print("  arcanum resonance spark [domains...]       (Generate creative sparks)")
-            print("  arcanum resonance bridge <domA> <domB>     (Find multi-hop conceptual bridge)")
-            print("  arcanum resonance audit                    (Audit cross-domain coherence)")
-            return 0
+        print(f"Ars Arcanum Universal Resonance Mesh — v{VERSION}")
+        print("=" * 65)
+        print(f"Indexed Nodes : {len(mesh.nodes)} across 5 Domain Pillars")
+        print(f"Cross-Domain  : {len(mesh.edges)} active causal/thematic relational edges")
+        print("\nPillars:")
+        for p in DomainPillar:
+            count = sum(1 for n in mesh.nodes.values() if n.pillar == p)
+            print(f"  - {p.value:<22}: {count:>2} nodes")
+        print("\nCommands:")
+        print("  arcanum resonance mesh --html report.html   (Open interactive visual graph)")
+        print("  arcanum resonance cascade <node> --param k --val v (Simulate domino effects)")
+        print("  arcanum resonance spark [domains...]       (Generate creative sparks)")
+        print("  arcanum resonance bridge <domA> <domB>     (Find multi-hop conceptual bridge)")
+        print("  arcanum resonance audit                    (Audit cross-domain coherence)")
+        return 0
 
-    elif args.subcommand == "cascade":
+    if args.subcommand == "cascade":
         report = mesh.simulate_cascade(
             origin_node_id=args.node,
             param_key=args.param,
@@ -1754,7 +1753,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  • {adv['mode']}: {adv['description']}")
         return 0
 
-    elif args.subcommand == "spark":
+    if args.subcommand == "spark":
         sparks = mesh.generate_sparks(domains=args.domains, count=args.count, seed=args.seed)
         if args.json:
             print(json.dumps([s.to_dict() for s in sparks], indent=2))
@@ -1773,7 +1772,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"   Symbolic: {s.symbolic_mirror}")
         return 0
 
-    elif args.subcommand == "bridge":
+    if args.subcommand == "bridge":
         steps = mesh.find_bridge(args.domain_a, args.domain_b)
         if args.json:
             print(json.dumps(steps, indent=2))
@@ -1785,7 +1784,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"          {s['mechanism']}")
         return 0
 
-    elif args.subcommand == "audit":
+    if args.subcommand == "audit":
         violations = mesh.audit_coherence()
         if args.json:
             print(json.dumps([v.to_dict() for v in violations], indent=2))

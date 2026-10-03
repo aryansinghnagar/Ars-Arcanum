@@ -235,7 +235,7 @@ def process_markdown_file(
         corpus_type = "manuscript"
         category = "Manuscript"
         for part in path_parts:
-            if part.startswith("Book-") or part.startswith("Volume-"):
+            if part.startswith(("Book-", "Volume-")):
                 category = part
                 break
     elif file_path.name in ("Universe-Index.md", "World-Bible-Index.md", "README.md", "SUMMARY.md"):
@@ -722,7 +722,7 @@ def restore_corpus_from_jsonl(source_path: Path, target_dir: Path) -> None:
                 # If body is missing but chunks exist, reconstruct from chunks
                 # For basic jsonl without body, this is a best effort
                 pass
-            
+
             content = "\n".join(content_parts)
             out_file = _validate_safe_restore_path(target_dir, doc["path"])
             out_file.parent.mkdir(parents=True, exist_ok=True)
@@ -738,7 +738,7 @@ def restore_corpus_from_sqlite(source_path: Path, target_dir: Path) -> None:
         path_str, fm_json, body = row
         out_file = _validate_safe_restore_path(target_dir, path_str)
         out_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         fm = json.loads(fm_json) if fm_json else {}
         content_parts = []
         if fm:
@@ -751,10 +751,10 @@ def restore_corpus_from_sqlite(source_path: Path, target_dir: Path) -> None:
                 else:
                     content_parts.append(f"{k}: {json.dumps(v) if isinstance(v, str) else v}")
             content_parts.append("---")
-        
+
         if body:
             content_parts.append(body)
-            
+
         content = "\n".join(content_parts)
         atomic_write(out_file, content)
     conn.close()
@@ -763,7 +763,7 @@ def restore_corpus_from_sqlite(source_path: Path, target_dir: Path) -> None:
 def main():
     parser = argparse.ArgumentParser(description="Ars Arcanum Universal Structured Corpus & RAG Dataset Exporter")
     subparsers = parser.add_subparsers(dest="subcommand", help="Corpus subcommands (export, restore)")
-    
+
     # export command
     p_export = subparsers.add_parser("export", help="Export corpus to JSONL, SQLite, or Markdown")
     p_export.add_argument("target", help="Universe, World Bible, Manuscript directory or Markdown file")
@@ -817,7 +817,7 @@ def main():
             "total_words": scanner.total_words(),
             "total_chunks": scanner.total_chunks(),
             "total_entities": len({e.name: e for e in scanner.entities.values()}),
-            "categories": sorted(list({d.category for d in scanner.documents})),
+            "categories": sorted({d.category for d in scanner.documents}),
         }
         if args.json:
             print(json.dumps(report, indent=2))

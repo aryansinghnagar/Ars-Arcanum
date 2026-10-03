@@ -270,7 +270,7 @@ class ManuscriptComparator:
             c_net = chap['net_change']
             c_net_str = f"+{c_net:,}" if c_net >= 0 else f"{c_net:,}"
             out.append(f"{CYAN}--- {chap['title']} [{chap['rel_path']}] ---{RESET} ({chap['words_a']:,} -> {chap['words_b']:,} words, {GREEN}+{chap['added_words']}{RESET}/{RED}-{chap['deleted_words']}{RESET}, Net: {c_net_str})")
-            
+
             # Print inline chunk tokens
             line_buf = []
             for chunk in chap["chunks"]:
@@ -371,7 +371,7 @@ class ManuscriptComparator:
             </section>
             """)
 
-        html_template = f"""<!DOCTYPE html>
+        return f"""<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
@@ -389,7 +389,7 @@ class ManuscriptComparator:
             --primary: #495057;
             --font-prose: "EB Garamond", "Libertinus Serif", "Georgia", serif;
             --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-            
+
             /* Accessible Redline Pastel Highlights */
             --del-bg: #f8d7da;
             --del-color: #721c24;
@@ -407,7 +407,7 @@ class ManuscriptComparator:
             --text-main: #e9ecef;
             --text-muted: #adb5bd;
             --primary: #dee2e6;
-            
+
             /* Dark Mode Accessible Pastel Highlights */
             --del-bg: #3a1e22;
             --del-color: #f5c6cb;
@@ -834,7 +834,6 @@ class ManuscriptComparator:
 </body>
 </html>
 """
-        return html_template
 
     def open_in_libreoffice(self) -> bool:
         """
@@ -897,10 +896,10 @@ def main():
                 ms_dir = cand
         d_b_name = args.paths[1]
         d_a_name = args.paths[2]
-        
+
         # Check Book-01
         book_dir = ms_dir / "Book-01" if (ms_dir / "Book-01").is_dir() else ms_dir
-        
+
         p_a = book_dir / d_a_name if (book_dir / d_a_name).is_dir() else book_dir
         p_b = book_dir / d_b_name if (book_dir / d_b_name).is_dir() else book_dir
         label_a = args.label_a or d_a_name

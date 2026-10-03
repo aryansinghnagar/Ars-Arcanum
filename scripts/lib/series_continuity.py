@@ -152,11 +152,11 @@ def extract_book_entities(book_dir: Path) -> dict:
         "volume_name": book_dir.name,
         "path": str(book_dir),
         "word_count": words,
-        "characters": sorted(list(characters)),
+        "characters": sorted(characters),
         "traits": {
             k: {
-                "eyes": sorted(list(v["eyes"])) if isinstance(v.get("eyes"), (set, list)) else [],
-                "hair": sorted(list(v["hair"])) if isinstance(v.get("hair"), (set, list)) else [],
+                "eyes": sorted(v["eyes"]) if isinstance(v.get("eyes"), (set, list)) else [],
+                "hair": sorted(v["hair"]) if isinstance(v.get("hair"), (set, list)) else [],
                 "custom": v.get("custom", {})
             }
             for k, v in character_traits.items()

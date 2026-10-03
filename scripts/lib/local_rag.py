@@ -193,7 +193,7 @@ class LocalLoreRetrievalEngine:
         cursor = conn.cursor()
 
         query = """
-        SELECT 
+        SELECT
             c.id AS chunk_id,
             c.doc_id,
             c.chunk_index,

@@ -401,19 +401,18 @@ def _handle_calc(rest: list[str]) -> int:
         if sub in ("astro", "astrophysics"):
             return dispatch_subcommand("lib.astrophysics", sub_args)
         return dispatch_subcommand("lib.astrophysics", [sub, *sub_args])
-    elif sub in ("journey", "expedition", "travel"):
+    if sub in ("journey", "expedition", "travel"):
         return dispatch_subcommand("lib.journey", sub_args)
-    elif sub in ("battle", "sim", "tactical", "combat"):
+    if sub in ("battle", "sim", "tactical", "combat"):
         return dispatch_subcommand("lib.tactical_sim", ["sim", *sub_args])
-    elif sub in ("logistics", "supply"):
+    if sub in ("logistics", "supply"):
         return dispatch_subcommand("lib.factions", ["logistics", *sub_args])
-    elif sub in ("climate", "weather", "insolation", "biomes"):
+    if sub in ("climate", "weather", "insolation", "biomes"):
         return dispatch_subcommand("lib.climate", sub_args)
-    elif sub in ("trade", "arbitrage", "ppp"):
+    if sub in ("trade", "arbitrage", "ppp"):
         return dispatch_subcommand("lib.economy", ["trade", *sub_args])
-    else:
-        print(f"Unknown calc mode '{sub}'. Choose: transit, time-dilation, orbit, comms, habitability, system-dossier, journey, battle, logistics, climate, trade.", file=sys.stderr)
-        return 2
+    print(f"Unknown calc mode '{sub}'. Choose: transit, time-dilation, orbit, comms, habitability, system-dossier, journey, battle, logistics, climate, trade.", file=sys.stderr)
+    return 2
 
 
 def _handle_audit(rest: list[str]) -> int:

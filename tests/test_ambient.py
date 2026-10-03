@@ -127,7 +127,7 @@ class TestAmbientEngine(unittest.TestCase):
 
     def test_atmosphere_profiles_valid(self):
         """Legacy test: each profile has noise, carrier, and beat keys."""
-        for _name, p in PROFILES.items():
+        for p in PROFILES.values():
             self.assertIn("noise", p)
             self.assertIn("carrier", p)
             self.assertIn("beat", p)

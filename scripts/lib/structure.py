@@ -266,7 +266,7 @@ def scan_manuscript_structure(target_path: Path, paradigm_key: str = "three_act"
         actual_pct = closest_ch["mid_pct"] if closest_ch else 0.0
         drift = abs(actual_pct - target_pct)
         is_in_window = (w_min <= actual_pct <= w_max) or (closest_ch and (w_min <= closest_ch["cum_pct"] and closest_ch["start_pct"] <= w_max))
-        
+
         penalty = max(0.0, (drift - 0.05) * 100) if not is_in_window else 0.0
         drift_penalties.append(penalty)
 

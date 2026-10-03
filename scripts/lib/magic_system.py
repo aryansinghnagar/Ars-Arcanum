@@ -59,7 +59,7 @@ def extract_magic_profiles(world_dir: Path) -> dict:
         world_dir / "00-World-Bible" / "Magic-Technology",
         world_dir / "Magic",
     ]
-    
+
     seen = set()
     for mdir in dirs_to_check:
         if not mdir.is_dir():
@@ -77,7 +77,7 @@ def extract_magic_profiles(world_dir: Path) -> dict:
                 disciplines = fm.get("disciplines") or []
                 if isinstance(disciplines, str):
                     disciplines = [disciplines]
-                
+
                 # Extract hard limitations
                 hard_limitations = fm.get("hard_limitations") or fm.get("limitations") or []
                 if isinstance(hard_limitations, str):
@@ -91,7 +91,7 @@ def extract_magic_profiles(world_dir: Path) -> dict:
                 # Extract fatigue / danger cost
                 danger_cost = str(fm.get("danger_cost", fm.get("cost", "Moderate")))
                 max_tier = int(fm.get("max_tier", fm.get("tier_count", 5)))
-                
+
                 # Parse markdown sections if frontmatter lacks details
                 if "## 3. Power Source, Costs & Limitations" in content:
                     sec_text = content.split("## 3. Power Source, Costs & Limitations", 1)[1]
@@ -152,7 +152,7 @@ def extract_character_magic_profiles(world_dir: Path) -> dict:
                 content = md_file.read_text(encoding="utf-8", errors="replace")
                 fm = parse_yaml_frontmatter(content)
                 name = fm.get("name") or md_file.stem
-                
+
                 # Check magic tier / affinity
                 tier = fm.get("magic_tier") or fm.get("tier")
                 if tier is not None:
@@ -187,7 +187,7 @@ def extract_character_magic_profiles(world_dir: Path) -> dict:
 def scan_scene_magic_constraints(manuscript_dir: Path, magic_systems: dict, char_profiles: dict) -> list:
     """Scans manuscript scene files and detects magic rule breaches and arcane anomalies."""
     findings = []
-    
+
     # Flatten all recognized disciplines across systems
     all_disciplines = {}
     for s_name, s_data in magic_systems.items():
@@ -200,7 +200,7 @@ def scan_scene_magic_constraints(manuscript_dir: Path, magic_systems: dict, char
         try:
             rel_path = str(md_file.relative_to(manuscript_dir)).replace("\\", "/")
             lines = md_file.read_text(encoding="utf-8", errors="replace").splitlines()
-            
+
             # Scene level state
             active_pov = None
             active_chars = []
@@ -211,7 +211,7 @@ def scan_scene_magic_constraints(manuscript_dir: Path, magic_systems: dict, char
                 clean_line = line.strip()
                 if not clean_line:
                     continue
-                
+
                 # Check tags
                 if clean_line.startswith("@"):
                     tag_match = TAG_REGEX.match(clean_line)
@@ -239,7 +239,7 @@ def scan_scene_magic_constraints(manuscript_dir: Path, magic_systems: dict, char
                             parts = [p.strip() for p in t_val.split(",")]
                             char_name = parts[0] if parts else (active_pov or "")
                             spell_or_disc = parts[1] if len(parts) > 1 else "arcane"
-                            
+
                             catalyst_req = None
                             cast_tier = None
                             cast_cost = None
@@ -476,7 +476,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
     universes = [p for p in universes if p.is_dir() and p.name not in ("Worlds", ".git")]
     if len(universes) == 1:
         return str(universes[0])
-    elif len(universes) > 1:
+    if len(universes) > 1:
         print("Error: Multiple worlds discovered — specify one explicitly with -w/--world.", file=sys.stderr)
         sys.exit(2)
     else:
@@ -484,7 +484,7 @@ def resolve_world_dir(target_str: str | None = None) -> str:
         worlds = [p for p in worlds if p.is_dir()]
         if len(worlds) == 1:
             return str(worlds[0])
-        elif len(worlds) > 1:
+        if len(worlds) > 1:
             print("Error: Multiple legacy worlds discovered — specify one with -w/--world.", file=sys.stderr)
             sys.exit(2)
     return ""

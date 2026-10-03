@@ -118,8 +118,7 @@ class StoryNode:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        d = asdict(self)
-        return d
+        return asdict(self)
 
 
 @dataclass
@@ -592,19 +591,19 @@ class BranchingNarrativeEngine:
     def export_subway_html(self) -> str:
         """Generates a Multi-POV Narrative Thread & Convergence Subway Map engine HTML visualization."""
         nodes_json = json.dumps({nid: n.to_dict() for nid, n in self.nodes.items()}, ensure_ascii=False).replace("</", "<\\/")
-        
+
         # Determine all POVs for color coding
         all_povs = set()
         for n in self.nodes.values():
             all_povs.update(n.povs)
-        
+
         pov_colors = {}
         colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"]
         for i, p in enumerate(sorted(all_povs)):
             pov_colors[p] = colors[i % len(colors)]
-        
+
         povs_json = json.dumps(pov_colors).replace("</", "<\\/")
-        
+
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -628,20 +627,20 @@ class BranchingNarrativeEngine:
     <div class="svg-container">
         <svg id="subway-map" width="100%" height="100%"></svg>
     </div>
-    
+
     <script>
         const nodes = {nodes_json};
         const povColors = {povs_json};
-        
+
         const legend = document.getElementById('legend');
         for (const [pov, color] of Object.entries(povColors)) {{
             legend.innerHTML += `<div class="legend-item"><div class="color-box" style="background: ${{color}}"></div>${{pov}}</div>`;
         }}
-        
+
         // Simple DAG topological sort and layer assignment
         const layers = {{}};
         const nodeArr = Object.values(nodes);
-        
+
         // Assign layers via BFS
         const queue = [];
         const inDegree = {{}};
@@ -651,14 +650,14 @@ class BranchingNarrativeEngine:
                 if (inDegree[ch.target_id] !== undefined) inDegree[ch.target_id]++;
             }});
         }});
-        
+
         nodeArr.forEach(n => {{
             if (inDegree[n.id] === 0) {{
                 layers[n.id] = 0;
                 queue.push(n.id);
             }}
         }});
-        
+
         let iterations = 0;
         while (queue.length > 0 && iterations < 1000) {{
             iterations++;
@@ -672,24 +671,24 @@ class BranchingNarrativeEngine:
                 }}
             }});
         }}
-        
+
         // Fallback for cycles
         nodeArr.forEach(n => {{ if (layers[n.id] === undefined) layers[n.id] = 0; }});
-        
+
         const layerGroups = {{}};
         nodeArr.forEach(n => {{
             const l = layers[n.id];
             if (!layerGroups[l]) layerGroups[l] = [];
             layerGroups[l].push(n);
         }});
-        
+
         const maxLayer = Math.max(...Object.keys(layerGroups).map(Number));
         const svgWidth = (maxLayer + 2) * 200;
         const svgHeight = Math.max(...Object.values(layerGroups).map(g => g.length)) * 150 + 100;
-        
+
         const svg = document.getElementById('subway-map');
         svg.setAttribute('viewBox', `0 0 ${{svgWidth}} ${{svgHeight}}`);
-        
+
         const coords = {{}};
         for (const l in layerGroups) {{
             const group = layerGroups[l];
@@ -699,7 +698,7 @@ class BranchingNarrativeEngine:
                 coords[n.id] = {{x, y}};
             }});
         }}
-        
+
         // Draw edges
         let edgeElements = '';
         nodeArr.forEach(n => {{
@@ -717,7 +716,7 @@ class BranchingNarrativeEngine:
             }});
         }});
         svg.innerHTML += edgeElements;
-        
+
         // Draw nodes
         let nodeElements = '';
         nodeArr.forEach(n => {{
@@ -733,7 +732,7 @@ class BranchingNarrativeEngine:
             }}
         }});
         svg.innerHTML += nodeElements;
-        
+
     </script>
 </body>
 </html>

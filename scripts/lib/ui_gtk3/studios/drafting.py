@@ -232,11 +232,11 @@ class DraftingStudioMixin:
                 stripped = line.strip()
                 if stripped.startswith("@pov:"):
                     tags["pov"] = stripped[5:].strip()
-                elif stripped.startswith("@char:") or stripped.startswith("@character:"):
+                elif stripped.startswith(("@char:", "@character:")):
                     tags["char"] = stripped.split(":", 1)[1].strip()
-                elif stripped.startswith("@location:") or stripped.startswith("@focus:"):
+                elif stripped.startswith(("@location:", "@focus:")):
                     tags["location"] = stripped.split(":", 1)[1].strip()
-                elif stripped.startswith("@thread:") or stripped.startswith("@plot:"):
+                elif stripped.startswith(("@thread:", "@plot:")):
                     tags["thread"] = stripped.split(":", 1)[1].strip()
                 elif stripped.startswith("@time:"):
                     tags["time"] = stripped[6:].strip()

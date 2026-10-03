@@ -71,7 +71,7 @@ def is_safe_tar_member(member: tarfile.TarInfo, dest_dir: Path) -> bool:
     """Guards against path traversal attacks in tar archive members."""
     # Reject absolute paths or paths containing parent directory traversals
     norm = os.path.normpath(member.name)
-    if norm.startswith("..") or norm.startswith("/") or norm.startswith("\\"):
+    if norm.startswith(("..", "/", "\\")):
         return False
     target_path = (dest_dir / norm).resolve()
     return dest_dir.resolve() in target_path.parents or target_path == dest_dir.resolve()
@@ -163,7 +163,7 @@ def restore_backup(
                 if hasattr(tarfile, "data_filter"):
                     tar.extractall(dest_root, members=safe_members, filter="data")
                 else:
-                    tar.extractall(dest_root, members=safe_members)  # nosec B202 # noqa: S202
+                    tar.extractall(dest_root, members=safe_members)  # noqa: S202
 
                 for m in safe_members:
                     extracted_members.append(m.name)

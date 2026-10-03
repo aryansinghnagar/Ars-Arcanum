@@ -165,9 +165,9 @@ def build_zen_studio_bundle(
   button:hover {{ border-color: var(--accent); }}
   .btn-accent {{ background: #0284c7; color: white; border: none; font-weight: 600; }}
   .btn-gold {{ background: #b45309; color: #fef3c7; border: none; font-weight: 600; }}
-  
+
   .main-workspace {{ display: flex; flex: 1; overflow: hidden; position: relative; }}
-  
+
   .sidebar {{
     width: 260px; background: #0b1120; border-right: 1px solid var(--border);
     display: flex; flex-direction: column; font-family: system-ui, sans-serif;
@@ -180,7 +180,7 @@ def build_zen_studio_bundle(
   }}
   .chap-item:hover {{ background: rgba(255,255,255,0.03); }}
   .chap-item.active {{ background: rgba(56, 189, 248, 0.15); border-left: 3px solid var(--accent); }}
-  
+
   .editor-area {{
     flex: 1; display: flex; justify-content: center; overflow-y: auto; padding: 3rem 1.5rem;
   }}
@@ -190,7 +190,7 @@ def build_zen_studio_bundle(
     border: none; outline: none; resize: none; font-family: inherit; font-size: 1.2rem;
     line-height: 1.85; padding: 0; margin: 0;
   }}
-  
+
   .lore-drawer {{
     width: 360px; background: #0b1120; border-left: 1px solid var(--border);
     display: none; flex-direction: column; font-family: system-ui, sans-serif;
@@ -209,7 +209,7 @@ def build_zen_studio_bundle(
     background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
     padding: 0.75rem; margin-bottom: 0.75rem; font-size: 0.85rem;
   }}
-  
+
   .craft-modal {{
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
@@ -226,7 +226,7 @@ def build_zen_studio_bundle(
   .craft-modal-body {{
     flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;
   }}
-  
+
   footer.telemetry {{
     background: var(--panel); border-top: 1px solid var(--border);
     padding: 0.4rem 1.5rem; display: flex; justify-content: space-between;
@@ -443,9 +443,9 @@ def build_zen_studio_bundle(
     list.innerHTML = "";
 
     if (activeDrawerTab === "lore") {{
-      const filtered = lore.filter(it => 
-        it.name.toLowerCase().includes(q) || 
-        it.category.toLowerCase().includes(q) || 
+      const filtered = lore.filter(it =>
+        it.name.toLowerCase().includes(q) ||
+        it.category.toLowerCase().includes(q) ||
         it.snippet.toLowerCase().includes(q)
       );
       if (filtered.length === 0) {{

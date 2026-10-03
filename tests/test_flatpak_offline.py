@@ -45,7 +45,7 @@ class TestFlatpakOfflinePackaging(unittest.TestCase):
 
     def test_metainfo_appstream_compliance(self):
         """Validates AppStream 0.16+ metainfo XML tags and metadata."""
-        tree = ET.parse(METAINFO)  # noqa: S314
+        tree = ET.parse(METAINFO)
         root = tree.getroot()
 
         id_elem = root.find("id")

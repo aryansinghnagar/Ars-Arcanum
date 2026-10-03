@@ -103,7 +103,7 @@ _UNIFIED_PATTERN = re.compile(
 
 def analyze_text_senses(text: str) -> dict:
     """Computes sensory counts for a given text block."""
-    counts = {dim: 0 for dim in SENSORY_LEXICON}
+    counts = dict.fromkeys(SENSORY_LEXICON, 0)
     matches = {dim: [] for dim in SENSORY_LEXICON}
     words = [w for w in re.findall(r"\b\w+\b", text) if not w.startswith("@")]
     total_words = len(words)
@@ -134,7 +134,7 @@ def audit_manuscript_senses(manuscript_dir: Path) -> dict:
     """Analyzes 6D sensory palette across all scenes in manuscript and catches White Room scenes."""
     scenes_data = {}
     findings = []
-    overall_counts = {dim: 0 for dim in SENSORY_LEXICON}
+    overall_counts = dict.fromkeys(SENSORY_LEXICON, 0)
     total_words_all = 0
 
     for md_file in sorted(manuscript_dir.rglob("*.md")):
@@ -363,7 +363,7 @@ def resolve_manuscript_dir(target_str: str | None = None) -> str:
     manuscripts = [p for p in manuscripts if p.is_dir()]
     if len(manuscripts) == 1:
         return str(manuscripts[0])
-    elif len(manuscripts) > 1:
+    if len(manuscripts) > 1:
         print("Error: Multiple manuscripts discovered — specify one explicitly.", file=sys.stderr)
         sys.exit(2)
     return ""
