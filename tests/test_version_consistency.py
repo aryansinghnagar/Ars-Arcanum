@@ -95,7 +95,7 @@ class TestVersionConsistency(unittest.TestCase):
         hub_version = hub_match.group(1)
 
         # Assert all 10 versions match exactly
-        expected_version = "4.2.1"
+        expected_version = "4.3.0"
         for label, ver in [
             ("Bash arcanum", bash_version),
             ("Python CLI", py_version),

@@ -344,9 +344,12 @@ class LocalLoreRetrievalEngine:
             # Robertson-Spärck Jones smoothed IDF
             self.idf_cache[term] = math.log(1.0 + (n_chunks - df + 0.5) / (df + 0.5)) + 1.0
 
-        # 3. Compute L2 vector norms for each chunk
+        # 3. Compute L2 vector norms for each chunk and average document length
+        total_words = 0
         for chunk in self.chunks:
             norm_sq = 0.0
+            doc_len = chunk.word_count if chunk.word_count > 0 else sum(chunk.term_counts.values())
+            total_words += max(1, doc_len)
             for term, count in chunk.term_counts.items():
                 idf = self.idf_cache.get(term, 1.0)
                 # Sub-linear term frequency
@@ -355,7 +358,62 @@ class LocalLoreRetrievalEngine:
                 norm_sq += w * w
             chunk.vector_norm = math.sqrt(norm_sq) if norm_sq > 0.0 else 1.0
 
+        self.avg_doc_len = total_words / max(1, n_chunks)
         self._is_indexed = True
+
+    def compute_bm25_plus(
+        self,
+        query_tokens: list[str],
+        chunk: IndexedChunk,
+        k1: float = 1.5,
+        b: float = 0.75,
+        delta: float = 0.5,
+    ) -> float:
+        """
+        Calculates BM25+ relevance score for a document chunk given query tokens.
+        BM25+ provides a lower-bound floor (delta) to avoid penalizing long documents
+        while maintaining robust term frequency saturation.
+        """
+        doc_len = max(1, chunk.word_count or sum(chunk.term_counts.values()))
+        avg_len = getattr(self, "avg_doc_len", 150.0) or 150.0
+        len_norm = 1.0 - b + b * (doc_len / avg_len)
+
+        score = 0.0
+        for q in query_tokens:
+            tf = chunk.term_counts.get(q, 0)
+            if tf > 0:
+                idf = self.idf_cache.get(q, 1.0)
+                tf_component = ((tf * (k1 + 1.0)) / (tf + k1 * len_norm)) + delta
+                score += idf * tf_component
+        return score
+
+    def expand_query(self, query_tokens: list[str], max_expansions: int = 3) -> list[str]:
+        """
+        Deterministically expands query tokens using corpus co-occurrence analysis.
+        Identifies top co-occurring vocabulary terms across chunks containing query tokens.
+        """
+        if not query_tokens or not self.chunks:
+            return query_tokens
+
+        query_set = set(query_tokens)
+        co_occurrence: dict[str, int] = {}
+
+        for chunk in self.chunks:
+            if any(q in chunk.term_counts for q in query_set):
+                for term, cnt in chunk.term_counts.items():
+                    if term not in query_set and term not in STOPWORDS and len(term) > 2:
+                        co_occurrence[term] = co_occurrence.get(term, 0) + cnt
+
+        if not co_occurrence:
+            return query_tokens
+
+        candidates = sorted(
+            co_occurrence.items(),
+            key=lambda item: item[1] * self.idf_cache.get(item[0], 1.0),
+            reverse=True,
+        )
+        expanded_terms = [t for t, _ in candidates[:max_expansions]]
+        return list(query_tokens) + expanded_terms
 
     def query(
         self,
@@ -365,9 +423,10 @@ class LocalLoreRetrievalEngine:
         category: str | None = None,
         corpus_type: str | None = None,
         hybrid_fts: bool = True,
+        expand_query: bool = False,
     ) -> list[RetrievalResult]:
         """
-        Executes hybrid semantic vector + exact keyword search over the indexed corpus.
+        Executes hybrid semantic vector + BM25+ + exact keyword search over the indexed corpus.
         Returns top-k most relevant chunks sorted by relevance score descending.
         """
         if not self._is_indexed or not self.chunks:
@@ -377,9 +436,11 @@ class LocalLoreRetrievalEngine:
         if not q_tokens:
             return []
 
+        effective_tokens = self.expand_query(q_tokens) if expand_query else q_tokens
+
         # 1. Compute query vector
         q_term_counts: dict[str, int] = {}
-        for t in q_tokens:
+        for t in effective_tokens:
             q_term_counts[t] = q_term_counts.get(t, 0) + 1
 
         q_weights: dict[str, float] = {}
@@ -399,7 +460,7 @@ class LocalLoreRetrievalEngine:
                 conn = sqlite3.connect(str(self.sqlite_db_path))
                 cursor = conn.cursor()
                 # Sanitize query for FTS5 syntax
-                fts_terms = [re.sub(r"[^a-zA-Z0-9_-]", "", t) for t in q_tokens if len(t) > 1]
+                fts_terms = [re.sub(r"[^a-zA-Z0-9_-]", "", t) for t in effective_tokens if len(t) > 1]
                 if fts_terms:
                     fts_query = " OR ".join(f"{t}*" for t in fts_terms)
                     cursor.execute(
@@ -407,9 +468,7 @@ class LocalLoreRetrievalEngine:
                         (fts_query,)
                     )
                     for r in cursor.fetchall():
-                        # bm25 returns negative score where lower (more negative) is better
                         raw_rank = float(r[1])
-                        # Map bm25 into 0.0 - 1.0 normalized score
                         norm_fts = 1.0 / (1.0 + abs(raw_rank))
                         fts_scores[str(r[0])] = norm_fts
                 conn.close()
@@ -422,6 +481,15 @@ class LocalLoreRetrievalEngine:
 
         def _normalize_cat(c: str) -> str:
             return c.lower().rstrip("s").replace("-", "").replace("_", "").strip()
+
+        # Find max BM25+ score in corpus for normalization
+        max_bm25 = 1.0
+        raw_bm25_scores = {}
+        for chunk in self.chunks:
+            bm25_val = self.compute_bm25_plus(effective_tokens, chunk)
+            raw_bm25_scores[chunk.id] = bm25_val
+            if bm25_val > max_bm25:
+                max_bm25 = bm25_val
 
         for chunk in self.chunks:
             # Filter checks
@@ -439,37 +507,41 @@ class LocalLoreRetrievalEngine:
 
             cosine_sim = dot_product / (q_norm * chunk.vector_norm) if (q_norm * chunk.vector_norm) > 0.0 else 0.0
 
-            # B. Entity & Heading Boosts
+            # B. Normalized BM25+ Score
+            bm25_norm = raw_bm25_scores.get(chunk.id, 0.0) / max_bm25 if max_bm25 > 0 else 0.0
+
+            # C. Entity & Heading Boosts
             entity_boost = 0.0
             for ent in chunk.entities:
                 if ent.lower() in raw_query_lower:
                     entity_boost += 0.20
 
             heading_boost = 0.0
-            if chunk.heading and any(t in chunk.heading.lower() for t in q_tokens):
+            if chunk.heading and any(t in chunk.heading.lower() for t in effective_tokens):
                 heading_boost += 0.15
 
             title_boost = 0.0
-            if chunk.doc_title and any(t in chunk.doc_title.lower() for t in q_tokens):
+            if chunk.doc_title and any(t in chunk.doc_title.lower() for t in effective_tokens):
                 title_boost += 0.10
 
-            # C. FTS5 Score Fusion
+            # D. FTS5 Score Fusion
             fts_score = fts_scores.get(chunk.id, 0.0)
 
             # Combined Score Formula
-            # 60% Cosine Similarity + 20% FTS5 exact rank + 20% Entity/Heading Boosts
+            # 45% Cosine Similarity + 30% BM25+ + 10% FTS5 + 15% Entity/Heading Boosts
             combined_score = (
-                (0.60 * cosine_sim)
-                + (0.20 * fts_score)
-                + min(0.20, entity_boost + heading_boost + title_boost)
+                (0.45 * cosine_sim)
+                + (0.30 * bm25_norm)
+                + (0.10 * fts_score)
+                + min(0.15, entity_boost + heading_boost + title_boost)
             )
 
-            # Cap score between 0.0 and 1.0
             final_score = max(0.0, min(1.0, combined_score))
 
             if final_score >= min_score:
                 breakdown = {
                     "cosine_similarity": cosine_sim,
+                    "bm25_plus": bm25_norm,
                     "fts_score": fts_score,
                     "entity_boost": entity_boost,
                     "heading_boost": heading_boost,
@@ -478,7 +550,6 @@ class LocalLoreRetrievalEngine:
                 }
                 results.append(RetrievalResult(chunk=chunk, score=final_score, score_breakdown=breakdown))
 
-        # Sort descending by score
         results.sort(key=lambda r: r.score, reverse=True)
         return results[:top_k]
 

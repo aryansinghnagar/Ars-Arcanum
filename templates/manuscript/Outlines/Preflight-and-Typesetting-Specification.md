@@ -10,11 +10,16 @@
 - **Spine Width Calculator**: `preflight` (`arcanum preflight Manuscripts/Book-01 --pages 380 --paper cream-55`) — Calculates exact spine thickness across KDP and IngramSpark paper types ($T_s = \text{Pages} / \text{PPI}$) to prevent spine wrap misalignment.
 - **POD Signature Auditor**: `preflight` (`arcanum preflight Manuscripts/Book-01`) — Ensures final page counts align to 4-page and 16-page press signatures, avoiding unwanted blank trailing leaves.
 - **Typst Book Template Engine**: `typst` (`templates/typst/book_template.typ`) — Reusable, high-performance, offline typesetting layout engine.
+- **Acoustic & Audio Proofing Pipeline**: `audio_proof` (`arcanum audio-proof Manuscripts/Book-01`) — Synthesizes acoustic SSML markup and listening timing estimation.
+- **SSML Prosody Optimization**: `audio_proof` (`arcanum audio-proof --ssml`) — Calibrates prosodic rate, pitch, and dialogue pause durations.
+- **Chunked Buffer Exporter**: `audio_proof` (`arcanum audio-proof --chunk 500`) — Chunks manuscripts into deterministic buffers for offline Piper / eSpeak NG TTS synthesis.
+- **Audio Listening Estimator**: `audio_proof` (`arcanum audio-proof --estimate`) — Calculates total narration listening time and word cadence distributions.
 
 ### How to Use for Your Projects:
 1. Select your target trim size (e.g. 5.5" × 8.5" or 6" × 9" Royal Hardcover).
 2. Calculate your exact spine width before commissioning cover artwork.
 3. Run `arcanum preflight` before uploading final interior PDFs to distributors.
+4. Run `arcanum audio-proof` to generate SSML audiobooks and proof prose rhythm acoustically.
 </details>
 
 ---

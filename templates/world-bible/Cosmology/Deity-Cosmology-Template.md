@@ -40,7 +40,10 @@ moons:
 <summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
 
 ### Features Demonstrated in This Template:
-- **Pantheon & Mythos Architecture**: `cosmology` (`arcanum calc astro`) — Bridges theology with physical celestial constants, solar cycles, and orbital mechanics.
+- **Pantheon & Mythos Architecture**: `cosmology` (`arcanum cosmology`) — Bridges theology with physical celestial constants, solar cycles, and orbital mechanics.
+- **Domain Overlap Conflict Audit**: `cosmology` (`arcanum cosmology --audit`) — Detects conflicting domain claims between pantheon deities.
+- **Theological Heresy Detector**: `cosmology` (`arcanum cosmology --heresies`) — Flags doctrinal contradictions, schisms, and theological paradoxes.
+- **Ritual Catalyst Validation**: `cosmology` (`arcanum cosmology --rituals`) — Validates sacred component requirements, divine covenants, and astronomical alignments.
 - **Calendar & Timekeeping Synchronizer**: `calendar` (`arcanum calendar`) — Directly configures planetary day lengths, month divisions, weekday cycles, and moon periods for in-universe date tracking.
 - **Ecclesiastical Faction Alliances**: Links religious dogmas with political power structures in `factions` and holy relics in `artifacts`.
 

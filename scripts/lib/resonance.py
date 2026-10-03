@@ -76,7 +76,7 @@ except ImportError:
             return data
 
 
-VERSION = "4.2.1"
+VERSION = "4.3.0"
 CSP_HEADER = "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;\">"
 
 

@@ -55,6 +55,11 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="4.3.0" date="2026-10-03">
+      <description>
+        <p>Release v4.3.0 — Dynamic Plugin Extensibility, Speculative Intelligence &amp; Studio v2: BaseCraftEngine subclassing contract, dynamic engine plugin discovery, Conlang v2 morphosyntax and case declensions, Deific Pantheon conflict and heresy validator, Gravity-Model trade networks and supply shock simulator, Multi-Agent Offline Editorial Council, Zen Drafting Studio v2 with WebAudio typewriter feedback, and commercial genre Typst publication presets.</p>
+      </description>
+    </release>
     <release version="4.2.1" date="2026-09-27">
       <description>
         <p>Release v4.2.1 — Critical Data Safety, Security &amp; Craft Stabilization: Full YAML frontmatter preservation in bidirectional DOCX sync, hardened archive restoration security, GTK3 desktop widget constructor fixes, Studio Hub HTML consolidation, Stored XSS defense across generators, Lanchester linear law combat modeling, tidal locking stellar mass scaling, and conlang overlapping environment rules.</p>

@@ -395,7 +395,41 @@ commodity_basket:
         self.assertEqual(audit_manuscript_prices(None, {}), [])
         self.assertEqual(audit_technological_anachronisms(None), [])
 
+    def test_gravity_trade_flow_and_supply_shock(self):
+        from lib.economy import (
+            extract_settlement_network,
+            calculate_gravity_trade_flow,
+            simulate_supply_shock,
+        )
+
+        settlements = extract_settlement_network(self.world_dir)
+        self.assertGreaterEqual(len(settlements), 2)
+
+        flows = calculate_gravity_trade_flow(settlements)
+        self.assertIn("routes", flows)
+        self.assertGreater(len(flows["routes"]), 0)
+
+        shock = simulate_supply_shock(settlements, "Blockade", "Solaria", "grain", shock_magnitude=0.6)
+        self.assertIn("market_impacts", shock)
+        self.assertEqual(shock["commodity"], "grain")
+
+        # Test CLI trade-flow and supply-shock modes
+        with patch.object(sys, "argv", ["economy.py", "trade-flow", str(self.world_dir)]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("Economic Gravity Model", mock_stdout.getvalue())
+
+        with patch.object(sys, "argv", ["economy.py", "supply-shock", str(self.world_dir), "-e", "Blockade", "-s", "Sun Citadel", "-c", "iron", "-m", "0.5"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("Supply Shock", mock_stdout.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()
+
 

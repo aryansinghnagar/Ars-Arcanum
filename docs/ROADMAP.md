@@ -26,7 +26,7 @@ Ars Arcanum is a purpose-built, distraction-free, low-effort writing and worldbu
 
 ---
 
-## 4. Master Milestone Roadmap (M0–M28)
+## 4. Master Milestone Roadmap (M0–M34)
 
 ### M0: Governance & Architecture Freeze
 - [x] Security vulnerability disclosure policy (`SECURITY.md`).
@@ -183,26 +183,58 @@ Ars Arcanum is a purpose-built, distraction-free, low-effort writing and worldbu
 - [x] Non-standard planetary configuration engine (`scripts/lib/astrophysics.py`, `arcanum calc astro`).
 - [x] 11-paradigm non-imposing story structure mapper (`scripts/lib/structure.py`, `arcanum structure`).
 - [x] Zero-pip dependency guarantee across all 18 craft and authoring engines.
+ 
+### M29: Dynamic Plugin Architecture & Extensible Engine Contracts (v4.3.0)
+- [x] `BaseCraftEngine` contract hierarchy with standard lifecycle hooks (`execute()`, `get_spec()`, `validate()`) in `scripts/lib/registry.py`.
+- [x] Dynamic user engine plugin loader scanning `~/.config/ars-arcanum/engines/*.py` and project-local `.plugins/*.py`.
+- [x] Unit test coverage for custom plugin directories and engine registration (`tests/test_plugin_discovery.py`).
+
+### M30: Speculative Linguistics & Conlang Morphosyntax v2
+- [x] Word-order typology synthesis (SOV, SVO, VSO, OVS) and morphological typology generators (Isolating, Agglutinative, Fusional) in `scripts/lib/conlang.py`.
+- [x] Grammatical case declension tables (Nominative, Accusative, Genitive, Dative, Ergative-Absolutive) and verb conjugation matrices.
+- [x] Unicode-safe phonetic tokenization, non-matching regex fallbacks, and deterministic fuzz testing (`tests/test_fuzz_conlang.py`).
+
+### M31: Deific Cosmology & Theological Heresy Validator
+- [x] Domain hegemony and portfolio overlap conflict detection (`COS-101`) in `scripts/lib/cosmology.py`.
+- [x] Ritual catalyst consistency and sacrificial availability checks (`COS-102`).
+- [x] Theological heresy and doctrinal schism validation (`COS-103`) for allied factions.
+- [x] Dedicated test suite (`tests/test_cosmology.py`) and standalone HTML/Markdown export.
+
+### M32: Economic Gravity Networks & Supply Shock Simulation
+- [x] Multi-settlement trade flow matrices using distance and terrain friction coefficients (`arcanum economy trade-flow`) in `scripts/lib/economy.py`.
+- [x] Supply shock and commodity price inflation cascade simulation (`arcanum economy supply-shock`).
+- [x] Extended test suite (`tests/test_economy.py`).
+
+### M33: Multi-Agent Editorial Council & Studio v2 Ergonomics
+- [x] Multi-agent offline Editorial Council synthesizing Plot Doctor, Lore Auditor, Voice Coach, Sensory Stylist, and Pacing Evaluator (`scripts/lib/council.py`, `arcanum council`).
+- [x] Zen Drafting Studio v2 with WebAudio mechanical typewriter soundscape, live Markdown inspector, and 5 color themes (`scripts/lib/zen_studio.py`).
+- [x] 3D character arc trajectory modeling and Lie vs. Truth matrix in `scripts/lib/structure.py` (`arcanum structure --character-arc`).
+
+### M34: Commercial Genre Typst Presets, Audio Proofing & Benchmark Suite
+- [x] Commercial genre Typst publication templates: Epic Fantasy (`epic_fantasy.typ`), Hard Sci-Fi (`hard_scifi.typ`), and Literary Trade Fiction (`literary_trade.typ`).
+- [x] Offline speech-optimized SSML chunking for local TTS engines (*Piper*, *eSpeak NG*) in `scripts/lib/audio_proof.py`.
+- [x] Automated performance micro-benchmark assertions for AST parsing ($<250\text{ms}$), RAG retrieval ($<40\text{ms}$), and CLI dispatch ($<35\text{ms}$) in `tests/test_benchmark_suite.py`.
 
 ---
 
 ## 5. Real-Time Operational Status & Momentum Queues
 
 ### Operational State
-- **Active Status**: Sovereign Modernization, Trimming & Craft Architecture (**v4.0.0**).
-- **Verification**: **100% Pass Rate across 681 Python tests** (681 passed, 0 failures, 2 skipped) and canonical 7-stage verification harness (`scripts/verify.sh`).
-- **Code Quality**: Zero Ruff linter violations across expanded rule sets, strict static typing via `mypy`, 100% pure Python standard library core craft engines, zero external pip dependencies.
+- **Active Status**: Dynamic Plugin Extensibility, Speculative Intelligence & Studio v2 (**v4.3.0**).
+- **Verification**: **100% Pass Rate across 997 Python tests** (995 passed, 0 failures, 2 skipped) and canonical 7-stage verification harness (`scripts/verify.sh`).
+- **Code Quality**: Zero Ruff linter violations across expanded rule sets, strict static typing via `mypy` across 183 source files, 100% pure Python standard library core craft engines, zero external pip dependencies.
 
 ---
 
 ## 6. Definition of Done
 
 - `bash scripts/verify.sh` passes across all 7 canonical verification stages.
-- `python -m unittest discover tests` passes 797 tests with 0 failures and 0 errors.
+- `python -m unittest discover tests` passes 997 tests with 0 failures and 0 errors.
 - `ruff check .` passes with 0 violations.
 - `mypy --explicit-package-bases scripts/lib/*.py tests/*.py` passes with clean static typing.
 - `python -m unittest tests/test_version_consistency.py` verifies version parity across all surfaces.
 - `python -m unittest tests/test_grand_tour_e2e.py` passes all 21 end-to-end integration stages.
 - All craft, intelligence, publishing, and diagnostic engines execute cleanly via `arcanum <subcommand>`.
 - Test universes, pure world lore vaults, and standalone manuscripts scaffold, export (PDF, EPUB, DOCX), snapshot, and restore cleanly without data loss.
+
 

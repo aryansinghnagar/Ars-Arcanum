@@ -46,7 +46,7 @@ class TestEcosystemCliDispatch(unittest.TestCase):
         self.reg = registry.get_registry()
 
     def test_registered_engines_count(self) -> None:
-        self.assertEqual(len(self.reg), 53)
+        self.assertEqual(len(self.reg), 56)
 
     def test_all_53_primary_commands_dispatch(self) -> None:
         unrouted = []

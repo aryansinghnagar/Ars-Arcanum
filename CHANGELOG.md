@@ -4,6 +4,41 @@ All notable changes to Ars Arcanum are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Scope decisions
 behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## [4.3.0] - 2026-10-03
+
+### Added & Hardened (Dynamic Plugin Extensibility, Speculative Intelligence & Studio v2 — Phase 25)
+- **Dynamic Plugin Extensibility & BaseCraftEngine Contract (`scripts/lib/registry.py`)**:
+  - Defined `BaseCraftEngine` abstract base class establishing standard lifecycle hooks (`execute()`, `get_spec()`, `validate()`).
+  - Added dynamic plugin discovery (`discover_craft_plugins` / `discover_user_plugins`) scanning user-authored engines in `~/.config/ars-arcanum/engines/*.py` and project-local `.plugins/*.py`.
+  - Added full test coverage for plugin subclassing and custom directories in `tests/test_plugin_discovery.py`.
+- **Conlang v2 Morphosyntax, Grammatical Typology & Unicode Hardening (`scripts/lib/conlang.py`)**:
+  - Implemented word-order typology synthesis (SOV, SVO, VSO, OVS) and morphological typology generators (Isolating, Agglutinative, Fusional).
+  - Added grammatical case declension tables (Nominative, Accusative, Genitive, Dative, Ergative-Absolutive) and verb conjugation matrices.
+  - Upgraded phonetic mutation engine with Unicode-safe accented/IPA tokenization, non-matching regex fallbacks on empty phoneme sets, and deterministic fuzz testing in `tests/test_fuzz_conlang.py`.
+- **Deific Pantheon Conflict & Theological Heresy Engine (`scripts/lib/cosmology.py`)**:
+  - Implemented domain hegemony and portfolio overlap conflict detection (`COS-101`).
+  - Added ritual catalyst consistency and sacrificial availability checks (`COS-102`).
+  - Added theological heresy and doctrinal schism validation (`COS-103`) for allied factions.
+  - Dedicated test suite in `tests/test_cosmology.py`.
+- **Gravity-Model Trade Networks & Supply Shock Simulation (`scripts/lib/economy.py`)**:
+  - Implemented multi-settlement trade flow matrices using distance and terrain friction coefficients (`arcanum economy trade-flow`).
+  - Added supply shock and commodity price inflation cascade simulation (`arcanum economy supply-shock`).
+  - Expanded test coverage in `tests/test_economy.py`.
+- **Offline Multi-Agent Editorial Council (`scripts/lib/council.py`)**:
+  - Synthesized Plot Doctor, Lore Auditor, Voice Coach, Sensory Stylist, and Pacing Evaluator into a unified multi-agent council.
+  - Generates standalone, interactive HTML/Markdown diagnostic dossiers with CSP `default-src 'none'`.
+  - Dedicated test suite in `tests/test_council.py`.
+- **Zen Drafting Studio v2 Ergonomics & Theming (`scripts/lib/zen_studio.py`)**:
+  - Synthesized subtle mechanical typewriter key-click and carriage-return audio feedback using WebAudio API (100% offline, zero external audio assets).
+  - Added live Markdown inspector with scene-tag badges and 5 curated color themes (*Parchment*, *Nord*, *Solarized Dark*, *Gruvbox*, *Cyberpunk Amber*).
+- **Commercial Genre Typst Presets & Offline Audio Proofing (`templates/typst/`, `scripts/lib/audio_proof.py`)**:
+  - Added production-grade Typst layouts: Epic Fantasy (`epic_fantasy.typ`), Hard Sci-Fi (`hard_scifi.typ`), and Literary Trade Fiction (`literary_trade.typ`).
+  - Implemented offline speech-optimized SSML chunking for local TTS engines (*Piper*, *eSpeak NG*) in `scripts/lib/audio_proof.py`.
+  - Dedicated test suite in `tests/test_audio_proof.py`.
+- **Performance Benchmarks & Test Suite Elevation (`tests/test_benchmark_suite.py`)**:
+  - Added automated micro-benchmark assertions for AST parsing ($<250\text{ms}$), RAG retrieval ($<40\text{ms}$), and CLI dispatch ($<35\text{ms}$).
+  - Elevated test suite to **997 tests** (995 passing, 2 skipped, 0 failures, 0 errors) across 183 source files with clean Mypy static typing and 0 Ruff violations.
+
 ## [4.2.1] - 2026-10-01
 
 ### Added & Hardened (Sovereign Pure-Python Modernization, Multi-Scale Audit Remediation & Invariant Verification)

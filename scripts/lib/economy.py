@@ -668,6 +668,215 @@ def resolve_manuscript_dir(target_str: str | None = None) -> str:
     return ""
 
 
+def extract_settlement_network(world_dir: Path | None) -> list[dict]:
+    """Scans Locations/*.md in World Bible to extract settlements, populations, and trade goods."""
+    settlements = []
+    if world_dir and world_dir.is_dir():
+        loc_dirs = [world_dir / "Locations", world_dir / "00-World-Bible" / "Locations"]
+        for ldir in loc_dirs:
+            if not ldir.is_dir():
+                continue
+            for md_file in sorted(ldir.rglob("*.md")):
+                if md_file.name.startswith((".", "_")) or "Template" in md_file.name:
+                    continue
+                try:
+                    content = md_file.read_text(encoding="utf-8", errors="ignore")
+                    fm = parse_yaml_frontmatter(content)
+                    loc_type = str(fm.get("type") or fm.get("location_type") or "").lower()
+                    if loc_type in ("city", "town", "settlement", "citadel", "colony", "port", "capital", "station") or fm.get("population"):
+                        pop = float(fm.get("population", 25000))
+                        gdp = float(fm.get("gdp", fm.get("economic_output", pop * 1.5)))
+                        exports = fm.get("exports") or fm.get("primary_exports") or ["grain", "textiles"]
+                        if isinstance(exports, str):
+                            exports = [e.strip() for e in exports.split(",") if e.strip()]
+                        imports = fm.get("imports") or fm.get("primary_imports") or ["iron", "timber"]
+                        if isinstance(imports, str):
+                            imports = [i.strip() for i in imports.split(",") if i.strip()]
+                        settlements.append({
+                            "id": md_file.stem,
+                            "name": str(fm.get("name") or md_file.stem.replace("_", " ")),
+                            "population": pop,
+                            "economic_output": gdp,
+                            "exports": exports,
+                            "imports": imports,
+                            "file": str(md_file.relative_to(world_dir)).replace("\\", "/"),
+                        })
+                except Exception:
+                    pass
+
+    if len(settlements) < 2:
+        # Provide representative settlement network
+        settlements = [
+            {"id": "SunCitadel", "name": "Sun Citadel", "population": 120000, "economic_output": 250000, "exports": ["solar_crystals", "refined_steel"], "imports": ["grain", "timber"]},
+            {"id": "WhisperingVale", "name": "Whispering Vale", "population": 45000, "economic_output": 70000, "exports": ["grain", "herbal_medicine"], "imports": ["refined_steel", "tools"]},
+            {"id": "HighSanctuary", "name": "High Sanctuary", "population": 30000, "economic_output": 90000, "exports": ["relics", "astronomical_optics"], "imports": ["grain", "wine"]},
+            {"id": "OuterRimPort", "name": "Outer Rim Port", "population": 60000, "economic_output": 110000, "exports": ["rare_ores", "void_leather"], "imports": ["solar_crystals", "medicine"]},
+        ]
+
+    return settlements
+
+
+def calculate_gravity_trade_flow(
+    settlements: list[dict],
+    friction_matrix: dict | None = None,
+    g_constant: float = 1.0,
+    distance_exponent: float = 1.5,
+) -> dict:
+    """
+    Computes bilateral trade flow volumes and route viability using the economic gravity model:
+    T_ij = G * (M_i * M_j) / (D_ij^alpha * (1 + friction_ij))
+    """
+    if not settlements:
+        return {"settlements_count": 0, "routes": []}
+
+    routes = []
+    total_network_trade = 0.0
+
+    for i in range(len(settlements)):
+        for j in range(i + 1, len(settlements)):
+            s1 = settlements[i]
+            s2 = settlements[j]
+
+            id1 = str(s1.get("id", s1.get("name", f"settlement_{i}")))
+            id2 = str(s2.get("id", s2.get("name", f"settlement_{j}")))
+
+            pop1 = float(s1.get("population", 10000))
+            pop2 = float(s2.get("population", 10000))
+            gdp1 = float(s1.get("economic_output", pop1 * 1.0))
+            gdp2 = float(s2.get("economic_output", pop2 * 1.0))
+
+            dist = float(s1.get("distances", {}).get(id2, s2.get("distances", {}).get(id1, 100.0)))
+            if dist <= 0:
+                dist = 1.0
+
+            friction = 0.0
+            if friction_matrix:
+                friction = friction_matrix.get(f"{id1}_{id2}", friction_matrix.get(f"{id2}_{id1}", 0.0))
+            else:
+                terrain = str(s1.get("terrain_to", {}).get(id2, "plains")).lower()
+                terrain_frictions = {
+                    "plains": 0.1,
+                    "road": 0.0,
+                    "forest": 0.4,
+                    "hills": 0.5,
+                    "mountains": 1.2,
+                    "swamp": 1.5,
+                    "desert": 1.0,
+                    "ocean": 0.2,
+                    "space_vacuum": 0.05,
+                }
+                friction = terrain_frictions.get(terrain, 0.3)
+
+            denom = (dist ** distance_exponent) * (1.0 + friction)
+            trade_volume = g_constant * (gdp1 * gdp2) / denom if denom > 0 else 0.0
+
+            total_network_trade += trade_volume
+
+            exp1 = s1.get("exports", ["manufactured_goods"])
+            exp2 = s2.get("exports", ["raw_materials"])
+
+            routes.append({
+                "origin": id1,
+                "origin_name": s1.get("name", id1),
+                "destination": id2,
+                "destination_name": s2.get("name", id2),
+                "distance_km": dist,
+                "terrain_friction": round(friction, 2),
+                "annual_trade_volume": round(trade_volume, 2),
+                "primary_flow_1_to_2": exp1[:2],
+                "primary_flow_2_to_1": exp2[:2],
+                "viability": "High" if trade_volume > 50000 else ("Medium" if trade_volume > 10000 else "Low"),
+            })
+
+    routes.sort(key=lambda r: r["annual_trade_volume"], reverse=True)
+
+    return {
+        "settlements_count": len(settlements),
+        "total_network_trade": round(total_network_trade, 2),
+        "routes": routes,
+    }
+
+
+def simulate_supply_shock(
+    settlements: list[dict],
+    shock_event: str,
+    target_settlement_id: str,
+    affected_commodity: str,
+    shock_magnitude: float = 0.6,
+) -> dict:
+    """
+    Simulates supply shock propagation through the settlement trade network:
+    Calculates localized scarcity multipliers, price inflation, and narrative conflict hooks.
+    """
+    gravity_res = calculate_gravity_trade_flow(settlements)
+    routes = gravity_res["routes"]
+
+    target_settlement = next(
+        (s for s in settlements if str(s.get("id", "")).lower() == target_settlement_id.lower() or str(s.get("name", "")).lower() == target_settlement_id.lower()),
+        None
+    )
+    if not target_settlement and settlements:
+        target_settlement = settlements[0]
+        target_settlement_id = str(target_settlement.get("id", target_settlement.get("name", "Origin")))
+
+    target_name = target_settlement.get("name", target_settlement_id) if target_settlement else target_settlement_id
+
+    # Node impact matrix
+    market_impacts = {}
+    for s in settlements:
+        sid = str(s.get("id", s.get("name", "")))
+        sname = str(s.get("name", sid))
+        is_epicenter = (sid.lower() == target_settlement_id.lower())
+
+        # Baseline exposure based on distance and route connection to epicenter
+        if is_epicenter:
+            scarcity_pct = round(shock_magnitude * 100, 1)
+            price_mult = round(1.0 + (shock_magnitude * 2.5), 2)
+            tier = "Epicenter (Critical)"
+        else:
+            # Check route connectivity to target
+            connected_route = next(
+                (r for r in routes if (r["origin"].lower() == target_settlement_id.lower() and r["destination"].lower() == sid.lower()) or (r["destination"].lower() == target_settlement_id.lower() and r["origin"].lower() == sid.lower())),
+                None
+            )
+            if connected_route:
+                dist = connected_route["distance_km"]
+                decay = max(0.1, 1.0 - (dist / 1000.0))
+                scarcity_pct = round(shock_magnitude * decay * 70, 1)
+                price_mult = round(1.0 + (shock_magnitude * decay * 1.8), 2)
+                tier = "Direct Trading Partner"
+            else:
+                scarcity_pct = round(shock_magnitude * 20, 1)
+                price_mult = round(1.0 + (shock_magnitude * 0.4), 2)
+                tier = "Peripheral Market"
+
+        market_impacts[sid] = {
+            "name": sname,
+            "tier": tier,
+            "scarcity_index_pct": scarcity_pct,
+            "commodity": affected_commodity,
+            "price_multiplier": price_mult,
+            "market_stress": "Emergency" if price_mult >= 2.0 else ("Severe" if price_mult >= 1.4 else "Moderate"),
+        }
+
+    # Narrative conflict advice
+    story_hooks = [
+        f"Smuggling syndicates establish covert trade routes to exploit the {affected_commodity} price spike ({market_impacts.get(target_settlement_id, {}).get('price_multiplier', 2.0)}x) at {target_name}.",
+        f"Civil unrest and rationing laws instituted across {target_name} and neighboring markets.",
+        f"Rival factions leverage stockpiles of {affected_commodity} for diplomatic coercion or extortion.",
+    ]
+
+    return {
+        "shock_event": shock_event,
+        "epicenter_id": target_settlement_id,
+        "epicenter_name": target_name,
+        "commodity": affected_commodity,
+        "shock_magnitude_pct": round(shock_magnitude * 100, 1),
+        "market_impacts": list(market_impacts.values()),
+        "narrative_conflict_hooks": story_hooks,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description="Ars Arcanum Economy, Commodity PPP & Anachronism Matrix")
     subparsers = parser.add_subparsers(dest="subcommand", help="Economy subcommands")
@@ -707,7 +916,23 @@ def main():
     p_trade.add_argument("--tariff", type=float, default=0.05, help="Tariff tax fraction (default 0.05 = 5%%)")
     p_trade.add_argument("--json", action="store_true", help="Output machine-readable JSON")
 
-    if len(sys.argv) > 1 and sys.argv[1] not in ("check", "report", "tech", "trade", "-h", "--help", "-v", "--version"):
+    # 4. trade-flow (Gravity Model)
+    p_flow = subparsers.add_parser("trade-flow", help="Calculate economic gravity trade flows between settlements")
+    p_flow.add_argument("world", nargs="?", help="World Bible lore directory")
+    p_flow.add_argument("-w", "--world", dest="world_flag", help="World Bible lore directory")
+    p_flow.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    # 5. supply-shock (Scarcity & Crisis Simulation)
+    p_shock = subparsers.add_parser("supply-shock", help="Simulate commodity supply shock and price inflation cascades")
+    p_shock.add_argument("world", nargs="?", help="World Bible lore directory")
+    p_shock.add_argument("-w", "--world", dest="world_flag", help="World Bible lore directory")
+    p_shock.add_argument("-e", "--event", default="Regional Harvest Failure", help="Description of crisis event")
+    p_shock.add_argument("-s", "--settlement", default="SunCitadel", help="Epicenter settlement ID or name")
+    p_shock.add_argument("-c", "--commodity", default="grain", help="Affected commodity name")
+    p_shock.add_argument("-m", "--magnitude", type=float, default=0.6, help="Shock magnitude fraction (0.1 to 1.0, default: 0.6)")
+    p_shock.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+
+    if len(sys.argv) > 1 and sys.argv[1] not in ("check", "report", "tech", "trade", "trade-flow", "supply-shock", "-h", "--help", "-v", "--version"):
         sys.argv.insert(1, "check")
 
     args = parser.parse_args()
@@ -839,6 +1064,55 @@ def main():
             print(f"Break-Even Sell: {result['break_even_sell_price_per_ton']:,.2f} per ton")
             vcol = "\033[32m" if result["is_profitable"] else "\033[31m"
             print(f"Verdict        : {vcol}{result['verdict']}\033[0m\n")
+        sys.exit(0)
+
+    elif args.subcommand == "trade-flow":
+        raw_world = getattr(args, "world_flag", None) or getattr(args, "world", None)
+        world_dir_str = resolve_world_dir(raw_world) if raw_world else None
+        world_path = Path(world_dir_str) if world_dir_str else None
+        settlements = extract_settlement_network(world_path)
+        flow_res = calculate_gravity_trade_flow(settlements)
+
+        if args.json:
+            print(json.dumps(flow_res, indent=2))
+        else:
+            print("\n\033[1;36m=== Economic Gravity Model Trade Network ===\033[0m")
+            print(f"Settlements Analyzed: \033[1m{flow_res['settlements_count']}\033[0m | Total Network Trade: \033[1;32m{flow_res['total_network_trade']:,.2f}\033[0m\n")
+            print(f"  {'Route':<32} | {'Distance':<10} | {'Friction':<8} | {'Trade Volume':<14} | {'Viability':<10}")
+            print("  " + "-" * 84)
+            for r in flow_res["routes"]:
+                route_str = f"{r['origin_name']} <-> {r['destination_name']}"
+                v_col = "\033[32m" if r["viability"] == "High" else ("\033[33m" if r["viability"] == "Medium" else "\033[90m")
+                print(f"  {route_str:<32} | {r['distance_km']:<10.1f} | {r['terrain_friction']:<8.2f} | \033[1m{r['annual_trade_volume']:<14,.2f}\033[0m | {v_col}{r['viability']:<10}\033[0m")
+            print()
+        sys.exit(0)
+
+    elif args.subcommand == "supply-shock":
+        raw_world = getattr(args, "world_flag", None) or getattr(args, "world", None)
+        world_dir_str = resolve_world_dir(raw_world) if raw_world else None
+        world_path = Path(world_dir_str) if world_dir_str else None
+        settlements = extract_settlement_network(world_path)
+        shock_res = simulate_supply_shock(
+            settlements=settlements,
+            shock_event=args.event,
+            target_settlement_id=args.settlement,
+            affected_commodity=args.commodity,
+            shock_magnitude=args.magnitude,
+        )
+
+        if args.json:
+            print(json.dumps(shock_res, indent=2))
+        else:
+            print(f"\n\033[1;31m=== Supply Shock & Scarcity Cascade: {shock_res['shock_event']} ===\033[0m")
+            print(f"Epicenter: \033[1;33m{shock_res['epicenter_name']}\033[0m | Commodity: \033[1m{shock_res['commodity']}\033[0m | Magnitude: \033[31m-{shock_res['shock_magnitude_pct']}%\033[0m\n")
+            print("Regional Market Price Multipliers & Stress:")
+            for imp in shock_res["market_impacts"]:
+                s_col = "\033[31m" if imp["market_stress"] == "Emergency" else ("\033[33m" if imp["market_stress"] == "Severe" else "\033[32m")
+                print(f"  • \033[1m{imp['name']:<20}\033[0m [{imp['tier']}] -> Price: \033[1m{imp['price_multiplier']}x\033[0m baseline ({s_col}{imp['market_stress']}\033[0m)")
+            print("\nNarrative Conflict & Story Beats:")
+            for h in shock_res["narrative_conflict_hooks"]:
+                print(f"  ⚡ {h}")
+            print()
         sys.exit(0)
 
 

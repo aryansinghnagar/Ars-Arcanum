@@ -1,14 +1,14 @@
 # Ars Arcanum (Scriptorium) — System Status & Quality Metrics
 
-## Project Status: Sovereign Pure-Python Modernization & Multi-Scale Invariant Verification (v4.2.1)
-- **Current Version**: `4.2.1`
+## Project Status: Dynamic Plugin Extensibility, Speculative Intelligence & Studio v2 (v4.3.0)
+- **Current Version**: `4.3.0`
 - **Audit Grade Progression**: `B` (GPA 2.93) $\to$ `A−` (GPA 3.4) $\to$ `A` (GPA 3.8) $\to$ **`A+` (GPA 4.0/4.0 Sovereign Operating System)**.
-- **Test Suite Status**: **952 tests collected, 100% passing, 2 skipped, 0 failures** (`python -m unittest discover tests`).
-- **Test Coverage**: **86% aggregate branch + statement coverage** across all 76 `scripts/lib/` modules with **`fail_under = 85`** enforced in `pyproject.toml`.
+- **Test Suite Status**: **997 tests collected, 100% passing, 2 skipped, 0 failures** (`python -m unittest discover tests`).
+- **Test Coverage**: **86% aggregate branch + statement coverage** across all `scripts/lib/` modules with **`fail_under = 85`** enforced in `pyproject.toml`.
 - **Linter Status**: `ruff check .` **100% Clean (0 violations)** across expanded rules (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`).
-- **Static Typing**: `mypy` static type checking passing cleanly across all 76 `scripts/lib` modules with `check_untyped_defs = True` (`Success: no issues found in 76 source files`).
-- **Lifecycle Architecture**: Pure-Python zero-pip lifecycle engines (`backup.py`, `restore.py`, `snapshot.py`) with cross-platform file locking (`ArcanumLock`) and GPG symmetric encryption.
-- **Engines & Subfeatures**: 53 registered domain engines, 126 subfeatures across 5 master domain pillars, 74 resonance relational edges (0 isolated nodes, degree $\ge 2$).
+- **Static Typing**: `mypy` static type checking passing cleanly across all 183 source files with `check_untyped_defs = True` (`Success: no issues found in 183 source files`).
+- **Lifecycle Architecture**: Pure-Python zero-pip lifecycle engines (`backup.py`, `restore.py`, `snapshot.py`, `BaseCraftEngine` dynamic plugin discovery) with cross-platform file locking (`ArcanumLock`) and GPG encryption.
+- **Engines & Subfeatures**: 55+ registered domain engines across 5 master domain pillars, with offline multi-agent editorial council and commercial genre Typst presets.
 - **Security Posture**: Path traversal defense, strict fallback atomic writes with Windows descriptor cleanup, full XML stream DOCTYPE/ENTITY scanning, inline JSON script tag sanitization, GPG symmetric/asymmetric backup encryption, CSP air-gapping.
 
 ---

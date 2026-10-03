@@ -13,11 +13,17 @@
 - **8-Channel Sensory Scanner**: `senses` (`arcanum senses Manuscripts/Book-01`) — Visualizes paragraph-level sensory engagement across 8 modalities.
 - **White Room Syndrome Sweeper**: `senses` (`arcanum senses Manuscripts/Book-01 --sweep-white-room`) — Detects under-grounded scenes.
 - **Voice Bleed Matrix & Idiolect Uniqueness Scorer**: `voice` (`arcanum voice Manuscripts/Book-01`) — Compares dialogue cadence, formality indices, and unique vocabulary across POV characters.
+- **Multi-Agent Editorial Council Engine**: `council` (`arcanum council audit Manuscripts/Book-01`) — Synthesizes a 4-perspective manuscript critique dossier.
+- **Plot Doctor Evaluation**: `council` (`arcanum council --perspective plot`) — Audits structural tension, pacing lags, and unearned climaxes.
+- **Lore Auditor Integrity**: `council` (`arcanum council --perspective lore`) — Audits continuity consistency against World Bible facts and axioms.
+- **Voice Coach Analysis**: `council` (`arcanum council --perspective voice`) — Evaluates dialogue differentiation and character idiolect distinctiveness.
+- **Sensory Stylist Audit**: `council` (`arcanum council --perspective sensory`) — Measures descriptive grounding, evocative metaphors, and sensory depth.
 
 ### How to Use for Your Projects:
 1. Run `arcanum stylistics` during your second draft revision pass.
-2. Aim for a target Flesch-Kincaid Grade Level between **6.0 and 8.5** for maximum narrative velocity without sacrificing literary elegance.
-3. Eliminate passive constructions (*"was struck by"*) and filter phrases (*"he heard"*, *"she saw"*, *"he felt"*).
+2. Convene the `arcanum council audit` to generate an editorial dossier before final proofing.
+3. Aim for a target Flesch-Kincaid Grade Level between **6.0 and 8.5** for maximum narrative velocity without sacrificing literary elegance.
+4. Eliminate passive constructions (*"was struck by"*) and filter phrases (*"he heard"*, *"she saw"*, *"he felt"*).
 </details>
 
 ---

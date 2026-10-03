@@ -147,6 +147,13 @@ def build_zen_studio_bundle(
     --text: #f8fafc; --muted: #94a3b8; --accent: #38bdf8; --gold: #fbbf24;
     --emerald: #10b981; --rose: #f43f5e;
   }}
+  body[data-theme="slate"] {{ --bg: #0f172a; --panel: #1e293b; --border: #334155; --text: #f8fafc; --muted: #94a3b8; --accent: #38bdf8; --gold: #fbbf24; }}
+  body[data-theme="parchment"] {{ --bg: #f5eedb; --panel: #e8dcc4; --border: #d4c5a9; --text: #2d241e; --muted: #756253; --accent: #8c4320; --gold: #9e6b28; }}
+  body[data-theme="nordic"] {{ --bg: #eceff4; --panel: #e5e9f0; --border: #d8dee9; --text: #2e3440; --muted: #4c566a; --accent: #5e81ac; --gold: #d08770; }}
+  body[data-theme="solarized"] {{ --bg: #002b36; --panel: #073642; --border: #586e75; --text: #839496; --muted: #657b83; --accent: #268bd2; --gold: #b58900; }}
+  body[data-theme="gruvbox"] {{ --bg: #282828; --panel: #3c3836; --border: #504945; --text: #ebdbb2; --muted: #a89984; --accent: #83a598; --gold: #fabd2f; }}
+  body[data-theme="amber"] {{ --bg: #120e00; --panel: #241c00; --border: #4d3b00; --text: #ffb000; --muted: #b37b00; --accent: #ffd000; --gold: #ffb000; }}
+
   * {{ box-sizing: border-box; }}
   body {{
     font-family: Georgia, 'Times New Roman', serif; background: var(--bg); color: var(--text);
@@ -157,19 +164,19 @@ def build_zen_studio_bundle(
     padding: 0.6rem 1.5rem; display: flex; justify-content: space-between; align-items: center;
     font-family: system-ui, sans-serif; font-size: 0.875rem;
   }}
-  .controls {{ display: flex; gap: 0.75rem; align-items: center; }}
+  .controls {{ display: flex; gap: 0.6rem; align-items: center; }}
   button, select {{
-    background: #0f172a; color: var(--text); border: 1px solid var(--border);
-    padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; cursor: pointer;
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.85rem; cursor: pointer;
   }}
   button:hover {{ border-color: var(--accent); }}
-  .btn-accent {{ background: #0284c7; color: white; border: none; font-weight: 600; }}
-  .btn-gold {{ background: #b45309; color: #fef3c7; border: none; font-weight: 600; }}
+  .btn-accent {{ background: #0284c7 !important; color: white !important; border: none; font-weight: 600; }}
+  .btn-gold {{ background: #b45309 !important; color: #fef3c7 !important; border: none; font-weight: 600; }}
 
   .main-workspace {{ display: flex; flex: 1; overflow: hidden; position: relative; }}
 
   .sidebar {{
-    width: 260px; background: #0b1120; border-right: 1px solid var(--border);
+    width: 260px; background: var(--panel); border-right: 1px solid var(--border);
     display: flex; flex-direction: column; font-family: system-ui, sans-serif;
   }}
   .sidebar-header {{ padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-weight: 600; color: var(--muted); }}
@@ -182,31 +189,45 @@ def build_zen_studio_bundle(
   .chap-item.active {{ background: rgba(56, 189, 248, 0.15); border-left: 3px solid var(--accent); }}
 
   .editor-area {{
-    flex: 1; display: flex; justify-content: center; overflow-y: auto; padding: 3rem 1.5rem;
+    flex: 1; display: flex; justify-content: center; overflow-y: auto; padding: 2.5rem 1.5rem;
+    gap: 1.5rem;
   }}
-  .editor-container {{ width: 100%; max-width: 760px; display: flex; flex-direction: column; }}
+  .editor-container {{ width: 100%; max-width: 740px; display: flex; flex-direction: column; }}
   textarea.zen-editor {{
     width: 100%; flex: 1; min-height: 80vh; background: transparent; color: var(--text);
     border: none; outline: none; resize: none; font-family: inherit; font-size: 1.2rem;
     line-height: 1.85; padding: 0; margin: 0;
   }}
 
+  .preview-pane {{
+    width: 480px; max-width: 50%; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.5rem; overflow-y: auto; font-family: system-ui, -apple-system, sans-serif;
+    display: none; font-size: 0.95rem; line-height: 1.6;
+  }}
+  .scene-badge {{
+    display: inline-flex; align-items: center; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent);
+    padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; color: var(--accent); margin: 0.2rem 0.2rem 0.2rem 0;
+  }}
+  .badge-tag {{ font-weight: bold; margin-right: 4px; }}
+  .lore-link {{ color: var(--gold); cursor: pointer; text-decoration: underline; }}
+  .scene-break {{ border: 0; height: 1px; background: var(--border); margin: 1.5rem 0; }}
+
   .lore-drawer {{
-    width: 360px; background: #0b1120; border-left: 1px solid var(--border);
+    width: 360px; background: var(--panel); border-left: 1px solid var(--border);
     display: none; flex-direction: column; font-family: system-ui, sans-serif;
   }}
   .lore-drawer.open {{ display: flex; }}
   .drawer-tabs {{ display: flex; border-bottom: 1px solid var(--border); }}
-  .d-tab {{ flex: 1; padding: 0.5rem; background: #0f172a; border: none; color: var(--muted); font-size: 0.8rem; cursor: pointer; }}
-  .d-tab.active {{ background: #1e293b; color: var(--accent); font-weight: 600; border-bottom: 2px solid var(--accent); }}
+  .d-tab {{ flex: 1; padding: 0.5rem; background: var(--bg); border: none; color: var(--muted); font-size: 0.8rem; cursor: pointer; }}
+  .d-tab.active {{ background: var(--panel); color: var(--accent); font-weight: 600; border-bottom: 2px solid var(--accent); }}
   .lore-search {{ padding: 0.75rem; border-bottom: 1px solid var(--border); }}
   .lore-search input {{
-    width: 100%; background: #0f172a; color: var(--text); border: 1px solid var(--border);
+    width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border);
     padding: 0.4rem 0.6rem; border-radius: 4px; outline: none; font-size: 0.85rem;
   }}
   .lore-list {{ flex: 1; overflow-y: auto; padding: 0.75rem; }}
   .lore-card {{
-    background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
     padding: 0.75rem; margin-bottom: 0.75rem; font-size: 0.85rem;
   }}
 
@@ -216,11 +237,11 @@ def build_zen_studio_bundle(
     font-family: system-ui, sans-serif;
   }}
   .craft-modal-content {{
-    background: #0f172a; border: 1px solid var(--border); border-radius: 12px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
     width: 90%; max-width: 900px; height: 85vh; display: flex; flex-direction: column; overflow: hidden;
   }}
   .craft-modal-header {{
-    background: #1e293b; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+    background: var(--panel); padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
     display: flex; justify-content: space-between; align-items: center;
   }}
   .craft-modal-body {{
@@ -234,16 +255,26 @@ def build_zen_studio_bundle(
   }}
 </style>
 </head>
-<body>
+<body data-theme="slate">
 
 <header>
-  <div style="font-weight:700;color:var(--accent);">
-    🏛️ Ars Arcanum Zen Studio <span id="hdrDocTitle" style="color:var(--text);font-weight:400;margin-left:0.5rem;">—</span>
+  <div style="font-weight:700;color:var(--accent);display:flex;align-items:center;gap:0.5rem;">
+    🏛️ Ars Arcanum Zen Studio <span id="hdrDocTitle" style="color:var(--text);font-weight:400;">—</span>
   </div>
   <div class="controls">
+    <select id="themeSelect" onchange="switchTheme(this.value)" title="Color Themes">
+      <option value="slate">Classic Slate</option>
+      <option value="parchment">Parchment Classical</option>
+      <option value="nordic">Nordic Snow</option>
+      <option value="solarized">Solarized Dark</option>
+      <option value="gruvbox">Gruvbox Warmth</option>
+      <option value="amber">Cyberpunk Amber</option>
+    </select>
+    <button id="btnSound" onclick="toggleTypewriterSound()" title="Typewriter Mechanical Soundscape">🔇 Sound: OFF</button>
+    <button id="btnPreview" onclick="toggleSplitPreview()" title="Live Scene Tag & Markdown Inspector">👁️ Preview: Off</button>
     <button onclick="toggleSidebar()">📁 Files</button>
     <button onclick="toggleLoreDrawer()">📜 Lore Vault ({len(lore_entities)})</button>
-    <button class="btn-gold" onclick="openCraftModal()">💡 Craft & Engine Logic</button>
+    <button class="btn-gold" onclick="openCraftModal()">💡 Craft Logic</button>
     <button class="btn-accent" onclick="exportMarkdown()">💾 Download</button>
   </div>
 </header>
@@ -256,7 +287,13 @@ def build_zen_studio_bundle(
 
   <div class="editor-area">
     <div class="editor-container">
-      <textarea class="zen-editor" id="editor" placeholder="Write your prose here..." oninput="updateTelemetry()"></textarea>
+      <textarea class="zen-editor" id="editor" placeholder="Write your prose here..." oninput="handleEditorInput()" onkeydown="handleKeyDown(event)"></textarea>
+    </div>
+    <div class="preview-pane" id="previewPane">
+      <div style="font-weight:600;color:var(--accent);margin-bottom:0.75rem;border-bottom:1px solid var(--border);padding-bottom:0.4rem;">
+        🔍 Live Markdown & Scene Tag Inspector
+      </div>
+      <div id="previewContent"></div>
     </div>
   </div>
 
@@ -324,6 +361,9 @@ def build_zen_studio_bundle(
   let currentChapIdx = 0;
   let activeDrawerTab = "lore";
   let currentZenTipIdx = 0;
+  let audioCtx = null;
+  let soundEnabled = false;
+  let previewEnabled = false;
 
   const CRAFT_RULES = [
     {{
@@ -354,6 +394,8 @@ def build_zen_studio_bundle(
   ];
 
   function init() {{
+    const savedTheme = localStorage.getItem("arcanum_zen_theme") || "slate";
+    switchTheme(savedTheme);
     renderChapList();
     if (chapters.length > 0) {{
       loadChapter(0);
@@ -361,6 +403,195 @@ def build_zen_studio_bundle(
     renderDrawer();
     renderModalEngines(catalog);
     initZenTip();
+  }}
+
+  function switchTheme(theme) {{
+    document.body.setAttribute("data-theme", theme);
+    const select = document.getElementById("themeSelect");
+    if (select) select.value = theme;
+    localStorage.setItem("arcanum_zen_theme", theme);
+  }}
+
+  function toggleTypewriterSound() {{
+    soundEnabled = !soundEnabled;
+    const btn = document.getElementById("btnSound");
+    if (soundEnabled) {{
+      if (!audioCtx) {{
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {{
+          audioCtx = new AudioContextClass();
+        }}
+      }}
+      if (audioCtx && audioCtx.state === "suspended") {{
+        audioCtx.resume();
+      }}
+      if (btn) btn.textContent = "🔊 Sound: ON";
+      playTypewriterSound(false);
+    }} else {{
+      if (btn) btn.textContent = "🔇 Sound: OFF";
+    }}
+  }}
+
+  function playTypewriterSound(isReturn) {{
+    if (!soundEnabled || !audioCtx) return;
+    try {{
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      if (isReturn) {{
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.12);
+      }} else {{
+        const bufferSize = Math.floor(audioCtx.sampleRate * 0.025);
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {{
+          output[i] = Math.random() * 2 - 1;
+        }}
+        const whiteNoise = audioCtx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.value = 1200 + Math.random() * 400;
+        filter.Q.value = 3.0;
+
+        const noiseGain = audioCtx.createGain();
+        noiseGain.gain.setValueAtTime(0.18, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+
+        whiteNoise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(audioCtx.destination);
+        whiteNoise.start(now);
+      }}
+    }} catch (e) {{
+      // AudioContext unavailable or error
+    }}
+  }}
+
+  function toggleSplitPreview() {{
+    previewEnabled = !previewEnabled;
+    const pane = document.getElementById("previewPane");
+    const btn = document.getElementById("btnPreview");
+    if (pane) {{
+      pane.style.display = previewEnabled ? "block" : "none";
+    }}
+    if (btn) {{
+      btn.textContent = previewEnabled ? "👁️ Preview: ON" : "👁️ Preview: OFF";
+    }}
+    if (previewEnabled) {{
+      renderSplitPreview();
+    }}
+  }}
+
+  function renderSplitPreview() {{
+    const text = document.getElementById("editor").value;
+    const preview = document.getElementById("previewContent");
+    if (!preview) return;
+
+    const lines = text.split("\n");
+    let html = "";
+    let inList = false;
+
+    lines.forEach(line => {{
+      let trimmed = line.trim();
+      const tagMatch = trimmed.match(/^\\[([A-Za-z0-9_-]+):\\s*(.+)\\]$/);
+      if (tagMatch) {{
+        html += `<div class="scene-badge"><span class="badge-tag">${{escapeHtml(tagMatch[1].toUpperCase())}}</span>${{escapeHtml(tagMatch[2])}}</div>`;
+        return;
+      }}
+      if (trimmed.startsWith("<!--") && trimmed.endsWith("-->")) {{
+        html += `<div class="scene-badge" style="border-color:var(--gold);color:var(--gold);"><span class="badge-tag">NOTE</span>${{escapeHtml(trimmed.slice(4, -3).trim())}}</div>`;
+        return;
+      }}
+      if (trimmed === "---" || trimmed === "***" || trimmed === "___") {{
+        if (inList) {{ html += "</ul>"; inList = false; }}
+        html += '<hr class="scene-break">';
+        return;
+      }}
+      if (trimmed.startsWith("### ")) {{
+        if (inList) {{ html += "</ul>"; inList = false; }}
+        html += `<h3 style="color:var(--accent);margin:1rem 0 0.5rem 0;">${{escapeHtml(trimmed.slice(4))}}</h3>`;
+        return;
+      }}
+      if (trimmed.startsWith("## ")) {{
+        if (inList) {{ html += "</ul>"; inList = false; }}
+        html += `<h2 style="color:var(--accent);margin:1.2rem 0 0.6rem 0;border-bottom:1px solid var(--border);padding-bottom:0.3rem;">${{escapeHtml(trimmed.slice(3))}}</h2>`;
+        return;
+      }}
+      if (trimmed.startsWith("# ")) {{
+        if (inList) {{ html += "</ul>"; inList = false; }}
+        html += `<h1 style="color:var(--gold);margin:1.5rem 0 0.75rem 0;font-size:1.4rem;">${{escapeHtml(trimmed.slice(2))}}</h1>`;
+        return;
+      }}
+      if (trimmed.startsWith("> ")) {{
+        if (inList) {{ html += "</ul>"; inList = false; }}
+        html += `<blockquote style="border-left:3px solid var(--gold);margin:0.5rem 0;padding-left:0.8rem;color:var(--muted);font-style:italic;">${{escapeHtml(trimmed.slice(2))}}</blockquote>`;
+        return;
+      }}
+      if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {{
+        if (!inList) {{ html += '<ul style="margin:0.5rem 0;padding-left:1.5rem;">'; inList = true; }}
+        html += `<li>${{escapeHtml(trimmed.slice(2))}}</li>`;
+        return;
+      }}
+      if (inList) {{
+        html += "</ul>";
+        inList = false;
+      }}
+      if (trimmed === "") {{
+        html += '<div style="height:0.75rem;"></div>';
+        return;
+      }}
+
+      let parsedLine = escapeHtml(line);
+      parsedLine = parsedLine.replace(/\\*\\*(.*?)\\*\\*/g, "<strong>$1</strong>");
+      parsedLine = parsedLine.replace(/\\*(.*?)\\*/g, "<em>$1</em>");
+      parsedLine = parsedLine.replace(/`([^`]+)`/g, "<code style='background:rgba(255,255,255,0.08);padding:1px 4px;border-radius:3px;'>$1</code>");
+
+      html += `<p style="margin:0 0 0.75rem 0;text-indent:1.2rem;line-height:1.7;">${{parsedLine}}</p>`;
+    }});
+
+    if (inList) {{
+      html += "</ul>";
+    }}
+    preview.innerHTML = html;
+  }}
+
+  function handleEditorInput() {{
+    updateTelemetry();
+    if (previewEnabled) {{
+      renderSplitPreview();
+    }}
+  }}
+
+  function handleKeyDown(event) {{
+    playTypewriterSound(event.key === "Enter");
+    if (event.key === "Tab") {{
+      event.preventDefault();
+      const editor = document.getElementById("editor");
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      editor.value = editor.value.substring(0, start) + "  " + editor.value.substring(end);
+      editor.selectionStart = editor.selectionEnd = start + 2;
+      handleEditorInput();
+    }} else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {{
+      event.preventDefault();
+      updateTelemetry();
+      const hdr = document.getElementById("hdrDocTitle");
+      if (hdr) {{
+        const orig = hdr.textContent;
+        hdr.textContent = orig + " (Saved)";
+        setTimeout(() => {{ hdr.textContent = orig; }}, 1200);
+      }}
+    }}
   }}
 
   function initZenTip() {{

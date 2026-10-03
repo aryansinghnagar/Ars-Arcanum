@@ -240,16 +240,41 @@ class TestStructureEngine(unittest.TestCase):
             data = json.loads(mock_out.getvalue())
             self.assertEqual(data["paradigm_key"], "three_act")
 
-    def test_cli_list_structures_unavailable(self):
+    def test_audit_character_arcs_and_cli(self):
         import io
+        import json
         from unittest.mock import patch
-        from lib.structure import main as structure_main
+        from lib.structure import analyze_character_arc_geometry, main as structure_main
 
-        with patch("lib.structure.list_presets", None), patch("sys.stderr", new_callable=io.StringIO) as mock_err:
-            rc = structure_main(["--list-structures"])
+        # Create sample manuscript with chapters and character notes
+        char_dir = self.target_dir / "Characters"
+        char_dir.mkdir(parents=True, exist_ok=True)
+        (char_dir / "Kael.md").write_text("---\nflaw: Cynicism\nlie: Trust no one\ntruth: Vulnerability is strength\n---\n", encoding="utf-8")
+
+        ch1 = self.target_dir / "01_Ch1.md"
+        ch1.write_text("@pov: Kael\n# Ch 1\n\n" + "word " * 300, encoding="utf-8")
+        ch2 = self.target_dir / "02_Ch2.md"
+        ch2.write_text("# Ch 2\n\n" + "word " * 300, encoding="utf-8")
+
+        res = analyze_character_arc_geometry(self.target_dir, world_path=self.target_dir)
+        self.assertEqual(res["total_chapters"], 2)
+        self.assertGreater(len(res["arc_stages"]), 3)
+        self.assertEqual(res["characters_tracked"][0]["name"], "Kael")
+
+        # Test CLI invocation with --character-arc
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            rc = structure_main([str(self.target_dir), "--character-arc", "--json"])
             self.assertEqual(rc, 0)
-            self.assertIn("unavailable", mock_err.getvalue())
+            data = json.loads(mock_out.getvalue())
+            self.assertIn("characters_tracked", data)
+
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            rc = structure_main([str(self.target_dir), "--character-arc"])
+            self.assertEqual(rc, 0)
+            self.assertIn("Character Arc", mock_out.getvalue())
+
 
 
 if __name__ == "__main__":
     unittest.main()
+

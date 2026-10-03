@@ -13,9 +13,14 @@ from __future__ import annotations
 
 import difflib
 import importlib
+import importlib.util
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger("arcanum.registry")
 
 
 class EngineCategory(str, Enum):
@@ -59,6 +64,49 @@ class EngineSpec:
             self.scientific_logic = self.logic_documentation
         elif not self.logic_documentation and self.scientific_logic:
             self.logic_documentation = self.scientific_logic
+
+
+class BaseCraftEngine:
+    """Abstract base class for modular author-authored and dynamic craft engines."""
+    name: str = ""
+    category: EngineCategory = EngineCategory.CRAFT
+    title: str = ""
+    description: str = ""
+    cli_command: str = ""
+    aliases: list[str] = []
+    studio_tab: str | None = "Worldbuilding"
+    scientific_logic: str = ""
+    why_this_way: str = ""
+    worldbuilding_relevance: str = ""
+    storytelling_relevance: str = ""
+    writing_relevance: str = ""
+    subfeatures: list[dict[str, str]] = []
+    extension_guide: str = ""
+    advisory_guidance: list[dict[str, Any]] = []
+
+    def get_spec(self) -> EngineSpec:
+        return EngineSpec(
+            name=self.name,
+            category=self.category,
+            title=self.title or self.name.replace("_", " ").title(),
+            description=self.description,
+            module_name=self.__module__,
+            cli_command=self.cli_command or f"craft {self.name}",
+            aliases=list(self.aliases),
+            studio_tab=self.studio_tab,
+            scientific_logic=self.scientific_logic,
+            why_this_way=self.why_this_way,
+            worldbuilding_relevance=self.worldbuilding_relevance,
+            storytelling_relevance=self.storytelling_relevance,
+            writing_relevance=self.writing_relevance,
+            subfeatures=list(self.subfeatures),
+            extension_guide=self.extension_guide,
+            advisory_guidance=list(self.advisory_guidance),
+        )
+
+    def execute(self, argv: list[str]) -> int:
+        """Execute the craft engine command with the provided CLI arguments. Return exit code."""
+        raise NotImplementedError("Subclasses of BaseCraftEngine must implement execute(argv)")
 
 
 # Canonical Engine Registry Definitions
@@ -2167,12 +2215,195 @@ arcanum tip --status
             {"pattern": "Author prefers distraction-free interface without tip displays", "option_a": "Disable tips globally via `arcanum tip --disable` or Studio Hub Settings toggle", "option_b": "Restrict tip depth to masterclass-only via configuration", "option_c": "Keep tips enabled in CLI footers only"},
         ],
     ),
+
+    "council": EngineSpec(
+        name="council",
+        category=EngineCategory.CRAFT,
+        title="Multi-Agent Editorial Council & Diagnostic Dossier",
+        description="Offline multi-perspective manuscript critique synthesizing Plot Doctor, Lore Auditor, Voice Coach, and Sensory Stylist",
+        module_name="lib.council",
+        cli_command="council",
+        aliases=["editorial-council", "council-audit", "dossier"],
+        studio_tab="Editorial",
+        scientific_logic="""Synthesizes four complementary editorial paradigms into a structured diagnostic assessment:
+1. Plot Doctor: Structural beat pacing compliance, tension-curve variance, scene-sequel balance (Swain MRUs).
+2. Lore Auditor: Cross-volume entity consistency, magic energy conservation, timeline paradox detection, and genealogy integrity.
+3. Voice Coach: Character dialogue registers, said-bookisms, speech rhythm variance, and reading grade-level drift.
+4. Sensory Stylist: 6-Dimensional sensory palette coverage (visual, auditory, olfactory, gustatory, tactile, proprioceptive) and white-room syndrome detection.""",
+        why_this_way="Single-perspective linters produce shallow or contradictory feedback. By coordinating four distinct craft specialists with explicit evaluation rubrics, authors receive a balanced, masterclass diagnostic dossier without sending unpublished prose to cloud APIs.",
+        worldbuilding_relevance="Verifies that world lore rules, deific constraints, and conlang terms are respected throughout the manuscript text.",
+        storytelling_relevance="Flags saggy middles, unresolved narrative promises, and character voice homogenization across multi-POV chapters.",
+        writing_relevance="Pinpoints sensory-dead scenes, dialog fatigue, and clumsy attribution verbs.",
+        subfeatures=[
+            {"name": "Plot Doctor Evaluation", "rule": "Evaluates 3-Act / Monomyth harmony and scene tension trajectory.", "example": "arcanum council Manuscripts/Novel"},
+            {"name": "Lore Auditor Integrity", "rule": "Audits timeline, magic, and character trait continuity.", "example": "arcanum council Manuscripts/Novel -w Worlds/Eldoria"},
+            {"name": "Voice Coach Analysis", "rule": "Detects idiolect collapse and dialogue attribution bloat.", "example": "arcanum council Manuscripts/Novel --json"},
+            {"name": "Sensory Stylist Audit", "rule": "Measures 6D sensory balance and white-room scenes.", "example": "arcanum council Manuscripts/Novel --html dossier.html"},
+        ],
+        extension_guide="""Run council via CLI:
+```bash
+arcanum council Manuscripts/Novel -w Worlds/Eldoria --html dist/dossier.html
+```""",
+        advisory_guidance=[
+            {"pattern": "High sensory deficit in rapid action sequences", "option_a": "Inject tactile recoil and olfactory ozone cues", "option_b": "Keep sparse sensory focus for fast-paced cinematics", "option_c": "Rely entirely on dialogue momentum"},
+        ],
+    ),
+
+    "audio_proof": EngineSpec(
+        name="audio_proof",
+        category=EngineCategory.UTILITY,
+        title="Offline Local TTS Proofreading Exporter",
+        description="Speech-optimized SSML and text chunk generator for offline audio proofreading (Piper TTS, eSpeak NG)",
+        module_name="lib.audio_proof",
+        cli_command="audio-proof",
+        aliases=["audio-proof", "tts-proof", "audio-export", "speech-proof"],
+        studio_tab="Publishing",
+        scientific_logic="""Transforms raw manuscript Markdown into speech-synthesizer-optimized SSML and phonetically cleaned chunks:
+1. Strips non-spoken editorial tags (@pov, @time, YAML frontmatter, markdown table structures).
+2. Inserts natural SSML prosodic pauses: `<break time="500ms"/>` between paragraphs and `<break time="1200ms"/>` across scene dividers (***, ---).
+3. Formats dialogue and narrative into balanced audio chunks for low-latency buffer playback.
+4. Calculates accurate listening duration estimates across 1.0x (150 wpm), 1.25x (187 wpm), and 1.5x (225 wpm) listening speeds.""",
+        why_this_way="Listening to prose through text-to-speech is proven to uncover rhythm flaws, duplicate word echoes, clunky syntax, and accidental rhymes that visual reading misses. Offline generation ensures complete privacy for unreleased manuscripts.",
+        worldbuilding_relevance="Applies in-world phonetic pronunciation rules from conlang lexicons to ensure correct spoken rendering of fictional names and terms.",
+        storytelling_relevance="Tests narrative pacing and dialogue naturalism through auditory rhythm.",
+        writing_relevance="Catches typographical homophones (their/there/they're), missing words, and clumsy sentence structures.",
+        subfeatures=[
+            {"name": "SSML Prosody Optimization", "rule": "Generates valid SSML tags with scene break pauses.", "example": "arcanum audio-proof Manuscripts/Novel --ssml"},
+            {"name": "Chunked Buffer Exporter", "rule": "Splits long chapters into TTS-friendly chunks.", "example": "arcanum audio-proof Manuscripts/Novel --chunk-size 500"},
+            {"name": "Audio Listening Estimator", "rule": "Calculates chapter audio runtimes across multiple playback speeds.", "example": "arcanum audio-proof Manuscripts/Novel --json"},
+        ],
+        extension_guide="""Export audio proofing package:
+```bash
+arcanum audio-proof Manuscripts/Novel --ssml --output Exports/AudioProof/
+```""",
+        advisory_guidance=[
+            {"pattern": "Unnatural cadence in spoken dialogue", "option_a": "Break long sentences with em-dashes or commas", "option_b": "Keep stylized archaic speech patterns", "option_c": "Add phonetic respelling annotations"},
+        ],
+    ),
+
+    "cosmology": EngineSpec(
+        name="cosmology",
+        category=EngineCategory.CRAFT,
+        title="Deific Pantheon Conflict & Theological Heresy Engine",
+        description="Divine domain overlap validator, ritual catalyst auditor, and theological schism / heresy detector",
+        module_name="lib.cosmology",
+        cli_command="cosmology",
+        aliases=["pantheon", "deities", "theology", "heresy"],
+        studio_tab="Worldbuilding",
+        scientific_logic="""Models theological structures and supernatural authority through formal domain matrices:
+1. Divine Domain Hegemony & Overlap:
+   Identifies conflicting domain claims (e.g. rival war deities) without hierarchy or territorial boundary treaties.
+2. Ritual Catalyst Consistency:
+   Validates sacrifice/catalyst prerequisites against world magical and ecological laws.
+3. Theological Schisms & Doctrinal Contradictions:
+   Detects incompatible religious dogmas between allied factions and divine mandates.
+4. Divine Energy Accounting:
+   Ensures miracle intervention scales proportionally with worship footprint and prayer density.""",
+        why_this_way="Pantheons and religious orders often suffer from accidental domain redundancy or arbitrary miracle power without underlying theological logic. Explicit matrix checks provide rich geopolitical and mythological conflict hooks.",
+        worldbuilding_relevance="Constructs believable deific hierarchies, holy orders, religious wars, and sacred taboos.",
+        storytelling_relevance="Supplies organic faction conflicts based on holy schisms and competing divine prophecies.",
+        writing_relevance="Informs oath formulas, temple architecture descriptions, and priest liturgical dialogue.",
+        subfeatures=[
+            {"name": "Domain Overlap Conflict Audit", "rule": "Identifies contested deific portfolios across pantheons.", "example": "arcanum cosmology pantheon Worlds/Eldoria"},
+            {"name": "Theological Heresy Detector", "rule": "Scans faction dogmas for religious contradictions.", "example": "arcanum cosmology heresy Worlds/Eldoria"},
+            {"name": "Ritual Catalyst Validation", "rule": "Verifies sacrifice/relic requirements for divine invocations.", "example": "arcanum cosmology check Worlds/Eldoria"},
+        ],
+        extension_guide="""Run cosmology checks:
+```bash
+arcanum cosmology check Worlds/Eldoria --json
+```""",
+        advisory_guidance=[
+            {"pattern": "Overlapping storm domains between two gods", "option_a": "Establish distinct aspects (e.g. oceanic tempest vs desert lightning)", "option_b": "Frame overlap as the mythological origin of an eternal divine war", "option_c": "Unify deities as two regional names for the same cosmic entity"},
+        ],
+    ),
 }
 
 
 # -----------------------------------------------------------------------------
 # Public Query & Discovery Functions
 # -----------------------------------------------------------------------------
+
+def register_user_engine(spec: EngineSpec) -> None:
+    """Register or override an engine specification dynamically."""
+    _ENGINES[spec.name] = spec
+
+
+def load_user_plugin(file_path: Path | str) -> EngineSpec | None:
+    """Loads a custom Python engine plugin file and registers its specification."""
+    p = Path(file_path).resolve()
+    if not p.is_file() or p.suffix != ".py" or p.name.startswith((".", "_")):
+        return None
+
+    module_name = f"arcanum_plugin_{p.stem}"
+    try:
+        spec = importlib.util.spec_from_file_location(module_name, str(p))
+        if spec is None or spec.loader is None:
+            return None
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+
+        # Check for BaseCraftEngine subclass instance or class
+        for attr_name in dir(mod):
+            attr = getattr(mod, attr_name)
+            if isinstance(attr, type) and issubclass(attr, BaseCraftEngine) and attr is not BaseCraftEngine:
+                engine_instance = attr()
+                engine_spec = engine_instance.get_spec()
+                register_user_engine(engine_spec)
+                return engine_spec
+            if isinstance(attr, EngineSpec):
+                register_user_engine(attr)
+                return attr
+
+        if hasattr(mod, "register_engine"):
+            res = mod.register_engine()
+            if isinstance(res, EngineSpec):
+                register_user_engine(res)
+                return res
+    except Exception as e:
+        logger.warning(f"Failed to load dynamic plugin from '{p}': {e}")
+    return None
+
+
+def discover_user_plugins(extra_dirs: list[Path | str] | None = None) -> list[EngineSpec]:
+    """Discovers and registers custom craft engines located in user config or universe plugin directories."""
+    discovered: list[EngineSpec] = []
+    search_dirs: list[Path] = []
+
+    # 1. ~/.config/ars-arcanum/engines/
+    home_dir = Path.home()
+    user_config_plugins = home_dir / ".config" / "ars-arcanum" / "engines"
+    if user_config_plugins.is_dir():
+        search_dirs.append(user_config_plugins)
+
+    # 2. ~/Universes/*/.plugins/
+    universes_dir = home_dir / "Universes"
+    if universes_dir.is_dir():
+        for u in universes_dir.iterdir():
+            if u.is_dir():
+                u_plugins = u / ".plugins"
+                if u_plugins.is_dir():
+                    search_dirs.append(u_plugins)
+
+    # 3. Extra directories
+    if extra_dirs:
+        for d in extra_dirs:
+            p = Path(d).resolve()
+            if p.is_dir():
+                search_dirs.append(p)
+
+    for sdir in search_dirs:
+        for py_file in sorted(sdir.glob("*.py")):
+            if not py_file.name.startswith((".", "_")):
+                spec = load_user_plugin(py_file)
+                if spec:
+                    discovered.append(spec)
+
+    return discovered
+
+
+# Canonical alias for dynamic plugin discovery
+discover_craft_plugins = discover_user_plugins
+
 
 def get_registry() -> dict[str, EngineSpec]:
     """Return the global engine dictionary."""

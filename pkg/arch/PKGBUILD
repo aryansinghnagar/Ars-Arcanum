@@ -2,7 +2,7 @@
 # Contributor: Ars Arcanum Contributors
 
 pkgname=ars-arcanum
-pkgver=4.2.1
+pkgver=4.3.0
 pkgrel=1
 pkgdesc="Sovereign 100% offline writing and speculative worldbuilding studio for fiction authors"
 arch=('any')

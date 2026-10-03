@@ -20,7 +20,7 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
-VERSION = "4.2.1"
+VERSION = "4.3.0"
 
 # Add scripts directory to path
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent
@@ -384,9 +384,9 @@ def _handle_magic(rest: list[str]) -> int:
 
 
 def _handle_conlang(cmd: str, rest: list[str]) -> int:
-    """Handle 'arcanum conlang|family-tree' sub-dispatch."""
-    if cmd == "family-tree":
-        return dispatch_subcommand("lib.conlang", ["family-tree", *rest])
+    """Handle 'arcanum conlang|family-tree|grammar|declension|conjugate|semantic-shift' sub-dispatch."""
+    if cmd in ("family-tree", "grammar", "declension", "conjugate", "semantic-shift", "lexicon", "mutate", "generate"):
+        return dispatch_subcommand("lib.conlang", [cmd, *rest])
     return dispatch_subcommand("lib.conlang", rest)
 
 
@@ -596,13 +596,22 @@ _DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "ecology": ("module", "lib.ecology"), "foodweb": ("module", "lib.ecology"),
     "bestiary": ("module", "lib.ecology"),
     "magic": ("handler", "magic"), "magic-check": ("handler", "magic"),
+    "magic-report": ("handler", "magic"),
     "arcana": ("handler", "magic"), "spells": ("handler", "magic"),
-    "magic-report": ("module", "lib.magic_system", "report"),
+    "council": ("module", "lib.council"), "editorial-council": ("module", "lib.council"),
+    "dossier": ("module", "lib.council"), "council-audit": ("module", "lib.council"),
+    "audio-proof": ("module", "lib.audio_proof"), "tts-proof": ("module", "lib.audio_proof"),
+    "speech-proof": ("module", "lib.audio_proof"), "audio-export": ("module", "lib.audio_proof"),
+    "cosmology": ("module", "lib.cosmology"), "pantheon": ("module", "lib.cosmology"),
+    "theology": ("module", "lib.cosmology"), "heresy": ("module", "lib.cosmology"),
+    "deities": ("module", "lib.cosmology"),
     "genealogy": ("module", "lib.genealogy"),
     "lineage": ("module", "lib.genealogy", "lineage"), "dynasty": ("module", "lib.genealogy", "lineage"),
     "conlang": ("handler", "conlang"), "lexicon": ("handler", "conlang"),
     "linguistics": ("handler", "conlang"), "phonotactics": ("handler", "conlang"),
-    "family-tree": ("handler", "conlang"),
+    "family-tree": ("handler", "conlang"), "grammar": ("handler", "conlang"),
+    "declension": ("handler", "conlang"), "conjugate": ("handler", "conlang"),
+    "semantic-shift": ("handler", "conlang"),
     "calendar": ("module", "lib.calendar"), "calendars": ("module", "lib.calendar"),
     "moons": ("module", "lib.calendar"), "ephemeris": ("module", "lib.calendar"),
     "calc": ("handler", "calc"), "calculator": ("handler", "calc"),

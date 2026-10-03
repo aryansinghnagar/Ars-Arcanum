@@ -1,3 +1,18 @@
+ars-arcanum (4.3.0-1) unstable; urgency=medium
+
+  * Dynamic Plugin Extensibility, Speculative Intelligence & Studio v2 Release.
+  * Added dynamic engine plugin loader and BaseCraftEngine contract in scripts/lib/registry.py.
+  * Added Conlang v2 morphosyntax, grammars, case declensions, and Unicode-safe phonetic mutations.
+  * Added Deific Pantheon conflict and theological heresy diagnostic engine (scripts/lib/cosmology.py).
+  * Added Gravity-Model trade route networks and supply shock scarcity simulation (scripts/lib/economy.py).
+  * Added Multi-Agent Offline Editorial Council with 5-expert diagnostic dossier generator.
+  * Upgraded Zen Drafting Studio v2 with WebAudio mechanical typewriter soundscape and color themes.
+  * Added Commercial Genre Typst publication templates (Epic Fantasy, Hard Sci-Fi, Literary Trade).
+  * Added Offline TTS audio proofreader with speech-rate normalization (scripts/lib/audio_proof.py).
+  * Expanded test suite to 997 tests with 0 failures, 0 Ruff violations, clean Mypy static typing.
+
+ -- Aryan Singh Nagar <aryansinghnagar@users.noreply.github.com>  Sat, 03 Oct 2026 15:30:00 +0530
+
 ars-arcanum (4.2.1-1) unstable; urgency=high
 
   * Critical Data Safety, Security & Hardening Release.
