@@ -16,7 +16,7 @@ ENGINES: dict[str, EngineSpec] = {
     # =========================================================================
     "vault_search": EngineSpec(
         name="vault_search",
-        category=EngineCategory.CORE,
+        category=EngineCategory.CRAFT,
         title="Sovereign Local Vault Search & Lore Engine",
         description="Hybrid TF-IDF vector space and SQLite FTS5 lore query engine with Reciprocal Rank Fusion",
         module_name="lib.vault_search",

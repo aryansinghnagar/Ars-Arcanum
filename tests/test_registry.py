@@ -40,13 +40,13 @@ class TestRegistry(unittest.TestCase):
         self.assertIn("migrate", core_names)
         self.assertIn("docx_sync", core_names)
         self.assertIn("world_doctor", core_names)
-        self.assertIn("vault_search", core_names)
         self.assertIn("diagnostics", core_names)
         self.assertIn("manuscript_scaffold", core_names)
 
         # Check craft engines present
         craft = get_craft_engines()
         craft_names = {e.name for e in craft}
+        self.assertIn("vault_search", craft_names)
         self.assertIn("astrophysics", craft_names)
         self.assertIn("climate", craft_names)
         self.assertIn("cartography", craft_names)

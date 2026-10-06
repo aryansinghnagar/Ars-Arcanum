@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Ars Arcanum Studio Hub
+Comment=Sovereign Studio Desktop Hub & Authoring Cockpit
+Exec=python3 __PROJECT_ROOT__/scripts/lib/cli.py hub
+Icon=applications-office
+Terminal=false
+Categories=Office;WordProcessor;Development;
+Keywords=writing;worldbuilding;manuscript;novel;studio;

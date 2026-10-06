@@ -166,6 +166,43 @@ class TestTypographyCleanerEngine(unittest.TestCase):
         _stats, diff = clean_file(f, in_place=True, make_backup=False)
         self.assertEqual(diff, "")
 
+    def test_inspect_typography_proposals(self):
+        """inspect_typography_proposals must detect and describe individual line edits."""
+        from lib.typography_cleaner import inspect_typography_proposals
+
+        raw = '"First line..."\nSecond line---dash.\nThird line.   \n'
+        proposals = inspect_typography_proposals(raw)
+        self.assertEqual(len(proposals), 3)
+        self.assertEqual(proposals[0].line_number, 1)
+        self.assertIn("curly_double_quotes", proposals[0].rule)
+        self.assertEqual(proposals[1].line_number, 2)
+        self.assertIn("em_dash", proposals[1].rule)
+        self.assertEqual(proposals[2].line_number, 3)
+        self.assertIn("trailing_whitespace", proposals[2].rule)
+
+    def test_interactive_review_accept_and_reject(self):
+        """clean_file in interactive mode must respect user approval or rejection."""
+        f1 = self.target_dir / "accept_me.md"
+        f1.write_text('"Hello world..."\n', encoding="utf-8")
+
+        # Reject prompt
+        _stats, _diff = clean_file(f1, in_place=True, interactive=True, prompt_fn=lambda _: "n")
+        self.assertEqual(f1.read_text(encoding="utf-8"), '"Hello world..."\n')
+
+        # Accept prompt
+        _stats, _diff = clean_file(f1, in_place=True, interactive=True, prompt_fn=lambda _: "y")
+        self.assertEqual(f1.read_text(encoding="utf-8"), "“Hello world…”\n")
+
+    def test_auto_accept_with_user_consent(self):
+        """clean_target with auto_accept=True must apply all changes without prompting."""
+        f2 = self.target_dir / "auto_accept.md"
+        f2.write_text('"Auto accept test---end..."\n', encoding="utf-8")
+
+        from lib.typography_cleaner import clean_target
+        res = clean_target(f2, in_place=True, auto_accept=True, make_backup=False)
+        self.assertTrue(res["auto_accepted"])
+        self.assertEqual(f2.read_text(encoding="utf-8"), "“Auto accept test—end…”\n")
+
     def test_cli_main_and_options(self):
         import io
         import json
@@ -182,12 +219,17 @@ class TestTypographyCleanerEngine(unittest.TestCase):
                 data = json.loads(mock_stdout.getvalue())
                 self.assertEqual(data["summary"]["files_scanned"], 1)
 
-        # In-place with diff and no-backup
-        with patch("sys.argv", ["typography_cleaner.py", str(f), "-i", "--no-backup", "--diff"]):
+        # Proposals inspection mode
+        with patch("sys.argv", ["typography_cleaner.py", str(f), "--proposals"]):
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 main()
-                self.assertIn("Smart Typography Polish", mock_stdout.getvalue())
-                self.assertIn("[IN-PLACE WRITTEN]", mock_stdout.getvalue())
+                self.assertIn("Detailed Typography Proposals", mock_stdout.getvalue())
+
+        # Auto-accept with -y
+        with patch("sys.argv", ["typography_cleaner.py", str(f), "-y", "--no-backup"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                self.assertIn("AUTO-ACCEPTED WITH USER CONSENT", mock_stdout.getvalue())
 
         # Error path
         with patch("sys.argv", ["typography_cleaner.py", "nonexistent_file_123"]):
@@ -199,4 +241,5 @@ class TestTypographyCleanerEngine(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
