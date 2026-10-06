@@ -28,6 +28,7 @@ from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.data_access import get_data_access
     from lib.frontmatter import parse_yaml_frontmatter
     from lib.resonance import ResonanceMesh
     from lib.scope import (
@@ -38,6 +39,7 @@ try:
     from lib.tips import are_tips_enabled, get_tip_database, toggle_tips
 except ImportError:
     from _bootstrap import atomic_write
+    from data_access import get_data_access
     from frontmatter import parse_yaml_frontmatter
     from resonance import ResonanceMesh
     from scope import (  # type: ignore[no-redef]
@@ -102,7 +104,7 @@ def scan_manuscript_chapters(manuscript_dir: Path | None) -> list[dict[str, Any]
         if p.name.startswith((".", "_")) or "Backups" in p.parts:
             continue
         try:
-            content = p.read_text(encoding="utf-8", errors="replace")
+            content = get_data_access().read_file(p)
         except (OSError, UnicodeDecodeError) as e:
             logger.debug("Could not read manuscript chapter %s: %s", p, e)
             continue
@@ -165,7 +167,7 @@ def scan_lore_entities(world_dir: Path | None) -> list[dict[str, Any]]:
         if p.name.startswith((".", "_")) or "Backups" in p.parts:
             continue
         try:
-            content = p.read_text(encoding="utf-8", errors="replace")
+            content = get_data_access().read_file(p)
         except (OSError, UnicodeDecodeError) as e:
             logger.debug("Could not read lore file %s: %s", p, e)
             continue

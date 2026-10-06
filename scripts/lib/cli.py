@@ -7,11 +7,14 @@ Provides modular command parsing, alias routing, and delegation to core and craf
 
 import difflib
 import importlib
+import logging
 import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+logger = logging.getLogger("arcanum.cli")
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -710,6 +713,16 @@ def main(argv: list[str] | None = None) -> int:
 
     entry = _DISPATCH_TABLE.get(cmd)
     if entry is None:
+        # Check dynamic registry for user plugins or extended engines
+        try:
+            from lib.registry import discover_user_plugins, get_engine
+            discover_user_plugins()
+            dyn_spec = get_engine(cmd)
+            if dyn_spec is not None and dyn_spec.module_name:
+                return dispatch_subcommand(dyn_spec.module_name, rest)
+        except Exception as e:
+            logger.debug("Dynamic registry lookup failed for '%s': %s", cmd, e)
+
         # Unknown command — fuzzy match against the dispatch table keys
         matches = difflib.get_close_matches(cmd, _DISPATCH_TABLE.keys(), n=1, cutoff=0.55)
         if matches:

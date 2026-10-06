@@ -33,6 +33,7 @@ from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.data_access import get_data_access
     from lib.frontmatter import parse_yaml_frontmatter
     from lib.scope import (
         EngineScope,
@@ -45,6 +46,7 @@ try:
     from lib.tips import are_tips_enabled, get_tip_database
 except ImportError:
     from _bootstrap import atomic_write
+    from data_access import get_data_access
     from frontmatter import parse_yaml_frontmatter
     from scope import (  # type: ignore[no-redef]
         EngineScope,
@@ -140,7 +142,7 @@ def extract_scene_cards(target_path: Path | str | None = None, scope: Any = None
     total_words_accum = 0
 
     if p_target.is_file():
-        content = p_target.read_text(encoding="utf-8", errors="replace")
+        content = get_data_access().read_file(p_target)
         card = extract_single_card(content, p_target, 1)
         card["cumulative_words"] = card["word_count"]
         cards.append(card)
@@ -170,7 +172,7 @@ def extract_scene_cards(target_path: Path | str | None = None, scope: Any = None
                 if not p.name.startswith((".", "_")) and "Backups" not in p.parts and "04_Back_Matter" not in p.parts:
                     files.append(p)
             for idx, f in enumerate(files, 1):
-                content = f.read_text(encoding="utf-8", errors="replace")
+                content = get_data_access().read_file(f)
                 card = extract_single_card(content, f, idx)
                 total_words_accum += card["word_count"]
                 card["cumulative_words"] = total_words_accum

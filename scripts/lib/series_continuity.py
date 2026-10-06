@@ -30,6 +30,7 @@ from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.data_access import get_data_access
     from lib.scope import (
         EngineScope,
         add_scope_arguments,
@@ -40,6 +41,7 @@ try:
     )
 except ImportError:
     from _bootstrap import atomic_write
+    from data_access import get_data_access
     from scope import (
         EngineScope,
         add_scope_arguments,
@@ -90,19 +92,12 @@ def extract_book_entities(book_dir: Path, scope: EngineScope | None = None) -> d
 
     for md_file in md_files:
         if not md_file.name.startswith((".", "_")) and "04_Back_Matter" not in md_file.parts:
-            file_text = md_file.read_text(encoding="utf-8", errors="replace")
+            file_text = get_data_access().read_file(md_file)
             text_chunks.append(f"\n\n# {md_file.name}\n{file_text}")
 
             # Check for canonical mortality frontmatter in character files or notes
             if file_text.startswith("---"):
-                try:
-                    from lib.frontmatter import parse_yaml_frontmatter
-                except ImportError:
-                    try:
-                        from frontmatter import parse_yaml_frontmatter
-                    except ImportError:
-                        parse_yaml_frontmatter = lambda c: {}  # noqa: E731
-                fm = parse_yaml_frontmatter(file_text)
+                fm, _ = get_data_access().parse_frontmatter(md_file)
                 c_name_temp = fm.get("name") or md_file.stem.replace("_", " ").replace("-", " ")
                 if isinstance(c_name_temp, str) and c_name_temp.strip():
                     norm = c_name_temp.strip().title()

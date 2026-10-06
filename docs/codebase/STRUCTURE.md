@@ -12,7 +12,7 @@
 | `scripts/lib/tips_catalog/` | Modular craft tip catalog specifications partitioned across 6 craft domains and engine aliases (<60 lines/file) | [`scripts/lib/tips_catalog/domain_cosmology.py`](file:///scripts/lib/tips_catalog/domain_cosmology.py), [`scripts/lib/tips_catalog/__init__.py`](file:///scripts/lib/tips_catalog/__init__.py) |
 | `scripts/lib/ui_gtk3/` | Modular PyGObject GTK3 desktop interface package (<800 lines/file) | [`scripts/lib/ui_gtk3/window.py`](file:///scripts/lib/ui_gtk3/window.py) |
 | `docs/` | Comprehensive craft documentation, user guides, master engine encyclopedia, roadmap, and codebase architecture | [`docs/README.md`](file:///docs/README.md), [`docs/ENGINE_LOGIC_ENCYCLOPEDIA.md`](file:///docs/ENGINE_LOGIC_ENCYCLOPEDIA.md), [`docs/ROADMAP.md`](file:///docs/ROADMAP.md), [`docs/codebase/`](file:///docs/codebase/) |
-| `tests/` | Exhaustive 861-test suite covering unit, integration, scoping, threat model, and benchmark tests | [`tests/test_*.py`](file:///tests/) |
+| `tests/` | Exhaustive 862-test suite covering unit, integration, scoping, threat model, and benchmark tests | [`tests/test_*.py`](file:///tests/) |
 | `templates/` | Standardized world bibles, demo cosmos (`Eldoria`), Obsidian plugins with SHA-256 manifest, and novelWriter project templates | [`templates/demo-cosmos/`](file:///templates/demo-cosmos/), [`templates/world-bible/`](file:///templates/world-bible/) |
 | `configs/` | Deterministic plugin definitions, idiom dictionaries, LeechBlock rules, and core settings | [`configs/plugin_catalog.json`](file:///configs/plugin_catalog.json), [`configs/idioms.json`](file:///configs/idioms.json), [`configs/leechblock_arcanum_rules.json`](file:///configs/leechblock_arcanum_rules.json) |
 

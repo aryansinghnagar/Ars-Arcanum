@@ -9,7 +9,7 @@
 - Commands:
 
 ```bash
-# Run all automated unit and integration tests (861 tests)
+# Run all automated unit and integration tests (862 tests)
 python -m unittest discover tests
 
 # Run specific engine test suite
@@ -55,7 +55,7 @@ mypy --explicit-package-bases scripts tests
 ### 5) Coverage and Quality Signals
 
 - Coverage tool + threshold: 80% aggregate coverage enforced in `pyproject.toml` (`fail_under = 80`); 0 test failures or errors permitted.
-- Current reported coverage: 861 tests collected (859 passed, 2 skipped on Windows, 0 failures) with 80-81% aggregate coverage in $\approx 35$ seconds.
+- Current reported coverage: 862 tests collected (860 passed, 2 skipped on Windows, 0 failures) with 81% aggregate coverage in $\approx 35$ seconds.
 - Known gaps/flaky areas: None. All tests are 100% deterministic and offline.
 
 ### 6) Evidence

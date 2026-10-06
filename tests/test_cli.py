@@ -55,6 +55,27 @@ class TestCLI(unittest.TestCase):
             self.assertEqual(rc, 0)
             mock_scaffold.assert_called_once_with(["list"])
 
+    def test_dynamic_plugin_dispatch(self):
+        from lib.registry import EngineCategory, EngineSpec, _ENGINES, register_user_engine
+        custom_spec = EngineSpec(
+            name="custom_tester_plugin",
+            title="Custom Tester Plugin",
+            category=EngineCategory.CRAFT,
+            cli_command="custom_tester_plugin",
+            description="Dynamically registered plugin",
+            module_name="lib.diagnostics",
+            aliases=["test-dyn-alias"],
+            scientific_logic="Testing dynamics",
+        )
+        register_user_engine(custom_spec)
+        try:
+            with patch("lib.diagnostics.main", return_value=0) as mock_dyn:
+                rc = main(["test-dyn-alias", "--sample"])
+                self.assertEqual(rc, 0)
+                mock_dyn.assert_called_once_with(["--sample"])
+        finally:
+            _ENGINES.pop("custom_tester_plugin", None)
+
 
 if __name__ == "__main__":
     unittest.main()

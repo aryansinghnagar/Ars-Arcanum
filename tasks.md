@@ -12,13 +12,14 @@
 - [x] Harden `restore.py` with `force=False` non-empty destination overwrite protection and fail-closed SHA-256 sidecar validation.
 - [x] Generate Obsidian community plugin SHA-256 integrity manifest (`templates/world-bible/.obsidian/plugins/manifest.json`).
 - [x] Implement centralized Data Access Layer (`scripts/lib/data_access.py`) with thread-safe caching and automatic `mtime` invalidation.
+- [x] Propagate Data Access Layer memoization across `studio_hub.py`, `series_continuity.py`, `story_canvas.py`, and `structure.py`.
+- [x] Upgrade CLI dispatcher (`cli.py`) with dynamic registry plugin discovery and fuzzy error resolution.
 - [x] Modularize oversized `tips.py` (3,324 $\to$ 442 lines) into `scripts/lib/tips_catalog/` domain modules, satisfying `<800 lines/file` contract.
 - [x] Extract Studio Hub presentation template into `scripts/lib/studio_hub_template.py`, reducing `studio_hub.py` by over 2,100 lines.
-- [x] Align README status (Beta), test count (861 total, 859 passing, 2 skipped on Windows), coverage threshold (80%), and repository URLs.
-- [x] Pass 100% verification across test suite (861 tests, 0 failures), Ruff linter (0 errors), and Mypy static type checking (181 source files clean).
+- [x] Align README status (Beta), test count (862 total, 860 passing, 2 skipped on Windows), coverage threshold (81%), and repository URLs.
+- [x] Pass 100% verification across test suite (862 tests, 0 failures), Ruff linter (0 errors), and Mypy static type checking (181 source files clean).
 
 ### `next`
-- Refactor CLI dispatcher (`cli.py`) to dynamic registry-driven command routing.
 - Deepen craft encyclopedia references across narrative craft, worldbuilding models, and linguistics.
 - Expand interactive Studio Hub visualizations for high-dimensional narrative geometry.
 

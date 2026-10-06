@@ -34,6 +34,7 @@ from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.data_access import get_data_access
     from lib.scope import (
         EngineScope,
         add_scope_arguments,
@@ -44,6 +45,7 @@ try:
     )
 except ImportError:
     from _bootstrap import atomic_write
+    from data_access import get_data_access
     from scope import (  # type: ignore[no-redef]
         EngineScope,
         add_scope_arguments,
@@ -236,7 +238,7 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
     total_words = 0
 
     if p_target.is_file():
-        content = p_target.read_text(encoding="utf-8", errors="replace")
+        content = get_data_access().read_file(p_target)
         words = len(re.findall(r'\b\w+\b', content))
         total_words = words
         chapters.append({
@@ -277,7 +279,7 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
                 if not p.name.startswith((".", "_")) and "Backups" not in p.parts and "04_Back_Matter" not in p.parts:
                     files.append(p)
             for idx, f in enumerate(files, 1):
-                content = f.read_text(encoding="utf-8", errors="replace")
+                content = get_data_access().read_file(f)
                 words = len(re.findall(r'\b\w+\b', content))
                 total_words += words
                 chapters.append({
@@ -468,7 +470,7 @@ def analyze_character_arc_geometry(
     total_words = 0
 
     if p_target.is_file():
-        txt = p_target.read_text(encoding="utf-8", errors="replace")
+        txt = get_data_access().read_file(p_target)
         words = len(re.findall(r"\b\w+\b", txt))
         total_words = words
         pov = ""
@@ -531,7 +533,7 @@ def analyze_character_arc_geometry(
                 ):
                     files.append(p)
             for idx, f in enumerate(files, 1):
-                txt = f.read_text(encoding="utf-8", errors="replace")
+                txt = get_data_access().read_file(f)
                 words = len(re.findall(r"\b\w+\b", txt))
                 total_words += words
                 pov = ""
@@ -560,7 +562,7 @@ def analyze_character_arc_geometry(
                 if cf.name.startswith((".", "_")) or "Template" in cf.name:
                     continue
                 try:
-                    c_txt = cf.read_text(encoding="utf-8", errors="replace")
+                    c_txt = get_data_access().read_file(cf)
                     # simple extract
                     c_name = cf.stem.replace("_", " ").title()
                     flaw = "Hubris & Isolation"

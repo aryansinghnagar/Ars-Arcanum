@@ -33,6 +33,7 @@ from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.data_access import get_data_access
     from lib.frontmatter import parse_yaml_frontmatter
     from lib.scope import (
         EngineScope,
@@ -44,6 +45,7 @@ try:
     )
 except ImportError:
     from _bootstrap import atomic_write
+    from data_access import get_data_access
     from frontmatter import parse_yaml_frontmatter
     from scope import (  # type: ignore[no-redef]
         EngineScope,
@@ -193,7 +195,7 @@ def extract_timeline_events(target_path: Path | str | None = None, scope: Any = 
     events: list[TimelineEvent] = []
 
     if p_target.is_file():
-        content = p_target.read_text(encoding="utf-8", errors="replace")
+        content = get_data_access().read_file(p_target)
         events.append(extract_single_event(content, p_target, 1))
     elif p_target.is_dir():
         if scope:
@@ -218,7 +220,7 @@ def extract_timeline_events(target_path: Path | str | None = None, scope: Any = 
                 if not p.name.startswith((".", "_")) and "Backups" not in p.parts and "04_Back_Matter" not in p.parts:
                     files.append(p)
             for idx, f in enumerate(files, 1):
-                content = f.read_text(encoding="utf-8", errors="replace")
+                content = get_data_access().read_file(f)
                 events.append(extract_single_event(content, f, idx))
     else:
         raise FileNotFoundError(f"Target path not found: {p_target}")
