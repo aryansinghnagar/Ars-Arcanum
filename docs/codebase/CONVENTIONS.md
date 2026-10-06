@@ -8,8 +8,8 @@
 |------|------|---------|----------|
 | Files | Lowercase snake_case | `astrophysics.py`, `test_resonance.py` | `scripts/lib/`, `tests/` |
 | Functions/methods | Lowercase snake_case with descriptive verbs | `simulate_cascade()`, `get_by_engine()` | `scripts/lib/resonance.py`, `scripts/lib/tips.py` |
-| Types/interfaces/classes | PascalCase | `ResonanceMesh`, `TipDatabase`, `EngineSpec` | `scripts/lib/registry.py`, `scripts/lib/tips.py` |
-| Constants/Enums | UPPER_SNAKE_CASE | `TipPillar.COSMOLOGY_PHYSICS`, `ENGINE_ALIASES` | `scripts/lib/tips.py` |
+| Types/interfaces/classes | PascalCase | `ResonanceMesh`, `TipDatabase`, `EngineSpec` | `scripts/lib/registry.py`, `scripts/lib/registry_base.py`, `scripts/lib/tips.py` |
+| Constants/Enums | UPPER_SNAKE_CASE | `TipPillar.COSMOLOGY_PHYSICS`, `WINDOWS_RESERVED_NAMES` | `scripts/lib/tips.py`, `scripts/lib/_bootstrap.py` |
 
 ### 2) Formatting and Linting
 
@@ -22,18 +22,20 @@
 - Run commands:
   ```bash
   ruff check .
-  mypy --config-file mypy.ini --explicit-package-bases scripts/lib tests
+  python -m mypy --explicit-package-bases (Get-ChildItem scripts/lib/*.py) (Get-ChildItem scripts/lib/registry_specs/*.py) (Get-ChildItem tests/*.py)
   ```
 
 ### 3) Import and Module Conventions
 
-- Import grouping/order: Standard library imports $\to$ third-party GUI (optional) $\to$ local internal imports (`lib._bootstrap`, `lib.registry`).
+- Import grouping/order: Standard library imports $\to$ third-party GUI (optional) $\to$ local internal imports (`lib._bootstrap`, `lib.registry_base`, `lib.registry_specs`, `lib.registry`).
 - Alias vs relative import policy: Bootstrap fallback pattern `try: import lib.X; except ImportError: import X`.
-- Public exports/barrel policy: Explicit `__all__` or public functions exported from `scripts/lib/registry.py`.
+- Public exports/barrel policy: Explicit `__all__` exported from `scripts/lib/registry.py`, `scripts/lib/registry_base.py`, and `scripts/lib/registry_specs/__init__.py`.
+- Module size limit: Source files must not exceed 800 lines of code; large domains must be split into dedicated sub-packages.
 
 ### 4) Error and Logging Conventions
 
 - Error strategy by layer: Explicit domain exception handling with user-facing diagnostic remediation (`world_doctor.py`, `diagnostics.py`).
+- Concurrency errors: File lock exceptions caught with non-swallowed debug diagnostics via `logger.debug()`.
 - Logging style and required context fields: Standard library `logging.getLogger("arcanum.<subsystem>")`.
 - Sensitive-data redaction rules: SEC-02 credential redaction; zero API keys or external secrets committed (`.gitignore#L52-L63`).
 
@@ -46,7 +48,8 @@
 ### 6) Evidence
 
 - `pyproject.toml#L1-L35`
-- `mypy.ini#L1-L25`
-- `scripts/lib/resonance.py#L1-L80`
+- `scripts/lib/registry_base.py#L1-L60`
+- `scripts/lib/registry.py#L1-L60`
+- `scripts/lib/_bootstrap.py#L75-L115`
 - `tests/test_tips.py#L1-L50`
 - `AGENTS.md#L1-L60`

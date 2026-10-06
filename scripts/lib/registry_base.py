@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+"""
+Ars Arcanum Engine & Plugin Registry (scripts/lib/registry.py)
+============================================================
+Defines core vs craft engine classification, exhaustive metadata registry,
+domain logic (physics, mathematics, linguistics, economics, narrative theory),
+rationale ("why this way"), subfeature matrices, author extension guides with
+concrete examples, dynamic plugin discovery, and capability introspection across
+CLI and GUI surfaces.
+"""
+
+from __future__ import annotations
+
+import logging
+import re
+from dataclasses import dataclass, field
+from enum import Enum
+from pathlib import Path
+from typing import Any
+
+logger = logging.getLogger("arcanum.registry")
+
+_LIB_DIR = Path(__file__).resolve().parent
+_PROJECT_ROOT = _LIB_DIR.parent.parent
+_DOCS_DIR = _PROJECT_ROOT / "docs"
+
+
+def _load_doc_theory_references(engine_name: str) -> list[dict[str, str]]:
+    """Dynamically parses theoretical references from docs/<ENGINE>.md for an engine."""
+    doc_path = _DOCS_DIR / f"{engine_name.upper()}.md"
+    if not doc_path.is_file():
+        doc_path = _DOCS_DIR / f"{engine_name}.md"
+    if not doc_path.is_file():
+        return []
+    try:
+        text = doc_path.read_text(encoding="utf-8")
+    except Exception:
+        return []
+
+    ref_header = re.search(
+        r"(?:##+\s+(?:[0-9.]+\s+)?(?:Masterclass\s+References|Theoretical\s+Foundations|Recommended\s+Reading|Further\s+Reading|References|Bibliography)|Theoretical\s+Foundations)",
+        text,
+        re.IGNORECASE,
+    )
+    if not ref_header:
+        return []
+
+    section = text[ref_header.end():]
+    next_section_match = re.search(r"\n##\s+(?!#)|\n---\s*\n##\s+", section)
+    if next_section_match:
+        section = section[: next_section_match.start()]
+
+    items: list[dict[str, str]] = []
+    raw_items = re.findall(
+        r"(?:^|\n)(?:[-*]|\d+\.)\s+\*\*([^*]+)\*\*\.?\s*(.*?)(?=\n(?:[-*]|\d+\.)\s+\*\*|\n###|\n##|\Z)",
+        section,
+        re.DOTALL,
+    )
+    for author_yr, body in raw_items:
+        body = body.strip()
+        url_match = re.search(r"\[([^\]]+)\]\((https?://[^\)]+)\)", body)
+        if not url_match:
+            url_match = re.search(r"(https?://[^\s\)]+)", body)
+        url = url_match.group(2) if (url_match and len(url_match.groups()) >= 2) else (url_match.group(1) if url_match else "")
+        if not url:
+            title_token = re.sub(r"[^a-zA-Z0-9]+", "+", author_yr.strip()).strip("+")
+            url = f"https://en.wikipedia.org/wiki/Special:Search?search={title_token}"
+
+        desc_match = re.search(r"\*([^*]+)\*\s*$", body)
+        desc = desc_match.group(1).strip() if desc_match else ""
+
+        clean_body = re.sub(r"\[([^\]]+)\]\((https?://[^\)]+)\)", r"\1", body)
+        clean_body = re.sub(r"\*([^*]+)\*\s*$", "", clean_body).strip()
+
+        items.append({
+            "title": author_yr.strip(),
+            "citation": clean_body.strip(" .") or author_yr.strip(),
+            "url": url,
+            "description": desc,
+        })
+    return items
+
+
+class EngineCategory(str, Enum):
+    CORE = "core"
+    CRAFT = "craft"
+    UTILITY = "utility"
+
+
+@dataclass
+class AdvisoryResolution:
+    """Creative resolution pathway for an advisory pattern."""
+    mode: str  # "Hard Realism", "Speculative / Trope", "Creative Sovereignty"
+    description: str
+
+
+@dataclass
+class EngineSpec:
+    """Metadata specification for an Ars Arcanum engine / plugin module."""
+    name: str
+    category: EngineCategory
+    title: str
+    description: str
+    module_name: str
+    cli_command: str
+    aliases: list[str] = field(default_factory=list)
+    studio_tab: str | None = None
+    default_enabled: bool = True
+    enabled: bool = True
+    logic_documentation: str = ""
+    scientific_logic: str = ""
+    why_this_way: str = ""
+    worldbuilding_relevance: str = ""
+    storytelling_relevance: str = ""
+    writing_relevance: str = ""
+    subfeatures: list[dict[str, str]] = field(default_factory=list)
+    extension_guide: str = ""
+    advisory_guidance: list[dict[str, Any]] = field(default_factory=list)
+    theory_references: list[dict[str, str]] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if not self.scientific_logic and self.logic_documentation:
+            self.scientific_logic = self.logic_documentation
+        elif not self.logic_documentation and self.scientific_logic:
+            self.logic_documentation = self.scientific_logic
+        if not self.theory_references and self.name:
+            self.theory_references = _load_doc_theory_references(self.name)
+
+
+class BaseCraftEngine:
+    """Abstract base class for modular author-authored and dynamic craft engines."""
+    name: str = ""
+    category: EngineCategory = EngineCategory.CRAFT
+    title: str = ""
+    description: str = ""
+    cli_command: str = ""
+    aliases: list[str] = []
+    studio_tab: str | None = "Worldbuilding"
+    scientific_logic: str = ""
+    why_this_way: str = ""
+    worldbuilding_relevance: str = ""
+    storytelling_relevance: str = ""
+    writing_relevance: str = ""
+    subfeatures: list[dict[str, str]] = []
+    extension_guide: str = ""
+    advisory_guidance: list[dict[str, Any]] = []
+    theory_references: list[dict[str, str]] = []
+
+    def get_spec(self) -> EngineSpec:
+        return EngineSpec(
+            name=self.name,
+            category=self.category,
+            title=self.title or self.name.replace("_", " ").title(),
+            description=self.description,
+            module_name=self.__module__,
+            cli_command=self.cli_command or f"craft {self.name}",
+            aliases=list(self.aliases),
+            studio_tab=self.studio_tab,
+            scientific_logic=self.scientific_logic,
+            why_this_way=self.why_this_way,
+            worldbuilding_relevance=self.worldbuilding_relevance,
+            storytelling_relevance=self.storytelling_relevance,
+            writing_relevance=self.writing_relevance,
+            subfeatures=list(self.subfeatures),
+            extension_guide=self.extension_guide,
+            advisory_guidance=list(self.advisory_guidance),
+            theory_references=list(self.theory_references),
+        )
+
+    def execute(self, argv: list[str]) -> int:
+        """Execute the craft engine command with the provided CLI arguments. Return exit code."""
+        raise NotImplementedError("Subclasses of BaseCraftEngine must implement execute(argv)")
+
+
+# Canonical Engine Registry Definitions
+
+__all__ = [
+    "AdvisoryResolution",
+    "BaseCraftEngine",
+    "EngineCategory",
+    "EngineSpec",
+    "_load_doc_theory_references",
+]

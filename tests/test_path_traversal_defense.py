@@ -61,6 +61,13 @@ class TestPathTraversalDefense(unittest.TestCase):
             "Book`id`",
             "Book&calc.exe",
             "Book|dir",
+            "CON",
+            "con",
+            "PRN",
+            "AUX",
+            "NUL",
+            "COM1",
+            "LPT1",
         ]
         for name in invalid_cases:
             with self.subTest(name=name), self.assertRaises(ValueError, msg=f"Should reject: {name}"):
@@ -70,6 +77,7 @@ class TestPathTraversalDefense(unittest.TestCase):
         self.assertEqual(sanitize_identifier("Book 01"), "Book01")
         self.assertEqual(sanitize_identifier("../../Dangerous! Name@#"), "DangerousName")
         self.assertEqual(sanitize_identifier("", fallback="default_vol"), "default_vol")
+        self.assertEqual(sanitize_identifier("CON", fallback="default_vol"), "default_vol")
         self.assertEqual(sanitize_identifier("Valid-Name_123"), "Valid-Name_123")
 
     def test_scope_rejects_traversal_volume(self):

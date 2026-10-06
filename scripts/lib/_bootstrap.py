@@ -11,7 +11,6 @@ Shared bootstrap module providing:
 
 import sys
 from pathlib import Path
-from typing import Any
 
 # 1. UTF-8 standard stream re-encoding
 if hasattr(sys.stdout, "reconfigure"):
@@ -38,17 +37,16 @@ except ImportError:
     try:
         from fs_utils import atomic_write  # type: ignore[no-redef]
     except ImportError:
-        def atomic_write(path: Path | str, data: Any, encoding: str = "utf-8") -> None:
+        def atomic_write(path: Path | str, data: str | bytes, encoding: str = "utf-8") -> None:
             import os as _os
             import tempfile as _tf
             p = Path(path).resolve()
             p.parent.mkdir(parents=True, exist_ok=True)
-            is_bytes = isinstance(data, (bytes, bytearray))
             fd, tmp = _tf.mkstemp(dir=p.parent, prefix=f".{p.name}.", suffix=".tmp")
             fd_closed = False
             try:
                 try:
-                    if is_bytes:
+                    if isinstance(data, (bytes, bytearray)):
                         with _os.fdopen(fd, "wb") as f:
                             fd_closed = True
                             f.write(data)
@@ -57,7 +55,7 @@ except ImportError:
                     else:
                         with _os.fdopen(fd, "w", encoding=encoding, newline="") as f:
                             fd_closed = True
-                            f.write(str(data))
+                            f.write(data)
                             f.flush()
                             _os.fsync(f.fileno())
                 finally:
@@ -76,6 +74,13 @@ except ImportError:
 
 
 # 4. Volume and identifier validation helpers (Path Traversal Defense)
+WINDOWS_RESERVED_NAMES = frozenset({
+    "CON", "PRN", "AUX", "NUL",
+    "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+    "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+})
+
+
 def validate_volume_name(vol: str) -> str:
     """Validate volume identifier against path traversal and forbidden characters.
 
@@ -91,6 +96,11 @@ def validate_volume_name(vol: str) -> str:
 
     if not re.match(r"^[A-Za-z0-9_-]+$", vol):
         raise ValueError(f"Invalid volume name '{vol}': only alphanumeric characters, hyphens, and underscores allowed.")
+
+    base_name = vol.split(".")[0].upper()
+    if base_name in WINDOWS_RESERVED_NAMES:
+        raise ValueError(f"Invalid volume name '{vol}': Windows reserved device name not allowed.")
+
     return vol
 
 
@@ -99,13 +109,16 @@ def sanitize_identifier(name: str, fallback: str = "item") -> str:
     import re
 
     safe = re.sub(r"[^A-Za-z0-9_-]", "", name or "")
-    return safe or fallback
+    if not safe or safe.split(".")[0].upper() in WINDOWS_RESERVED_NAMES:
+        return fallback
+    return safe
 
 
 __all__ = [
     "LIB_DIR",
     "PROJECT_ROOT",
     "SCRIPTS_DIR",
+    "WINDOWS_RESERVED_NAMES",
     "atomic_write",
     "sanitize_identifier",
     "validate_volume_name",

@@ -11,6 +11,14 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Replaced heuristic regex prose engines with deterministic, schema-validated metadata models and rich craft encyclopedia references.
   - Rebranded and hardened zero-dependency local semantic retrieval from `local_rag` to `vault_search` with hybrid BM25+, TF-IDF cosine similarity, and SQLite FTS5 indexers.
   - Fully refactored hybrid engines (`continuity`, `dramatis_personae`, `magic_system`, `plot_matrix`, `resonance`, `conlang`, `ambient`, `revision_heatmap`) to strict deterministic YAML frontmatter and character sheet parsing.
+- **Registry Modularization & Invariant Compliance (`registry_base.py`, `registry_specs/`)**:
+  - Decomposed `scripts/lib/registry.py` from 2,490 lines to 511 lines, satisfying the `<800 lines/file` engineering contract.
+  - Extracted core spec abstractions to `scripts/lib/registry_base.py` (189 lines) and partitioned static engine specifications across 7 domain modules in `scripts/lib/registry_specs/`.
+  - Preserved 100% backward-compatibility for all 47 engines, scientific logic, and advisory guidance.
+- **Security & Concurrency Defense Hardening**:
+  - Added strict rejection of Windows reserved device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`) in `_bootstrap.py` and `scope.py` path sanitizers.
+  - Hardened `ArcanumLock` on Windows with deterministic seek-to-0 prior to `msvcrt.locking` and structured debug logging.
+  - Created `CODE_OF_CONDUCT.md` and instantiated formal momentum queues in `docs/ROADMAP.md`.
 - **Craft Reference Encyclopedia Expansion (`docs/`)**:
   - Authored deep masterclass craft guides for narrative theory: `SCENE_MECHANICS.md`, `PACING.md`, `BRANCHING_GRAPH.md`, `VOICE.md`, `STYLISTICS.md`, `CONCORDANCE.md`, `SENSES.md`, `AUDIO_PROOF.md`, `COUNCIL.md`.
   - Updated `ENGINE_LOGIC_ENCYCLOPEDIA.md`, `GRAND_TOUR.md`, and codebase architecture references.

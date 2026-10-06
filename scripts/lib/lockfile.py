@@ -8,12 +8,15 @@ and the desktop Control Center.
 """
 
 import json
+import logging
 import os
 import sys
 import time
 from contextlib import AbstractContextManager
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger("arcanum.lockfile")
 
 # Detect POSIX fcntl vs Windows msvcrt
 HAS_FCNTL = False
@@ -72,6 +75,10 @@ class ArcanumLock(AbstractContextManager):
                     fcntl.flock(self._fd, flags)
                     self._is_locked = True
                 elif HAS_MSVCRT:
+                    try:
+                        os.lseek(self._fd, 0, os.SEEK_SET)
+                    except OSError:
+                        pass
                     msvcrt.locking(self._fd, msvcrt.LK_NBLCK, 1)
                     self._is_locked = True
                 else:
@@ -90,8 +97,8 @@ class ArcanumLock(AbstractContextManager):
                     os.ftruncate(self._fd, 0)
                     os.lseek(self._fd, 0, os.SEEK_SET)
                     os.write(self._fd, data)
-                except Exception:
-                    pass
+                except Exception as ex:
+                    logger.debug("Failed writing lockfile metadata for %s: %s", self.lock_path, ex)
 
                 return self
 
@@ -123,20 +130,25 @@ class ArcanumLock(AbstractContextManager):
                         msvcrt.locking(self._fd, msvcrt.LK_UNLCK, 1)
                     except OSError:
                         pass
-            except OSError:
-                pass
+            except OSError as ex:
+                logger.debug("Error releasing lock for %s: %s", self.lock_path, ex)
             finally:
                 try:
                     os.close(self._fd)
-                except OSError:
-                    pass
+                except OSError as ex:
+                    logger.debug("Error closing lockfile descriptor for %s: %s", self.lock_path, ex)
                 self._fd = None
                 self._is_locked = False
 
     def __enter__(self) -> "ArcanumLock":
         return self.acquire()
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: Any,
+    ) -> None:
         self.release()
 
 

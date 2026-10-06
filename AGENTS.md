@@ -1,5 +1,5 @@
 # Ars Arcanum (Scriptorium) — Agentic Operating Manifesto & Engineering Contracts
-> **Sovereign Authoring Operating System (GPA 4.0/4.0 — Grade A+)** | Release v4.4.0
+> **Sovereign Authoring Operating System (GPA 4.0/4.0 — Grade A+)** | Release v5.0.0
 
 ---
 
@@ -22,7 +22,7 @@ All automated agents, subagents, and human contributors must strictly uphold the
 ### 2.1 File Safety & Storage Invariants
 - **Atomic Writes**: All file modifications must use `atomic_write()` from `scripts/lib/_bootstrap.py` (temporary file $\to$ `flush` $\to$ `fsync` $\to$ `os.replace` $\to$ parent directory `fsync`). Direct unbuffered file overwrites are prohibited.
 - **Cross-Platform File Locking**: Concurrency-sensitive operations (snapshots, backups, migrations) must acquire an `ArcanumLock` (`scripts/lib/lockfile.py`) utilizing `fcntl.flock` on POSIX and `msvcrt.locking` on Windows.
-- **Path Traversal Defense**: All user-supplied volume names, draft identifiers, and book targets must be sanitized via regex token validation `^[A-Za-z0-9_-]+$`. Directory separators (`/`, `\`) and path traversals (`..`) are rejected immediately.
+- **Path Traversal Defense**: All user-supplied volume names, draft identifiers, and book targets must be sanitized via regex token validation `^[A-Za-z0-9_-]+$`. Directory separators (`/`, `\`) and path traversals (`..`) are rejected immediately, alongside Windows reserved device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`).
 - **Zero-Pip Dependency Guarantee**: All core craft engines, validators, parsers, and static site generators must execute exclusively on standard library Python primitives without external `pip` dependencies.
 
 ### 2.2 Content Security Policy & Offline Isolation
@@ -73,7 +73,9 @@ scripts/
 │   ├── scope.py               # Universal granular target scoping & range parsing engine
 │   ├── ui_gtk3/               # Modular presentation package (<800 lines/file)
 │   ├── ui_adw.py              # Modern Libadwaita interface
-│   ├── registry.py            # Core vs. Craft engine discovery matrix
+│   ├── registry_base.py       # Core EngineSpec dataclasses, categories & base classes (<200 lines)
+│   ├── registry_specs/        # Domain engine specifications package across 7 domains (<400 lines/file)
+│   ├── registry.py            # Core vs. Craft engine discovery matrix & doc formatting (<600 lines)
 │   ├── studio_hub.py          # Cross-platform browser-based Studio Hub & Scope Cockpit
 │   ├── zen_studio.py          # Standalone offline drafting studio & lore drawer
 │   ├── story_canvas.py        # Visual drag-and-drop story corkboard

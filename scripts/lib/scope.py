@@ -38,6 +38,8 @@ except ImportError:
                 raise ValueError("Volume name cannot be empty.")
             if ".." in vol or "/" in vol or "\\" in vol:
                 raise ValueError(f"Invalid volume name '{vol}': path traversal not allowed.")
+            if vol.split(".")[0].upper() in {"CON", "PRN", "AUX", "NUL"}:
+                raise ValueError(f"Invalid volume name '{vol}': Windows reserved device name not allowed.")
             return vol
 
 logger = logging.getLogger("arcanum.scope")
