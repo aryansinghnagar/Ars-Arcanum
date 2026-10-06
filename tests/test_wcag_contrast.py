@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
-DIFF_PY = REPO_ROOT / "scripts" / "lib" / "manuscript_diff.py"
+DIFF_PY = REPO_ROOT / "scripts" / "lib" / "manuscript_diff_template.py"
 STUDIO_HUB_PY = REPO_ROOT / "scripts" / "lib" / "studio_hub_template.py"
 
 

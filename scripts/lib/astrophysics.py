@@ -34,15 +34,47 @@ Outputs:
 """
 
 import argparse
-import html
 import json
-import math
-import re
 import sys
 from pathlib import Path
 
 try:
-    from lib._bootstrap import atomic_write
+    from lib.astrophysics_calc import (
+        calc_brachistochrone,
+        calc_comms_delay,
+        calc_habitability_gravity,
+        calc_orbital_transfer,
+        calc_planetary_dossier,
+        calc_roche_limit,
+        calc_time_dilation,
+    )
+    from lib.astrophysics_data import (
+        AU,
+        BODY_PRESETS,
+        C_SQ,
+        DISTANCE_PRESETS,
+        EARTH_MASS,
+        EARTH_RADIUS,
+        G0,
+        LIGHT_YEAR,
+        PARSEC,
+        SECONDS_PER_DAY,
+        SECONDS_PER_YEAR,
+        SOLAR_LUMINOSITY,
+        SOLAR_MASS,
+        SOLAR_RADIUS,
+        C,
+        G,
+        format_distance,
+        format_duration,
+        parse_acceleration,
+        parse_distance,
+    )
+    from lib.astrophysics_template import (
+        generate_astrophysics_html_report,
+        generate_dossier_html_report,
+        generate_dossier_markdown_report,
+    )
     from lib.scope import (
         EngineScope,
         add_scope_arguments,
@@ -51,7 +83,42 @@ try:
     )
 except ImportError:
     try:
-        from _bootstrap import atomic_write
+        from astrophysics_calc import (  # type: ignore[no-redef]
+            calc_brachistochrone,
+            calc_comms_delay,
+            calc_habitability_gravity,
+            calc_orbital_transfer,
+            calc_planetary_dossier,
+            calc_roche_limit,
+            calc_time_dilation,
+        )
+        from astrophysics_data import (  # type: ignore[no-redef]
+            AU,
+            BODY_PRESETS,
+            C_SQ,
+            DISTANCE_PRESETS,
+            EARTH_MASS,
+            EARTH_RADIUS,
+            G0,
+            LIGHT_YEAR,
+            PARSEC,
+            SECONDS_PER_DAY,
+            SECONDS_PER_YEAR,
+            SOLAR_LUMINOSITY,
+            SOLAR_MASS,
+            SOLAR_RADIUS,
+            C,
+            G,
+            format_distance,
+            format_duration,
+            parse_acceleration,
+            parse_distance,
+        )
+        from astrophysics_template import (  # type: ignore[no-redef]
+            generate_astrophysics_html_report,
+            generate_dossier_html_report,
+            generate_dossier_markdown_report,
+        )
         from scope import (
             EngineScope,
             add_scope_arguments,
@@ -70,454 +137,41 @@ except ImportError:
         def resolve_world_path(*args, **kwargs):  # type: ignore
             return None
 
-try:
-    from lib.climate import calc_atmospheric_circulation, calc_planetary_insolation
-except ImportError:
-    from climate import calc_atmospheric_circulation, calc_planetary_insolation
 
-
-# --- Physical & Astronomical Constants (SI Units) ---
-C = 299792458.0                          # Speed of light in vacuum (m/s)
-C_SQ = C * C                             # c^2 (m^2/s^2)
-G = 6.67430e-11                          # Gravitational constant (m^3 kg^-1 s^-2)
-G0 = 9.80665                             # Standard Earth surface gravity (m/s^2, 1g)
-AU = 149597870700.0                      # Astronomical Unit (meters)
-LIGHT_YEAR = 9460730472580800.0          # 1 Light Year (meters)
-PARSEC = 30856775814913700.0             # 1 Parsec (meters)
-SOLAR_MASS = 1.98847e30                  # Solar Mass M_sun (kg)
-EARTH_MASS = 5.9722e24                   # Earth Mass M_earth (kg)
-EARTH_RADIUS = 6371000.0                 # Earth volumetric mean radius (meters)
-SOLAR_LUMINOSITY = 3.828e26              # Solar Luminosity L_sun (Watts)
-SOLAR_RADIUS = 6.957e8                   # Solar Radius R_sun (meters)
-SECONDS_PER_DAY = 86400.0
-SECONDS_PER_YEAR = 31557600.0            # Julian year (365.25 days)
-
-# --- Standard Distance Presets (meters) ---
-DISTANCE_PRESETS = {
-    "earth-moon": 384400000.0,
-    "earth-mars-min": 54600000000.0,
-    "earth-mars-avg": 225000000000.0,
-    "earth-mars-max": 401000000000.0,
-    "earth-jupiter-min": 588000000000.0,
-    "earth-jupiter-avg": 778500000000.0,
-    "earth-jupiter-max": 968000000000.0,
-    "earth-saturn": 1433000000000.0,
-    "earth-neptune": 4500000000000.0,
-    "earth-pluto": 5900000000000.0,
-    "kuiper-belt-inner": 30.0 * AU,
-    "oort-cloud-inner": 2000.0 * AU,
-    "proxima-centauri": 4.2465 * LIGHT_YEAR,
-    "alpha-centauri": 4.37 * LIGHT_YEAR,
-    "sirius": 8.611 * LIGHT_YEAR,
-    "vega": 25.04 * LIGHT_YEAR,
-    "trappist-1": 39.46 * LIGHT_YEAR,
-    "galactic-center": 26000.0 * LIGHT_YEAR,
-    "andromeda": 2537000.0 * LIGHT_YEAR,
-}
-
-# --- Standard Body Presets ---
-BODY_PRESETS = {
-    "sun": {"mass": SOLAR_MASS, "radius": SOLAR_RADIUS, "name": "Sun"},
-    "mercury": {"mass": 3.3011e23, "radius": 2439700.0, "semi_major_au": 0.3871, "name": "Mercury"},
-    "venus": {"mass": 4.8675e24, "radius": 6051800.0, "semi_major_au": 0.7233, "name": "Venus"},
-    "earth": {"mass": EARTH_MASS, "radius": EARTH_RADIUS, "semi_major_au": 1.0, "name": "Earth"},
-    "moon": {"mass": 7.342e22, "radius": 1737400.0, "name": "Moon"},
-    "mars": {"mass": 6.4171e23, "radius": 3389500.0, "semi_major_au": 1.5237, "name": "Mars"},
-    "jupiter": {"mass": 1.8982e27, "radius": 69911000.0, "semi_major_au": 5.2044, "name": "Jupiter"},
-    "saturn": {"mass": 5.6834e26, "radius": 58232000.0, "semi_major_au": 9.5826, "name": "Saturn"},
-    "uranus": {"mass": 8.6810e25, "radius": 25362000.0, "semi_major_au": 19.2184, "name": "Uranus"},
-    "neptune": {"mass": 1.02413e26, "radius": 24622000.0, "semi_major_au": 30.1104, "name": "Neptune"},
-}
-
-
-def parse_distance(val_str: str) -> float:
-    """Parses human string representation of distance to meters."""
-    s = val_str.strip().lower()
-    if s in DISTANCE_PRESETS:
-        return DISTANCE_PRESETS[s]
-
-    # Check suffixes (longest / multi-word first)
-    if s.endswith(("million-km", "million km", "mkm", "million kilometers", "million kilometer")):
-        num_str = re.split(r"(?:million[-\s]?km|mkm|million[-\s]?kilometer[s]?)", s)[0].strip()
-        return float(num_str) * 1e9
-    if s.endswith(("billion-km", "billion km", "bkm", "billion kilometers", "billion kilometer")):
-        num_str = re.split(r"(?:billion[-\s]?km|bkm|billion[-\s]?kilometer[s]?)", s)[0].strip()
-        return float(num_str) * 1e12
-    if s.endswith(("kpc", "kiloparsec", "kiloparsecs")):
-        num_str = re.split(r"(?:kpc|kiloparsec[s]?)", s)[0].strip()
-        return float(num_str) * 1e3 * PARSEC
-    if s.endswith(("mpc", "megaparsec", "megaparsecs")):
-        num_str = re.split(r"(?:mpc|megaparsec[s]?)", s)[0].strip()
-        return float(num_str) * 1e6 * PARSEC
-    if s.endswith(("parsec", "parsecs", "pc")):
-        num_str = re.split(r"(?:parsec[s]?|pc)", s)[0].strip()
-        return float(num_str) * PARSEC
-    if s.endswith(("light-years", "light-year", "lightyear", "lightyears", "ly")):
-        num_str = re.split(r"(?:light[-\s]?year[s]?|ly)", s)[0].strip()
-        return float(num_str) * LIGHT_YEAR
-    if s.endswith(("astronomical unit", "astronomical units", "au")):
-        num_str = re.split(r"(?:astronomical\s+unit[s]?|au)", s)[0].strip()
-        return float(num_str) * AU
-    if s.endswith(("kilometer", "kilometers", "km")):
-        num_str = re.split(r"(?:kilometer[s]?|km)", s)[0].strip()
-        return float(num_str) * 1000.0
-    if s.endswith(("meter", "meters", "m")):
-        num_str = re.split(r"(?:meter[s]?|m)", s)[0].strip()
-        return float(num_str)
-
-    return float(s)
-
-
-def parse_acceleration(val_str: str) -> float:
-    """Parses acceleration string to m/s^2."""
-    s = val_str.strip().lower()
-    if s.endswith("g"):
-        num = float(s[:-1].strip() or "1")
-        return num * G0
-    if s.endswith(("m/s^2", "m/s2")):
-        return float(s.split("m/s")[0].strip())
-    return float(s)
-
-
-def format_duration(seconds: float) -> str:
-    """Formats seconds into human readable duration string (years, days, hours, mins, secs)."""
-    if seconds < 0:
-        return "0s"
-    if seconds < 60:
-        return f"{seconds:.2f} seconds"
-    if seconds < 3600:
-        mins = seconds / 60.0
-        return f"{mins:.2f} minutes ({int(seconds // 60)}m {int(seconds % 60)}s)"
-    if seconds < SECONDS_PER_DAY:
-        hours = seconds / 3600.0
-        m = int((seconds % 3600) // 60)
-        return f"{hours:.2f} hours ({int(hours)}h {m}m)"
-    if seconds < SECONDS_PER_YEAR:
-        days = seconds / SECONDS_PER_DAY
-        h = int((seconds % SECONDS_PER_DAY) // 3600)
-        return f"{days:.2f} days ({int(days)}d {h}h)"
-
-    years = seconds / SECONDS_PER_YEAR
-    rem_days = (seconds % SECONDS_PER_YEAR) / SECONDS_PER_DAY
-    return f"{years:.3f} years ({int(years)}y {int(rem_days)}d)"
-
-
-def format_distance(meters: float) -> str:
-    """Formats meters into most intuitive astronomical unit."""
-    if meters >= PARSEC * 1000.0:
-        return f"{meters / (PARSEC * 1000.0):.2f} kpc ({meters / LIGHT_YEAR:.1f} ly)"
-    if meters >= LIGHT_YEAR * 0.1:
-        return f"{meters / LIGHT_YEAR:.3f} ly ({meters / PARSEC:.3f} pc)"
-    if meters >= AU * 0.1:
-        return f"{meters / AU:.3f} AU ({meters / 1e9:.2f} million km)"
-    if meters >= 1e6:
-        return f"{meters / 1000.0:,.0f} km ({meters / AU:.4f} AU)"
-    return f"{meters:,.1f} m"
-
-
-# ==============================================================================
-# Core Calculation Engines
-# ==============================================================================
-
-def calc_brachistochrone(distance_m: float, acc_mps2: float = G0, exhaust_vel_mps: float | None = None) -> dict:
-    """
-    Calculates exact relativistic 1-turnover (accelerate to midpoint, decelerate to stop)
-    continuous-thrust Brachistochrone spaceflight trajectory.
-    """
-    if distance_m <= 0:
-        raise ValueError("Flight distance must be greater than zero.")
-    if acc_mps2 <= 0:
-        raise ValueError("Acceleration must be greater than zero.")
-
-    a = acc_mps2
-    d = distance_m
-    half_d = d / 2.0
-
-    # Relativistic parameter alpha = a * d_half / c^2
-    alpha = (a * half_d) / C_SQ
-    gamma_max = 1.0 + alpha
-
-    # Peak velocity at turnover midpoint
-    if gamma_max > 1.0:
-        beta_max = math.sqrt(1.0 - 1.0 / (gamma_max * gamma_max))
-        v_max = beta_max * C
-    else:
-        beta_max = 0.0
-        v_max = 0.0
-
-    # Ship Proper Time (tau): tau = 2 * (c / a) * acosh(1 + a*d / (2*c^2))
-    # acosh(x) = ln(x + sqrt(x^2 - 1))
-    tau_sec = 2.0 * (C / a) * math.acosh(gamma_max)
-
-    # Coordinate / Observer Time (t): t = 2 * (c / a) * sqrt((1 + a*d / (2*c^2))^2 - 1)
-    t_sec = 2.0 * (C / a) * math.sqrt(gamma_max * gamma_max - 1.0)
-
-    # Time lag between observer and crew
-    time_dilation_lag_sec = t_sec - tau_sec
-
-    # Newtonian (classical) non-relativistic comparison
-    t_newton_sec = 2.0 * math.sqrt(d / a)
-    v_newton_mps = math.sqrt(a * d)
-
-    # Effective total delta-v: 2 * c * atanh(v_max / c) = a * tau
-    effective_deltav = a * tau_sec
-
-    # Propellant mass ratio if exhaust velocity is specified
-    # Using relativistic rocket equation: m0/mf = exp(effective_deltav / ve)
-    mass_ratio = None
-    if exhaust_vel_mps and exhaust_vel_mps > 0:
-        mass_ratio = math.exp(effective_deltav / exhaust_vel_mps)
-
-    # Photon rocket ideal mass ratio: sqrt((1 + beta_max)/(1 - beta_max)) for each leg
-    photon_mass_ratio = ((1.0 + beta_max) / (1.0 - beta_max)) if beta_max < 1.0 else float("inf")
-
-    return {
-        "distance_m": d,
-        "distance_formatted": format_distance(d),
-        "acceleration_mps2": a,
-        "acceleration_g": a / G0,
-        "proper_time_sec": tau_sec,
-        "proper_time_formatted": format_duration(tau_sec),
-        "coordinate_time_sec": t_sec,
-        "coordinate_time_formatted": format_duration(t_sec),
-        "time_dilation_lag_sec": time_dilation_lag_sec,
-        "time_dilation_lag_formatted": format_duration(time_dilation_lag_sec),
-        "peak_velocity_mps": v_max,
-        "peak_velocity_c_fraction": beta_max,
-        "peak_gamma": gamma_max,
-        "effective_deltav_mps": effective_deltav,
-        "effective_deltav_kms": effective_deltav / 1000.0,
-        "newtonian_time_sec": t_newton_sec,
-        "newtonian_time_formatted": format_duration(t_newton_sec),
-        "newtonian_peak_velocity_mps": v_newton_mps,
-        "exhaust_velocity_mps": exhaust_vel_mps,
-        "propellant_mass_ratio": mass_ratio,
-        "photon_mass_ratio": photon_mass_ratio,
-    }
-
-
-def calc_time_dilation(v_mps: float | None = None, beta: float | None = None, gamma: float | None = None,
-                       grav_mass_kg: float | None = None, grav_radius_m: float | None = None) -> dict:
-    """Calculates special and general relativistic time dilation."""
-    res = {}
-    if beta is not None:
-        v_mps = beta * C
-    elif v_mps is not None:
-        beta = v_mps / C
-    elif gamma is not None:
-        if gamma < 1.0:
-            raise ValueError("Lorentz factor gamma must be >= 1.0")
-        beta = math.sqrt(1.0 - 1.0 / (gamma * gamma))
-        v_mps = beta * C
-    else:
-        v_mps = 0.0
-        beta = 0.0
-
-    if beta >= 1.0:
-        raise ValueError("Velocity cannot equal or exceed the speed of light c")
-
-    kin_gamma = 1.0 / math.sqrt(1.0 - beta * beta)
-    tau_per_day = SECONDS_PER_DAY / kin_gamma
-    lag_per_day = SECONDS_PER_DAY - tau_per_day
-
-    res["kinematic"] = {
-        "velocity_mps": v_mps,
-        "velocity_kms": v_mps / 1000.0,
-        "beta": beta,
-        "gamma": kin_gamma,
-        "crew_time_ratio": 1.0 / kin_gamma,
-        "proper_seconds_per_observer_day": tau_per_day,
-        "proper_per_observer_day_formatted": format_duration(tau_per_day),
-        "lag_per_observer_day_formatted": format_duration(lag_per_day),
-    }
-
-    if grav_mass_kg and grav_radius_m:
-        r_schwarzschild = (2.0 * G * grav_mass_kg) / C_SQ
-        grav_factor = 0.0 if grav_radius_m <= r_schwarzschild else math.sqrt(1.0 - r_schwarzschild / grav_radius_m)
-        res["gravitational"] = {
-            "mass_kg": grav_mass_kg,
-            "radius_m": grav_radius_m,
-            "schwarzschild_radius_m": r_schwarzschild,
-            "gravitational_dilation_factor": grav_factor,
-            "time_rate_vs_infinity": grav_factor,
-        }
-
-    return res
-
-
-def calc_orbital_transfer(primary_body: str = "sun", r1_m: float | None = None, r2_m: float | None = None,
-                          primary_mass_kg: float | None = None) -> dict:
-    """Calculates Keplerian Hohmann orbital transfer delta-v and durations."""
-    if r1_m is None:
-        r1_m = AU
-    if r2_m is None:
-        r2_m = 1.524 * AU
-    if r1_m <= 0 or r2_m <= 0:
-        raise ValueError("Orbital radii r1 and r2 must be greater than zero.")
-    m_primary = primary_mass_kg
-    body_name = primary_body.capitalize()
-    if primary_body.lower() in BODY_PRESETS:
-        preset = BODY_PRESETS[primary_body.lower()]
-        m_primary = preset["mass"]
-        body_name = preset["name"]
-    elif not m_primary:
-        m_primary = SOLAR_MASS
-        body_name = "Sun (Standard)"
-
-    if m_primary <= 0:
-        raise ValueError("Primary body mass must be greater than zero.")
-
-    mu = G * m_primary
-
-    # Circular orbit velocities
-    v1 = math.sqrt(mu / r1_m)
-    v2 = math.sqrt(mu / r2_m)
-
-    # Orbital periods
-    t1_sec = 2.0 * math.pi * math.sqrt((r1_m ** 3) / mu)
-    t2_sec = 2.0 * math.pi * math.sqrt((r2_m ** 3) / mu)
-
-    # Transfer ellipse semi-major axis
-    a_trans = (r1_m + r2_m) / 2.0
-    transfer_time_sec = math.pi * math.sqrt((a_trans ** 3) / mu)
-
-    # Delta-v burns
-    v_trans_1 = math.sqrt(mu * (2.0 / r1_m - 1.0 / a_trans))
-    v_trans_2 = math.sqrt(mu * (2.0 / r2_m - 1.0 / a_trans))
-
-    dv1 = abs(v_trans_1 - v1)
-    dv2 = abs(v2 - v_trans_2)
-    dv_total = dv1 + dv2
-
-    # Synodic period between orbits
-    synodic_sec = None
-    if abs(t1_sec - t2_sec) > 1e-3:
-        synodic_sec = 1.0 / abs(1.0 / t1_sec - 1.0 / t2_sec)
-
-    return {
-        "primary_body": body_name,
-        "primary_mass_kg": m_primary,
-        "r1_m": r1_m,
-        "r1_formatted": format_distance(r1_m),
-        "r2_m": r2_m,
-        "r2_formatted": format_distance(r2_m),
-        "v1_mps": v1,
-        "v1_kms": v1 / 1000.0,
-        "v2_mps": v2,
-        "v2_kms": v2 / 1000.0,
-        "period_r1_formatted": format_duration(t1_sec),
-        "period_r2_formatted": format_duration(t2_sec),
-        "transfer_duration_sec": transfer_time_sec,
-        "transfer_duration_formatted": format_duration(transfer_time_sec),
-        "delta_v1_mps": dv1,
-        "delta_v1_kms": dv1 / 1000.0,
-        "delta_v2_mps": dv2,
-        "delta_v2_kms": dv2 / 1000.0,
-        "delta_v_total_mps": dv_total,
-        "delta_v_total_kms": dv_total / 1000.0,
-        "synodic_period_formatted": format_duration(synodic_sec) if synodic_sec else "N/A",
-    }
-
-
-def calc_comms_delay(distance_m: float) -> dict:
-    """Calculates electromagnetic signal propagation latencies."""
-    if distance_m < 0:
-        raise ValueError("Comms distance cannot be negative.")
-    one_way_sec = distance_m / C
-    rtt_sec = 2.0 * one_way_sec
-    return {
-        "distance_m": distance_m,
-        "distance_formatted": format_distance(distance_m),
-        "one_way_seconds": one_way_sec,
-        "one_way_formatted": format_duration(one_way_sec),
-        "round_trip_seconds": rtt_sec,
-        "round_trip_formatted": format_duration(rtt_sec),
-    }
-
-
-def calc_habitability_gravity(mass_kg: float, radius_m: float, star_luminosity_watts: float = SOLAR_LUMINOSITY) -> dict:
-    """Calculates planetary surface gravity, escape velocity, and stellar habitable zone."""
-    if radius_m <= 0:
-        raise ValueError("Planetary radius must be greater than zero.")
-    if mass_kg < 0:
-        raise ValueError("Planetary mass cannot be negative.")
-    if star_luminosity_watts < 0:
-        raise ValueError("Stellar luminosity cannot be negative.")
-
-    g_surf = (G * mass_kg) / (radius_m * radius_m)
-    g_ratio = g_surf / G0
-    v_esc = math.sqrt((2.0 * G * mass_kg) / radius_m)
-
-    l_rel = star_luminosity_watts / SOLAR_LUMINOSITY
-    hz_inner_au = math.sqrt(l_rel) * 0.95
-    hz_outer_au = math.sqrt(l_rel) * 1.37
-    hz_optimistic_inner_au = math.sqrt(l_rel) * 0.75
-    hz_optimistic_outer_au = math.sqrt(l_rel) * 1.77
-
-    return {
-        "mass_kg": mass_kg,
-        "mass_earth_ratio": mass_kg / EARTH_MASS,
-        "radius_m": radius_m,
-        "radius_earth_ratio": radius_m / EARTH_RADIUS,
-        "surface_gravity_mps2": g_surf,
-        "surface_gravity_g": g_ratio,
-        "escape_velocity_mps": v_esc,
-        "escape_velocity_kms": v_esc / 1000.0,
-        "stellar_luminosity_rel_sun": l_rel,
-        "habitable_zone_conservative": {
-            "inner_au": hz_inner_au,
-            "outer_au": hz_outer_au,
-            "inner_m": hz_inner_au * AU,
-            "outer_m": hz_outer_au * AU,
-        },
-        "habitable_zone_optimistic": {
-            "inner_au": hz_optimistic_inner_au,
-            "outer_au": hz_optimistic_outer_au,
-        }
-    }
-
-
-def calc_roche_limit(
-    planet_radius_m: float,
-    density_planet_kgm3: float = 5515.0,
-    density_moon_kgm3: float = 3344.0,
-    density_ratio: float | None = None,
-) -> dict:
-    """Calculates rigid and fluid Roche tidal disruption limits and ring formation zones.
-
-    Formulas:
-      - Rigid Roche Limit: d_rigid = R_M * (2 * rho_M / rho_m)^(1/3)
-      - Fluid Roche Limit: d_fluid = 2.44 * R_M * (rho_M / rho_m)^(1/3)
-    """
-    if planet_radius_m <= 0:
-        raise ValueError("Planetary radius must be greater than zero.")
-
-    if density_ratio is not None and density_ratio > 0:
-        ratio = float(density_ratio)
-    else:
-        if density_planet_kgm3 <= 0 or density_moon_kgm3 <= 0:
-            raise ValueError("Densities must be greater than zero.")
-        ratio = density_planet_kgm3 / density_moon_kgm3
-
-    c_root = ratio ** (1.0 / 3.0)
-    d_rigid_m = planet_radius_m * (2.0 ** (1.0 / 3.0)) * c_root
-    d_fluid_m = 2.44 * planet_radius_m * c_root
-
-    return {
-        "planet_radius_m": planet_radius_m,
-        "planet_radius_km": planet_radius_m / 1000.0,
-        "density_ratio": round(ratio, 4),
-        "rigid_roche_limit_m": d_rigid_m,
-        "rigid_roche_limit_km": d_rigid_m / 1000.0,
-        "rigid_roche_limit_radii": round(d_rigid_m / planet_radius_m, 3),
-        "fluid_roche_limit_m": d_fluid_m,
-        "fluid_roche_limit_km": d_fluid_m / 1000.0,
-        "fluid_roche_limit_radii": round(d_fluid_m / planet_radius_m, 3),
-        "ring_formation_zone": {
-            "inner_km": round(planet_radius_m / 1000.0, 1),
-            "outer_km": round(d_fluid_m / 1000.0, 1),
-        },
-    }
+__all__ = [
+    "AU",
+    "BODY_PRESETS",
+    "C_SQ",
+    "DISTANCE_PRESETS",
+    "EARTH_MASS",
+    "EARTH_RADIUS",
+    "G0",
+    "LIGHT_YEAR",
+    "PARSEC",
+    "SECONDS_PER_DAY",
+    "SECONDS_PER_YEAR",
+    "SOLAR_LUMINOSITY",
+    "SOLAR_MASS",
+    "SOLAR_RADIUS",
+    "C",
+    "G",
+    "calc_brachistochrone",
+    "calc_comms_delay",
+    "calc_habitability_gravity",
+    "calc_orbital_transfer",
+    "calc_planetary_dossier",
+    "calc_roche_limit",
+    "calc_time_dilation",
+    "format_distance",
+    "format_duration",
+    "generate_astrophysics_html_report",
+    "generate_dossier_html_report",
+    "generate_dossier_markdown_report",
+    "main",
+    "parse_acceleration",
+    "parse_distance",
+    "print_table",
+]
 
 
 # Canonical aliases
@@ -527,221 +181,11 @@ calc_roche = calc_roche_limit
 calc_brachistochrone_transit = calc_brachistochrone
 
 
-
-def calc_planetary_dossier(
-    mass_kg: float, radius_m: float, star_luminosity_watts: float,
-    semi_major_axis_au: float, planet_type: str = "standard",
-    albedo: float = 0.30, greenhouse_k: float = 33.0,
-    rotation_hours: float = 24.0
-) -> dict:
-    hab = calc_habitability_gravity(mass_kg, radius_m, star_luminosity_watts)
-
-    climate_ins = calc_planetary_insolation(
-        stellar_luminosity=star_luminosity_watts / SOLAR_LUMINOSITY,
-        semi_major_axis_au=semi_major_axis_au,
-        bond_albedo=albedo,
-        greenhouse_warming_k=greenhouse_k
-    )
-
-    if planet_type == "tidally-locked":
-        # Orbital period accounting for stellar mass via main-sequence mass-luminosity scaling (L ~ M^3.5)
-        l_solar = max(1e-6, star_luminosity_watts / SOLAR_LUMINOSITY)
-        star_mass_solar = max(0.08, l_solar ** (1.0 / 3.5))
-        rotation_hours = math.sqrt((semi_major_axis_au ** 3) / star_mass_solar) * 365.25 * 24.0
-
-    climate_circ = calc_atmospheric_circulation(rotation_period_hours=rotation_hours)
-
-    warnings = []
-
-    g_ratio = hab["surface_gravity_g"]
-    if g_ratio > 3.0:
-        warnings.append("High surface gravity: Biological structures would need to be exceptionally squat and robust. Atmosphere will be highly compressed.")
-    elif g_ratio < 0.3:
-        warnings.append("Low surface gravity: May struggle to retain a dense atmosphere over geological timecales.")
-
-    if planet_type == "tidally-locked":
-        warnings.append("Tidally locked: Permanent dayside and nightside. Expected 'eyeball' world configuration with habitable terminator zone if atmosphere transfers heat.")
-    elif planet_type == "gas-giant-exomoon":
-        warnings.append("Exomoon: Significant tidal heating expected. Day/night cycle dominated by orbit around primary. Watch for eclipses and intense radiation belts.")
-    elif planet_type == "brown-dwarf-world":
-        warnings.append("Brown dwarf system: Minimal visible light, dominated by infrared. Photosynthesis would require specialized pigments. Small habitable zone.")
-    elif planet_type == "circumbinary":
-        warnings.append("Circumbinary (P/S-type): Orbital stability is complex. Insolation will vary significantly over the orbit, leading to extreme seasons.")
-    elif planet_type == "hycean":
-        warnings.append("Hycean: Global ocean with hydrogen-rich atmosphere. High pressures at ocean floor. Biosignatures may differ from Earth-like worlds.")
-
-    if not climate_ins["liquid_water_habitable"]:
-        warnings.append(f"Temperature Drift: Equilibrium surface temp is {climate_ins['surface_temp_c']} °C, outside standard liquid water range.")
-
-    return {
-        "planet_type": planet_type,
-        "habitability_metrics": hab,
-        "climate_insolation": climate_ins,
-        "climate_circulation": climate_circ,
-        "scientific_plausibility_warnings": warnings
-    }
-
-def generate_dossier_html_report(title: str, dossier: dict, output_file: Path):
-    html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{html.escape(title)} — Star System Dossier</title>
-<style>
-  :root {{ --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #c9d1d9; --accent: #58a6ff; --warning: #d29922; }}
-  body {{ background-color: var(--bg); color: var(--text); font-family: sans-serif; padding: 24px; }}
-  .container {{ max-width: 900px; margin: 0 auto; }}
-  .card {{ background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }}
-  h1, h2 {{ color: var(--accent); }}
-  .warning {{ color: var(--warning); font-weight: bold; }}
-</style>
-</head>
-<body>
-<div class="container">
-  <h1>🌌 {html.escape(title)}</h1>
-  <div class="card">
-    <h2>Dossier Overview</h2>
-    <p>Planet Type: <strong>{html.escape(dossier['planet_type'])}</strong></p>
-    <p>Surface Gravity: {dossier['habitability_metrics']['surface_gravity_g']:.2f} g</p>
-    <p>Surface Temp: {dossier['climate_insolation']['surface_temp_c']} °C</p>
-  </div>
-  <div class="card">
-    <h2>Scientific Plausibility Warnings</h2>
-    <ul>
-"""
-    for w in dossier['scientific_plausibility_warnings']:
-        html_content += f"      <li class='warning'>{html.escape(w)}</li>\n"
-    html_content += """
-    </ul>
-  </div>
-</div>
-</body>
-</html>
-"""
-    atomic_write(output_file, html_content)
-
-def generate_dossier_markdown_report(title: str, dossier: dict, output_file: Path):
-    md = f"# {title} - Star System Dossier\n\n"
-    md += f"**Planet Type**: {dossier['planet_type']}\n"
-    md += f"**Surface Gravity**: {dossier['habitability_metrics']['surface_gravity_g']:.2f} g\n"
-    md += f"**Surface Temp**: {dossier['climate_insolation']['surface_temp_c']} °C\n\n"
-    md += "## Scientific Plausibility Warnings\n"
-    for w in dossier['scientific_plausibility_warnings']:
-        md += f"- {w}\n"
-    atomic_write(output_file, md)
-
-# ==============================================================================
-# HTML Export Generator
-# ==============================================================================
-
-def generate_astrophysics_html_report(title: str, results: dict, output_file: Path):
-    """Generates an interactive standalone HTML report."""
-    html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{html.escape(title)} — Ars Arcanum Astrophysics Report</title>
-<style>
-  :root {{
-    --bg: #0d1117;
-    --surface: #161b22;
-    --border: #30363d;
-    --text: #c9d1d9;
-    --accent: #58a6ff;
-    --success: #3fb950;
-    --warning: #d29922;
-    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  }}
-  body {{
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: var(--font);
-    line-height: 1.6;
-    margin: 0;
-    padding: 24px;
-  }}
-  .container {{
-    max-width: 900px;
-    margin: 0 auto;
-  }}
-  header {{
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 16px;
-    margin-bottom: 24px;
-  }}
-  h1 {{ color: var(--accent); margin: 0 0 8px 0; }}
-  .badge {{
-    background: #1f6feb22;
-    color: var(--accent);
-    border: 1px solid var(--accent);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-  }}
-  .card {{
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-  }}
-  h2 {{ margin-top: 0; color: #f0f6fc; font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }}
-  table {{
-    width: 100%;
-    border-collapse: collapse;
-    margin: 12px 0;
-  }}
-  th, td {{
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-  }}
-  th {{ color: #8b949e; font-weight: 600; width: 40%; }}
-  td {{ color: #f0f6fc; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }}
-  .val-highlight {{ color: var(--success); font-weight: bold; }}
-  footer {{
-    text-align: center;
-    font-size: 12px;
-    color: #8b949e;
-    margin-top: 40px;
-    border-top: 1px solid var(--border);
-    padding-top: 16px;
-  }}
-</style>
-</head>
-<body>
-<div class="container">
-  <header>
-    <h1>🌌 {html.escape(title)}</h1>
-    <span class="badge">Ars Arcanum Relativistic & Astrophysics Engine</span>
-  </header>
-"""
-    for section_title, data in results.items():
-        html_content += f"""  <div class="card">\n    <h2>{html.escape(section_title)}</h2>\n    <table>\n"""
-        if isinstance(data, dict):
-            for k, v in data.items():
-                v_str = ", ".join(f"{sub_k}: {sub_v}" for sub_k, sub_v in v.items()) if isinstance(v, dict) else str(v)
-                html_content += f"""      <tr><th>{html.escape(k.replace('_', ' ').title())}</th><td>{html.escape(v_str)}</td></tr>\n"""
-        html_content += """    </table>\n  </div>\n"""
-
-    html_content += """
-  <footer>
-    Generated by Ars Arcanum • 100% Offline Speculative Authoring Suite
-  </footer>
-</div>
-</body>
-</html>
-"""
-    atomic_write(output_file, html_content)
-
-
 # ==============================================================================
 # CLI Entrypoint & Formatting
 # ==============================================================================
+
+
 
 def print_table(title: str, rows: list):
     """Prints a styled terminal table."""
