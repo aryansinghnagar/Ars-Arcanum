@@ -9,7 +9,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
 DIFF_PY = REPO_ROOT / "scripts" / "lib" / "manuscript_diff.py"
-STUDIO_HUB_PY = REPO_ROOT / "scripts" / "lib" / "studio_hub.py"
+STUDIO_HUB_PY = REPO_ROOT / "scripts" / "lib" / "studio_hub_template.py"
 
 
 def hex_to_rgb(hex_code: str) -> tuple[int, int, int]:

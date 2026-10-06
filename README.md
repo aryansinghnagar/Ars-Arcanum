@@ -6,8 +6,8 @@
 [![Release: v0.1.0](https://img.shields.io/badge/Release-v0.1.0%20(Beta)-blue.svg)](CHANGELOG.md)
 [![Status: Beta](https://img.shields.io/badge/Status-Beta%20(Active%20Hardening)-yellow.svg)](#)
 [![CI](https://github.com/aryansinghnagar/Ars-Arcanum/actions/workflows/ci.yml/badge.svg)](https://github.com/aryansinghnagar/Ars-Arcanum/actions/workflows/ci.yml)
-[![Tests: 855](https://img.shields.io/badge/Tests-853%2F855%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
-[![Coverage: 81%](https://img.shields.io/badge/Coverage-81%25-brightgreen.svg)](#)
+[![Tests: 861](https://img.shields.io/badge/Tests-859%2F861%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
+[![Coverage: 80%](https://img.shields.io/badge/Coverage-80%25-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
 

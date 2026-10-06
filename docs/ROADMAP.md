@@ -29,13 +29,15 @@ flowchart LR
     - Hardened `ArcanumLock` on Windows with deterministic seek-to-0 before `msvcrt.locking` and transparent debug logging.
     - Hardened Studio Hub REST server with exact Host/Origin checks (supporting IPv6 `::1`), allowlisted engine execution, and mutex locking.
     - Hardened `restore.py` with non-empty directory overwrite guards (`--force`) and fail-closed SHA-256 sidecar verification (`--no-verify`).
-  - [x] **Verification Gate**: Passed 100% verification across test suite (855 tests, 0 failures, 2 skipped on Windows), Ruff strict linting (0 errors), Mypy static typing (170 source files clean), and Coverage threshold (`fail_under = 80`).
+  - [x] **Data Access Layer & Engine Modularization**:
+    - Centralized file reading, frontmatter parsing, chapter discovery, and lore querying into thread-safe cached `data_access.py` with automatic `mtime` cache invalidation.
+    - Modularized `scripts/lib/tips.py` from 3,324 lines down to 442 lines across `scripts/lib/tips_catalog/` (<60 lines/file).
+    - Extracted Studio Hub presentation template into `scripts/lib/studio_hub_template.py`, reducing `studio_hub.py` by over 2,100 lines.
+  - [x] **Verification Gate**: Passed 100% verification across test suite (861 tests, 0 failures, 2 skipped on Windows), Ruff strict linting (0 errors), Mypy static typing (181 source files clean), and Coverage threshold (`fail_under = 80`).
 
 ### `next` (Ready Backlog)
 - **Dynamic CLI Routing**:
   - Refactor CLI dispatcher (`cli.py`) to dynamic registry-driven command routing to eliminate static dispatch tables.
-- **Data Access Layer (DAL)**:
-  - Abstract repetitive `Path.rglob()` and file parsing across lore vaults into a centralized cached vault reader (`data_access.py`).
 - **Interactive Visualizations**:
   - Expand Studio Hub and Zen Studio offline widgets for high-dimensional narrative geometry and multi-branch causality graphs.
 
@@ -44,7 +46,7 @@ flowchart LR
 
 ### `improve` (Refactoring & Evals)
 - **Engine Size Optimization**:
-  - Modularize remaining oversized modules (`studio_hub.py`, `scope.py`, `economy.py`, `astrophysics.py`) to conform with the `<800 lines/file` engineering contract.
+  - Modularize remaining oversized modules (`scope.py`, `economy.py`, `astrophysics.py`) to conform with the `<800 lines/file` engineering contract.
 - **Testing Architecture**:
   - Decompose monolithic 21-stage E2E tests into isolated, parameterized test stages for faster failure localization.
   - Expand golden physics and astrodynamics datasets to anchor more simulation parameters.

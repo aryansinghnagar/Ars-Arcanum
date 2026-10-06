@@ -11,11 +11,13 @@
 - [x] Secure Studio Hub local HTTP API (strict exact Origin validation, loopback IPv6 support, authorized engine execution allowlist, and thread execution mutex).
 - [x] Harden `restore.py` with `force=False` non-empty destination overwrite protection and fail-closed SHA-256 sidecar validation.
 - [x] Generate Obsidian community plugin SHA-256 integrity manifest (`templates/world-bible/.obsidian/plugins/manifest.json`).
-- [x] Align README status (Beta), test count (855 total, 853 passing), coverage threshold (81%), and repository URLs.
-- [x] Pass 100% verification across test suite (855 tests, 0 failures), Ruff linter (0 errors), and Mypy static type checking.
+- [x] Implement centralized Data Access Layer (`scripts/lib/data_access.py`) with thread-safe caching and automatic `mtime` invalidation.
+- [x] Modularize oversized `tips.py` (3,324 $\to$ 442 lines) into `scripts/lib/tips_catalog/` domain modules, satisfying `<800 lines/file` contract.
+- [x] Extract Studio Hub presentation template into `scripts/lib/studio_hub_template.py`, reducing `studio_hub.py` by over 2,100 lines.
+- [x] Align README status (Beta), test count (861 total, 859 passing, 2 skipped on Windows), coverage threshold (80%), and repository URLs.
+- [x] Pass 100% verification across test suite (861 tests, 0 failures), Ruff linter (0 errors), and Mypy static type checking (181 source files clean).
 
 ### `next`
-- Introduce cached Data Access Layer (`data_access.py`) to eliminate redundant vault `rglob` disk traversals.
 - Refactor CLI dispatcher (`cli.py`) to dynamic registry-driven command routing.
 - Deepen craft encyclopedia references across narrative craft, worldbuilding models, and linguistics.
 - Expand interactive Studio Hub visualizations for high-dimensional narrative geometry.
@@ -24,7 +26,7 @@
 - None.
 
 ### `improve`
-- Modularize remaining oversized engine modules (`studio_hub.py`, `scope.py`, `economy.py`, `astrophysics.py`) to strictly satisfy `<800 lines/file`.
+- Modularize remaining oversized engine modules (`scope.py`, `economy.py`, `astrophysics.py`) to strictly satisfy `<800 lines/file`.
 - Split monolithic 21-stage Grand Tour E2E test into isolated, parameterized test stages for faster failure localization.
 - Expand golden dataset coverage across novel pacing and character arc schemas.
 - Optimize SQLite FTS5 BM25+ indexing performance for multi-million word fantasy corpora.

@@ -77,7 +77,11 @@ scripts/
 │   ├── registry_base.py       # Core EngineSpec dataclasses, categories & base classes (<200 lines)
 │   ├── registry_specs/        # Domain engine specifications package across 7 domains (<400 lines/file)
 │   ├── registry.py            # Core vs. Craft engine discovery matrix & doc formatting (<600 lines)
+│   ├── data_access.py         # Centralized cached vault reader & frontmatter AST layer
 │   ├── studio_hub.py          # Hardened browser-based Studio Hub & Scope Cockpit
+│   ├── studio_hub_template.py # Presentation HTML/CSS/JS template for Studio Hub
+│   ├── tips.py                # Craft tip retrieval & query engine (<450 lines)
+│   ├── tips_catalog/          # Modularized tip catalog across 6 craft domains (<60 lines/file)
 │   ├── zen_studio.py          # Standalone offline drafting studio & lore drawer
 │   ├── story_canvas.py        # Visual drag-and-drop story corkboard
 │   ├── timeline_sync.py       # Dual-track narrative vs chronological synchronizer
@@ -95,7 +99,7 @@ scripts/
 Before any milestone or phase is marked complete, the following quality gates must pass with 100% compliance:
 
 ```bash
-# 1. Full Python Test Suite Discovery (855 tests, 0 failures permitted)
+# 1. Full Python Test Suite Discovery (861 tests, 0 failures permitted)
 python -m unittest discover tests
 
 # 2. Strict Expanded Ruff Linter Pass (0 violations permitted)

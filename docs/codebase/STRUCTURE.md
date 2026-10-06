@@ -7,11 +7,12 @@
 | Path | Purpose | Evidence |
 |------|---------|----------|
 | `scripts/` | Main application entry points (`arcanum`, `arcanum_app.py`, `setup_arcanum.sh`, `verify.sh`) and Python package root (`__init__.py`) | [`scripts/arcanum`](file:///scripts/arcanum), [`scripts/arcanum_app.py`](file:///scripts/arcanum_app.py), [`scripts/__init__.py`](file:///scripts/__init__.py) |
-| `scripts/lib/` | 47 sovereign deterministic domain engines, universal scoping subsystem (`scope.py`), presentation modules, and bootstrap safety utilities | [`scripts/lib/registry.py`](file:///scripts/lib/registry.py), [`scripts/lib/registry_base.py`](file:///scripts/lib/registry_base.py), [`scripts/lib/scope.py`](file:///scripts/lib/scope.py), [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py) |
+| `scripts/lib/` | 47 sovereign deterministic domain engines, data access layer (`data_access.py`), universal scoping subsystem (`scope.py`), presentation modules, and bootstrap safety utilities | [`scripts/lib/registry.py`](file:///scripts/lib/registry.py), [`scripts/lib/data_access.py`](file:///scripts/lib/data_access.py), [`scripts/lib/registry_base.py`](file:///scripts/lib/registry_base.py), [`scripts/lib/scope.py`](file:///scripts/lib/scope.py), [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py) |
 | `scripts/lib/registry_specs/` | Modular domain engine specifications partitioned across 7 craft and infrastructure domains | [`scripts/lib/registry_specs/domain_a_science.py`](file:///scripts/lib/registry_specs/domain_a_science.py), [`scripts/lib/registry_specs/__init__.py`](file:///scripts/lib/registry_specs/__init__.py) |
+| `scripts/lib/tips_catalog/` | Modular craft tip catalog specifications partitioned across 6 craft domains and engine aliases (<60 lines/file) | [`scripts/lib/tips_catalog/domain_cosmology.py`](file:///scripts/lib/tips_catalog/domain_cosmology.py), [`scripts/lib/tips_catalog/__init__.py`](file:///scripts/lib/tips_catalog/__init__.py) |
 | `scripts/lib/ui_gtk3/` | Modular PyGObject GTK3 desktop interface package (<800 lines/file) | [`scripts/lib/ui_gtk3/window.py`](file:///scripts/lib/ui_gtk3/window.py) |
 | `docs/` | Comprehensive craft documentation, user guides, master engine encyclopedia, roadmap, and codebase architecture | [`docs/README.md`](file:///docs/README.md), [`docs/ENGINE_LOGIC_ENCYCLOPEDIA.md`](file:///docs/ENGINE_LOGIC_ENCYCLOPEDIA.md), [`docs/ROADMAP.md`](file:///docs/ROADMAP.md), [`docs/codebase/`](file:///docs/codebase/) |
-| `tests/` | Exhaustive 855-test suite covering unit, integration, scoping, threat model, and benchmark tests | [`tests/test_*.py`](file:///tests/) |
+| `tests/` | Exhaustive 861-test suite covering unit, integration, scoping, threat model, and benchmark tests | [`tests/test_*.py`](file:///tests/) |
 | `templates/` | Standardized world bibles, demo cosmos (`Eldoria`), Obsidian plugins with SHA-256 manifest, and novelWriter project templates | [`templates/demo-cosmos/`](file:///templates/demo-cosmos/), [`templates/world-bible/`](file:///templates/world-bible/) |
 | `configs/` | Deterministic plugin definitions, idiom dictionaries, LeechBlock rules, and core settings | [`configs/plugin_catalog.json`](file:///configs/plugin_catalog.json), [`configs/idioms.json`](file:///configs/idioms.json), [`configs/leechblock_arcanum_rules.json`](file:///configs/leechblock_arcanum_rules.json) |
 
@@ -29,8 +30,10 @@
 | Boundary | What belongs here | What must not be here |
 |----------|-------------------|------------------------|
 | `scripts/lib/_bootstrap.py` & `fs_utils.py` | Atomic POSIX file I/O, regex token sanitization, Windows reserved device name guards (`CON`, `PRN`, `AUX`, `NUL`, etc.), lockfiles | Domain business logic, UI widgets |
+| `scripts/lib/data_access.py` | Thread-safe memoized vault reader, frontmatter parser, and chapter/lore entity queries with `mtime` invalidation | Direct presentation rendering, business rules |
 | `scripts/lib/registry_base.py` | Core `EngineSpec`, `EngineCategory`, and `BaseCraftEngine` contract types (<200 lines) | Individual engine metadata dictionaries |
 | `scripts/lib/registry_specs/` | Pure static domain engine specifications across 7 domains (<400 lines each) | Runtime state, CLI query methods |
+| `scripts/lib/tips_catalog/` | Pure static craft tips across 6 craft domains (<60 lines each) | Runtime querying, CLI dispatch |
 | `scripts/lib/registry.py` | Authoritative 47-engine discovery matrix, dynamic plugin scanner, and doc formatting (<600 lines) | Monolithic 2400+ line static dictionaries |
 | `scripts/lib/ui_gtk3/` | Presentation widgets, event handlers, and GTK rendering loops | Direct file system mutation (must delegate to controllers/engines) |
 | Craft Simulation Engines (`astrophysics`, `climate`, `conlang`, `resonance`, `vault_search`, etc.) | Pure Python mathematical simulations, deterministic models, advisory options | GTK/GUI imports, cloud network dependencies, unseeded PRNG |
