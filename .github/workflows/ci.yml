@@ -36,7 +36,7 @@ jobs:
           sudo apt-get install -y shellcheck desktop-file-utils pandoc libxml2-utils xvfb gir1.2-gtk-3.0 gir1.2-gtk-4.0 gir1.2-adw-1 libadwaita-1-0 python3-gi
 
       - name: Set up Typst
-        uses: typst-community/setup-typst@9107b8dd77d7a7fd6c5faebbb507cac28069042e # v5.3
+        uses: typst-community/setup-typst@fee4b65b091cc546f02ce3be15fad8760f38a108 # v5.3
         with:
           typst-version: '0.14.2'
 
