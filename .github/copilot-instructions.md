@@ -35,14 +35,14 @@ All scripts and the CLI facade (`scripts/arcanum`) adhere strictly to this 4-val
 Every proposed change MUST pass the full quality gate in this exact order before opening or merging a pull request:
 
 ```bash
-# 1. Full Python Unit & Integration Test Suite (1,022 tests, 0 failures allowed)
+# 1. Full Python Unit & Integration Test Suite (853 tests, 0 failures allowed)
 python -m unittest discover tests
 
 # 2. Strict Expanded Ruff Linter Pass (0 violations allowed)
 ruff check .
 
-# 3. Strict Mypy Static Type Checking across all source files
-mypy --explicit-package-bases scripts/lib/*.py tests/*.py
+# 3. Strict Mypy Static Type Checking across all source files (167 files clean)
+mypy --config-file mypy.ini --explicit-package-bases scripts/lib tests
 
 # 4. Canonical 7-Stage Integration Verification Harness
 bash scripts/verify.sh

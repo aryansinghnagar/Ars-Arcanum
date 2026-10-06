@@ -22,7 +22,7 @@
 - Run commands:
   ```bash
   ruff check .
-  python -m mypy --explicit-package-bases (Get-ChildItem scripts/lib/*.py) (Get-ChildItem scripts/lib/registry_specs/*.py) (Get-ChildItem tests/*.py)
+  mypy --config-file mypy.ini --explicit-package-bases scripts/lib tests
   ```
 
 ### 3) Import and Module Conventions

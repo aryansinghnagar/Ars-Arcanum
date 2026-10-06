@@ -28,7 +28,7 @@
 | Tool | Purpose | Evidence |
 |------|---------|----------|
 | Ruff | Strict linting across rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | `pyproject.toml#L15-L35`, `.github/workflows/ci.yml#L25-L35` |
-| Mypy | Strict static type checking with `check_untyped_defs = True` (158 source files clean) | `mypy.ini#L1-L25`, `tests/test_type_safety.py#L1-L40` |
+| Mypy | Strict static type checking with `check_untyped_defs = True` (167 source files clean) | `mypy.ini#L1-L25`, `tests/test_type_safety.py#L1-L40` |
 | Unittest | Automated test discovery & regression test execution (853 tests, 100% pass) | `tests/test_*.py`, `.github/workflows/ci.yml#L30-L40` |
 | Coverage | Test coverage enforcement and reporting | `pyproject.toml#L35-L45` |
 

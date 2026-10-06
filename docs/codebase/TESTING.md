@@ -24,8 +24,8 @@ python -m unittest tests.test_security_remediations
 # Run coverage report
 coverage run -m unittest discover tests; coverage report
 
-# Run type safety verification (156 source files clean)
-python -m mypy --explicit-package-bases (Get-ChildItem scripts/lib/*.py) (Get-ChildItem scripts/lib/registry_specs/*.py) (Get-ChildItem tests/*.py)
+# Run type safety verification (167 source files clean)
+mypy --config-file mypy.ini --explicit-package-bases scripts/lib tests
 ```
 
 ### 2) Test Layout

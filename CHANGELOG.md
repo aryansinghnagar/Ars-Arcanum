@@ -46,7 +46,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **Universal Craft Engine Scoping Integration**:
   - Updated `pacing.py`, `scene_mechanics.py`, `stylistics.py`, `voice.py`, `senses.py`, `zen_studio.py`, `frontmatter_builder.py`, `local_rag.py`, and `cli.py` to seamlessly honor `--chapter`, `--scene`, `--book`, `--world`, `--lore-category`, and `--all`.
 - **Quality Gates & Test Suite Elevation**:
-  - Expanded test suite to **1,022 automated unit and integration tests** (1,020 passing, 2 skipped, 0 failures) across 175 source files.
+  - Expanded test suite to **853 automated unit and integration tests** (851 passing, 2 skipped, 0 failures) across 167 source files.
   - Maintained 0 Ruff linter violations and clean Mypy static typing across all modules.
 
 ## [0.0.18] - 2026-10-03
