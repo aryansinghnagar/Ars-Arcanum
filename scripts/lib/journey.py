@@ -36,8 +36,13 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import add_scope_arguments, parse_scope_args
 except ImportError:
     from _bootstrap import atomic_write
+    try:
+        from scope import add_scope_arguments, parse_scope_args
+    except ImportError:
+        pass
 
 logger = logging.getLogger("arcanum.journey")
 
@@ -283,8 +288,17 @@ def main():
     parser.add_argument("--supplies", type=float, help="Days of rations/supplies carried")
     parser.add_argument("--html", help="Path to export standalone HTML report")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    try:
+        add_scope_arguments(parser, include_manuscript=False, include_world=False, target_pos_arg=False)
+    except NameError:
+        pass
 
     args = parser.parse_args()
+    _scope = None
+    try:
+        _scope = parse_scope_args(args)
+    except NameError:
+        pass
 
     dist_str = args.distance or args.dist
     if not dist_str:

@@ -108,10 +108,10 @@ class TestCliDispatch(unittest.TestCase):
                 self.assertIn(rc, (0, None))
 
     def test_audit_without_args_routes_doctor_script(self):
-        with patch("lib.cli.dispatch_script", return_value=0) as mock_ds:
+        with patch("lib.cli.dispatch_subcommand", return_value=0) as mock_ds:
             rc = main(["audit"])
             self.assertEqual(rc, 0)
-            mock_ds.assert_called_once()
+            mock_ds.assert_called_once_with("lib.diagnostics", ["audit"])
 
     def test_speculative_craft_subcommands_route_help(self):
         subcmds = [

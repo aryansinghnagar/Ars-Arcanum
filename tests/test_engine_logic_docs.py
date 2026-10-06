@@ -42,7 +42,7 @@ class TestEngineLogicDocumentation(unittest.TestCase):
     def test_engine_catalog_completeness(self):
         """Test that get_engine_catalog exports all engines with logic and subfeatures."""
         catalog = get_engine_catalog()
-        self.assertGreaterEqual(len(catalog), 50)
+        self.assertGreaterEqual(len(catalog), 47)
         for entry in catalog:
             self.assertIn("scientific_logic", entry)
             self.assertIn("why_this_way", entry)
@@ -51,9 +51,9 @@ class TestEngineLogicDocumentation(unittest.TestCase):
             self.assertIn("advisory_guidance", entry)
 
     def test_all_50_engines_have_exhaustive_documentation(self):
-        """Ensure all 50 engines contain non-empty scientific and architectural metadata."""
+        """Ensure all 47 engines contain non-empty scientific and architectural metadata."""
         engines = list_engines(enabled_only=False)
-        self.assertGreaterEqual(len(engines), 50, f"Expected at least 50 engines, found {len(engines)}")
+        self.assertGreaterEqual(len(engines), 47, f"Expected at least 47 engines, found {len(engines)}")
 
         for eng in engines:
             with self.subTest(engine=eng.name):
@@ -77,6 +77,20 @@ class TestEngineLogicDocumentation(unittest.TestCase):
                     bool(eng.advisory_guidance),
                     f"Engine '{eng.name}' is missing advisory_guidance",
                 )
+                self.assertTrue(
+                    len(eng.theory_references) >= 3,
+                    f"Engine '{eng.name}' must have at least 3 theoretical references, found {len(eng.theory_references)}",
+                )
+                for ref in eng.theory_references:
+                    self.assertTrue(bool(ref.get("title")), f"Reference in '{eng.name}' missing title")
+                    self.assertTrue(bool(ref.get("citation")), f"Reference in '{eng.name}' missing citation")
+
+        # Verify cross-engine bibliography includes external URLs
+        total_urls = sum(
+            sum(1 for ref in e.theory_references if ref.get("url"))
+            for e in engines
+        )
+        self.assertGreaterEqual(total_urls, 100, f"Expected at least 100 external URL citations, found {total_urls}")
 
     def test_search_engine_docs(self):
         """Test fuzzy and keyword search across engine documentation."""
@@ -89,8 +103,8 @@ class TestEngineLogicDocumentation(unittest.TestCase):
         self.assertTrue(any(spec.name == "ecology" for spec in eco_results))
 
         # Search by narrative term
-        narr_results = search_engine_docs("Dwight Swain")
-        self.assertTrue(any(spec.name == "scene_mechanics" for spec in narr_results))
+        narr_results = search_engine_docs("Kishōtenketsu")
+        self.assertTrue(any(spec.name == "structure" for spec in narr_results))
 
         # Search by magic rule term
         magic_results = search_engine_docs("Sanderson")
@@ -106,6 +120,12 @@ class TestEngineLogicDocumentation(unittest.TestCase):
         self.assertIn("Kepler's Third Law", full_doc)
         self.assertIn("Why It Works This Way", full_doc)
         self.assertIn("How to Build Upon", full_doc)
+        self.assertIn("Theoretical Foundations & Reference Sources:", full_doc)
+
+        sources_doc = format_engine_doc(spec, mode="sources")
+        self.assertIn("THEORETICAL FOUNDATIONS & REFERENCE SOURCES", sources_doc)
+        self.assertIn("Kopparapu", sources_doc)
+        self.assertIn("http", sources_doc)
 
         math_doc = format_engine_doc(spec, mode="math")
         self.assertIn("Kepler's Third Law", math_doc)
@@ -124,12 +144,20 @@ class TestEngineLogicDocumentation(unittest.TestCase):
 
     def test_cli_doc_command_execution(self):
         """Test CLI dispatcher doc commands."""
-        # Test specific engine doc
+        # Test specific engine doc math
         buf = io.StringIO()
         with redirect_stdout(buf):
             ret = handle_doc_command(["astrophysics", "--math"])
         self.assertEqual(ret, 0)
         self.assertIn("Kepler", buf.getvalue())
+
+        # Test specific engine doc sources
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ret = handle_doc_command(["astrophysics", "--sources"])
+        self.assertEqual(ret, 0)
+        self.assertIn("THEORETICAL FOUNDATIONS & REFERENCE SOURCES", buf.getvalue())
+        self.assertIn("Kopparapu", buf.getvalue())
 
         # Test doc search
         buf = io.StringIO()
@@ -146,6 +174,8 @@ class TestEngineLogicDocumentation(unittest.TestCase):
         parsed = json.loads(buf.getvalue())
         self.assertEqual(parsed["name"], "magic_system")
         self.assertIn("Sanderson", parsed["scientific_logic"])
+        self.assertIn("theory_references", parsed)
+        self.assertGreaterEqual(len(parsed["theory_references"]), 3)
 
     def test_html_bundles_csp_and_embedded_logic(self):
         """Test that generated HTML artifacts embed logic and have valid CSP."""

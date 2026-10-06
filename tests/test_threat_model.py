@@ -75,12 +75,6 @@ class TestThreatModelAndSecurity(unittest.TestCase):
                 f"Hardcoded maintainer email found in {sh_file.name}; use git_commit_safe instead."
             )
 
-    def test_worlds_sh_defines_git_commit_safe(self):
-        worlds_sh = LIB_DIR / "worlds.sh"
-        self.assertTrue(worlds_sh.is_file())
-        content = worlds_sh.read_text(encoding="utf-8")
-        self.assertIn("git_commit_safe()", content)
-
 
 if __name__ == "__main__":
     unittest.main()

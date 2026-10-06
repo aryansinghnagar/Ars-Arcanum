@@ -13,8 +13,8 @@
 
 | Debt item | Why it exists | Where | Risk if ignored | Suggested fix |
 |-----------|---------------|-------|-----------------|---------------|
-| Dual CLI dispatchers (Bash vs Python) | Legacy bash facade maintains historical wrappers | `scripts/arcanum`, `scripts/lib/cli.py` | Maintenance divergence across platforms | Resolved: Archive backup/restore/snapshot fully migrated to pure-Python `scripts/lib/backup.py`, `restore.py`, `snapshot.py` |
-| Large static dictionaries in Python source | Embedded metadata in executable code | `scripts/lib/tips.py`, `scripts/lib/registry.py` | Memory footprint and module bloat | Extract static tips and engine catalogs to JSON/TOML data assets |
+| Dual CLI dispatchers (Bash vs Python) | Legacy bash facade maintains historical wrappers | `scripts/arcanum`, `scripts/lib/cli.py` | Maintenance divergence across platforms | Pure-Python CLI dispatcher (`cli.py`) handles all core engine executions |
+| Large static dictionaries in Python source | Embedded metadata in executable code | `scripts/lib/tips.py`, `scripts/lib/registry.py` | Memory footprint and module bloat | Extract static tips and engine catalogs to JSON/TOML data assets if memory constraints tighten |
 | GTK3 accessibility baseline | Historical UI focused on visual aesthetics | `scripts/lib/ui_gtk3/` | Screen-reader inaccessibility | Add mnemonic accelerators and ATK accessible names |
 
 ### 3) Security Concerns
@@ -38,8 +38,8 @@
 
 | Area | Why fragile | Churn signal | Safe change strategy |
 |------|-------------|-------------|----------------------|
-| `scripts/lib/registry.py` | Central authoritative hub for all 53 engines and metadata | High churn on new engine introductions | Exhaustive test suite (`test_registry.py`, `test_engine_logic_docs.py`, `test_tips.py`) |
-| `scripts/lib/cli.py` | Single entry point for 50+ CLI subcommands | High subcommand density | Strict argparse subparser testing and alias resolution |
+| `scripts/lib/registry.py` | Central authoritative hub for all 47 engines and metadata | High churn on new engine introductions | Exhaustive test suite (`test_registry.py`, `test_engine_logic_docs.py`, `test_tips.py`) |
+| `scripts/lib/cli.py` | Single entry point for 47+ CLI subcommands | High subcommand density | Strict argparse subparser testing and alias resolution |
 
 ### 6) `[ASK USER]` Questions
 
@@ -52,4 +52,4 @@
 - `scripts/lib/registry.py#L1-L150`
 - `scripts/lib/lockfile.py#L1-L60`
 - `tests/test_path_traversal_defense.py#L1-L60`
-- `FAILURE.md#L1-L26`
+- `tests/test_threat_model.py#L1-L50`

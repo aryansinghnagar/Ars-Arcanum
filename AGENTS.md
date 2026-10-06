@@ -1,5 +1,5 @@
 # Ars Arcanum (Scriptorium) — Agentic Operating Manifesto & Engineering Contracts
-> **Sovereign Authoring Operating System (GPA 4.0/4.0 — Grade A+)** | Release v4.3.0
+> **Sovereign Authoring Operating System (GPA 4.0/4.0 — Grade A+)** | Release v4.4.0
 
 ---
 
@@ -31,6 +31,10 @@ All automated agents, subagents, and human contributors must strictly uphold the
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
   ```
 - No external CDN scripts, remote fonts, or network requests are permitted in generated artifacts.
+
+### 2.3 Granular Scope & Intelligent Context Invariants
+- **Altitude-Aware Context Defaults**: Engines must never perform unconstrained whole-drive or all-vault scans by default. When no explicit target is supplied, engines resolve the active manuscript/world context via `config.json`, current working directory, or single-project discovery.
+- **Granular Slice Resolution**: All narrative, craft, and worldbuilding engines must support targeted execution across universes, worlds, lore categories, series, books, chapter lists/ranges (`1-5`, `1,3,7-10`, `ch01..ch05`), and scene slices (`1-3`, `sc01..sc02`) via `scripts/lib/scope.py` (`EngineScope`, `filter_manuscript_scope`, `filter_world_scope`).
 
 ---
 
@@ -66,10 +70,11 @@ scripts/
 ├── lib/
 │   ├── _bootstrap.py          # Atomic write, path resolution & common primitives
 │   ├── cli.py                 # Authoritative Python CLI dispatcher (v2.0.0)
+│   ├── scope.py               # Universal granular target scoping & range parsing engine
 │   ├── ui_gtk3/               # Modular presentation package (<800 lines/file)
 │   ├── ui_adw.py              # Modern Libadwaita interface
 │   ├── registry.py            # Core vs. Craft engine discovery matrix
-│   ├── studio_hub.py          # Cross-platform browser-based Studio Hub
+│   ├── studio_hub.py          # Cross-platform browser-based Studio Hub & Scope Cockpit
 │   ├── zen_studio.py          # Standalone offline drafting studio & lore drawer
 │   ├── story_canvas.py        # Visual drag-and-drop story corkboard
 │   ├── timeline_sync.py       # Dual-track narrative vs chronological synchronizer

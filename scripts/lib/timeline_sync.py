@@ -34,9 +34,25 @@ from typing import Any
 try:
     from lib._bootstrap import atomic_write
     from lib.frontmatter import parse_yaml_frontmatter
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_dir,
+        resolve_world_dir,
+    )
 except ImportError:
     from _bootstrap import atomic_write
     from frontmatter import parse_yaml_frontmatter
+    from scope import (  # type: ignore[no-redef]
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_dir,
+        resolve_world_dir,
+    )
 
 logger = logging.getLogger("arcanum.timeline")
 
@@ -103,78 +119,109 @@ def parse_time_coordinate(raw_time: str, fallback_idx: int) -> tuple[float, bool
     return (1000.0 + fallback_idx, is_flashback, is_flashforward)
 
 
-def extract_timeline_events(target_path: Path) -> list[TimelineEvent]:
-    """Scans manuscript chapters and extracts dual-track timeline events."""
-    files = []
-    if target_path.is_file():
-        files.append(target_path)
-    elif target_path.is_dir():
-        for p in sorted(target_path.rglob("*.md")):
-            if not p.name.startswith((".", "_")) and "Backups" not in p.parts and "04_Back_Matter" not in p.parts:
-                files.append(p)
+def extract_single_event(content: str, file_path: Path | str, idx: int, title: str | None = None) -> TimelineEvent:
+    """Helper to extract a single timeline event from chapter/scene text."""
+    p = Path(file_path)
+    meta = parse_yaml_frontmatter(content)
+    body = FRONTMATTER_REGEX.sub("", content)
+
+    pov = str(meta.get("pov", meta.get("character", "")))
+    location = str(meta.get("location", meta.get("setting", "")))
+    raw_time = str(meta.get("time", meta.get("date", meta.get("timeline", ""))))
+    h1_match = re.search(r"^#\s+(.+)$", body, flags=re.MULTILINE)
+    raw_title = str(meta.get("title", title if title else (h1_match.group(1).strip() if h1_match else p.stem.replace("_", " ").replace("-", " "))))
+    clean_title = re.sub(r"^\d+\s*[-_.]*\s*", "", raw_title).title()
+
+    chars: list[str] = []
+    if "characters" in meta and isinstance(meta["characters"], list):
+        chars = [str(c) for c in meta["characters"]]
+
+    lines = body.splitlines()
+    prose_lines = []
+    for line in lines:
+        s_line = line.strip()
+        m = TAG_REGEX.match(s_line)
+        if m:
+            k, v = m.group(1).lower(), m.group(2).strip()
+            if k == "pov" and not pov:
+                pov = v
+            elif k in ("location", "setting") and not location:
+                location = v
+            elif k in ("time", "date", "timeline") and not raw_time:
+                raw_time = v
+            elif k in ("char", "characters"):
+                chars.extend([c.strip() for c in v.split(",") if c.strip()])
+        elif s_line and not s_line.startswith("#"):
+            prose_lines.append(s_line)
+
+    summary = " ".join(prose_lines)[:160].strip()
+    if len(" ".join(prose_lines)) > 160:
+        summary += "..."
+
+    if not raw_time:
+        raw_time = f"Narrative Step {idx}"
+
+    coord, is_fb, is_ff = parse_time_coordinate(raw_time, fallback_idx=idx)
+
+    return TimelineEvent(
+        id=f"evt_{idx}",
+        narrative_index=idx,
+        title=clean_title or p.stem,
+        filename=p.name,
+        path=str(p),
+        pov=pov or "Omniscient",
+        location=location or "Unspecified",
+        raw_time=raw_time,
+        normalized_time=coord,
+        is_flashback=is_fb,
+        is_flashforward=is_ff,
+        characters=list(set(chars)),
+        summary=summary or "No prose summary available.",
+    )
+
+
+def extract_timeline_events(target_path: Path | str | None = None, scope: Any = None) -> list[TimelineEvent]:
+    """Scans manuscript chapters and extracts dual-track timeline events with granular scope support."""
+    target_str = resolve_manuscript_dir(target_path) if target_path else resolve_manuscript_dir()
+    if target_path and Path(target_path).exists():
+        p_target = Path(target_path)
+    elif target_str and Path(target_str).exists():
+        p_target = Path(target_str)
     else:
-        raise FileNotFoundError(f"Target path not found: {target_path}")
+        p_target = Path(target_path) if target_path else Path.cwd()
 
     events: list[TimelineEvent] = []
 
-    for idx, f in enumerate(files, 1):
-        content = f.read_text(encoding="utf-8", errors="replace")
-        meta = parse_yaml_frontmatter(content)
-        body = FRONTMATTER_REGEX.sub("", content)
-
-        pov = str(meta.get("pov", meta.get("character", "")))
-        location = str(meta.get("location", meta.get("setting", "")))
-        raw_time = str(meta.get("time", meta.get("date", meta.get("timeline", ""))))
-        h1_match = re.search(r"^#\s+(.+)$", body, flags=re.MULTILINE)
-        raw_title = str(meta.get("title", h1_match.group(1).strip() if h1_match else f.stem.replace("_", " ").replace("-", " ")))
-        clean_title = re.sub(r"^\d+\s*[-_.]*\s*", "", raw_title).title()
-
-        chars: list[str] = []
-        if "characters" in meta and isinstance(meta["characters"], list):
-            chars = [str(c) for c in meta["characters"]]
-
-        lines = body.splitlines()
-        prose_lines = []
-        for line in lines:
-            s_line = line.strip()
-            m = TAG_REGEX.match(s_line)
-            if m:
-                k, v = m.group(1).lower(), m.group(2).strip()
-                if k == "pov" and not pov:
-                    pov = v
-                elif k in ("location", "setting") and not location:
-                    location = v
-                elif k in ("time", "date", "timeline") and not raw_time:
-                    raw_time = v
-                elif k in ("char", "characters"):
-                    chars.extend([c.strip() for c in v.split(",") if c.strip()])
-            elif s_line and not s_line.startswith("#"):
-                prose_lines.append(s_line)
-
-        summary = " ".join(prose_lines)[:160].strip()
-        if len(" ".join(prose_lines)) > 160:
-            summary += "..."
-
-        if not raw_time:
-            raw_time = f"Narrative Step {idx}"
-
-        coord, is_fb, is_ff = parse_time_coordinate(raw_time, fallback_idx=idx)
-
-        events.append(TimelineEvent(
-            id=f"evt_{idx}",
-            narrative_index=idx,
-            title=clean_title or f.stem,
-            filename=f.name,
-            path=str(f),
-            pov=pov or "Omniscient",
-            location=location or "Unspecified",
-            raw_time=raw_time,
-            normalized_time=coord,
-            is_flashback=is_fb,
-            is_flashforward=is_ff,
-            characters=list(set(chars)),
-            summary=summary or "No prose summary available.",
-        ))
+    if p_target.is_file():
+        content = p_target.read_text(encoding="utf-8", errors="replace")
+        events.append(extract_single_event(content, p_target, 1))
+    elif p_target.is_dir():
+        if scope:
+            if not isinstance(scope, EngineScope):
+                if isinstance(scope, dict):
+                    from lib.scope import resolve_scope
+                    scope = resolve_scope(scope).scope_filter
+                elif isinstance(scope, str):
+                    from lib.scope import parse_unified_scope_string
+                    p_dict = parse_unified_scope_string(scope)
+                    scope = EngineScope(**p_dict)
+            scoped_chaps, scoped_scenes, _ = filter_manuscript_scope(p_target, scope)
+            if scope.scenes and scoped_scenes:
+                for s in scoped_scenes:
+                    events.append(extract_single_event(s.content, s.chapter_file, s.global_scene_idx, title=s.title))
+            else:
+                for c in scoped_chaps:
+                    events.append(extract_single_event(c.scoped_content, c.file_path, c.chapter_num, title=c.title))
+        else:
+            files = []
+            for p in sorted(p_target.rglob("*.md")):
+                if not p.name.startswith((".", "_")) and "Backups" not in p.parts and "04_Back_Matter" not in p.parts:
+                    files.append(p)
+            for idx, f in enumerate(files, 1):
+                content = f.read_text(encoding="utf-8", errors="replace")
+                events.append(extract_single_event(content, f, idx))
+    else:
+        raise FileNotFoundError(f"Target path not found: {p_target}")
 
     return events
 
@@ -348,25 +395,42 @@ def generate_timeline_html_report(report: dict[str, Any], output_path: Path) -> 
     return output_path
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Dual-Track Timeline Synchronizer")
-    parser.add_argument("target", help="Manuscript directory or World Lore folder")
-    parser.add_argument("--chronological", "-c", action="store_true", help="Display sorted by in-world chronological time")
+    parser.add_argument("target", nargs="?", default=None, help="Manuscript directory or World Lore folder")
+    parser.add_argument("--chronological", action="store_true", help="Display sorted by in-world chronological time")
     parser.add_argument("--html", help="Generate standalone interactive HTML report to path")
     parser.add_argument("--json", action="store_true", help="Output timeline report as JSON")
-    args = parser.parse_args()
+    add_scope_arguments(parser, include_world=True, include_manuscript=True)
+    args = parser.parse_args(argv)
 
-    target_path = Path(args.target)
-    if not target_path.exists():
-        print(f"Error: Target path does not exist: {target_path}", file=sys.stderr)
-        sys.exit(1)
+    scope = parse_scope_args(args)
+    target_raw = args.target or scope.manuscript or scope.world or (scope.books[0] if scope.books else None)
+    if not target_raw:
+        resolved_dir = resolve_manuscript_dir() or resolve_world_dir()
+        if resolved_dir and Path(resolved_dir).exists():
+            target_path = Path(resolved_dir)
+        else:
+            parser.print_help()
+            return 1
+    else:
+        tp = Path(target_raw)
+        if tp.exists():
+            target_path = tp
+        else:
+            resolved_dir = resolve_manuscript_dir(target_raw) or resolve_world_dir(target_raw)
+            if resolved_dir and Path(resolved_dir).exists():
+                target_path = Path(resolved_dir)
+            else:
+                print(f"Error: Target path does not exist: {target_raw}", file=sys.stderr)
+                sys.exit(1)
 
-    events = extract_timeline_events(target_path)
+    events = extract_timeline_events(target_path, scope=scope)
     report = analyze_timeline_synchronization(events)
 
     if args.json:
         print(json.dumps(report, indent=2))
-        return
+        return 0
 
     print("=== Dual-Track Timeline Synchronizer ===")
     print(f"Target: {target_path.name} | Total Scenes: {report['total_events']} | Flashbacks: {report['flashback_count']}")
@@ -387,8 +451,10 @@ def main():
         generate_timeline_html_report(report, out_p)
         print(f"\nHTML report written to: {out_p}")
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
 
 

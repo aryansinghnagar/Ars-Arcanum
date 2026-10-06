@@ -33,8 +33,37 @@ from pathlib import Path
 
 try:
     import lib._bootstrap  # noqa: F401
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_world_scope,
+        parse_scope_args,
+        resolve_world_path,
+    )
 except ImportError:
-    import _bootstrap  # noqa: F401
+    try:
+        import _bootstrap  # noqa: F401
+        from scope import (
+            EngineScope,
+            add_scope_arguments,
+            filter_world_scope,
+            parse_scope_args,
+            resolve_world_path,
+        )
+    except ImportError:
+        EngineScope = None  # type: ignore
+
+        def add_scope_arguments(*args, **kwargs):  # type: ignore
+            pass
+
+        def parse_scope_args(*args, **kwargs):  # type: ignore
+            return None
+
+        def filter_world_scope(*args, **kwargs):  # type: ignore
+            return []
+
+        def resolve_world_path(*args, **kwargs):  # type: ignore
+            return None
 
 logger = logging.getLogger("arcanum.conlang")
 
@@ -51,7 +80,7 @@ except ImportError:
     from frontmatter import parse_yaml_frontmatter
 
 
-def load_conlang_profile(world_dir: Path, lang_query: str) -> dict:
+def load_conlang_profile(world_dir: Path, lang_query: str, scope: EngineScope | None = None) -> dict:
     """Loads language definition note from Languages/ matching query name."""
     dirs_to_check = [
         world_dir / "Languages",
@@ -61,11 +90,18 @@ def load_conlang_profile(world_dir: Path, lang_query: str) -> dict:
     q_clean = lang_query.strip().lower()
     q_norm = re.sub(r"[^a-z0-9]", "", q_clean)
 
+    scoped_files: set[Path] | None = None
+    if scope and scope.is_scoped():
+        filtered_items = filter_world_scope(world_dir, scope)
+        scoped_files = {item.file_path.resolve() for item in filtered_items}
+
     for ldir in dirs_to_check:
         if not ldir.is_dir():
             continue
         for md_file in sorted(ldir.rglob("*.md")):
             if "Template" in md_file.name:
+                continue
+            if scoped_files is not None and md_file.resolve() not in scoped_files:
                 continue
             stem_norm = re.sub(r"[^a-z0-9]", "", md_file.stem.lower())
             if q_norm in stem_norm or q_clean in md_file.stem.lower().replace("_", " "):
@@ -150,12 +186,17 @@ def load_conlang_profile(world_dir: Path, lang_query: str) -> dict:
         "lexicon": lexicon,
     }
 
-def load_all_conlangs(world_dir: Path) -> dict:
+def load_all_conlangs(world_dir: Path, scope: EngineScope | None = None) -> dict:
     """Loads all language profiles to build a family tree registry."""
     dirs_to_check = [
         world_dir / "Languages",
         world_dir / "00-World-Bible" / "Languages",
     ]
+    scoped_files: set[Path] | None = None
+    if scope and scope.is_scoped():
+        filtered_items = filter_world_scope(world_dir, scope)
+        scoped_files = {item.file_path.resolve() for item in filtered_items}
+
     langs = {}
     for ldir in dirs_to_check:
         if not ldir.is_dir():
@@ -163,8 +204,10 @@ def load_all_conlangs(world_dir: Path) -> dict:
         for md_file in ldir.rglob("*.md"):
             if "Template" in md_file.name:
                 continue
+            if scoped_files is not None and md_file.resolve() not in scoped_files:
+                continue
             try:
-                prof = load_conlang_profile(world_dir, md_file.stem)
+                prof = load_conlang_profile(world_dir, md_file.stem, scope=scope)
                 langs[prof["name"]] = prof
             except Exception:
                 pass
@@ -538,8 +581,11 @@ def model_semantic_shift(
 # CLI Entrypoint
 # ==============================================================================
 
-def resolve_world_dir(target_str: str | None = None) -> str:
+def resolve_world_dir(target_str: str | None = None, scope: EngineScope | None = None) -> str:
     """Resolves world input string (path or name) to absolute directory path."""
+    if not target_str and scope and scope.world:
+        target_str = scope.world
+
     if target_str:
         p = Path(target_str).expanduser().resolve()
         if p.is_dir():
@@ -587,6 +633,7 @@ def main():
     p_gen.add_argument("-t", "--type", choices=["word", "name", "place"], default="name", help="Type of generation")
     p_gen.add_argument("--seed", type=int, help="Optional deterministic random seed")
     p_gen.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_gen, include_manuscript=False, include_world=False, target_pos_arg=False)
 
     # 2. mutate
     p_mut = subparsers.add_parser("mutate", help="Apply historical sound changes and phonological shifts")
@@ -596,6 +643,7 @@ def main():
     p_mut.add_argument("-w", "--world", "--world-dir", dest="world_flag", help="World Bible lore directory")
     p_mut.add_argument("-r", "--rule", action="append", help="Ad-hoc sound change rule (e.g. 'p > f / V_V')")
     p_mut.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_mut, include_manuscript=False, include_world=False, target_pos_arg=False)
 
     # 3. lexicon
     p_lex = subparsers.add_parser("lexicon", help="Inspect and search language lexicon table")
@@ -605,18 +653,21 @@ def main():
     p_lex.add_argument("--export-csv", help="Export lexicon to CSV file")
     p_lex.add_argument("--markdown", action="store_true", help="Print as Markdown table")
     p_lex.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_lex, include_manuscript=False, include_world=False, target_pos_arg=False)
 
     # 4. family-tree
     p_fam = subparsers.add_parser("family-tree", help="Display proto-language family tree registry")
     p_fam.add_argument("-w", "--world", "--world-dir", dest="world_flag", help="World Bible lore directory")
     p_fam.add_argument("-r", "--root", help="Root language to display tree for (optional)")
     p_fam.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_fam, include_manuscript=False, include_world=False, target_pos_arg=False)
 
     # 5. grammar
     p_gram = subparsers.add_parser("grammar", help="Synthesize word-order typology, morphology, and phrase structure")
     p_gram.add_argument("language", help="Language name")
     p_gram.add_argument("-w", "--world", "--world-dir", dest="world_flag", help="World Bible lore directory")
     p_gram.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_gram, include_manuscript=False, include_world=False, target_pos_arg=False)
 
     # 6. declension
     p_dec = subparsers.add_parser("declension", help="Generate regular noun case declension tables")
@@ -624,6 +675,7 @@ def main():
     p_dec.add_argument("noun", help="Base noun stem to decline")
     p_dec.add_argument("-w", "--world", "--world-dir", dest="world_flag", help="World Bible lore directory")
     p_dec.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_dec, include_manuscript=False, include_world=False, target_pos_arg=False)
 
     # 7. conjugate
     p_conj = subparsers.add_parser("conjugate", help="Generate regular verb conjugation paradigm across tenses & moods")
@@ -631,6 +683,7 @@ def main():
     p_conj.add_argument("verb", help="Verb root/stem to conjugate")
     p_conj.add_argument("-w", "--world", "--world-dir", dest="world_flag", help="World Bible lore directory")
     p_conj.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_conj, include_manuscript=False, include_world=False, target_pos_arg=False)
 
     # 8. semantic-shift
     p_sem = subparsers.add_parser("semantic-shift", help="Model historical semantic drift and meaning shift across epochs")
@@ -673,8 +726,9 @@ def main():
             print()
         sys.exit(0)
 
+    scope = parse_scope_args(args)
     raw_w = getattr(args, "world_flag", None) or getattr(args, "world", None)
-    world_dir = resolve_world_dir(raw_w)
+    world_dir = resolve_world_dir(raw_w, scope=scope)
 
     if not world_dir or not Path(world_dir).is_dir():
         print("Error: No valid World Bible directory specified or discovered.", file=sys.stderr)
@@ -682,7 +736,7 @@ def main():
 
     try:
         if args.subcommand == "family-tree":
-            langs = load_all_conlangs(Path(world_dir))
+            langs = load_all_conlangs(Path(world_dir), scope=scope)
             if args.json:
                 print(json.dumps({"languages": langs}, indent=2))
             else:
@@ -699,7 +753,7 @@ def main():
                         print()
             sys.exit(0)
 
-        profile = load_conlang_profile(Path(world_dir), args.language)
+        profile = load_conlang_profile(Path(world_dir), args.language, scope=scope)
 
         if args.subcommand == "generate":
             generated = generate_words(

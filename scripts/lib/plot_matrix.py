@@ -30,26 +30,82 @@ import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
+from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.frontmatter import parse_yaml_frontmatter
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_dir,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from frontmatter import parse_yaml_frontmatter  # type: ignore[no-redef]
+    from scope import (  # type: ignore[no-redef]
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_dir,
+    )
 
 logger = logging.getLogger("arcanum.plot_matrix")
 
 
-def extract_chapter_plot_metadata(file_path: Path, chapter_index: int) -> dict:
-    """Extracts plot tags, POV, and wordcount from a markdown chapter file."""
-    content = file_path.read_text(encoding="utf-8", errors="replace")
+def extract_chapter_plot_metadata(
+    file_path: Path | str,
+    chapter_index: int,
+    content: str | None = None,
+    title: str | None = None,
+) -> dict:
+    """Extracts plot tags, POV, and wordcount from a markdown chapter file or text buffer."""
+    p_file = Path(file_path)
+    if content is None:
+        content = p_file.read_text(encoding="utf-8", errors="replace")
     lines = content.splitlines()
 
     plots = set()
     threads = set()
     arcs = set()
     pov = "Unknown"
-    title = file_path.stem
+    ch_title = title or p_file.stem
     word_count = len(re.findall(r'\b\w+\b', content))
+
+    # Parse structured YAML frontmatter if present
+    fm = parse_yaml_frontmatter(content)
+    if fm:
+        fm_pov = fm.get("pov") or fm.get("POV")
+        if fm_pov:
+            pov = str(fm_pov).strip()
+
+        fm_title = fm.get("title") or fm.get("name")
+        if fm_title and (not title or ch_title == p_file.stem):
+            ch_title = str(fm_title).strip()
+
+        fm_plots = fm.get("plot") or fm.get("plots") or []
+        if isinstance(fm_plots, str):
+            fm_plots = [p.strip() for p in fm_plots.split(",") if p.strip()]
+        for p in fm_plots:
+            if isinstance(p, str) and p.strip():
+                plots.add(p.strip())
+
+        fm_threads = fm.get("thread") or fm.get("threads") or []
+        if isinstance(fm_threads, str):
+            fm_threads = [t.strip() for t in fm_threads.split(",") if t.strip()]
+        for t in fm_threads:
+            if isinstance(t, str) and t.strip():
+                threads.add(t.strip())
+
+        fm_arcs = fm.get("arc") or fm.get("arcs") or []
+        if isinstance(fm_arcs, str):
+            fm_arcs = [a.strip() for a in fm_arcs.split(",") if a.strip()]
+        for a in fm_arcs:
+            if isinstance(a, str) and a.strip():
+                arcs.add(a.strip())
 
     in_frontmatter = False
     for line in lines:
@@ -58,8 +114,8 @@ def extract_chapter_plot_metadata(file_path: Path, chapter_index: int) -> dict:
             in_frontmatter = not in_frontmatter
             continue
 
-        if s_line.startswith("# ") and title == file_path.stem:
-            title = s_line[2:].strip()
+        if s_line.startswith("# ") and (not title or ch_title == p_file.stem):
+            ch_title = s_line[2:].strip()
 
         # Tags
         pov_m = re.match(r'^@pov:\s*(.+)$', s_line, re.IGNORECASE)
@@ -87,9 +143,9 @@ def extract_chapter_plot_metadata(file_path: Path, chapter_index: int) -> dict:
     all_tracks = sorted(plots | threads | arcs)
     return {
         "index": chapter_index,
-        "file": str(file_path),
-        "filename": file_path.name,
-        "title": title,
+        "file": str(p_file),
+        "filename": p_file.name,
+        "title": ch_title,
         "pov": pov,
         "word_count": word_count,
         "plots": sorted(plots),
@@ -100,22 +156,54 @@ def extract_chapter_plot_metadata(file_path: Path, chapter_index: int) -> dict:
     }
 
 
-def scan_manuscript_plot_matrix(target_path: Path, max_gap_threshold: int = 4) -> dict:
-    """Scans all chapters in a manuscript to build the multi-track plot grid."""
-    files = []
-    if target_path.is_file():
-        files.append(target_path)
-    elif target_path.is_dir():
-        for p in sorted(target_path.rglob("*.md")):
-            if not p.name.startswith((".", "_")) and "Backups" not in p.parts and "04_Back_Matter" not in p.parts:
-                files.append(p)
+def scan_manuscript_plot_matrix(
+    target_path: Path | str | None = None,
+    max_gap_threshold: int = 4,
+    scope: Any = None,
+) -> dict:
+    """Scans all chapters in a manuscript to build the multi-track plot grid with granular scope support."""
+    target_str = resolve_manuscript_dir(target_path) if target_path else resolve_manuscript_dir()
+    if target_path and Path(target_path).exists():
+        p_target = Path(target_path)
+    elif target_str and Path(target_str).exists():
+        p_target = Path(target_str)
     else:
-        raise FileNotFoundError(f"Target path not found: {target_path}")
+        p_target = Path(target_path) if target_path else Path.cwd()
 
     chapters = []
-    for idx, f in enumerate(files, 1):
-        ch_meta = extract_chapter_plot_metadata(f, idx)
+
+    if p_target.is_file():
+        ch_meta = extract_chapter_plot_metadata(p_target, 1)
         chapters.append(ch_meta)
+    elif p_target.is_dir():
+        if scope:
+            if not isinstance(scope, EngineScope):
+                if isinstance(scope, dict):
+                    from lib.scope import resolve_scope
+                    scope = resolve_scope(scope).scope_filter
+                elif isinstance(scope, str):
+                    from lib.scope import parse_unified_scope_string
+                    p_dict = parse_unified_scope_string(scope)
+                    scope = EngineScope(**p_dict)
+            scoped_chaps, scoped_scenes, _ = filter_manuscript_scope(p_target, scope)
+            if scope.scenes and scoped_scenes:
+                for s in scoped_scenes:
+                    meta = extract_chapter_plot_metadata(s.chapter_file, s.global_scene_idx, content=s.content, title=s.title)
+                    chapters.append(meta)
+            else:
+                for c in scoped_chaps:
+                    meta = extract_chapter_plot_metadata(c.file_path, c.chapter_num, content=c.scoped_content, title=c.title)
+                    chapters.append(meta)
+        else:
+            files = []
+            for p in sorted(p_target.rglob("*.md")):
+                if not p.name.startswith((".", "_")) and "Backups" not in p.parts and "04_Back_Matter" not in p.parts:
+                    files.append(p)
+            for idx, f in enumerate(files, 1):
+                ch_meta = extract_chapter_plot_metadata(f, idx)
+                chapters.append(ch_meta)
+    else:
+        raise FileNotFoundError(f"Target path not found: {p_target}")
 
     total_chapters = len(chapters)
     track_appearances = defaultdict(list)
@@ -307,25 +395,42 @@ def generate_plot_html_report(report: dict, output_path: Path) -> Path:
     return output_path
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Multi-Track Plot Grid Engine (PLT-101)")
-    parser.add_argument("target", help="Manuscript directory or file")
+    parser.add_argument("target", nargs="?", default=None, help="Manuscript directory or file")
     parser.add_argument("--gap", type=int, default=4, help="Maximum gap before alerting dormant thread (default 4)")
     parser.add_argument("--html", help="Generate HTML report to output path")
     parser.add_argument("--json", action="store_true", help="Output JSON results")
     parser.add_argument("--matrix", action="store_true", help="Print ASCII track matrix")
-    args = parser.parse_args()
+    add_scope_arguments(parser, include_world=False)
+    args = parser.parse_args(argv)
 
-    target_path = Path(args.target)
-    if not target_path.exists():
-        print(f"Error: Target path does not exist: {target_path}", file=sys.stderr)
-        sys.exit(1)
+    scope = parse_scope_args(args)
+    target_raw = args.target or scope.manuscript or (scope.books[0] if scope.books else None)
+    if not target_raw:
+        resolved_dir = resolve_manuscript_dir()
+        if resolved_dir and Path(resolved_dir).exists():
+            target_path = Path(resolved_dir)
+        else:
+            parser.print_help()
+            return 1
+    else:
+        tp = Path(target_raw)
+        if tp.exists():
+            target_path = tp
+        else:
+            resolved_dir = resolve_manuscript_dir(target_raw)
+            if resolved_dir and Path(resolved_dir).exists():
+                target_path = Path(resolved_dir)
+            else:
+                print(f"Error: Target path does not exist: {target_raw}", file=sys.stderr)
+                sys.exit(1)
 
-    report = scan_manuscript_plot_matrix(target_path, max_gap_threshold=args.gap)
+    report = scan_manuscript_plot_matrix(target_path, max_gap_threshold=args.gap, scope=scope)
 
     if args.json:
         print(json.dumps(report, indent=2))
-        return
+        return 0
 
     print(f"=== Multi-Track Plot Grid: {target_path.name} ===")
     print(f"Total Chapters: {report['total_chapters']} | Narrative Tracks: {report['total_tracks']}")
@@ -359,6 +464,8 @@ def main():
         generate_plot_html_report(report, out_p)
         print(f"\nHTML report written to: {out_p}")
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

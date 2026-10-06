@@ -33,7 +33,7 @@ try:
 except ImportError:
     import _bootstrap  # noqa: F401
 
-VERSION = "4.3.0"
+VERSION = "5.0.0"
 
 
 def get_state_dir() -> Path:

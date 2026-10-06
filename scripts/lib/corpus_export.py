@@ -39,9 +39,27 @@ from typing import Any
 try:
     from lib._bootstrap import atomic_write
     from lib.frontmatter import parse_yaml_frontmatter
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        filter_world_scope,
+        parse_scope_args,
+        resolve_manuscript_path,
+        resolve_world_path,
+    )
 except ImportError:
     from _bootstrap import atomic_write
     from frontmatter import parse_yaml_frontmatter
+    from scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        filter_world_scope,
+        parse_scope_args,
+        resolve_manuscript_path,
+        resolve_world_path,
+    )
 
 logger = logging.getLogger("arcanum.corpus")
 
@@ -303,10 +321,17 @@ def process_markdown_file(
 class CorpusScanner:
     """Scans a target directory or file and compiles all documents, chunks, and entities."""
 
-    def __init__(self, target: Path, target_chunk_words: int = 250, include_drafts: bool = True):
+    def __init__(
+        self,
+        target: Path,
+        target_chunk_words: int = 250,
+        include_drafts: bool = True,
+        scope: EngineScope | None = None,
+    ):
         self.target = target.resolve()
         self.target_chunk_words = target_chunk_words
         self.include_drafts = include_drafts
+        self.scope = scope
         self.documents: list[CorpusDocument] = []
         self.entities: dict[str, CorpusEntity] = {}
         self.relationships: list[dict[str, str]] = []
@@ -319,14 +344,29 @@ class CorpusScanner:
             root_path = self.target.parent
         else:
             root_path = self.target
-            for p in sorted(self.target.rglob("*.md")):
-                if p.name.startswith((".", "_")):
-                    continue
-                if "Backups" in p.parts or ".git" in p.parts or "node_modules" in p.parts:
-                    continue
-                if not self.include_drafts and "Back_Matter" in p.parts:
-                    continue
-                files.append(p)
+            if self.scope and self.scope.is_scoped():
+                if self.scope.books or self.scope.chapters or self.scope.scenes:
+                    scoped_chapters, _, _ = filter_manuscript_scope(self.target, self.scope)
+                    files = [c.file_path for c in scoped_chapters]
+                elif self.scope.lore_categories:
+                    scoped_lore = filter_world_scope(self.target, self.scope)
+                    files = [item.file_path for item in scoped_lore]
+                else:
+                    for p in sorted(self.target.rglob("*.md")):
+                        if p.name.startswith((".", "_")) or "Backups" in p.parts or ".git" in p.parts or "node_modules" in p.parts:
+                            continue
+                        if not self.include_drafts and "Back_Matter" in p.parts:
+                            continue
+                        files.append(p)
+            else:
+                for p in sorted(self.target.rglob("*.md")):
+                    if p.name.startswith((".", "_")):
+                        continue
+                    if "Backups" in p.parts or ".git" in p.parts or "node_modules" in p.parts:
+                        continue
+                    if not self.include_drafts and "Back_Matter" in p.parts:
+                        continue
+                    files.append(p)
 
         self.documents = [
             process_markdown_file(f, root_path, target_chunk_words=self.target_chunk_words)
@@ -766,12 +806,13 @@ def main():
 
     # export command
     p_export = subparsers.add_parser("export", help="Export corpus to JSONL, SQLite, or Markdown")
-    p_export.add_argument("target", help="Universe, World Bible, Manuscript directory or Markdown file")
+    p_export.add_argument("target", nargs="?", help="Universe, World Bible, Manuscript directory or Markdown file")
     p_export.add_argument("--format", "-f", choices=["jsonl", "sqlite", "summary", "both", "all"], default="both", help="Export format (default: both)")
     p_export.add_argument("--output", "-o", help="Output directory or database file path")
     p_export.add_argument("--chunk-size", type=int, default=250, help="Target semantic chunk word size (default: 250)")
     p_export.add_argument("--json", action="store_true", help="Print export summary JSON to stdout")
     p_export.add_argument("--dry-run", action="store_true", help="Scan and report metrics without writing files")
+    add_scope_arguments(p_export, include_manuscript=False, include_world=False, target_pos_arg=False)
 
     # restore command
     p_restore = subparsers.add_parser("restore", help="Restore corpus from JSONL or SQLite")
@@ -802,12 +843,16 @@ def main():
         print("Restore complete.")
         sys.exit(0)
 
-    target_path = Path(args.target)
+    scope = parse_scope_args(args)
+    raw_target = getattr(args, "target", None) or scope.universe or scope.world or scope.manuscript
+    resolved_target = str(resolve_world_path(raw_target, scope=scope) or resolve_manuscript_path(raw_target, scope=scope) or raw_target) if raw_target else ""
+
+    target_path = Path(resolved_target) if resolved_target else Path("")
     if not target_path.exists():
         print(f"Error: Target path does not exist: {target_path}", file=sys.stderr)
         sys.exit(1)
 
-    scanner = CorpusScanner(target_path, target_chunk_words=args.chunk_size)
+    scanner = CorpusScanner(target_path, target_chunk_words=args.chunk_size, scope=scope)
     scanner.scan()
 
     if args.dry_run or args.json:

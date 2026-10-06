@@ -36,8 +36,24 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_path,
+        resolve_world_path,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_path,
+        resolve_world_path,
+    )
 
 
 logger = logging.getLogger("arcanum.economy")
@@ -277,7 +293,11 @@ def calculate_ppp_rates(economies: dict) -> dict:
     return ppp_matrix
 
 
-def audit_manuscript_prices(manuscript_dir: Path, economies: dict) -> list:
+def audit_manuscript_prices(
+    manuscript_dir: Path,
+    economies: dict,
+    scope: EngineScope | None = None,
+) -> list:
     """Audits manuscript scene files for price anomalies and unregistered currencies with currency & PPP normalization."""
     findings = []
     if not manuscript_dir or not manuscript_dir.is_dir():
@@ -343,24 +363,27 @@ def audit_manuscript_prices(manuscript_dir: Path, economies: dict) -> list:
                 return amount, price
         return amount, None
 
-    # Regex for @price: amount currency for item
     price_tag_regex = re.compile(r"@price:\s*([\d\.]+)\s+([A-Za-z\s]+?)\s+(?:for|on)\s+([A-Za-z\s_-]+)", re.IGNORECASE)
-    # Prose price pattern: "50 gold crowns for a loaf of bread" or "cost 20 silver bits"
     prose_price_regex = re.compile(r"\b(\d+(?:\.\d+)?)\s+([A-Za-z\s]+?(?:crowns?|coins?|pence|shillings?|gold|silver|copper|credits?|sovereigns?|ducats?|drachmas?))\s+(?:for|on)\s+(?:a|an|the)?\s*([A-Za-z\s_-]+)\b", re.IGNORECASE)
 
-    for md_file in sorted(manuscript_dir.rglob("*.md")):
-        if md_file.name.startswith(".") or "Front_Matter" in md_file.parts or "Back_Matter" in md_file.parts:
-            continue
+    if scope:
+        scoped_chapters, _, _ = filter_manuscript_scope(manuscript_dir, scope)
+        md_files = [c.file_path for c in scoped_chapters]
+    else:
+        md_files = [
+            f for f in sorted(manuscript_dir.rglob("*.md"))
+            if not f.name.startswith(".") and "Front_Matter" not in f.parts and "Back_Matter" not in f.parts
+        ]
+
+    for md_file in md_files:
         try:
             content = md_file.read_text(encoding="utf-8", errors="ignore")
             lines = content.splitlines()
             for line_idx, line in enumerate(lines, start=1):
-                # Check @price: tags
                 for m in price_tag_regex.finditer(line):
                     amount = float(m.group(1))
                     curr_name = m.group(2).strip()
                     item_name = m.group(3).strip()
-
                     curr_norm = normalize_name(curr_name)
 
                     if known_currencies and curr_norm not in known_currencies:
@@ -392,7 +415,6 @@ def audit_manuscript_prices(manuscript_dir: Path, economies: dict) -> list:
                                 "line": line_idx,
                             })
 
-                # Check prose patterns
                 for m in prose_price_regex.finditer(line):
                     amount = float(m.group(1))
                     curr_name = m.group(2).strip()
@@ -426,7 +448,8 @@ def audit_manuscript_prices(manuscript_dir: Path, economies: dict) -> list:
 def audit_technological_anachronisms(
     manuscript_dir: Path,
     baseline_era: str = "medieval",
-    custom_whitelist: list | None = None
+    custom_whitelist: list | None = None,
+    scope: EngineScope | None = None,
 ) -> list:
     """
     Scans manuscript prose to detect out-of-era technological and material anachronisms.
@@ -440,14 +463,20 @@ def audit_technological_anachronisms(
 
     whitelist = {normalize_name(w) for w in (custom_whitelist or [])}
 
-    for md_file in sorted(manuscript_dir.rglob("*.md")):
-        if md_file.name.startswith(".") or "Front_Matter" in md_file.parts or "Back_Matter" in md_file.parts:
-            continue
+    if scope:
+        scoped_chapters, _, _ = filter_manuscript_scope(manuscript_dir, scope)
+        md_files = [c.file_path for c in scoped_chapters]
+    else:
+        md_files = [
+            f for f in sorted(manuscript_dir.rglob("*.md"))
+            if not f.name.startswith(".") and "Front_Matter" not in f.parts and "Back_Matter" not in f.parts
+        ]
+
+    for md_file in md_files:
         try:
             content = md_file.read_text(encoding="utf-8", errors="ignore")
             lines = content.splitlines()
             for line_idx, line in enumerate(lines, start=1):
-                # Ignore tag lines
                 if line.strip().startswith("@"):
                     continue
 
@@ -457,8 +486,6 @@ def audit_technological_anachronisms(
                         continue
                     earliest_idx = ERA_ORDER.get(earliest_era, 0)
                     if earliest_idx > base_idx:
-                        # Term is from future era compared to world baseline
-                        # Match word boundaries
                         pattern = r"\b" + re.escape(tech_term) + r"\b"
                         if re.search(pattern, line_lower):
                             findings.append({
@@ -889,6 +916,7 @@ def main():
     p_check.add_argument("-m", "--manuscript", help="Manuscript draft directory")
     p_check.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_check.add_argument("--html", help="Path to export standalone HTML report")
+    add_scope_arguments(p_check, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     p_rep = subparsers.add_parser("report", help="Display full economy and PPP report")
     p_rep.add_argument("world", nargs="?", help="World Bible lore directory")
@@ -897,6 +925,7 @@ def main():
     p_rep.add_argument("-m", "--manuscript", help="Manuscript draft directory")
     p_rep.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_rep.add_argument("--html", help="Path to export standalone HTML report")
+    add_scope_arguments(p_rep, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     # 2. tech audit
     p_tech = subparsers.add_parser("tech", help="Audit manuscript for out-of-era technological anachronisms")
@@ -905,6 +934,7 @@ def main():
     p_tech.add_argument("-w", "--world", help="World Bible directory (for tech era detection)")
     p_tech.add_argument("--era", choices=TECH_ERAS, default="medieval", help="Baseline technological era")
     p_tech.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_tech, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     # 3. trade calculator
     p_trade = subparsers.add_parser("trade", help="Interstellar/regional trade route profit margin calculator")
@@ -940,27 +970,29 @@ def main():
     if not args.subcommand:
         args.subcommand = "report"
 
+    scope = parse_scope_args(args)
+
     if args.subcommand in ("check", "report"):
         raw_world = getattr(args, "world_flag", None) or getattr(args, "world", None)
-        world_dir_str = resolve_world_dir(raw_world)
+        world_dir_str = resolve_world_dir(raw_world) if raw_world else (str(resolve_world_path(scope=scope)) if resolve_world_path(scope=scope) else None)
         if not world_dir_str or not Path(world_dir_str).is_dir():
             print("Error: No valid World Bible directory specified or discovered.", file=sys.stderr)
             sys.exit(2)
 
         world_path = Path(world_dir_str)
         raw_ms = getattr(args, "manuscript", None) or getattr(args, "manuscript_pos", None)
-        ms_dir_str = resolve_manuscript_dir(raw_ms) if raw_ms else None
+        ms_dir_str = resolve_manuscript_dir(raw_ms) if raw_ms else (str(resolve_manuscript_path(scope=scope)) if resolve_manuscript_path(scope=scope) else None)
         ms_path = Path(ms_dir_str) if ms_dir_str else None
 
         economies = extract_economy_profiles(world_path)
         ppp_matrix = calculate_ppp_rates(economies)
-        price_findings = audit_manuscript_prices(ms_path, economies) if ms_path else []
+        price_findings = audit_manuscript_prices(ms_path, economies, scope=scope) if ms_path else []
 
         # Also run tech check if manuscript provided
         primary_era = "medieval"
         if economies:
             primary_era = next(iter(economies.values())).get("tech_era", "medieval")
-        tech_findings = audit_technological_anachronisms(ms_path, primary_era) if ms_path else []
+        tech_findings = audit_technological_anachronisms(ms_path, primary_era, scope=scope) if ms_path else []
 
         all_findings = price_findings + tech_findings
 
@@ -1010,7 +1042,7 @@ def main():
 
     elif args.subcommand == "tech":
         raw_ms = getattr(args, "ms_flag", None) or getattr(args, "manuscript", None)
-        ms_dir_str = resolve_manuscript_dir(raw_ms)
+        ms_dir_str = resolve_manuscript_dir(raw_ms) if raw_ms else (str(resolve_manuscript_path(scope=scope)) if resolve_manuscript_path(scope=scope) else None)
         if not ms_dir_str or not Path(ms_dir_str).is_dir():
             print("Error: No valid Manuscript directory specified or discovered.", file=sys.stderr)
             sys.exit(2)
@@ -1024,7 +1056,7 @@ def main():
                 if econs:
                     era = next(iter(econs.values())).get("tech_era", era)
 
-        findings = audit_technological_anachronisms(ms_path, baseline_era=era)
+        findings = audit_technological_anachronisms(ms_path, baseline_era=era, scope=scope)
 
         if args.json:
             print(json.dumps({"manuscript": ms_path.name, "baseline_era": era, "findings": findings}, indent=2))

@@ -39,8 +39,16 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        add_scope_arguments,
+        resolve_world_path,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from scope import (
+        add_scope_arguments,
+        resolve_world_path,
+    )
 
 logger = logging.getLogger("arcanum.factions")
 
@@ -655,6 +663,7 @@ def main():
     p_audit.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_audit.add_argument("--html", help="Path to export standalone HTML report")
     p_audit.add_argument("--write-note", help="Export Mermaid.js relationship graph to note")
+    add_scope_arguments(p_audit, target_pos_arg=False, include_manuscript=False, include_world=False)
 
     p_matrix = subparsers.add_parser("matrix", help="Display faction matrix and relationship graph")
     p_matrix.add_argument("world", nargs="?", help="World Bible lore directory")
@@ -662,6 +671,7 @@ def main():
     p_matrix.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_matrix.add_argument("--html", help="Path to export standalone HTML report")
     p_matrix.add_argument("--write-note", help="Export Mermaid.js relationship graph to note")
+    add_scope_arguments(p_matrix, target_pos_arg=False, include_manuscript=False, include_world=False)
 
     # 2. calc battle
     p_battle = subparsers.add_parser("battle", help="Lanchester power-law combat calculator")
@@ -695,7 +705,7 @@ def main():
 
     if args.subcommand in ("check", "matrix"):
         raw_world = getattr(args, "world_flag", None) or getattr(args, "world", None)
-        world_dir_str = resolve_world_dir(raw_world)
+        world_dir_str = str(resolve_world_path(raw_world)) if resolve_world_path(raw_world) else resolve_world_dir(raw_world)
         if not world_dir_str or not Path(world_dir_str).is_dir():
             print("Error: No valid World Bible directory specified or discovered.", file=sys.stderr)
             sys.exit(2)

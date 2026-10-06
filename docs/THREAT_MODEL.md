@@ -1,8 +1,8 @@
 # Ars Arcanum Threat Model & Security Posture (STRIDE-Lite)
 
-**Version:** 4.2.1  
-**Scope:** Core CLI (`arcanum`), Scaffolding Scripts, Python Library Engines (`scripts/lib/`), GTK Control Center, Typesetting Bridges (Typst/Pandoc), and Storage/Backup Subsystems.  
-**Target Environment:** Local single-user Linux desktop workstations (Ubuntu, Linux Mint, Debian, Arch, Fedora).
+**Version:** 5.0.0  
+**Scope:** Core CLI (`arcanum`), Scaffolding Scripts, 47 Deterministic Python Library Engines (`scripts/lib/`), GTK Desktop App, Typesetting Bridges (Typst/Pandoc), and Storage/Backup Subsystems.  
+**Target Environment:** Local single-user cross-platform desktop workstations (Linux Mint, Ubuntu, Debian, Arch, Fedora, Windows).
 
 ---
 
@@ -17,14 +17,14 @@ Ars Arcanum operates exclusively as a **local-first desktop platform**. It does 
    - Restored Backup Archives (`.tar.gz`) from external or shared drives.
    - Markdown notes containing arbitrary user text, YAML frontmatter, and WikiLinks (`[[...]]`).
    - Community Obsidian Plugin configurations (`.obsidian/`).
-3. **Privileged Installer Surface**: `setup_arcanum.sh` (the only script invoking `sudo` for system dependencies).
+3. **Privileged Installer Surface**: `setup_arcanum.sh` (multi-distribution setup script).
 4. **Offline Viewing Sandbox**: Generated static HTML visualization reports and charts opened in local web browsers.
 
 ```
 [ External DOCX / Backup Archives / Community Plugins ] (Untrusted)
                          │
                          ▼ (Sanitization & Validation Barrier)
-[ Ars Arcanum Core Engines: docx_sync, world_doctor, restore_world, cli ]
+[ Ars Arcanum Core Engines: docx_sync, world_doctor, restore, cli ]
                          │
                          ▼ (Atomic Writes & Local Git)
 [ Local Author Workspaces: ~/Universes, ~/Manuscripts ] (Trusted)
@@ -36,16 +36,13 @@ Ars Arcanum operates exclusively as a **local-first desktop platform**. It does 
 
 ### 1. Spoofing Identity (S)
 * **Threat S1: Git Author Spoofing during Scaffolding.**
-  - *Risk:* Automated scaffolding commits using an arbitrary or misleading identity (e.g. `maintainers@arsarcanum.local`), overwriting author attribution.
+  - *Risk:* Automated scaffolding commits using an arbitrary or misleading identity, overwriting author attribution.
   - *Mitigation:* Scaffolding scripts query `git config user.name` and `git config user.email`. If configured, the user's authentic local Git identity is used. If unset, a neutral tool identity (`Ars Arcanum Studio <arcanum@local>`) is applied.
-* **Threat S2: Desktop Launcher Impersonation.**
-  - *Risk:* Malicious `.desktop` files masquerading as Ars Arcanum studio tools.
-  - *Mitigation:* Launchers are installed directly to `${HOME}/.local/share/applications/` from hardcoded template sources with explicit paths and trusted metadata via `gio set metadata::trusted true`.
 
 ### 2. Tampering with Data (T)
 * **Threat T1: Power Loss or Crash during File Write (Data Corruption).**
   - *Risk:* Mid-write crashes corrupting manuscripts, chapters, or world manifests.
-  - *Mitigation:* All write operations across all library modules use `atomic_write()` (`scripts/lib/fs_utils.py`), writing to a temporary file in the same parent directory, flushing, syncing (`fsync`), and atomically replacing via `os.replace`.
+  - *Mitigation:* All write operations across all library modules use `atomic_write()` (`scripts/lib/_bootstrap.py`), writing to a temporary file in the same parent directory, flushing, syncing (`fsync`), and atomically replacing via `os.replace`.
 * **Threat T2: Silent Prose Loss during DOCX ↔ Markdown Synchronization.**
   - *Risk:* Asymmetrical mtime updates causing newer Markdown prose to be overwritten by older DOCX files.
   - *Mitigation:* Three-way SHA-256 state tracking (`.sync_state.json`). If both Markdown and DOCX diverge independently, the engine refuses in-place overwrite and branches to `<chapter>.conflict_<timestamp>.md`.
@@ -57,59 +54,35 @@ Ars Arcanum operates exclusively as a **local-first desktop platform**. It does 
 * **Threat R1: Untracked Draft Modifications.**
   - *Risk:* Authors unable to identify what changed between draft revisions.
   - *Mitigation:* Automatic draft milestone snapshotting (`arcanum draft`) and fine-grained visual redline diff reporting (`manuscript_diff.py`).
-* **Threat R2: Ambiguous Upgrade Path.**
-  - *Risk:* Untracked schema alterations causing silent engine parsing failures.
-  - *Mitigation:* Explicit `schema_version` declarations in `universe.yaml`, `world.yaml`, and `manuscript.yaml`, paired with verified automated migrations (`arcanum migrate`).
 
-### 4. Information Disclosure / Privacy (I)
-* **Threat I1: Telemetry & Prose Leakage.**
-  - *Risk:* Unintentional transmission of author creative work, character names, or system telemetry over the network.
-  - *Mitigation:* Strict zero-telemetry architecture. Core engines perform 0 network calls. External CDN references are prohibited in generated HTML and codebase.
-* **Threat I2: Path & Username Leakage in Bug Reports.**
-  - *Risk:* Sensitive user home directory paths, system usernames, or private novel titles exposed when submitting diagnostic logs.
-  - *Mitigation:* `arcanum doctor --report` (`diagnostics.py`) automatically sanitizes and redacts local home directory paths (`~`) and usernames before emitting triage markdown bundles.
-* **Threat I3: Local HTTP Studio Hub CSRF.**
-  - *Risk:* Malicious websites executing cross-origin requests against the local Studio Hub (`localhost:8080`).
-  - *Mitigation:* `_validate_origin()` rejects all cross-origin `POST` requests not originating from `localhost` / `127.0.0.1` or `null`.
+### 4. Information Disclosure (I)
+* **Threat I1: Accidental Cloud Leakage of Unpublished Manuscripts.**
+  - *Risk:* Background telemetry or third-party cloud analytics uploading creative IP.
+  - *Mitigation:* Zero cloud telemetry, zero remote dependencies, zero analytics scripts. 100% offline air-gapped architecture.
+* **Threat I2: XSS in Generated HTML Reports.**
+  - *Risk:* Malicious script execution when rendering HTML corkboards, timelines, or codices.
+  - *Mitigation:* Strict Content Security Policy declared in all HTML outputs:
+    ```html
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
+    ```
 
 ### 5. Denial of Service (D)
-* **Threat D1: Malicious Archive Extraction (Tar-Bomb / Symlink Traversal).**
-  - *Risk:* An untrusted backup archive attempting path traversal (`../../etc/passwd`), `.git/config` command injection, or symlink overwrites during restoration.
-  - *Mitigation:* `scripts/lib/restore.py` and `cmd_restore` in `scripts/arcanum` inspect all archive members before extraction, explicitly rejecting symlinks, hardlinks, device nodes, absolute paths, parent traversals (`..`), executable `.git/hooks/`, and `.git/config` configurations.
-* **Threat D2: Large File Read Exhaustion.**
-  - *Risk:* Extremely large files causing out-of-memory errors in linters or parsers.
-  - *Mitigation:* `read_capped()` enforces a 2MB per-file read threshold across analysis engines with user-facing warnings upon truncation.
-* **Threat D3: XML Entity Expansion & Zip Bombs (Billion Laughs / Quadratic Blowup).**
-  - *Risk:* Malicious or corrupted DOCX XML files containing recursive entity definitions (`<!DOCTYPE`, `<!ENTITY`) or highly compressed zip payloads designed to exhaust memory.
-  - *Mitigation:* `scripts/lib/docx_sync.py` and `scripts/lib/importer.py` enforce strict size ceilings (20MB total `.docx` file limit and 50MB uncompressed XML stream threshold) and scan the raw stream across multiple encodings (UTF-8, UTF-16LE, UTF-16BE), immediately aborting if any `<!DOCTYPE` or `<!ENTITY` declarations are detected.
+* **Threat D1: XML Entity Expansion Bomb (Billion Laughs) in DOCX Imports.**
+  - *Risk:* Malicious DOCX input consuming infinite memory/CPU via recursive XML entity definitions.
+  - *Mitigation:* DOCTYPE and ENTITY scanning on all incoming XML streams before AST processing (`docx_sync.py`, `importer.py`).
+* **Threat D2: Path Traversal / Directory Injection.**
+  - *Risk:* User-provided names containing `../` overwriting arbitrary system files.
+  - *Mitigation:* Strict regex token validation `^[A-Za-z0-9_-]+$` enforced across all volume names, draft identifiers, and world targets (`_bootstrap.py`).
 
 ### 6. Elevation of Privilege (E)
-* **Threat E1: Installer Privilege Abuse.**
-  - *Risk:* System installer executing unvetted scripts or modifying unauthorized system paths with root permissions.
-  - *Mitigation:* `setup_arcanum.sh` restricts `sudo` exclusively to explicit package manager calls (`apt-get install` with declared package lists) and verified Typst musl binary installation. All author workspaces, desktop launchers, and configuration files are written under user `${HOME}` without root elevation.
-* **Threat E2: Flatpak Sandbox Breakout.**
-  - *Risk:* Flatpak packaging granting host execution privileges through D-Bus session access.
-  - *Mitigation:* `org.arsarcanum.ArsArcanum.yaml` strictly omits `--talk-name=org.freedesktop.Flatpak`, maintaining container boundary isolation.
+* **Threat E1: Archive Restore Symlink & Hook Injection.**
+  - *Risk:* Malicious backup archives extracting symlinks pointing to sensitive system files or placing executable `.git/hooks`.
+  - *Mitigation:* Pure-Python archive extractor (`restore.py`) strictly filters out symlinks, hardlinks, FIFOs, device nodes, and rejects any paths within `.git/hooks` or `.git/config`.
 
 ---
 
-## 3. Content Security Policy (CSP) Baseline
+## 3. Recommended Reading & Security References
 
-All static HTML reports generated by Ars Arcanum (e.g. cartography, codex wiki, causal DAGs, timeline graphs, and audio proofreader players) must declare the following strict offline Content Security Policy:
-
-```html
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
-```
-
-- **`default-src 'none'`**: Disallows any external network requests, fonts, or tracking frames.
-- **`style-src 'unsafe-inline'`**: Allows self-contained inline CSS styles.
-- **`script-src 'unsafe-inline'`**: Restricts JavaScript execution to self-contained inline logic (e.g. SVG zoom/pan or WebAudio synthesizer) without loading remote scripts.
-- **`img-src data:`**: Allows embedded base64 images and vector icons.
-
----
-
-## 4. Security Incident Response SLA
-
-Vulnerabilities are managed via **GitHub Private Vulnerability Reporting**:
-- Initial triage acknowledgment: **≤ 72 hours**
-- Fix deployment: **≤ 30 days**
+1. **Howard, Michael & Lipner, Steve** (2006). *The Security Development Lifecycle: SDL: A Process for Developing Demonstrably More Secure Software*. Microsoft Press. (STRIDE methodology).
+2. **Scarfone, Karen et al.** (2008). *Guide to Storage Security* (NIST SP 800-111). National Institute of Standards and Technology.
+3. **OWASP Top 10** (2021). *Open Web Application Security Project*. (Injection, Broken Access Control, and Insecure Design mitigations).

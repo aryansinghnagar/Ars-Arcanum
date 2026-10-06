@@ -31,8 +31,39 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_world_scope,
+        parse_scope_args,
+        resolve_world_path,
+    )
 except ImportError:
-    from _bootstrap import atomic_write
+    try:
+        from _bootstrap import atomic_write
+        from scope import (
+            EngineScope,
+            add_scope_arguments,
+            filter_world_scope,
+            parse_scope_args,
+            resolve_world_path,
+        )
+    except ImportError:
+        from _bootstrap import atomic_write  # type: ignore
+
+        EngineScope = None  # type: ignore
+
+        def add_scope_arguments(*args, **kwargs):  # type: ignore
+            pass
+
+        def parse_scope_args(*args, **kwargs):  # type: ignore
+            return None
+
+        def filter_world_scope(*args, **kwargs):  # type: ignore
+            return []
+
+        def resolve_world_path(*args, **kwargs):  # type: ignore
+            return None
 
 logger = logging.getLogger("arcanum.cartography")
 
@@ -64,7 +95,7 @@ TYPE_ICONS = {
 }
 
 
-def parse_world_locations(world_dir: Path) -> list[dict]:
+def parse_world_locations(world_dir: Path, scope: EngineScope | None = None) -> list[dict]:
     """Scans Locations/*.md in a World Lore Vault for coordinates and traits."""
     loc_dir = world_dir / "Locations"
     locations = []
@@ -73,11 +104,18 @@ def parse_world_locations(world_dir: Path) -> list[dict]:
         # Fallback to demo default locations if empty
         return get_default_locations(world_dir.name)
 
+    scoped_files: set[Path] | None = None
+    if scope and scope.is_scoped():
+        filtered_items = filter_world_scope(world_dir, scope)
+        scoped_files = {item.file_path.resolve() for item in filtered_items}
+
     files = sorted(loc_dir.glob("*.md"))
     if not files:
         return get_default_locations(world_dir.name)
 
     for _idx, f in enumerate(files, 1):
+        if scoped_files is not None and f.resolve() not in scoped_files:
+            continue
         content = f.read_text(encoding="utf-8", errors="replace")
         lines = content.splitlines()
 
@@ -523,18 +561,22 @@ renderList(locations);
 
 def main():
     parser = argparse.ArgumentParser(description="Ars Arcanum Offline Vector Cartography Engine (WOR-101)")
-    parser.add_argument("world", help="World directory path or name")
+    parser.add_argument("world", nargs="?", default=None, help="World directory path or name")
     parser.add_argument("-o", "--output", help="Output .svg or .html path")
     parser.add_argument("--html", help="Generate HTML map viewer at path")
     parser.add_argument("--svg", help="Generate vector SVG map at path")
     parser.add_argument("--grid", choices=["hex", "square", "none"], default="hex", help="Grid overlay type")
     parser.add_argument("--no-routes", action="store_true", help="Disable trade route paths")
     parser.add_argument("--json", action="store_true", help="Output JSON location data")
+    add_scope_arguments(parser, include_manuscript=False, include_world=True, target_pos_arg=False)
+
     args = parser.parse_args()
 
-    world_path = Path(args.world)
+    scope = parse_scope_args(args)
+    resolved_path = resolve_world_path(args.world, scope=scope)
+    world_path = resolved_path if resolved_path and resolved_path.is_dir() else Path(args.world or ".")
     resolved_name = world_path.resolve().name or "world"
-    locations = parse_world_locations(world_path)
+    locations = parse_world_locations(world_path, scope=scope)
 
     if args.json:
         print(json.dumps(locations, indent=2))

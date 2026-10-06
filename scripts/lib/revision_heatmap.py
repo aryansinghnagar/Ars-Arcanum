@@ -28,11 +28,26 @@ import re
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_dir,
+    )
 except ImportError:
     from _bootstrap import atomic_write  # type: ignore[no-redef]
+    from scope import (  # type: ignore[no-redef]
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_dir,
+    )
 
 logger = logging.getLogger("arcanum.revision_heatmap")
 
@@ -135,52 +150,150 @@ def _build_snapshot_index(snapshot_dir: Path) -> dict[str, Path]:
 
 
 def scan_manuscript_snapshots(
-    ms_dir: Path,
-    snapshot_dir: Path | None = None,
+    ms_dir: Path | str | None = None,
+    snapshot_dir: Path | str | None = None,
+    scope: Any = None,
 ) -> list[ChapterRevisionStats]:
-    """Scan all *.md chapter files in ms_dir recursively.
+    """Scan all *.md chapter files in ms_dir recursively with scope and snapshot support."""
+    target_str = resolve_manuscript_dir(ms_dir) if ms_dir else resolve_manuscript_dir()
+    if ms_dir and Path(ms_dir).exists():
+        p_ms = Path(ms_dir).resolve()
+    elif target_str and Path(target_str).exists():
+        p_ms = Path(target_str).resolve()
+    else:
+        p_ms = Path(ms_dir).resolve() if ms_dir else Path.cwd()
 
-    For each chapter, looks for a matching snapshot in snapshot_dir
-    (or ms_dir/Backups/ as default fallback).  Snapshot matching uses the
-    chapter stem name searched anywhere in snapshot_dir.
-
-    If no snapshot is found, insertions=word_count, deletions=0 (treats the
-    entire current text as new / uncompared).
-
-    Returns a list of ChapterRevisionStats sorted by rel_path.
-    """
-    ms_dir = ms_dir.resolve()
-
-    # Determine snapshot directory
-    effective_snapshot_dir = snapshot_dir or (ms_dir / "Backups")
+    p_snap = Path(snapshot_dir).resolve() if snapshot_dir else None
+    effective_snapshot_dir = p_snap or (p_ms / "Backups")
     snapshot_index = _build_snapshot_index(effective_snapshot_dir) if effective_snapshot_dir.is_dir() else {}
 
     results: list[ChapterRevisionStats] = []
 
+    if p_ms.is_file():
+        current_text = p_ms.read_text(encoding="utf-8", errors="replace")
+        wc = count_words(current_text)
+        stem = p_ms.stem
+        snapshot_path = snapshot_index.get(stem)
+        snapshot_text = snapshot_path.read_text(encoding="utf-8", errors="replace") if snapshot_path else ""
+        has_snapshot = snapshot_path is not None
+        if has_snapshot:
+            insertions, deletions = diff_line_counts(current_text, snapshot_text)
+        else:
+            insertions = wc
+            deletions = 0
+        churn_score = insertions + deletions
+        churn_ratio = churn_score / max(wc, 1)
+        results.append(
+            ChapterRevisionStats(
+                chapter=p_ms.name,
+                rel_path=p_ms.name,
+                word_count=wc,
+                insertions=insertions,
+                deletions=deletions,
+                churn_score=churn_score,
+                churn_ratio=churn_ratio,
+                has_snapshot=has_snapshot,
+                flag="",
+            )
+        )
+        return results
+
+    if scope:
+        if not isinstance(scope, EngineScope):
+            if isinstance(scope, dict):
+                from lib.scope import resolve_scope
+                scope = resolve_scope(scope).scope_filter
+            elif isinstance(scope, str):
+                from lib.scope import parse_unified_scope_string
+                p_dict = parse_unified_scope_string(scope)
+                scope = EngineScope(**p_dict)
+        scoped_chaps, scoped_scenes, _ = filter_manuscript_scope(p_ms, scope)
+        if scope.scenes and scoped_scenes:
+            for s in scoped_scenes:
+                current_text = s.content
+                wc = count_words(current_text)
+                stem = s.chapter_file.stem
+                snapshot_path = snapshot_index.get(stem)
+                snapshot_text = snapshot_path.read_text(encoding="utf-8", errors="replace") if snapshot_path else ""
+                has_snapshot = snapshot_path is not None
+                if has_snapshot:
+                    insertions, deletions = diff_line_counts(current_text, snapshot_text)
+                else:
+                    insertions = wc
+                    deletions = 0
+                churn_score = insertions + deletions
+                churn_ratio = churn_score / max(wc, 1)
+                try:
+                    rel = s.chapter_file.relative_to(p_ms)
+                except ValueError:
+                    rel = Path(s.chapter_file.name)
+                rel_str = str(rel).replace("\\", "/")
+                results.append(
+                    ChapterRevisionStats(
+                        chapter=f"{s.chapter_file.name}#sc{s.global_scene_idx}",
+                        rel_path=f"{rel_str}#sc{s.global_scene_idx}",
+                        word_count=wc,
+                        insertions=insertions,
+                        deletions=deletions,
+                        churn_score=churn_score,
+                        churn_ratio=churn_ratio,
+                        has_snapshot=has_snapshot,
+                        flag="",
+                    )
+                )
+        else:
+            for c in scoped_chaps:
+                current_text = c.scoped_content
+                wc = count_words(current_text)
+                stem = c.file_path.stem
+                snapshot_path = snapshot_index.get(stem)
+                snapshot_text = snapshot_path.read_text(encoding="utf-8", errors="replace") if snapshot_path else ""
+                has_snapshot = snapshot_path is not None
+                if has_snapshot:
+                    insertions, deletions = diff_line_counts(current_text, snapshot_text)
+                else:
+                    insertions = wc
+                    deletions = 0
+                churn_score = insertions + deletions
+                churn_ratio = churn_score / max(wc, 1)
+                try:
+                    rel = c.file_path.relative_to(p_ms)
+                except ValueError:
+                    rel = Path(c.file_path.name)
+                results.append(
+                    ChapterRevisionStats(
+                        chapter=c.file_path.name,
+                        rel_path=str(rel).replace("\\", "/"),
+                        word_count=wc,
+                        insertions=insertions,
+                        deletions=deletions,
+                        churn_score=churn_score,
+                        churn_ratio=churn_ratio,
+                        has_snapshot=has_snapshot,
+                        flag="",
+                    )
+                )
+        results.sort(key=lambda s: s.rel_path)
+        return results
+
     try:
-        all_md = sorted(ms_dir.rglob("*.md"))
+        all_md = sorted(p_ms.rglob("*.md"))
     except OSError as e:
-        logger.debug("Cannot rglob ms_dir %s: %s", ms_dir, e)
+        logger.debug("Cannot rglob ms_dir %s: %s", p_ms, e)
         return results
 
     for chapter_path in all_md:
-        # Skip hidden files
         if chapter_path.name.startswith("."):
             continue
-
-        # Skip skipped directories anywhere in the relative path
-        rel = chapter_path.relative_to(ms_dir)
+        rel = chapter_path.relative_to(p_ms)
         if any(part in _SKIP_DIRS for part in rel.parts):
             continue
-
-        # Skip snapshots themselves if they live inside ms_dir/Backups
         try:
             chapter_path.relative_to(effective_snapshot_dir)
-            continue  # this file lives inside the snapshot dir — skip it
+            continue
         except ValueError:
             pass
 
-        # Read current file
         try:
             current_text = chapter_path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError) as e:
@@ -206,7 +319,6 @@ def scan_manuscript_snapshots(
         if has_snapshot:
             insertions, deletions = diff_line_counts(current_text, snapshot_text)
         else:
-            # No snapshot: treat whole current text as new
             insertions = wc
             deletions = 0
 
@@ -542,8 +654,8 @@ def main(argv: list | None = None) -> None:
     parser.add_argument(
         "manuscript",
         nargs="?",
-        default=".",
-        help="Path to manuscript directory (default: current directory)",
+        default=None,
+        help="Path to manuscript directory (default: active manuscript or current directory)",
     )
     parser.add_argument(
         "--snapshot-dir",
@@ -574,6 +686,7 @@ def main(argv: list | None = None) -> None:
         action="store_true",
         help="Enable debug logging",
     )
+    add_scope_arguments(parser, include_world=False)
 
     args = parser.parse_args(argv)
 
@@ -582,15 +695,27 @@ def main(argv: list | None = None) -> None:
         format="%(levelname)s  %(name)s  %(message)s",
     )
 
-    ms_dir = Path(args.manuscript).resolve()
-    if not ms_dir.is_dir():
-        logger.error("Manuscript directory not found: %s", ms_dir)
-        sys.exit(1)
+    scope = parse_scope_args(args)
+    target_raw = args.manuscript or scope.manuscript or (scope.books[0] if scope.books else None)
+    if not target_raw:
+        resolved_dir = resolve_manuscript_dir()
+        ms_dir = Path(resolved_dir).resolve() if resolved_dir and Path(resolved_dir).exists() else Path(".").resolve()
+    else:
+        tp = Path(target_raw)
+        if tp.exists():
+            ms_dir = tp.resolve()
+        else:
+            resolved_dir = resolve_manuscript_dir(target_raw)
+            if resolved_dir and Path(resolved_dir).exists():
+                ms_dir = Path(resolved_dir).resolve()
+            else:
+                logger.error("Manuscript directory not found: %s", target_raw)
+                sys.exit(1)
 
     snapshot_dir = Path(args.snapshot_dir).resolve() if args.snapshot_dir else None
 
     # Scan
-    chapter_stats = scan_manuscript_snapshots(ms_dir, snapshot_dir=snapshot_dir)
+    chapter_stats = scan_manuscript_snapshots(ms_dir, snapshot_dir=snapshot_dir, scope=scope)
     if not chapter_stats:
         logger.warning("No chapter files found in %s", ms_dir)
         sys.exit(0)

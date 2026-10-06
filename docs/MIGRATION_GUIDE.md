@@ -1,6 +1,9 @@
 # Ars Arcanum Migration Guide
 
-This guide provides step-by-step instructions for migrating your manuscripts, lore bibles, and worldbuilding notes from other writing software into Ars Arcanum.
+> **The Definitive Guide to Migrating Manuscripts, Lore Bibles, and Worldbuilding Data into Ars Arcanum**  
+> *100% Offline, Open Standards, Zero Vendor Lock-in* | **Release Version:** `v5.0.0`
+
+This guide provides step-by-step instructions for importing your existing manuscripts, lore vaults, and worldbuilding notes from proprietary writing suites (Scrivener, World Anvil, Campfire, Dabble, Microsoft Word, Google Docs) into Ars Arcanum's sovereign, plain Markdown architecture.
 
 ---
 
@@ -9,7 +12,7 @@ This guide provides step-by-step instructions for migrating your manuscripts, lo
 Scrivener stores projects in proprietary `.scriv` XML/RTF bundles. To import your Scrivener manuscript into Ars Arcanum:
 
 ### Step 1: Export from Scrivener
-1. In Scrivener, go to **File $\to$ Export $\to$ Files...**
+1. In Scrivener, navigate to **File $\to$ Export $\to$ Files...**
 2. Choose **Format: Markdown (`.md`)** or **Word Document (`.docx`)**.
 3. Under *Export Options*, check **Export each document to its own file**.
 4. Save the exported folder (e.g. `~/Downloads/MyNovel_Scrivener_Export/`).
@@ -46,7 +49,7 @@ The importer preserves headings (`# Heading 1`, `## Heading 2`), dialogue italic
 
 ## 3. Migrating from Obsidian / Existing Lore Vaults
 
-Ars Arcanum world bibles are 100% standard Obsidian vaults.
+Ars Arcanum world bibles are 100% standard Obsidian vaults:
 1. Place your world vault inside your universe directory:
    ```bash
    mkdir -p ~/Universes/My-Universe/My-World
@@ -60,7 +63,23 @@ Ars Arcanum world bibles are 100% standard Obsidian vaults.
 
 ---
 
-## 4. Live Synchronization with Microsoft Word (`.docx`)
+## 4. Migrating from World Anvil / Campfire / Dabble
+
+### Step 1: Export from Web Platforms
+- **World Anvil**: Export your world as a zip of Markdown / JSON files via *Settings $\to$ Export World*.
+- **Campfire Write**: Export your project as `.docx` chapters and Character sheets.
+- **Dabble**: Export project to `.docx`.
+
+### Step 2: Ingest into World Lore Vault
+Copy your Markdown notes or `.docx` exports into `~/Universes/<Universe>/<World>/Characters/`, `Places/`, `Factions/`, etc., and run:
+```bash
+arcanum frontmatter normalize ~/Universes/My-Universe/My-World
+arcanum world-doctor My-World
+```
+
+---
+
+## 5. Live Bidirectional Synchronization with Microsoft Word (`.docx`)
 
 Once your manuscript is in Ars Arcanum, you can bidirectionally sync edits made in Microsoft Word or LibreOffice Writer:
 ```bash
@@ -71,3 +90,11 @@ arcanum docx build "My-Manuscript"
 arcanum docx sync "My-Manuscript"
 ```
 Edits are merged with three-way hash tracking and conflict isolation (`.conflict.md`).
+
+---
+
+## 6. Recommended Reading & Migration References
+
+1. **CommonMark Specification** (2021). *Standardizing Markdown syntax across platforms*.
+2. **ISO/IEC 29500-1** (2016). *Information technology — Document description and processing languages — Office Open XML File Formats*.
+3. **Bringhurst, Robert** (2012). *The Elements of Typographic Style*. Hartley & Marks.

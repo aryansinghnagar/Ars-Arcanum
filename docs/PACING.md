@@ -1,218 +1,274 @@
 # Ars Arcanum Narrative Pacing, Prose Rhythm & Tension Arc Architecture (`docs/PACING.md`)
-> **Domain E: Narrative Dynamics, Pacing, Structure & Branching** | **CLI:** `arcanum pacing` / `arcanum rhythm`
+> **Domain E: Narrative Dynamics, Pacing, Structure & Branching** | **CLI Commands:** `arcanum pacing` / `arcanum rhythm` | **Module:** `scripts/lib/pacing.py`
 
 ---
 
 ## 1. Overview & Theoretical Rationale
 
-The **Ars Arcanum Pacing Engine** (`scripts/lib/pacing.py`) is an offline mathematical and stylostatistical prose analysis suite engineered for speculative fiction novelists, narrative architects, and structural editors.
+The **Ars Arcanum Pacing Engine** (`scripts/lib/pacing.py`) is an offline mathematical, stylostatistical, and cognitive rhythm analyzer engineered for speculative fiction authors, dramatists, and narrative designers.
 
-Maintaining narrative momentum across a 100,000+ word manuscript is one of the most demanding cognitive tasks in long-form writing. Authors frequently encounter five critical architectural failure modes:
-1. **Exposition Drag & Information Dumps**: Consecutive paragraphs of static worldbuilding or internal monologue that freeze narrative clock velocity.
-2. **Monotonous Syntactic Cadence**: Uniform sentence lengths that fatigue the reader's neural processing—violating Gary Provost's foundational principle of prose rhythm ("*This sentence has five words...*").
-3. **Point-of-View (POV) Starvation**: In multi-viewpoint novels, abandoning a primary protagonist for 4–10 chapters, leading to reader disengagement and fractured narrative continuity.
-4. **Subplot Thread Decay**: Introducing secondary conflicts or B-stories in Act I that disappear until the climax without intermediate developmental milestones.
-5. **Flat Emotional Tension Arcs**: Narratives that lack rhythmic oscillation between high-tension crises and contemplative recovery sequelae, depriving readers of cathartic emotional release.
-
-The Pacing Engine solves these challenges deterministically using pure Python standard library routines, calculating sentence length variance, discrete Fourier cadence approximations, quad-mode prose distributions, and multi-track POV intervals.
-
----
-
-## 2. Mathematical, Stylostatistical & Algorithmic Foundations
+Pacing is the temporal velocity at which a story moves through dramatic information, cognitive tension, and prose cadence. A 120,000-word novel can feel sluggish and bloated or electric and propulsive depending not merely on what events occur, but on the micro-level **syntactic waveforms**, the **syllabic compression ratios**, and the macro-level **dialogue-to-exposition density**.
 
 ```mermaid
 flowchart TD
-    RawProse["Raw Chapter Markdown Prose"] --> Tokenizer["Regex Tokenizer & Clause Parser"]
-    Tokenizer --> SentenceLens["Sentence Length Vector L = [L₁, L₂, ..., Lₙ]"]
-    Tokenizer --> QuadMode["Quad-Mode Classifier (Dialogue, Action, Monologue, Exposition)"]
-    Tokenizer --> Directives["Frontmatter & Directive Extractor (@pov, @tension, @thread)"]
-    
-    SentenceLens --> VarianceCalc["Gary Provost Rhythm Variance (σ², σ)"]
-    SentenceLens --> FourierCalc["Fourier Cadence Spectral Density F(ω)"]
-    
-    QuadMode --> VelocityCalc["Narrative Velocity Index (V)"]
-    Directives --> POVStarve["POV Starvation & Subplot Momentum Matrix"]
-    
-    VarianceCalc & VelocityCalc & Directives --> CompositeTension["Composite Tension Arc Index (T ∈ [0, 100])"]
-    CompositeTension --> SVGReport["Offline Standalone SVG Pacing Report"]
+    subgraph MicroAcoustic["1. Micro-Acoustic Rhythm (Sentence-Level)"]
+        Provost["Gary Provost Waveform: Length Variance (σ², σ)"]
+        Syllabic["Syllabic Acceleration: Monosyllabic Kineticism vs Polysyllabic Contemplation"]
+    end
+
+    subgraph Mesotextual["2. Meso-Structural Dynamics (Scene-Level)"]
+        Ratio["Dialogue-to-Exposition Ratio (R_de)"]
+        Dilation["Temporal Mechanics: Scene Dilation vs Scene Compression"]
+        QuadMode["Quad-Mode Prose Distribution (Dialogue, Action, Monologue, Exposition)"]
+    end
+
+    subgraph MacroCognitive["3. Macro-Cognitive Architecture (Novel-Level)"]
+        Velocity["Narrative Velocity: V = ΔEvents / ΔWords"]
+        CognitiveLoad["Cognitive Load & Attentional Fatigue Modulation"]
+        Cliffhanger["Zeigarnik Effect & Chapter Cliffhanger Cadence"]
+    end
+
+    MicroAcoustic & Mesotextual & MacroCognitive --> Engine["Ars Arcanum Pacing Engine"]
+    Engine --> SVG["Interactive Standalone SVG Rhythm & Velocity Visualizer"]
 ```
 
-### 2.1 Gary Provost Sentence Length Variance & Standard Deviation
-To quantify musicality and rhythmic variation, the engine parses every chapter into an array of sentence word counts $L = [L_1, L_2, \dots, L_N]$:
+---
 
-$$\mu = \frac{1}{N} \sum_{i=1}^{N} L_i, \qquad \sigma^2 = \frac{1}{N} \sum_{i=1}^{N} (L_i - \mu)^2, \qquad \sigma = \sqrt{\sigma^2}$$
+## 2. Theoretical Foundations of Prose Rhythm & Cognitive Velocity
 
-- **Monotony Warning**: If $\sigma \le 3.5$ over a 500-word window, the engine flags a **Monotonous Syntax Warning**.
-- **Ideal Musical Cadence**: A target $\sigma \ge 6.5$ with a multimodal distribution containing staccato punches ($L_i \le 5$), medium declarative clauses ($10 \le L_i \le 18$), and sweeping compound descriptions ($L_i \ge 28$).
+### 2.1 Gary Provost's Syntactic Waveform Theory
+In *100 Ways to Improve Your Writing* (1985), Gary Provost immortalized the musicality of English prose with his iconic demonstration:
 
-### 2.2 Discrete Cadence Waveform & Fourier Spectral Density
-To detect repetitive length pulses (e.g., alternating strictly between short and medium sentences), the engine computes a discrete spectral decomposition:
+> *"This sentence has five words. Here are five more words. Five-word sentences are okay. No problem, but it’s dull. This sentence is quite boring. It is a slow read. See how it drones on?"*
+> 
+> *"Now listen. I vary the sentence length, and I create music. Music. The writing sings. It has a pleasant rhythm, a lilt, a harmony. I use short sentences. And I use sentences of medium length. And sometimes, when I see the reader is getting tired, I will engage him with a sentence of considerable length, a sentence that burns with energy and builds with all the impetus of a crescendo, the roll of the drums, the crash of the cymbals—sounds that say listen to this, it is important."*
 
-$$F(k) = \sum_{n=0}^{N-1} L_n \cdot e^{-i \frac{2\pi}{N} k n}$$
+Prose rhythm functions as an acoustic carrier wave for dramatic tension. When sentence lengths are uniform ($\sigma < 3.5$), the auditory cortex experiences neural habituation, inducing trance-like boredom or cognitive fatigue. Masterclass prose modulates between:
+1. **Staccato Punches ($L \le 5\text{ words}$)**: Visceral impact, sharp physical shocks, sudden realizations.
+2. **Medium Declaratives ($10 \le L \le 18\text{ words}$)**: Core narrative progression, efficient action sequences, dialogue exchanges.
+3. **Sweeping Cumulative Periods ($L \ge 28\text{ words}$)**: Worldbuilding panoramas, psychological cascades, thematic revelations.
 
-Peaks at high frequencies correspond to rhythmic staccato bursts, while dominance at zero frequency indicates flat prose density.
+### 2.2 Polysyllabic vs. Monosyllabic Acceleration
+The cognitive processing speed of English prose is directly tied to etymological and syllabic density:
 
-### 2.3 Quad-Mode Prose Distribution Model
-Every sentence or paragraph chunk is classified into one of four narrative modes:
-1. **Dialogue ($D$)**: Spoken words enclosed in straight or curly quotation marks (`"..."`, `“...”`).
-2. **Action ($A$)**: Fast-moving kinetic prose dominated by active verbs, physical movement, and short clauses ($L_i \le 9$).
-3. **Monologue ($M$)**: Internal focalized thoughts, interior reflections, and stream of consciousness.
-4. **Exposition ($E$)**: Historical lore, sensory landscape description, and abstract exposition without immediate character physical agency.
+- **Monosyllabic Anglo-Saxon Roots**: High kinetic velocity ($> 80\%$ monosyllables). Words like *run, strike, bleed, cold, dark, smash, grasp* bypass secondary phonological abstraction, triggering direct motor cortex activation. Essential for close-quarters combat, immediate flight, and visceral horror.
+- **Polysyllabic Latinate/Hellenic Roots**: Low kinetic velocity, high cognitive depth ($> 30\%$ trisyllabic or quadrisyllabic terms). Words like *metamorphosis, incomprehensible, ecclesiastical, stratification* induce contemplative deceleration. Essential for arcane thaumaturgy, philosophical disputation, and high-altitude historical lore.
 
-The mode ratios satisfy:
-$$D_r + A_r + M_r + E_r = 1.0, \quad \text{where } X_r = \frac{\text{Word Count in Mode } X}{\text{Total Chapter Word Count}}$$
+### 2.3 Dialogue-to-Exposition Density Ratio ($R_{\text{de}}$)
+The ratio between spoken dialogue and static exposition governs perceived scene velocity:
 
-### 2.4 Narrative Velocity Index ($V$)
-The instantaneous velocity of a scene is calculated by balancing kinetic elements against descriptive friction:
+$$R_{\text{de}} = \frac{W_{\text{dialogue}}}{W_{\text{exposition}} + 1.0}$$
 
-$$V = \frac{\alpha \cdot A_r + \beta \cdot D_r}{\gamma \cdot E_r + \delta \cdot \bar{L}_{\text{clause}} + \epsilon}$$
+- **Kinetic Dramatic Velocity ($R_{\text{de}} \ge 2.5$)**: The scene moves in objective real-time ($1\text{ s} \approx 1\text{ s}$). High interpersonal conflict, interrogation, banter.
+- **Balanced Dramatic Velocity ($0.8 \le R_{\text{de}} \le 2.4$)**: Standard novelistic scene blending physical interaction with sensory observation.
+- **Narrative Deceleration / Historical Stasis ($R_{\text{de}} < 0.3$)**: The narrative clock stops; authorial exposition or internal monologue dominates.
 
-Where $\alpha = 1.5$, $\beta = 1.2$, $\gamma = 2.0$, $\delta = 0.05$, and $\epsilon = 0.1$ are empirically calibrated weights. High velocity ($V > 2.5$) denotes rapid combat or escape sequences; low velocity ($V < 0.6$) signals quiet worldbuilding exposition or contemplative sequelae.
+### 2.4 Temporal Mechanics: Scene Dilation vs. Scene Compression
+- **Scene Dilation (Chronos Expansion)**: Slowing down narrative time during high-adrenaline climaxes. 10 seconds of physical time is rendered across 800 words of hyper-sensory detail (the glint of light on the blade, the slow arc of shattered glass, the exact contraction of the antagonist's pupil).
+- **Scene Compression (Chronos Contraction)**: Accelerating narrative time across transitional intervals. Three years of maritime travel or ten months of academic training compressed into a single lyrical paragraph using temporal summary and representative vignettes.
 
-### 2.5 POV Starvation Distance Metric
-For each viewpoint protagonist $p \in P$ appearing at chapter indices $C_p = [c_1, c_2, \dots, c_m]$ across total chapters $K$:
+### 2.5 Cognitive Load Theory & Reader Attentional Capacity
+Human working memory operates under a finite attentional budget ($7 \pm 2$ discrete cognitive chunks, per George A. Miller). Continuous, unrelieved high-intensity action causes **sensory numbing**: when everything is an emergency, nothing is. Effective narrative architecture enforces rhythmic oscillation:
 
-$$G_k(p) = c_{j} - c_{j-1} - 1$$
+$$\text{Tension Waveform} = \sin(\omega t) \cdot \text{StakesGradient}(t)$$
 
-$$\text{POV Starvation Trigger} \iff \exists j \text{ s.t. } G_k(p) \ge \Theta_{\text{starve}} \quad (\text{Default } \Theta_{\text{starve}} = 3 \text{ chapters for major POVs})$$
+Post-climax sequels and moments of humor or domestic tranquility reset the reader's neurological baseline, allowing the next crisis to strike with maximum amplitude.
 
-### 2.6 Composite Narrative Tension Arc Index ($T \in [0, 100]$)
-The composite tension score per chapter combines semantic conflict keywords, syntactic velocity, dialogue density, and explicit author directives:
+### 2.6 The Zeigarnik Effect & Chapter Cliffhanger Cadence
+Psychologist Bluma Zeigarnik established that human memory prioritizes interrupted, unresolved tasks over completed ones. Narrative momentum relies on maintaining open **Hermeneutic Loops** across chapter boundaries:
+- **Micro-Cliffhanger**: An unresolved action or sensory anomaly at the chapter close (e.g., a hand knocking on the hull from the *outside* of a vacuum-sealed starship).
+- **Epistemic Hook**: A shocking disclosure that overturns existing assumptions (e.g., finding the mentor's seal on the assassin's dispatch).
+- **Moral / Tactical Dilemma**: The protagonist poised on the razor's edge of an irreversible decision.
 
-$$T = \min\left(100.0, \max\left(0.0, \, w_1 \cdot K_d + w_2 \cdot S_{\text{staccato}} + w_3 \cdot D_f + \Omega_{\text{directive}}\right)\right)$$
+---
+
+## 3. Mathematical & Stylostatistical Formulations
+
+```mermaid
+xychart-beta
+    title "Sentence Length Provost Waveform (Words per Sentence across Scene)"
+    x-axis ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12"]
+    y-axis "Sentence Length (Words)" 0 --> 40
+    line [5, 4, 18, 14, 3, 32, 12, 6, 2, 24, 15, 4]
+```
+
+### 3.1 Narrative Velocity Metric ($V$)
+The global narrative velocity across a chapter or sequence is defined as the rate of state-altering dramatic events per thousand words:
+
+$$V = \frac{\Delta \mathcal{E}}{W / 1000} = \frac{\sum_{i=1}^M \omega_i \cdot \delta_i}{W / 1000}$$
 
 Where:
-- $K_d$: Conflict keyword density (battle, dread, peril, ticking clock, urgency lexemes).
-- $S_{\text{staccato}}$: Percentage of sentences with $L_i < 8$ words.
-- $D_f$: Dialogue friction (frequency of short, alternating verbal rejoinders and interruptions).
-- $\Omega_{\text{directive}}$: Authorial frontmatter boosts (`@tension: 8.5` $\to +85.0$, `@climax: true` $\to +25.0$).
+- $\delta_i \in \{0, 1\}$: Occurrence of dramatic event $i$ (secret revealed, character killed, goal failed, alliance broken).
+- $\omega_i \in [1.0, 3.0]$: Dramatic magnitude weight of the event.
+- $W$: Total word count of the section.
+
+- **Fast Velocity ($V \ge 4.0$)**: Thriller, climax, escape sequence.
+- **Moderate Velocity ($1.5 \le V \le 3.9$)**: Standard commercial fantasy/sci-fi worldbuilding and investigation.
+- **Glacial / Contemplative ($V < 1.0$)**: Character study, pastoral slice-of-life, heavy philosophical digression.
+
+### 3.2 Provost Rhythm Variance & Dispersion ($\sigma^2, \sigma$)
+For a sentence sequence $L = [L_1, L_2, \dots, L_N]$:
+
+$$\mu_L = \frac{1}{N} \sum_{i=1}^N L_i, \qquad \sigma_L = \sqrt{\frac{1}{N} \sum_{i=1}^N (L_i - \mu_L)^2}$$
+
+$$\text{Rhythm Health Index } \mathcal{R} = \min\left(100.0, \, \frac{\sigma_L}{\sigma_{\text{target}}} \times 100.0\right) \quad (\sigma_{\text{target}} \approx 7.5\text{ words})$$
+
+### 3.3 Fourier Cadence Spectral Density ($F(k)$)
+To detect artificial, mechanical cadence loops (e.g., rigidly alternating between 6-word and 20-word sentences), the engine computes the Discrete Fourier Transform (DFT) of the sentence length series:
+
+$$F(k) = \sum_{n=0}^{N-1} L_n \cdot e^{-i \frac{2\pi}{N} k n}, \quad k = 0, 1, \dots, N-1$$
+
+Dominance of specific non-zero frequencies indicates unnatural rhythmic pulsing, whereas a balanced pink-noise spectral distribution characterizes natural, masterclass prose music.
+
+### 3.4 Quad-Mode Prose Distribution Vector ($\vec{Q}$)
+Every sentence is categorized into one of four fundamental narrative modes:
+$$\vec{Q} = \left[ \frac{W_{\text{Dialogue}}}{W_{\text{total}}}, \, \frac{W_{\text{Action}}}{W_{\text{total}}}, \, \frac{W_{\text{Monologue}}}{W_{\text{total}}}, \, \frac{W_{\text{Exposition}}}{W_{\text{total}}} \right]$$
+
+$$\sum Q_i = 1.0$$
+
+| Target Scenario | Ideal Quad-Mode Profile $[D, A, M, E]$ |
+|---|---|
+| **Urban Fantasy Set-Piece** | $[0.35, 0.45, 0.10, 0.10]$ |
+| **Hard Sci-Fi Investigation** | $[0.30, 0.20, 0.25, 0.25]$ |
+| **Epic Fantasy Battle** | $[0.15, 0.60, 0.15, 0.10]$ |
+| **Gothic Psychological Horror** | $[0.10, 0.25, 0.40, 0.25]$ |
 
 ---
 
-## 3. Subfeatures Matrix
-
-| Subfeature | Algorithmic Mechanism | Diagnostic Output / Rule | Narrative Significance |
-|---|---|---|---|
-| **Provost Rhythm Variance** | Calculates rolling standard deviation $\sigma$ across sentence lengths. | Flags $\sigma < 3.5$ as `MONOTONOUS_CADENCE`. | Prevents reader fatigue by ensuring sentence lengths undulate dynamically. |
-| **Quad-Mode Prose Classifier** | Tokenizes text into Dialogue, Action, Monologue, and Exposition buckets. | Generates four-bar proportional density breakdown per chapter. | Surfaces hidden exposition traps and dialogue droughts. |
-| **POV Starvation Auditor** | Tracks inter-chapter intervals for all `@pov:` tags. | Flags gap $> 3$ chapters for characters with $>10\%$ word count share. | Prevents reader alienation caused by forgotten viewpoint characters. |
-| **Subplot Momentum Tracker** | Constructs a 2D matrix of `@thread:` tags vs. chapter indices. | Detects stalled subplots unadvanced for $> 4$ consecutive chapters. | Guarantees balanced multi-strand narrative progression across all acts. |
-| **Tension Arc Curve Modeler** | Synthesizes syntactic velocity and conflict keywords into a continuous curve. | Emits normalized SVG tension curve with peak/valley annotations. | Visualizes whether pacing aligns with structural climaxes and recovery phases. |
-| **Staccato Action Burst Detector**| Identifies runs of $\ge 4$ sentences with word count $\le 7$. | Flags `STACCATO_BURST` with word-count timestamps. | Highlights high-impact moments of kinetic shock or physical crisis. |
-| **Exposition Drag Flag** | Detects blocks of $> 400$ words without dialogue or action verbs. | Flags `EXPOSITION_DRAG_SAG` with line number references. | Highlights narrative bottlenecks where lore dumps stall plot momentum. |
-
----
-
-## 4. Author Extension & Configuration Guide
-
-### 4.1 In-Situ Scene Directives (Markdown)
-Authors annotate chapter drafts with lightweight `@directives` placed in headers or comments:
-
-```markdown
-# Chapter 14: The Iron Breach
-@pov: Seraphine Dusk
-@thread: Siege-of-Kharos, Bloodline-Curse
-@tension: 8.8
-@mode: action
-@climax: true
-
-The gate shattered. Iron groaned. Wood split into jagged teeth.
-Seraphine drew her blade. "Form the line!" she yelled.
-No one moved. Fear had turned their boots to stone.
-```
-
-### 4.2 Project Configuration Manifest (`arcanum.yaml`)
-Custom thresholds, keyword dictionaries, and POV tiers can be declared in `arcanum.yaml`:
-
-```yaml
-pacing:
-  pov_starvation_threshold: 4          # Max allowable chapter gap before warning
-  min_sentence_variance_std: 4.0        # Minimum Provost standard deviation
-  staccato_threshold: 7                 # Max word count for staccato sentences
-  exposition_max_block_words: 350       # Flag lore dumps exceeding this size
-  custom_conflict_keywords:
-    - "blood-tithe"
-    - "breach"
-    - "overcharge"
-    - "containment"
-  major_pov_share_threshold: 0.08      # Character is major if share > 8%
-```
-
-### 4.3 Pure Python API Integration
-```python
-from lib.pacing import analyze_manuscript_pacing, generate_pacing_report
-
-# Run deterministic pacing audit across manuscript directory
-report = analyze_manuscript_pacing("Manuscript/", gap_threshold=3)
-
-for chapter in report.chapters:
-    print(f"Chapter {chapter.number}: {chapter.title}")
-    print(f"  Words: {chapter.word_count} | Provost StdDev: {chapter.sentence_std:.2f}")
-    print(f"  Quad-Mode: D:{chapter.dialogue_pct:.1f}% A:{chapter.action_pct:.1f}% E:{chapter.exposition_pct:.1f}%")
-    print(f"  Tension Index: {chapter.tension_score:.1f}/100")
-
-# Generate standalone offline HTML/SVG report
-html_content = generate_pacing_report(report)
-with open("pacing_audit.html", "w", encoding="utf-8") as f:
-    f.write(html_content)
-```
-
----
-
-## 5. Command-Line Interface (CLI) Reference
-
-```bash
-# Scan full manuscript pacing with terminal summary
-arcanum pacing Manuscript/
-
-# Set custom POV starvation gap threshold (e.g. 2 chapters for tight thrillers)
-arcanum pacing Manuscript/ --gap 2
-
-# Filter analysis to a specific volume in a multi-book series
-arcanum pacing Manuscript/ --book Book-01
-
-# Export standalone offline interactive HTML report with SVG curves
-arcanum pacing Manuscript/ --html reports/pacing_report.html
-
-# Output raw JSON stream for CI/CD linting or script pipelines
-arcanum pacing Manuscript/ --json
-
-# Query the Gary Provost mathematical logic and theoretical rationale
-arcanum doc pacing --math --why
-```
-
----
-
-## 6. Tri-Fold Creative Advisory Resolutions
-
-When the Pacing Engine triggers an alert, authors are offered three actionable resolution pathways:
+## 4. Ars Arcanum Engine & CLI Architecture
 
 ```mermaid
-flowchart TD
-    Alert["Pacing Alert: MONOTONOUS_CADENCE (σ = 2.8)"] --> PathA["Path A: Hard Realism / Classical Craft"]
-    Alert --> PathB["Path B: Speculative / Diegetic Trope"]
-    Alert --> PathC["Path C: Authorial Sovereignty"]
+flowchart LR
+    ChapterMD["Chapter Markdown"] --> Parser["Regex Sentence & Clause Parser"]
+    Parser --> ProvostEngine["Provost Waveform & σ Calculator"]
+    Parser --> QuadEngine["Quad-Mode Classifier"]
+    Parser --> CliffEngine["Zeigarnik Cliffhanger Auditor"]
     
-    PathA --> SolA["Break compound sentences into staccato punches; inject dialogue interruptions."]
-    PathB --> SolB["Justify uniform cadence as an artificial AI voice, drone chant, or hypnotic trance."]
-    PathC --> SolC["Suppress warning via @pacing: deliberate_hypnotic or frontmatter ignore tag."]
+    ProvostEngine & QuadEngine & CliffEngine --> Report["Pacing Diagnostics & SVG Visualizer"]
 ```
 
-### Scenario: Monotonous Cadence & Low Variance Warning ($\sigma < 3.5$)
-- **Path A (Classical Craft / High Dynamic Range)**:
-  - Deconstruct long compound sentences into sharp 3-to-5 word impact statements.
-  - Insert abrupt physical actions or dialogue interjections to disrupt syntactic drone.
-- **Path B (Speculative / Diegetic Trope)**:
-  - Justify the monotone cadence as an in-world cognitive state: the viewpoint character is an automaton, under telepathic sedation, or reciting ancient liturgy.
-- **Path C (Authorial Sovereignty)**:
-  - Declare deliberate stylistic monotony (e.g., replicating biblical prose or bureaucratic legalism). Tag scene with `@pacing: chant_cadence` to mute warnings.
+### 4.1 CLI Command Reference
+
+```powershell
+# Run pacing and rhythm audit on full manuscript
+arcanum pacing Manuscript/
+
+# Inspect sentence length waveform and Provost variance for a specific chapter
+arcanum rhythm Manuscript/Act_1/Chapter_03.md
+
+# Generate interactive SVG tension waveform and quad-mode distribution report
+arcanum pacing Manuscript/ --html reports/pacing_dashboard.html
+```
+
+### 4.2 Diagnostic Codes Matrix
+
+| Code | Severity | Description | Remediating Action |
+|---|---|---|---|
+| `PAC-101` | **HIGH** | Monotonous Syntactic Cadence ($\sigma_L \le 3.2$) | Vary sentence lengths: combine short declaratives with compound-complex periods; inject 1-3 word staccato lines. |
+| `PAC-102` | **HIGH** | Exposition Drag / Lore Dump ($W_{\text{exposition}} > 450\text{ words}$ uninterrupted) | Break exposition blocks with character dialogue, immediate physical action, or sensory reactions. |
+| `PAC-103` | **MEDIUM** | Flatline Narrative Velocity ($V < 0.8$) | Introduce an active obstacle, reveal a hidden motive, or advance the ticking clock. |
+| `PAC-104` | **MEDIUM** | Missing Zeigarnik Hook at Chapter Close | End the chapter on an unresolved physical crisis, shocking disclosure, or irrevocable dilemma. |
+| `PAC-105` | **LOW** | Low Dialogue-to-Exposition Ratio ($R_{\text{de}} < 0.25$) in High-Stakes Scene | Dramatize internal revelations through verbal confrontation or interrogation. |
+| `PAC-106` | **MEDIUM** | POV Starvation (Protagonist missing for $> 4\text{ chapters}$) | Rebalance chapter rotation; interleave brief POV interludes or reorder subplot sequence. |
+| `PAC-107` | **LOW** | Syllabic Sluggishness in Action Beat ($> 28\%$ polysyllabic words) | Replace Latinate terms (*extinguish, terminate, accelerate*) with Anglo-Saxon verbs (*snuff, kill, sprint*). |
 
 ---
 
-## 7. Content Security Policy & Air-Gap Offline Isolation
+## 5. Practical Authorial Worksheets & Worked Masterclass Examples
 
-In strict compliance with the **Ars Arcanum Sovereign Authoring Operating System Manifesto**, all HTML pacing reports and SVG visualizations execute 100% offline with zero CDN dependencies:
+### 5.1 Step-by-Step Pacing & Waveform Transformation Case Study
 
-```html
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
+#### Flawed Amateur Draft (Monotonous Cadence, Syllabic Drag, Low Velocity):
+> Kaelen walked toward the subterranean command center. The steel doors were exceedingly impenetrable and heavily reinforced. He examined the complex biometric console with great trepidation. The electronic display requested his authorization code immediately. He remembered the numerical sequence from his briefing. He typed the digits into the terminal carefully. The green light illuminated above the door frame. He walked inside the room to confront the enemy.
+
+**Stylostatistical Diagnostics:**
+- Word count: 68 words | 8 sentences | $\mu = 8.5\text{ words}$ | $\sigma = 1.6\text{ words}$ (**SEVERE MONOTONY — PAC-101**).
+- Syllabic profile: High polysyllabic density (*subterranean, impenetrable, trepidation, authorization, illuminated*).
+- Dramatic velocity: Flatline ($V \approx 0.0$).
+
+#### Masterclass Revision (Dynamic Provost Waveform, Monosyllabic Kineticism, High Velocity):
+> The vault door loomed. *(4 words)*  
+> Cold, riveted titanium, three feet thick, sealed against orbital bombardment. *(10 words)*  
+> Kaelen pressed his trembling palm to the biometric scanner, smelling scorched copper as the laser sliced across his retina, reading the stolen retinal code that Inquisitor Vane had bled to give him. *(32 words)*  
+> A red strobe pulsed. *(4 words)*  
+> *Access Denied.* *(2 words)*  
+> Down the steel corridor, boot-spikes scraped the grated floor; the Praetorian kill-squad was thirty seconds out, weapons charged, zero margin left for prayer. *(23 words)*  
+> Kaelen drew his blade. *(4 words)*
+
+**Stylostatistical Improvements:**
+- Word count: 79 words | 7 sentences | Sentence lengths: $[4, 10, 32, 4, 2, 23, 4]$.
+- Mean $\mu = 11.3\text{ words}$ | Standard Deviation $\sigma = 10.9\text{ words}$ (**VIRTUOSIC PROVOST CADENCE**).
+- Monosyllabic Anglo-Saxon bursts mixed with expansive sensory periods.
+
+---
+
+### 5.2 Chapter Pacing & Tension Blueprint (YAML Schema)
+
+```yaml
+---
+chapter_id: "CH-09-THE-BREACH"
+word_count_target: 3200
+target_velocity_grade: "HIGH"
+
+rhythm_targets:
+  provost_sigma_min: 7.0
+  max_uninterrupted_exposition_words: 150
+  target_r_de_ratio: 1.8
+
+quad_mode_allocation:
+  dialogue_pct: 0.35
+  action_pct: 0.40
+  monologue_pct: 0.15
+  exposition_pct: 0.10
+
+tension_curve_milestones:
+  - position: "0% - 15%"
+    tension: 40
+    pacing_mode: "Atmospheric Setup & Looming Threat"
+  - position: "15% - 60%"
+    tension: 75
+    pacing_mode: "Stealth Infiltration (Staccato Action + Urgent Dialogue)"
+  - position: "60% - 85%"
+    tension: 95
+    pacing_mode: "Trap Sprung (Scene Dilation, Adrenaline Peaks)"
+  - position: "85% - 100%"
+    tension: 90
+    pacing_mode: "Pyrrhic Escape & Zeigarnik Cliffhanger"
+
+zeigarnik_hook:
+  type: "EPISTEMIC_SHOCK"
+  description: "Protagonist opens the recovery pod to find the target is already a cybernetic sleeper agent."
+---
 ```
+
+---
+
+## 6. Recommended Reading, References & Media
+
+### 6.1 Foundational Craft & Academic Books
+- **Provost, Gary (1985)**. *100 Ways to Improve Your Writing*. Mentor / Penguin. ISBN: 978-0451627216.  
+  *The foundational treatise introducing sentence length variance, acoustic prose waveforms, and dynamic rhythmic variety.*
+- **Stein, Sol (1995)**. *Stein on Writing: A Master Editor of Some of the Most Successful Writers of Our Century Shares His Craft and Techniques*. St. Martin's Griffin. ISBN: 978-0312136086.  
+  *Authoritative chapters on narrative pace, immediate scenes versus summary, triage of exposition, and increasing tension on every page.*
+- **Clark, Roy Peter (2006)**. *Writing Tools: 55 Essential Strategies for Every Writer*. Little, Brown and Company. ISBN: 978-0316014984.  
+  *Crucial insights on sentence branch topology (right-branching vs. periodic), speed-reading psychology, and verb-level acceleration.*
+- **Bell, James Scott (2014)**. *Write Your Novel From The Middle: A New Approach for Plotters, Pantsers and Everyone in Between*. Compendium Press. ISBN: 978-0910355155.  
+  *The structural mirror moment as the ultimate pacing pivot point in long-form speculative fiction.*
+- **Murch, Walter (2001)**. *In the Blink of an Eye: A Perspective on Film Editing* (2nd ed.). Silman-James Press. ISBN: 978-1879505629.  
+  *The landmark cinematic treatise on pacing, cut rhythms, blink-rate cognitive synchronization, and emotional velocity.*
+
+### 6.2 Landmark Lectures, Video Masterclasses & Podcasts
+- **Sanderson, Brandon (2020)**. *BYU Creative Writing Lecture 5: Pacing, Micro-Tension, and the Promise-Progress-Payoff Cycle*. Brigham Young University / YouTube.  
+  *Explains how character sense of progress directly dictates perceived pacing, regardless of raw word count or page length.*
+- **Writing Excuses (2010–2021)**. *Season 5 & Season 12: Pacing, Scene Dilation, and Narrative Momentum*. Featuring Brandon Sanderson, Mary Robinette Kowal, Howard Tayler, and Dan Wells.  
+  *Workshops on managing multi-POV novel pacing, preventing the sagging middle, and editing for acoustic musicality.*
+- **Film Courage (2018–2023)**. *Masterclass Series on Narrative Pacing, Suspense Waves, and Tension Escalation*. YouTube Video Essay Archive.  
+  *Interviews with top Hollywood editors and script doctors on micro-cliffhangers, temporal compression, and eliminating narrative drag.*
+
+### 6.3 Landmark Speculative Fiction Case Studies
+- **Gibson, William (1984)**. *Neuromancer*. Ace Books.  
+  *Masterclass in high-velocity monosyllabic prose rhythm, staccato syntax, and sensory density.*
+- **Crichton, Michael (1990)**. *Jurassic Park*. Alfred A. Knopf.  
+  *The gold standard of commercial thriller pacing: short chapters, accelerating Zeigarnik cliffhangers, and perfect oscillation between exposition and chaos.*
+- **Leckie, Ann (2013)**. *Ancillary Justice*. Orbit.  
+  *Virtuosic modulation between expansive, contemplative imperial space opera exposition and razor-sharp, staccato tactical combat.*

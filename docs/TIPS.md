@@ -1,138 +1,203 @@
-# Dynamic Intelligent Tips & Craft Wisdom Engine (`docs/TIPS.md`)
+# Dynamic Intelligent Tips & Ambient Craft Wisdom Engine (`docs/TIPS.md`)
 > **Core Authoring & Knowledge Discovery Engine** | **CLI:** `arcanum tip` / `arcanum tips`
 
 ---
 
 ## 1. Overview & Theoretical Rationale
 
-The **Dynamic Intelligent Tip Engine** (`scripts/lib/tips.py`) is an ambient, non-intrusive craft and technical discovery system engineered for speculative fiction authors, narrative designers, and worldbuilders.
+The **Ars Arcanum Dynamic Intelligent Tip Engine** (`scripts/lib/tips.py`) is an ambient, non-intrusive craft intelligence and technical discovery system engineered for speculative fiction novelists, narrative designers, worldbuilders, and dramaturgs.
 
-Modern creative operating systems contain hundreds of advanced mathematical, scientific, and dramaturgical features across 50+ domain engines. However, authors frequently experience feature blindness:
-1. **Unused Craft Capabilities**: Powerful subfeatures (e.g. Roche limit disruption formulas, orographic rain shadows, Gresham's law debasement triggers, Novikov self-consistency loop checks) remain undiscovered because they reside deep in technical documentation.
-2. **Context Mismatch**: Generic tips ("Remember to show, don't tell") waste authorial attention and feel patronizing.
-3. **Intrusive Popups**: Modal interruptions break flow state and drafting velocity.
+Modern creative operating systems encapsulate hundreds of specialized mathematical, physical, linguistic, and structural capabilities across 50+ domain engines. However, authors frequently experience cognitive friction and "feature blindness":
+1. **Unused Specialized Capabilities**: Powerful analytical subfeatures (e.g. Roche limit disruption formulas, orographic rain shadow thermodynamics, Gresham's law currency debasement triggers, Novikov self-consistency causality loops, Fitts tension arcs) remain underutilized because they reside deep in technical documentation.
+2. **Context-Free Clichés**: Generic writing advice ("Show, don't tell", "Kill your darlings") feels patronizing and provides zero actionable value during deep drafting or complex astrophysics calculations.
+3. **Flow-Breaking Modals**: Intrusive popup dialogs shatter the author's psychological flow state and creative immersion.
 
-The Ars Arcanum Tip Engine solves this with **videogame loading-screen style ambient presentation** that is:
-- **Intelligently Contextual**: Automatically surfaces tips specifically relevant to the engine, subfeature, or drafting task the author is currently performing.
-- **Strictly Non-Obvious & High-Value**: Curates masterclass craft insights, mathematical equations, narrative psychology, and cross-domain synergies rather than elementary advice.
-- **Non-Intrusive**: Rendered seamlessly in CLI command footers, Studio Hub top badges, and Zen Studio collapsible drawers.
-- **100% Author Sovereignty**: Easily toggled on or off globally via CLI (`arcanum tip --disable`), Studio Hub settings, or configuration files.
+```
++-------------------------------------------------------------------------------+
+|                    ARS ARCANUM AMBIENT TIP ENGINE                             |
+|                                                                               |
+|  +--------------------+     Context Vector Engine     +--------------------+  |
+|  | Active Activity /  | ----------------------------> | Multidimensional   |  |
+|  | Engine Command     |                               | Relevance Scoring  |  |
+|  +--------------------+                               +--------------------+  |
+|            |                                                    |             |
+|            v                                                    v             |
+|  [Pillar & Subfeature Match]                          [LRU History Filter]    |
+|  (Astrophysics, Conlang, Pacing)                      (Zero-Stall Variety)    |
+|            |                                                    |             |
+|            +----------------------------------------------------+             |
+|                                     |                                         |
+|                                     v                                         |
+|                   +-----------------------------------+                       |
+|                   |  Ambient Presentation Rails       |                       |
+|                   |  - CLI Command Footers            |                       |
+|                   |  - Studio Hub Top Banner Badges   |                       |
+|                   |  - Zen Studio Collapsible Drawer  |                       |
+|                   +-----------------------------------+                       |
+|                                     |                                         |
+|                                     v                                         |
+|                     [Masterclass Craft Discovery]                             |
+|                     [100% Sovereign Author Control]                           |
++-------------------------------------------------------------------------------+
+```
+
+The Tip Engine implements a **Videogame Loading-Screen Ambient Discovery Model**: delivering high-density, mathematically rigorous craft wisdom and tool shortcuts exactly when and where they are relevant, with zero modal interruptions and complete author sovereignty.
 
 ---
 
-## 2. Tip Metadata Architecture & Retrieval Mechanics
+## 2. Mathematical Formalism & Contextual Scoring
 
 ```mermaid
 flowchart TD
-    Activity["Active Craft Activity / Engine Command<br><i>(e.g., climate, orographic_rain_shadow)</i>"] --> QueryVector["Context Query Vector<br><i>[engine, subfeature, tags, context, depth]</i>"]
+    Activity["Active Command / Activity: (Engine: 'climate', Subfeature: 'Orographic Shadow')"] --> QueryVector["Context Query Vector u = (e, sf, k, d)"]
     
-    Database[("Tip Database (128+ Masterclass Tips)<br><i>all 51 engines & 117 subfeatures</i>")] --> Evaluator["Multidimensional Scoring & Ranking Engine"]
-    QueryVector --> Evaluator
+    QueryVector --> Scorer["Multidimensional Scoring Function Score(t_i, u)"]
+    TipDB[("Master Tip Database (128+ Masterclass Tips)")] --> Scorer
     
-    History[("LRU Session History")] --> Differencer["History Set Differencer (Zero-Stall Cycling)"]
-    Evaluator --> Differencer
+    Scorer --> HistoryFilter["LRU Session History Filter (Tips \ H_s)"]
+    HistoryFilter --> Ranker["Top-K Candidate Ranker"]
     
-    Differencer --> ConfigCheck{"Tips Enabled in Config?"}
-    ConfigCheck -->|Yes| Presentation["Ambient Presentation Rails<br><i>CLI Footer / Studio Hub Badge / Zen Drawer</i>"]
-    ConfigCheck -->|No| Silent["Silent Pass-through"]
+    Ranker --> ConfigCheck{"Tips Enabled in ~/.arcanum/config.yaml?"}
+    ConfigCheck -->|Yes| Output["Ambient Output (CLI Footer / Studio Hub Badge)"]
+    ConfigCheck -->|No| Suppress["Silent Pass-Through (0 Overhead)"]
 ```
 
-### 2.1 Tip Specification Schema
-Every tip in the database is defined with structured metadata:
-- **`id`**: Unique identifier (e.g. `tip_astrophysics_roche_limit`).
-- **`engine`**: Canonical engine name (e.g. `astrophysics`, `climate`, `conlang`, `magic_system`).
-- **`feature`** & **`subfeature`**: Specific tool capabilities (e.g. `Roche Limit & Planetary Rings`, `Orographic Rain Shadow`).
-- **`category`**: `craft`, `core`, or `utility`.
-- **`pillar`**: Domain pillar (`cosmology_physics`, `society_systems`, `narrative_chronology`, `editorial_craft`, `manuscript_drafting`, `system_ops`).
-- **`title`**: Concise, evocative headline.
-- **`content`**: Actionable craft or technical advice.
-- **`rationale`**: The mathematical, scientific, or dramaturgical principle underpinning the tip.
-- **`example`**: Concrete in-universe or manuscript demonstration.
-- **`tags`**: Keyword index for fuzzy retrieval and cross-domain bridges.
-- **`depth`**: `intermediate`, `advanced`, or `masterclass`.
-- **`weight`**: Relative retrieval priority.
+### 2.1 Multidimensional Relevance Scoring Formula
+When a command is executed, a query vector $\mathbf{u} = \big(u_{\text{engine}}, \, u_{\text{subfeature}}, \, u_{\text{tags}}, \, u_{\text{depth}}\big)$ is evaluated against all database tips $\mathbf{t}_i$:
 
-### 2.2 Multidimensional Token & Subfeature Scoring
-When a tip query $\mathbf{u} = (\text{engine}, \text{subfeature}, \text{context}, \text{query})$ is executed:
+$$\text{Score}(\mathbf{t}_i, \mathbf{u}) = w_e \cdot \mathbb{I}(e_i = u_e) + w_{sf} \cdot \operatorname{Jaccard}(sf_i, u_{sf}) + w_k \cdot \left| \text{Tags}_i \cap \text{Toks}(\mathbf{u}) \right| + w_d \cdot \mathcal{W}_{\text{depth}}(d_i, u_d)$$
 
-$$\text{Score}(\mathbf{t}_i, \mathbf{u}) = w_e \cdot \mathbb{I}(e_i = u_e) + w_{sf} \cdot \text{Sim}(sf_i, u_{sf}) + w_k \cdot |\text{Tags}_i \cap \text{Toks}(\mathbf{u})| + w_d \cdot \text{DepthWeight}_i$$
+Where:
+- $w_e = 50.0$: Weight for exact engine domain match.
+- $w_{sf} = 25.0$: Weight for subfeature alignment.
+- $w_k = 8.0$: Weight per overlapping keyword tag.
+- $w_d = 10.0$: Weight for requested depth level (`intermediate`, `advanced`, `masterclass`).
 
-- **Exact Engine Match**: $+50.0$ points.
-- **Subfeature Token Overlap**: $+20.0$ points per matching keyword.
-- **Cross-Domain Tag Matches**: $+8.0$ points.
-- **Context Overlap** (e.g. `drafting`, `worldbuilding`, `revision`): $+12.0$ points.
+### 2.2 Zero-Stall Session History Cycling ($H_s$)
+To prevent repetitive tip fatigue, the engine maintains an ephemeral session history set $H_s \subset \text{Database}$. Candidates are selected exclusively from the complement set $\text{Database} \setminus H_s$:
 
-### 2.3 Zero-Stall History Cycling
-To prevent repetitive tip fatigue, the database maintains a session history set $H_s$. Candidate tips are drawn from $\text{Tips} \setminus H_s$. When all relevant tips in a category have been shown, $H_s$ automatically clears, guaranteeing seamless variety.
+$$\text{Selection Candidate Set}: \quad \mathcal{S}_{\text{candidates}} = \begin{cases} \text{Database} \setminus H_s & \text{if } |\text{Database} \setminus H_s| > 0 \\ \text{Database} \quad (\text{Reset } H_s \gets \emptyset) & \text{if exhaustively cycled} \end{cases}$$
 
 ---
 
-## 3. CLI Command Reference
+## 3. Tip Taxonomy Across the 6 System Pillars
 
-### Display Contextual Tips
-```bash
-# Get a random high-value tip across the ecosystem
-python -m scripts.lib.cli tip
+| Pillar Code | Domain Pillar | Primary Topics & Mathematical Engines | Example Masterclass Craft Focus |
+|---|---|---|---|
+| **P1** | **Cosmology & Physics** | `astrophysics`, `climate`, `cosmology`, `journey` | Roche limit tidal disruption, Coriolis storm bands, Keplerian orbital resonance. |
+| **P2** | **Society & Systems** | `economy`, `factions`, `governance`, `tactical_sim` | Gresham's law currency debasement, feudal levy logistics, lanchester combat laws. |
+| **P3** | **Narrative & Chronology**| `timeline_sync`, `plot_matrix`, `pacing`, `concordance`| Novikov self-consistency causal loops, Fitts tension arcs, Braided multi-POV synchronization. |
+| **P4** | **Editorial Craft & Style**| `stylistics`, `senses`, `idioms`, `voice`, `dialogue` | Micro-sensory palette ratios, Erdős-Heaps lexical richness, dialect phonetic distancing. |
+| **P5** | **Manuscript Drafting** | `manuscript_scaffold`, `zen_studio`, `sprint` | 16-paradigm beat allocations, flow-state velocity targets, anti-procrastination locks. |
+| **P6** | **System Ops & RAG** | `vault_search`, `corpus_export`, `codex_export`, `diff`| TF-IDF sub-linear scoring, SQLite FTS5 BM25 queries, lossless schema refactoring. |
 
-# Get a tip tailored to a specific engine
-python -m scripts.lib.cli tip astrophysics
-python -m scripts.lib.cli tip conlang
-python -m scripts.lib.cli tip economy
+---
 
-# Query tip for a specific subfeature
-python -m scripts.lib.cli tip climate --subfeature "Orographic Rain Shadow"
-python -m scripts.lib.cli tip pacing --subfeature "Fitts Tension Curves"
+## 4. Tip Schema Specification & Example Records
 
-# Filter by depth
-python -m scripts.lib.cli tip --depth masterclass
-
-# Output structured JSON for IDE integration
-python -m scripts.lib.cli tip magic_system --format json
-```
-
-### Manage User Sovereignty & Preferences
-```bash
-# Check current tip display status
-python -m scripts.lib.cli tip --status
-
-# Disable tip displays globally
-python -m scripts.lib.cli tip --disable
-
-# Re-enable tip displays
-python -m scripts.lib.cli tip --enable
-
-# List all engines with tip coverage
-python -m scripts.lib.cli tip --list-engines
+```yaml
+# Tip Schema Structure
+id: "tip_climate_orographic_shadow"
+engine: "climate"
+feature: "Precipitation & Wind Cells"
+subfeature: "Orographic Rain Shadow"
+pillar: "cosmology_physics"
+category: "craft"
+depth: "masterclass"
+title: "Orographic Rain Shadows: The Science of Plausible Deserts"
+content: "When prevailing winds push moist maritime air masses against a mountain range, adiabatic cooling forces precipitation on the windward slope. The descending air on the leeward slope is dry and warm, creating hyper-arid desert basins directly adjacent to lush coastal rainforests."
+rationale: "Adiabatic lapse rate causes moisture to condense as air ascends, leaving dry rain shadows on the opposite side."
+example: "Placing a desert behind the Iron Spire Range explains why the eastern nomadic clans survive exclusively on seasonal meltwater wadis."
+tags:
+  - "geography"
+  - "mountains"
+  - "desert"
+  - "climate"
+  - "plausibility"
+weight: 1.2
 ```
 
 ---
 
-## 4. UI & Ecosystem Integration Surfaces
+## 5. CLI Execution & User Sovereignty Reference
 
-### 4.1 CLI Ambient Footers
-When executing craft commands (e.g. `arcanum climate`, `arcanum conlang`), a single-line or bordered non-intrusive tip footer appears at the end of the output, highlighting a non-obvious synergy.
+```bash
+# 1. Fetch a random high-value tip across any domain
+arcanum tip
 
-### 4.2 Studio Desktop Hub (`💡 Contextual Tip Banner`)
-- Appears at the top of domain tabs with dynamic rotation.
-- Contextually adapts when the user navigates between tabs (e.g. switching to the *Cartography* tab instantly pulls geological and drainage tips).
-- Includes quick **"Roll Another Tip"** and **"Dismiss / Disable"** controls.
+# 2. Fetch a tip tailored to a specific engine or pillar
+arcanum tip climate
+arcanum tip economy
+arcanum tip pacing
 
-### 4.3 Zen Drafting Studio (`💡 Craft Wisdom` Drawer)
-- An in-situ collapsible drawer tab in the distraction-free drafting environment.
-- Automatically analyzes active manuscript keywords (e.g., detects dialogue heavy scenes vs action sequences) and suggests relevant craft wisdom.
+# 3. Target a specific subfeature
+arcanum tip astrophysics --subfeature "Roche Limit"
+
+# 4. Filter by depth level (masterclass only)
+arcanum tip --depth masterclass
+
+# 5. Output structured JSON for IDE plugins and status bars
+arcanum tip magic_system --format json
+
+# 6. Global User Sovereignty (Disable/Enable tips completely)
+arcanum tip --status
+arcanum tip --disable
+arcanum tip --enable
+```
 
 ---
 
-## 5. Verification & Testing
+## 6. Tri-Fold Creative Advisory Resolutions
 
-```bash
-# Run unit tests for tip retrieval, scoring, and alias resolution
-python -m unittest tests/test_tips.py
-
-# Run full repository test suite
-python -m unittest discover tests
-
-# Check linting and static typing
-ruff check scripts/lib/tips.py
-mypy scripts/lib/tips.py
+```mermaid
+flowchart TD
+    Alert["Tip Context: Drafting Chapter 12 (Scene has 95% visual sensory words)"] --> PathA["Path A: Hard Realism / Sensory Calibration"]
+    Alert --> PathB["Path B: Speculative / In-World Blindness"]
+    Alert --> PathC["Path C: Authorial Sovereignty"]
+    
+    PathA --> SolA["Surface Tip #42: 'Auditory & Olfactory Grounding in Confined Spaces'."]
+    PathB --> SolB["Frame the intense visual glare as a diegetic magical blinding flash."]
+    PathC --> SolC["Disable sensory tip reminders via 'arcanum tip --disable'."]
 ```
+
+### Scenario: Contextual Writing Tip Surfaced During Revision
+- **Path A (Hard Realism / Craft Calibration)**:
+  - The author reads the ambient tip in the CLI footer and adds tactile and auditory details (the cold sweat on the hilt, the hum of the stone) to enrich the scene.
+- **Path B (Diegetic Adaptation)**:
+  - The sensory imbalance is intentionally embraced: the protagonist is in a sensory deprivation chamber or dazzled by solar radiance.
+- **Path C (Authorial Sovereignty)**:
+  - If the author prefers complete silence during drafting sprints, run `arcanum tip --disable` to turn off all ambient hints across the environment.
+
+---
+
+## 7. Recommended Reading, References & Media
+
+### 7.1 Foundational Craft & Worldbuilding Treatises
+- **Sanderson, Brandon (2020)**. *Brandon Sanderson's Guide to Writing Epic Fantasy & Worldbuilding*. Dragonsteel Books.  
+  *The defining craft rules for hard vs soft magic systems, continuity tracking, and satisfying story promises.*
+- **Le Guin, Ursula K. (1998)**. *Steering the Craft: A Twenty-First-Century Guide to Sailing the Sea of Story*. Mariner Books. ISBN: 978-0544611610.  
+  *Masterclass on sentence rhythm, POV distance, sensory immersion, and narrative voice.*
+- **Card, Orson Scott (1990)**. *How to Write Science Fiction & Fantasy*. Writer's Digest Books. ISBN: 978-0898794168.  
+  *The seminal guide to MICE quotient nesting, world rules, and exposition delivery.*
+
+### 7.2 Scientific & Worldbuilding Media Lectures
+- **Artifexian**: *The Complete Worldbuilding Video Masterclass Series (Planetary Physics, Tectonics, Climate, Conlangs)*.  
+  *Step-by-step mathematical and scientific worldbuilding principles.*
+- **Biblaridion**: *Alien Biospheres & Reforged Worldbuilding Series*.  
+  *Exemplary evolutionary biology, conlang phonology, and historical worldbuilding.*
+- **Hello Future Me (Tim Hickson)**: *On Writing and Worldbuilding (Volumes 1 & 2)*.  
+  *Deep dramaturgical analysis of character arcs, foreshadowing, and worldbuilding integration.*
+- **Tale Foundry**: *The Anatomy of Fiction: Story Circles, Tropes, and Literary Monsters*.  
+  *Deep video essays dissecting narrative architecture and speculative themes.*
+- **Isaac Arthur (SFIA)**: *Science & Futurism with Isaac Arthur: Hard Sci-Fi Worldbuilding*.  
+  *Hard science megastructures, interstellar travel physics, and Fermi paradox solutions.*
+- **PBS Space Time & Kurzgesagt**: *Astrophysics, Quantum Mechanics, and Cosmological Entropy*.  
+  *Visual explanations of orbital mechanics, black holes, and space-time geometry.*
+
+### 7.3 Landmark Speculative Case Studies
+- **Sanderson, Brandon**: *The Stormlight Archive* (Roshar Ecology and Highstorms). Tor Books.  
+  *Exemplar of rigorous ecological worldbuilding where crustacean biology and meteorology dictate culture and architecture.*
+- **Herbert, Frank**: *Dune* (Arrakis Ecology and Hydrology). Chilton Books.  
+  *The quintessential masterclass in interdisciplinary worldbuilding fusing religion, economics, and planetary ecology.*
+- **Tolkien, J.R.R.**: *The Lord of the Rings* (Linguistic Foundation of Middle-earth).  
+  *Secondary world where entire mythologies, geographies, and genealogies grew out of constructed linguistic roots.*

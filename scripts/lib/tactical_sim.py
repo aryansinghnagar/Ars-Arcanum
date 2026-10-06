@@ -28,8 +28,32 @@ from pathlib import Path
 
 try:
     import lib._bootstrap  # noqa: F401
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        parse_scope_args,
+        resolve_world_path,
+    )
 except ImportError:
-    import _bootstrap  # noqa: F401
+    try:
+        import _bootstrap  # noqa: F401
+        from scope import (
+            EngineScope,
+            add_scope_arguments,
+            parse_scope_args,
+            resolve_world_path,
+        )
+    except ImportError:
+        EngineScope = None  # type: ignore
+
+        def add_scope_arguments(*args, **kwargs):  # type: ignore
+            pass
+
+        def parse_scope_args(*args, **kwargs):  # type: ignore
+            return None
+
+        def resolve_world_path(*args, **kwargs):  # type: ignore
+            return None
 
 logger = logging.getLogger("arcanum.tactical_sim")
 
@@ -342,6 +366,7 @@ def main():
     p_sim.add_argument("-n", "--monte-carlo", type=int, default=1, help="Number of Monte Carlo simulation runs (default: 1)")
     p_sim.add_argument("--narrative", action="store_true", help="Print blow-by-blow narrative combat log")
     p_sim.add_argument("--json", action="store_true", help="Output JSON results")
+    add_scope_arguments(p_sim, include_manuscript=False, include_world=True, target_pos_arg=False)
 
     p_plan = subparsers.add_parser("plan", help="Generate high-level warfare scenario analysis and story beats")
     p_plan.add_argument("--attacker", help="Attacker name", default="Imperial Legion")
@@ -351,6 +376,7 @@ def main():
     p_plan.add_argument("--terrain", choices=list(TERRAIN_MODIFIERS.keys()), default="castle_walls", help="Battlefield terrain")
     p_plan.add_argument("--season", choices=["spring", "summer", "autumn", "winter"], default="autumn", help="Campaign season")
     p_plan.add_argument("--json", action="store_true", help="Output JSON results")
+    add_scope_arguments(p_plan, include_manuscript=False, include_world=True, target_pos_arg=False)
 
     p_guide = subparsers.add_parser("guide", help="Print the author's Lanchester battle reference guide")
     p_guide.add_argument("--markdown", action="store_true", help="Print as raw markdown")

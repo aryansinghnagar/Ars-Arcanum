@@ -15,8 +15,7 @@ import tempfile
 import shutil
 
 from scripts.lib._bootstrap import validate_volume_name, sanitize_identifier
-from scripts.lib.pacing import scan_manuscript_pacing
-from scripts.lib.concordance import generate_concordance
+from scripts.lib.scope import EngineScope, filter_manuscript_scope
 
 
 class TestPathTraversalDefense(unittest.TestCase):
@@ -73,25 +72,22 @@ class TestPathTraversalDefense(unittest.TestCase):
         self.assertEqual(sanitize_identifier("", fallback="default_vol"), "default_vol")
         self.assertEqual(sanitize_identifier("Valid-Name_123"), "Valid-Name_123")
 
-    def test_pacing_rejects_traversal(self):
+    def test_scope_rejects_traversal_volume(self):
         ms_dir = self.temp_dir / "Manuscript"
         ms_dir.mkdir(parents=True, exist_ok=True)
         (ms_dir / "01_Chapter.md").write_text("# Chapter 1\n\nSome exciting prose.", encoding="utf-8")
 
         with self.assertRaises(ValueError):
-            scan_manuscript_pacing(ms_dir, target_book="../../etc")
+            validate_volume_name("../../etc")
 
-    def test_concordance_rejects_traversal(self):
-        bible_dir = self.temp_dir / "00-World-Bible"
-        char_dir = bible_dir / "Characters"
-        char_dir.mkdir(parents=True, exist_ok=True)
-        (char_dir / "hero.md").write_text("---\nname: Hero\nrole: Protagonist\n---\nSummary", encoding="utf-8")
-
-        ms_dir = self.temp_dir / "01-Manuscript"
+    def test_scope_filtering_security(self):
+        ms_dir = self.temp_dir / "Manuscript"
         ms_dir.mkdir(parents=True, exist_ok=True)
+        (ms_dir / "01_Chapter.md").write_text("# Chapter 1\n\nSome exciting prose.", encoding="utf-8")
 
-        with self.assertRaises(ValueError):
-            generate_concordance(bible_dir=bible_dir, ms_dir=ms_dir, target_book="../evil_path")
+        scope = EngineScope(chapters=[1])
+        chapters, _scenes, _vols = filter_manuscript_scope(ms_dir, scope=scope)
+        self.assertEqual(len(chapters), 1)
 
 
 if __name__ == "__main__":

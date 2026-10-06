@@ -20,8 +20,20 @@ from pathlib import Path
 
 try:
     import lib._bootstrap  # noqa: F401
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+    )
 except ImportError:
     import _bootstrap  # noqa: F401
+    from scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+    )
 
 
 logger = logging.getLogger("arcanum.continuity")
@@ -210,7 +222,7 @@ def attribute_sentence_trait(sentence: str, scene_chars: list, profiles: dict) -
     return []
 
 
-def scan_manuscript_scenes(manuscript_dir: Path, profiles: dict) -> list:
+def scan_manuscript_scenes(manuscript_dir: Path, profiles: dict, scope: EngineScope | None = None) -> list[dict]:
     """Scans manuscript scene files and detects narrative trait contradictions."""
     findings = []
     warnings: list = []
@@ -218,7 +230,14 @@ def scan_manuscript_scenes(manuscript_dir: Path, profiles: dict) -> list:
     # Store scene-level character trait mentions across chapters
     scene_mentions = {}  # {entity_name: [(file, line_no, trait_type, trait_val)]}
 
-    for md_file in sorted(manuscript_dir.rglob("*.md")):
+    md_files = sorted(manuscript_dir.rglob("*.md"))
+    if scope:
+        scoped_chaps, _, _ = filter_manuscript_scope(manuscript_dir, scope)
+        if scoped_chaps:
+            scoped_paths = {c.file_path for c in scoped_chaps if c.file_path}
+            md_files = [f for f in md_files if f in scoped_paths]
+
+    for md_file in md_files:
         if ".git" in md_file.parts or md_file.name.startswith("."):
             continue
         try:
@@ -336,7 +355,7 @@ def scan_manuscript_scenes(manuscript_dir: Path, profiles: dict) -> list:
     return findings
 
 
-def run_continuity_audit(world_dir: str, manuscript_dir: str) -> dict:
+def run_continuity_audit(world_dir: str, manuscript_dir: str, scope: EngineScope | None = None) -> dict:
     wpath = Path(world_dir).resolve()
     mpath = Path(manuscript_dir).resolve() if manuscript_dir else None
 
@@ -345,7 +364,7 @@ def run_continuity_audit(world_dir: str, manuscript_dir: str) -> dict:
     warnings: list = []
 
     if mpath and mpath.is_dir():
-        findings = scan_manuscript_scenes(mpath, profiles)
+        findings = scan_manuscript_scenes(mpath, profiles, scope=scope)
         warnings = list(getattr(scan_manuscript_scenes, "last_warnings", []))
 
     return {
@@ -358,12 +377,14 @@ def run_continuity_audit(world_dir: str, manuscript_dir: str) -> dict:
     }
 
 
-def main():
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Ars Arcanum Local Semantic Continuity Engine")
     parser.add_argument("-w", "--world", help="World Bible lore directory")
     parser.add_argument("-m", "--manuscript", help="Manuscript draft directory")
     parser.add_argument("--json", action="store_true", help="Output JSON report")
-    args = parser.parse_args()
+    add_scope_arguments(parser, include_world=False, include_manuscript=False, target_pos_arg=False)
+    args = parser.parse_args(argv)
+    scope = parse_scope_args(args)
 
     # Discover world / manuscript if not provided (CNT-02: deterministic,
     # ambiguity-failing — never silently pick universes[0] / mss[0]).
@@ -410,7 +431,7 @@ def main():
                 print(f"  - {p.name}  {p}", file=sys.stderr)
             manuscript_dir = ""
 
-    report = run_continuity_audit(world_dir, manuscript_dir or "")
+    report = run_continuity_audit(world_dir, manuscript_dir or "", scope=scope)
 
     if args.json:
         print(json.dumps(report, indent=2))

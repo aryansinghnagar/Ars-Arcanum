@@ -37,8 +37,39 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_world_scope,
+        parse_scope_args,
+        resolve_world_path,
+    )
 except ImportError:
-    from _bootstrap import atomic_write
+    try:
+        from _bootstrap import atomic_write
+        from scope import (
+            EngineScope,
+            add_scope_arguments,
+            filter_world_scope,
+            parse_scope_args,
+            resolve_world_path,
+        )
+    except ImportError:
+        from _bootstrap import atomic_write  # type: ignore
+
+        EngineScope = None  # type: ignore
+
+        def add_scope_arguments(*args, **kwargs):  # type: ignore
+            pass
+
+        def parse_scope_args(*args, **kwargs):  # type: ignore
+            return None
+
+        def filter_world_scope(*args, **kwargs):  # type: ignore
+            return []
+
+        def resolve_world_path(*args, **kwargs):  # type: ignore
+            return None
 
 
 logger = logging.getLogger("arcanum.calendar")
@@ -74,7 +105,7 @@ except ImportError:
     from frontmatter import parse_yaml_frontmatter
 
 
-def load_calendar_spec(world_dir: Path) -> dict:
+def load_calendar_spec(world_dir: Path, scope: EngineScope | None = None) -> dict:
     """Scans Cosmology/ notes or world.yaml for calendar and planetary specifications."""
     spec = {
         "world": world_dir.name,
@@ -103,11 +134,18 @@ def load_calendar_spec(world_dir: Path) -> dict:
         world_dir / "Cosmology",
         world_dir / "00-World-Bible" / "Cosmology",
     ]
+    scoped_files: set[Path] | None = None
+    if scope and scope.is_scoped():
+        filtered_items = filter_world_scope(world_dir, scope)
+        scoped_files = {item.file_path.resolve() for item in filtered_items}
+
     for cdir in dirs_to_check:
         if not cdir.is_dir():
             continue
         for md_file in sorted(cdir.rglob("*.md")):
             if "Template" in md_file.name:
+                continue
+            if scoped_files is not None and md_file.resolve() not in scoped_files:
                 continue
             try:
                 content = md_file.read_text(encoding="utf-8", errors="replace")
@@ -425,8 +463,11 @@ def generate_calendar_html_report(year: int, month_idx: int, cal_spec: dict, out
     atomic_write(output_file, html_content)
 
 
-def resolve_world_dir(target_str: str | None = None) -> str:
+def resolve_world_dir(target_str: str | None = None, scope: EngineScope | None = None) -> str:
     """Resolves world input string (path or name) to absolute directory path."""
+    if not target_str and scope and scope.world:
+        target_str = scope.world
+
     if target_str:
         p = Path(target_str).expanduser().resolve()
         if p.is_dir():
@@ -472,18 +513,22 @@ def main():
     parser.add_argument("--phases", action="store_true", help="Print detailed multi-moon phase breakdown")
     parser.add_argument("--html", help="Export standalone interactive HTML calendar report")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(parser, include_manuscript=False, include_world=False, target_pos_arg=False)
+    parser.add_argument("-u", "--universe", dest="universe", help="Target Universe directory or name")
+    parser.add_argument("--lore-category", "--lore-categories", dest="lore_categories", help="Filter by lore categories")
 
     args = parser.parse_args()
 
     # Discover world
+    scope = parse_scope_args(args)
     raw_w = getattr(args, "world_flag", None) or getattr(args, "world", None)
-    world_dir = resolve_world_dir(raw_w)
+    world_dir = resolve_world_dir(raw_w, scope=scope)
 
     if not world_dir or not Path(world_dir).is_dir():
         print("Error: No valid World Bible directory specified or discovered.", file=sys.stderr)
         sys.exit(2)
 
-    cal_spec = load_calendar_spec(Path(world_dir))
+    cal_spec = load_calendar_spec(Path(world_dir), scope=scope)
 
     # Compute target date
     m_idx = max(0, min(len(cal_spec["months"]) - 1, args.month - 1))

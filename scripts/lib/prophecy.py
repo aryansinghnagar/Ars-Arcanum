@@ -33,8 +33,20 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+    )
 
 logger = logging.getLogger("arcanum.prophecy")
 
@@ -115,7 +127,12 @@ def extract_prophecies(world_dir: Path) -> dict:
     return prophecies
 
 
-def audit_prophecy_resolution(prophecies: dict, manuscript_dir: Path | None = None, world_dir: Path | None = None) -> list:
+def audit_prophecy_resolution(
+    prophecies: dict,
+    manuscript_dir: Path | None = None,
+    world_dir: Path | None = None,
+    scope: EngineScope | None = None,
+) -> list:
     """Cross-validates prophecy clauses, character status, and resolution status against manuscript chapters."""
     findings = []
 
@@ -142,9 +159,16 @@ def audit_prophecy_resolution(prophecies: dict, manuscript_dir: Path | None = No
     ms_text_corpus_chunks = []
     scene_prophecy_tags = {}
     if manuscript_dir and manuscript_dir.is_dir():
-        for md_file in sorted(manuscript_dir.rglob("*.md")):
-            if md_file.name.startswith(".") or "Front_Matter" in md_file.parts or "Back_Matter" in md_file.parts:
-                continue
+        if scope:
+            scoped_chapters, _, _ = filter_manuscript_scope(manuscript_dir, scope)
+            md_files = [c.file_path for c in scoped_chapters]
+        else:
+            md_files = [
+                f for f in sorted(manuscript_dir.rglob("*.md"))
+                if not f.name.startswith(".") and "Front_Matter" not in f.parts and "Back_Matter" not in f.parts
+            ]
+
+        for md_file in md_files:
             try:
                 txt = md_file.read_text(encoding="utf-8", errors="ignore")
                 ms_text_corpus_chunks.append(txt)
@@ -392,6 +416,7 @@ def main():
     p_check.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_check.add_argument("--html", help="Path to export standalone HTML report")
     p_check.add_argument("--write-note", help="Export Mermaid.js Prophecy Lifecycle note")
+    add_scope_arguments(p_check, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     p_rep = subparsers.add_parser("report", help="Display prophecy roster and fulfillment report")
     p_rep.add_argument("world", nargs="?", help="World Bible lore directory")
@@ -401,6 +426,7 @@ def main():
     p_rep.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_rep.add_argument("--html", help="Path to export standalone HTML report")
     p_rep.add_argument("--write-note", help="Export Mermaid.js Prophecy Lifecycle note")
+    add_scope_arguments(p_rep, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     if len(sys.argv) > 1 and sys.argv[1] not in ("check", "report", "-h", "--help", "-v", "--version"):
         sys.argv.insert(1, "check")
@@ -410,19 +436,23 @@ def main():
     if not args.subcommand:
         args.subcommand = "check"
 
-    raw_world = getattr(args, "world_flag", None) or getattr(args, "world", None)
+    scope = parse_scope_args(args)
+
+    raw_world_val = getattr(args, "world_flag", None) or getattr(args, "world", None) or scope.world
+    raw_world = str(raw_world_val) if raw_world_val else None
     world_dir_str = resolve_world_dir(raw_world)
     if not world_dir_str or not Path(world_dir_str).is_dir():
         print("Error: No valid World Bible directory specified or discovered.", file=sys.stderr)
         sys.exit(2)
 
     world_path = Path(world_dir_str)
-    raw_ms = getattr(args, "manuscript", None) or getattr(args, "manuscript_pos", None)
+    raw_ms_val = getattr(args, "manuscript", None) or getattr(args, "manuscript_pos", None) or scope.manuscript
+    raw_ms = str(raw_ms_val) if raw_ms_val else None
     ms_dir_str = resolve_manuscript_dir(raw_ms) if raw_ms else None
     ms_path = Path(ms_dir_str) if ms_dir_str else None
 
     prophecies = extract_prophecies(world_path)
-    findings = audit_prophecy_resolution(prophecies, ms_path, world_path)
+    findings = audit_prophecy_resolution(prophecies, ms_path, world_path, scope=scope)
     mermaid_diag = generate_prophecy_mermaid(prophecies)
 
     audit_data = {

@@ -1,47 +1,149 @@
-# Obsidian Out-of-the-Box Plugin Suite Guide
-
-Your Ars Arcanum World Lore Vaults come pre-configured with a premier, modular suite of worldbuilding and authoring plugins enabled out-of-the-box.
-
----
-
-## 🌟 Core Narrative & Worldbuilding Plugins
-
-| Plugin | Primary Function | Pre-Configured Capabilities |
-| :--- | :--- | :--- |
-| **Storyline** | All-in-One Narrative Engine | Visual character relationship webs, event timeline boards, and narrative arc tracking linked directly to your `Characters/`, `Locations/`, and `History/` notes. |
-| **Longform** | Manuscript Organization & Compilation | Atomic Markdown scene ordering, drag-and-drop drafting pane, inline comment stripping (`%% notes %%`), and direct compilation bridge to Typst/EPUB. |
-| **Dataview** | Dynamic Lore Querying & Registries | DQL database queries across character scene appearances, faction rosters, and geographic registries with inline JS support enabled. |
-| **Metadata Menu** | Structured Frontmatter & Schemas | Strict `fileClass` schemas in `Templates/fileClasses/` with dropdown validation for character status, location scales, faction influence, timeline years, and magic rules. |
-| **Calendarium** | Fictional Time & Astronomical Mechanics | Non-Gregorian fictional calendars, custom month lengths, moon phase cycles, and in-world event agendas linked via `fc-date`. |
-| **Storyteller Suite** | Interactive Spatial Cartography | Spatial relationship graphs and interactive visual lore nodes with pins linked directly to lore notes. |
-| **Novel Word Count** | File Explorer Volume Analytics | Real-time word counts injected beside every folder and document in your File Explorer, rolling scene counts into chapter totals. |
-| **Obsidian Git** | Automated In-Vault Version Control | Automatic background Git commits every 10 minutes and on save, status bar indicators, and seamless local versioning. |
-| **Templater** | Dynamic Template Generation | Automatic templating triggered on note creation with date math, file title variables, and frontmatter automation. |
-| **Style Settings & Minimal Theme** | Distraction-Free Author Typography | Literary typography (Linux Libertine, EB Garamond), line width optimization (42rem), and distraction-free focus modes. |
+# Obsidian Sovereign Worldbuilding & Authoring Suite (`docs/guides/OBSIDIAN_PLUGINS.md`)
+> **Domain A: Lore, Worldbuilding & Metadata Infrastructure**
 
 ---
 
-## 🛠️ Out-of-the-Box Configuration Details
+## 1. Overview & Architectural Philosophy
 
-1. **Automatic Git Tracking**:
-   - Every note edit is tracked by the local World Git repository.
-   - Background backups occur automatically every 10 minutes and when closing/switching files.
+The **Ars Arcanum Obsidian Suite** transforms a standard Markdown vault into an industrial-grade narrative operating system, relational database, dynamic visual story canvas, and worldbuilding concordance.
 
-2. **Metadata Validation & Schemas**:
-   - `Templates/fileClasses/` provides pre-built schemas for:
-     - `Character.md`: Name, aliases, role, status (Alive/Deceased/Missing/Unknown), faction, location, origin.
-     - `Location.md`: Name, region, dominant faction, scale (Continent to Interior).
-     - `Faction.md`: Name, faction type, leader, headquarters, influence level.
-     - `TimelineEvent.md`: Name, era, start_year, end_year, primary location, participants.
-     - `Creature.md`: Name, classification, threat level, habitat, diet, domestication.
-     - `Artifact.md`: Name, artifact type, rarity, creator, current bearer, location, attunement.
-     - `Cosmology.md`: Name, concept type, domain, plane of origin, worship status, associated faction.
-     - `MagicSystem.md`: Name, classification, power source, prevalence, danger/cost.
-     - `Language.md`: Name, language family, spoken by, status, writing system.
-     - `Economy.md`: Base currency, denominations, commodity basket PPP rates, trade routes.
-     - `Prophecy.md`: Oracle/source, era given, prophecy clauses, fulfillment status, intended resolution.
+While standard Obsidian serves as a general-purpose note-taking tool, writing epic speculative fiction requires specialized data structures:
+1. **Dynamic Lore Querying**: Instant relational tables listing all characters allied with a specific faction, their current alive/deceased status, and chapter appearances.
+2. **Strict Frontmatter Schemas**: Validated dropdown fields and typed constraints preventing typos in character roles or dates.
+3. **Non-Gregorian Astronomical Time**: Tracking multi-moon cycles, custom calendars, and overlapping timeline events.
+4. **Automated Git Versioning**: Silent, background Git commits every 10 minutes without breaking flow state.
 
-3. **Pure Lore Vault Structure**:
-   - `Characters/`, `Locations/`, `Factions/`, `Economies/`, `Magic-Technology/`, `History/`, `Languages/`, `Bestiary/`, `Artifacts/`, `Cosmology/` provide dedicated domain folders.
-   - `Templates/` houses quickstart notes, fileClasses, and the central `World-Bible-Index.md` Dataview dashboard.
-   - All frontmatter properties are automatically validated by `arcanum doctor` and `arcanum world_doctor` for semantic continuity, timeline paradoxes, and lore consistency.
+```
++-------------------------------------------------------------------------------+
+|                    ARS ARCANUM OBSIDIAN INTEGRATION ARCHITECTURE              |
+|                                                                               |
+|  +--------------------+     Strict fileClass Schema   +--------------------+  |
+|  | Markdown Note      | ----------------------------> | Metadata Menu &    |  |
+|  | (Character/Faction)|                               | Dataview Relational|  |
+|  +--------------------+                               +--------------------+  |
+|            |                                                    |             |
+|            v                                                    v             |
+|  [Calendarium Time Engine]                            [Storyline Dynamic Web] |
+|  (Custom Moons & Epochs)                              (Interactive Kinship)   |
+|            |                                                    |             |
+|            +----------------------------------------------------+             |
+|                                     |                                         |
+|                                     v                                         |
+|                   +-----------------------------------+                       |
+|                   |  Longform Drag-and-Drop Compiler  |                       |
+|                   |  Novel Word Count Live Telemetry  |                       |
+|                   |  Obsidian Git 10-Min Local Commits|                       |
+|                   +-----------------------------------+                       |
+|                                     |                                         |
+|                                     v                                         |
+|                     [The Sovereign Speculative World Bible]                   |
+|                     [100% Local-First / Zero Cloud Telemetry]                 |
++-------------------------------------------------------------------------------+
+```
+
+---
+
+## 2. Core Plugin Suite & Narrative Capabilities
+
+```mermaid
+mindmap
+  root((Obsidian Suite))
+    Relational Data
+      Dataview DQL
+      Metadata Menu
+      Templater
+    Narrative & Layout
+      Longform
+      Storyline
+      Storyteller Cartography
+    Time & Metrics
+      Calendarium
+      Novel Word Count
+    Infrastructure
+      Obsidian Git
+      Minimal Theme & Typography
+```
+
+| Plugin Name | Primary Narrative Function | Pre-Configured Capabilities & Workflows |
+|---|---|---|
+| **Dataview** | Relational Database & Queries | Executes DQL (Dataview Query Language) across character dossiers, faction rosters, and magic rules. |
+| **Longform** | Manuscript Organization | Drag-and-drop scene ordering, atomic drafting pane, inline comment stripping (`%% note %%`), and Typst export bridge. |
+| **Metadata Menu** | Frontmatter Schema Enforcement | Strict `fileClass` schemas with modal dropdowns, type checking, and auto-completion for YAML keys. |
+| **Calendarium** | Astronomical & Calendar Mechanics | Non-Gregorian fictional calendars, custom month lengths, moon phase cycles, and in-world event agendas linked via `fc-date`. |
+| **Storyline** | Character Relationship Matrix | Visual node graphs of alliances, rivalries, kinship trees, and character arc trajectories. |
+| **Storyteller** | Spatial Interactive Cartography | Pins interactive lore nodes and settlement gazetteers directly to high-resolution world map images. |
+| **Novel Word Count** | Live Explorer Telemetry | Injects live word counts beside every chapter, folder, and act in the file explorer tree. |
+| **Obsidian Git** | Automated Local Version Control | Silent background Git commits every 10 minutes and on file close, with zero network requirements. |
+| **Templater** | Dynamic Template Engine | Injects date math, UUIDs, folder context, and default frontmatter on note creation. |
+| **Minimal Theme** | Literary Focus Typography | 42rem line measure optimization, true italic styling, custom ligatures, and distraction-free dark/sepia themes. |
+
+---
+
+## 3. Dynamic Dataview Relational Queries (DQL)
+
+### 3.1 Active Character Roster by Faction
+```sql
+```dataview
+TABLE role AS "Role", status AS "Status", origin AS "Origin"
+FROM "World/Characters"
+WHERE contains(faction, "House Vaelen") AND status != "Deceased"
+SORT file.name ASC
+```
+```
+
+### 3.2 Unfulfilled Prophecies & Ominous Timeline Clauses
+```sql
+```dataview
+TABLE era_given AS "Era", oracle AS "Oracle / Source", intended_resolution AS "Target"
+FROM "World/Prophecy"
+WHERE fulfillment_status = "Unfulfilled"
+SORT era_given ASC
+```
+```
+
+---
+
+## 4. Metadata Menu `fileClass` Schema Architecture
+
+Schemas in `Templates/fileClasses/` strictly constrain YAML properties:
+
+```yaml
+# Character.md fileClass Schema Definition
+property:
+  name:
+    type: "string"
+    isRequired: true
+  status:
+    type: "select"
+    options: ["Alive", "Deceased", "Missing", "Imprisoned", "Transcended"]
+  role:
+    type: "select"
+    options: ["Protagonist", "Antagonist", "Deuteragonist", "Major Supporting", "Minor"]
+  faction:
+    type: "lookup"
+    path: "World/Factions"
+  timeline_birth:
+    type: "number"
+  threat_level:
+    type: "number"
+    min: 1
+    max: 10
+```
+
+---
+
+## 5. Recommended Reading, References & Media
+
+### 5.1 Knowledge Management & Worldbuilding Treatises
+- **Ahrens, Sönke (2017)**. *How to Take Smart Notes: One Simple Technique to Boost Writing, Learning and Thinking*. CreateSpace. ISBN: 978-1542866507.  
+  *The foundational guide to atomic note-taking, non-linear knowledge graphs, and Zettelkasten systems.*
+- **Sanderson, Brandon (2020)**. *Managing Lore and Magic Systems in Long-Term Bibles*. Dragonsteel.  
+  *How Brandon coordinates character dossiers and magic rules across decades of writing.*
+
+### 5.2 Video Lectures, Masterclasses & Plugin Tutorials
+- **Nicole van der Hoeven**: *Obsidian for Writers: The Complete Novel and Worldbuilding Guide*.  
+  *Exhaustive video tutorials on Dataview queries, Longform manuscript drafting, and visual graphs.*
+- **Artifexian**: *Fictional Calendars, Planetary Orbits, and Time Tracking for Worldbuilders*.  
+  *Designing mathematically sound non-Gregorian calendars for fantasy worlds.*
+- **Tale Foundry**: *How Lore Bibles Prevent Fictional Canon from Collapsing*.  
+  *Deep-dive analysis into encyclopedic worldbuilding.*

@@ -35,31 +35,26 @@ All scripts and the CLI facade (`scripts/arcanum`) adhere strictly to this 4-val
 Every proposed change MUST pass the full quality gate in this exact order before opening or merging a pull request:
 
 ```bash
-# 1. Shell and Python syntax checks
-bash -n scripts/*.sh scripts/lib/*.sh scripts/arcanum scripts/ars-arcanum
-python3 -m py_compile scripts/arcanum_app.py
+# 1. Full Python Unit & Integration Test Suite (1,022 tests, 0 failures allowed)
+python -m unittest discover tests
 
-# 2. Shell static analysis (zero warnings allowed)
-shellcheck -S warning scripts/*.sh scripts/lib/*.sh scripts/arcanum scripts/ars-arcanum
+# 2. Strict Expanded Ruff Linter Pass (0 violations allowed)
+ruff check .
 
-# 3. Core 7-stage quality and regression harness
+# 3. Strict Mypy Static Type Checking across all source files
+mypy --explicit-package-bases scripts/lib/*.py tests/*.py
+
+# 4. Canonical 7-Stage Integration Verification Harness
 bash scripts/verify.sh
-
-# 4. Targeted regression test suites
-bash tests/test_audit_fixes.sh
-bash tests/test_deep_audit.sh
-bash tests/test_concordance_edge_cases.sh
-bash tests/test_audit_claude_improvements.sh
-bash tests/test_continuity_engine.sh
-bash tests/test_performance_cache.sh
-python3 -m unittest discover tests
 ```
 
 ---
 
-## 4. Subsystem & Discovery Guidelines
+## 4. Subsystem, Discovery & Scoping Guidelines
 
-- **Centralized Discovery**: Never implement bespoke filesystem scanning for worlds or universes. Always source and use [`scripts/lib/worlds.sh`](file:///scripts/lib/worlds.sh) (`discover_universes`, `discover_worlds`, `discover_manuscripts`, `resolve_universe_dir`, `resolve_world_dir`, `resolve_manuscript_dir`, `universe_label`).
+- **Centralized Discovery & Scoping**: Never implement bespoke filesystem scanning or recursive disk crawling. Always utilize [`scripts/lib/scope.py`](file:///scripts/lib/scope.py) (`resolve_engine_scope`, `parse_scope_expression`, `parse_int_ranges`) and [`scripts/lib/worlds.sh`](file:///scripts/lib/worlds.sh) (`discover_universes`, `discover_worlds`, `discover_manuscripts`).
+- **Granular Scoping Invariants**: All craft engines must bind standard scope CLI arguments (`add_scope_arguments(parser)`) and honor chapter ranges (`-c 1-5`, `ch01..ch05`), scene ranges (`--scene 1-3`), book filters (`-b`), and world scopes (`-w`) rather than scanning all files on disk.
+- **Intelligent Context Defaults**: When no target is specified, engines must default to the active project configured in `config.json`, the current working directory, or a single discovered project before falling back to full-vault sweeps.
 - **Headless Safety**: When writing or modifying test suites in `tests/`, always sandbox `$HOME` (`TEST_HOME=$(mktemp -d)`) and unset `$DISPLAY` / `$WAYLAND_DISPLAY` so tests run headlessly.
 - **Python / Shell Boundary**: When executing Python helper commands from shell scripts, pass arguments via `sys.argv` or `stdin` — never interpolate shell variables into `python3 -c` code strings.
 - **GTK Worker Threading**: In [`scripts/arcanum_app.py`](file:///scripts/arcanum_app.py), never execute long-running CLI tools or subprocesses on the GTK main UI thread. Always use `_start_worker(target_func)` with `GLib.idle_add` UI callbacks.

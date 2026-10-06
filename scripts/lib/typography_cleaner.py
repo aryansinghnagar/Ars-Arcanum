@@ -32,11 +32,26 @@ import logging
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_dir,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from scope import (  # type: ignore[no-redef]
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_dir,
+    )
 
 
 logger = logging.getLogger("arcanum.typography")
@@ -180,17 +195,49 @@ def clean_file(file_path: Path, in_place: bool = False, make_backup: bool = True
     return stats, diff
 
 
-def clean_target(target_path: Path, in_place: bool = False, make_backup: bool = True) -> dict:
-    """Cleans a single file or an entire manuscript tree."""
-    files = []
-    if target_path.is_file():
-        files.append(target_path)
-    elif target_path.is_dir():
-        for p in sorted(target_path.rglob("*.md")):
-            if not p.name.startswith((".", "_")) and "Backups" not in p.parts:
-                files.append(p)
+def clean_target(
+    target_path: Path | str | None = None,
+    in_place: bool = False,
+    make_backup: bool = True,
+    scope: Any = None,
+) -> dict:
+    """Cleans a single file or an entire manuscript tree with granular scope support."""
+    target_str = resolve_manuscript_dir(target_path) if target_path else resolve_manuscript_dir()
+    if target_path and Path(target_path).exists():
+        p_target = Path(target_path)
+    elif target_str and Path(target_str).exists():
+        p_target = Path(target_str)
     else:
-        raise FileNotFoundError(f"Target path not found: {target_path}")
+        p_target = Path(target_path) if target_path else Path.cwd()
+
+    files = []
+    if p_target.is_file():
+        files.append(p_target)
+    elif p_target.is_dir():
+        if scope:
+            if not isinstance(scope, EngineScope):
+                if isinstance(scope, dict):
+                    from lib.scope import resolve_scope
+                    scope = resolve_scope(scope).scope_filter
+                elif isinstance(scope, str):
+                    from lib.scope import parse_unified_scope_string
+                    p_dict = parse_unified_scope_string(scope)
+                    scope = EngineScope(**p_dict)
+            scoped_chaps, scoped_scenes, _ = filter_manuscript_scope(p_target, scope)
+            if scoped_chaps:
+                files = [c.file_path for c in scoped_chaps]
+            elif scoped_scenes:
+                seen_f = set()
+                for s in scoped_scenes:
+                    if s.chapter_file not in seen_f:
+                        seen_f.add(s.chapter_file)
+                        files.append(s.chapter_file)
+        else:
+            for p in sorted(p_target.rglob("*.md")):
+                if not p.name.startswith((".", "_")) and "Backups" not in p.parts:
+                    files.append(p)
+    else:
+        raise FileNotFoundError(f"Target path not found: {p_target}")
 
     total_stats = {
         "files_scanned": len(files),
@@ -221,37 +268,54 @@ def clean_target(target_path: Path, in_place: bool = False, make_backup: bool = 
         })
 
     return {
-        "target": str(target_path),
+        "target": str(p_target),
         "in_place": in_place,
         "summary": total_stats,
         "files": file_results,
     }
 
 
-def clean_directory(dir_path: Path, in_place: bool = False, make_backup: bool = True) -> dict:
+def clean_directory(dir_path: Path, in_place: bool = False, make_backup: bool = True, scope: Any = None) -> dict:
     """Batch cleans all markdown files in a directory."""
-    return clean_target(dir_path, in_place=in_place, make_backup=make_backup)
+    return clean_target(dir_path, in_place=in_place, make_backup=make_backup, scope=scope)
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Smart Typography Normalizer (PRO-104)")
-    parser.add_argument("target", help="File or manuscript directory to polish")
+    parser.add_argument("target", nargs="?", default=None, help="File or manuscript directory to polish")
     parser.add_argument("-i", "--in-place", action="store_true", help="Modify files in-place")
     parser.add_argument("--no-backup", action="store_true", help="Do not create .bak backup files when modifying in-place")
     parser.add_argument("--diff", action="store_true", help="Show unified diff of changes")
     parser.add_argument("--json", action="store_true", help="Output JSON results")
-    args = parser.parse_args()
+    add_scope_arguments(parser, include_world=False)
+    args = parser.parse_args(argv)
 
-    target_path = Path(args.target)
-    if not target_path.exists():
-        print(f"Error: Target does not exist: {target_path}", file=sys.stderr)
-        sys.exit(1)
+    scope = parse_scope_args(args)
+    target_raw = args.target or scope.manuscript or (scope.books[0] if scope.books else None)
+    if not target_raw:
+        resolved_dir = resolve_manuscript_dir()
+        if resolved_dir and Path(resolved_dir).exists():
+            target_path = Path(resolved_dir)
+        else:
+            parser.print_help()
+            return 1
+    else:
+        tp = Path(target_raw)
+        if tp.exists():
+            target_path = tp
+        else:
+            resolved_dir = resolve_manuscript_dir(target_raw)
+            if resolved_dir and Path(resolved_dir).exists():
+                target_path = Path(resolved_dir)
+            else:
+                print(f"Error: Target does not exist: {target_raw}", file=sys.stderr)
+                sys.exit(1)
 
-    result = clean_target(target_path, in_place=args.in_place, make_backup=not args.no_backup)
+    result = clean_target(target_path, in_place=args.in_place, make_backup=not args.no_backup, scope=scope)
 
     if args.json:
         print(json.dumps(result, indent=2))
-        return
+        return 0
 
     summary = result["summary"]
     print(f"=== Smart Typography Polish: {target_path.name} ===")
@@ -278,6 +342,8 @@ def main():
     if not args.in_place and summary["files_modified"] > 0:
         print("\nTip: Run with -i / --in-place to apply these changes to disk.")
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -14,6 +14,7 @@
    - [Ecology & Trophic Cascade Simulator (`ecology`)](#ecology--trophic-cascade-simulator-ecology)
    - [Cartography & Topology Engine (`cartography`)](#cartography--topology-engine-cartography)
    - [Journey & Expedition Transit Calculator (`journey`)](#journey--expedition-transit-calculator-journey)
+   - [Celestial Cosmology & Mythic Metaphysics (`cosmology`)](#celestial-cosmology--mythic-metaphysics-cosmology)
 3. [Domain B: Narrative Architecture, Structure & Dynamics](#3-domain-b-narrative-architecture-structure--dynamics)
    - [Structure & Paradigm Engine (`structure`)](#structure--paradigm-engine-structure)
    - [Manuscript Structure Scaffolder (`manuscript_scaffold`)](#manuscript-structure-scaffolder-manuscript_scaffold)
@@ -35,6 +36,7 @@
    - [Macro & Micro Economics Engine (`economy`)](#macro--micro-economics-engine-economy)
    - [Tactical Combat & Siege Simulator (`tactical_sim`)](#tactical-combat--siege-simulator-tactical_sim)
    - [Magic System & Sanderson Constraint Engine (`magic_system`)](#magic-system--sanderson-constraint-engine-magic_system)
+   - [Deliberative Council & Narrative Dialectics (`council`)](#deliberative-council--narrative-dialectics-council)
 5. [Domain D: Stylistics, Sensory Immersion & Manuscript Polish](#5-domain-d-stylistics-sensory-immersion--manuscript-polish)
    - [Stylistics & Rhetorical Analyzer (`stylistics`)](#stylistics--rhetorical-analyzer-stylistics)
    - [8-Channel Sensory Palette Analyzer (`senses`)](#8-channel-sensory-palette-analyzer-senses)
@@ -68,6 +70,7 @@
 9. [Domain H: Universal Synthesis, Interconnectivity & Knowledge Discovery](#9-domain-h-universal-synthesis-interconnectivity--knowledge-discovery)
    - [Universal Resonance Mesh & Cross-Domain Synthesizer (`resonance`)](#universal-resonance-mesh--cross-domain-synthesizer-resonance)
    - [Dynamic Intelligent Tips & Knowledge Discovery (`tips`)](#dynamic-intelligent-tips--knowledge-discovery-tips)
+   - [Audiobook Proofing & Phonetic Narration (`audio_proof`)](#audiobook-proofing--phonetic-narration-audio_proof)
 10. [Verification, Invariants & Creative Advisory Protocol](#10-verification-invariants--creative-advisory-protocol)
 
 ---
@@ -243,6 +246,27 @@ Ars Arcanum (Scriptorium) is built upon three foundational engineering tenets:
 - **Subfeatures**:
   - Multi-modal travel legs (foot, horse, carriage, riverboat, airship).
   - Seasonal weather degradation penalties.
+
+---
+
+### Celestial Cosmology & Mythic Metaphysics (`cosmology`)
+- **Scientific & Structural Logic**:
+  - **Hierarchical Cosmological Ontology**:
+    Models multi-planar secondary universes across 4 structural cosmological tiers: Divine/Metaphysical, Celestial/Astral, Terrestrial/Material, and Subterranean/Chthonic.
+  - **Mythic Topology & Dumézil Trifunctional Hypothesis**:
+    Partitions pantheons and divine portfolios across sovereignty (sacred law/magic), martial force (warfare/valor), and fecundity (agriculture/commerce).
+  - **Planar Transience & Ley-Line Boundary Flux**:
+    $$F_{\text{ley}}(t) = \sum_{k=1}^M A_k \cos\left(\frac{2\pi t}{P_k} + \phi_k\right)$$
+- **Why This Way**: Eliminates theological contradictions, pantheon domain overlaps, and arbitrary divine interventions by anchoring metaphysics in structured ontological graphs and mythic comparative frameworks.
+- **Subfeatures**:
+  - 4-Tier Cosmological Plane Generator (Material, Ethereal, Astral, Void).
+  - Pantheon Domain Conflict & Overlap Auditor (`COS-101`).
+  - Ley-Line Planetary Alignment Calculator (`COS-102`).
+  - Creation Mythos & Eschatological Cycle Validator.
+- **Theoretical Foundations & Canonical References**:
+  - *Eliade, Mircea (1954)*. *The Myth of the Eternal Return: Cosmos and History*. Princeton University Press.
+  - *Dumézil, Georges (1958)*. *L'Idéologie tripartie des Indo-Européens*. Latomus.
+  - *Otto, Rudolf (1917)*. *The Idea of the Holy (Das Heilige)*. Oxford University Press.
 
 ---
 
@@ -492,6 +516,27 @@ Ars Arcanum (Scriptorium) is built upon three foundational engineering tenets:
 - **Subfeatures**:
   - Cost vs capability validator.
   - Magic user exhaustion and vulnerability tracker.
+
+---
+
+### Deliberative Council & Narrative Dialectics (`council`)
+- **Scientific & Narratological Logic**:
+  - **Dialectical Triad Synthesis & Multi-Perspective Council Matrix**:
+    Models multi-agent editorial and craft deliberation across 6 classical critical stances: Formalist/Stylist, Narratologist/Structuralist, Worldbuilder/Logician, Commercial/Pacing Editor, Reader-Advocate/Empathy, and Authorial Sovereign.
+  - **Weighted Deliberation & Hegelian Dialectic Motion**:
+    $$\text{Synthesis Score} = \sum_{k=1}^K w_k \cdot \text{Evaluation}_k(\text{Draft}) - \lambda \cdot \text{Variance}(\mathbf{E})$$
+  - **Socratic Inquiry & Devil's Advocate Stress Testing**:
+    Detects unearned narrative leaps, unmotivated character choices, and ideological echo chambers in dialogue and plotting.
+- **Why This Way**: Replaces sycophantic praise or isolated echo chambers with rigorous, multi-perspective literary scrutiny that surfaces deep structural weaknesses before publication.
+- **Subfeatures**:
+  - 6-Stance Virtual Editorial Board Deliberation.
+  - Socratic Question Generator for Scene Intent Clarification.
+  - Multi-Perspective Advisory Synthesis Report (`reports/council_findings.html`).
+  - Blind-Spot & Thematic Consistency Scrutinizer.
+- **Theoretical Foundations & Canonical References**:
+  - *Booth, Wayne C. (1961)*. *The Rhetoric of Fiction*. University of Chicago Press.
+  - *Barthes, Roland (1977)*. *Image-Music-Text*. Fontana Press.
+  - *Shklovsky, Viktor (1917)*. "Art as Technique (Defamiliarization)".
 
 ---
 
@@ -833,23 +878,91 @@ Ars Arcanum (Scriptorium) is built upon three foundational engineering tenets:
 
 ---
 
+### Audiobook Proofing & Phonetic Narration (`audio_proof`)
+- **Scientific & Psychoacoustic Logic**:
+  - **Dual-Coding Acoustic Proofing & Subvocalization Calibration**:
+    Leverages auditory perception to catch visual blind-spots (repeated prepositions, awkward consonantal clusters, homophone ambiguities) through localized Text-to-Speech synthesis.
+  - **Phonetic Lexicon Mapping & SSML 1.0 Synthesis**:
+    Maps invented conlang words, ancient titles, and character names to explicit International Phonetic Alphabet (IPA) tokens in SSML markup:
+    $$\text{IPA Token}: \quad \texttt{<phoneme alphabet="ipa" ph="eɪ'θɛl.ɡɑːrd">Aethelgard</phoneme>}$$
+  - **Acoustic Breath-Pacing & Clause Duration Modeling**:
+    Calculates narrator breath points and pause cadences based on syntactic punctuation density.
+- **Why This Way**: Catches auditory clunkiness, tongue-twister consonantal collisions, and homophone confusions that the visual eye skims past during silent reading.
+- **Subfeatures**:
+  - Offline TTS Voice Synthesis Integration (Piper, eSpeak-NG, SAPI5).
+  - W3C SSML 1.0 Pronunciation Guide Generator (`World/Pronunciation.xml`).
+  - Auditory Pacing & Breath Cadence Analyzer (`AUD-101`).
+  - Standalone Offline HTML Audio Reviewer with Waveform Player.
+- **Theoretical Foundations & Canonical References**:
+  - *Paivio, Allan (1986)*. *Mental Representations: A Dual Coding Approach*. Oxford University Press.
+  - *Levelt, Willem J. M. (1989)*. *Speaking: From Intention to Articulation*. MIT Press.
+  - *W3C (2004)*. *Speech Synthesis Markup Language (SSML) Version 1.0*. W3C Recommendation.
+
+---
+
 ## 10. Verification, Invariants & Creative Advisory Protocol
 
-To ensure 100% compliance with Ars Arcanum engineering standards, verify the engine ecosystem using the four mandatory quality gates:
+To ensure 100% compliance with Ars Arcanum engineering standards, verify the engine ecosystem using the mandatory quality gates:
 
 ```bash
-# 1. Full Python Test Suite Discovery (0 failures permitted)
+# 1. Full Python Test Suite Discovery (853 tests, 0 failures permitted)
 python -m unittest discover tests
 
 # 2. Strict Expanded Ruff Linter Pass (0 violations permitted)
 ruff check .
 
 # 3. Strict Mypy Static Type Checking across all source files
-mypy --explicit-package-bases scripts/lib tests
+mypy --config-file mypy.ini --explicit-package-bases scripts/lib tests
 
-# 4. Canonical Verification Harness
-bash scripts/verify.sh
+# 4. Master 21-Stage Grand Tour Lifecycle Harness
+python -m unittest tests/test_grand_tour_e2e.py
 ```
+
+---
+
+## 11. Masterclass References, Theoretical Foundations & Media
+
+### 11.1 Master Craft, Structure & Dramaturgy
+1. **Aristotle** (c. 335 BCE). *Poetics*. (Mimesis, hamartia, anagnorisis, peripeteia, and catharsis).
+2. **Swain, Dwight V.** (1965). *Techniques of the Selling Writer*. University of Oklahoma Press. (Motivation-Reaction Units / MRUs, Scene vs Sequel polarity).
+3. **Bickham, Jack M.** (1993). *Scene & Structure*. Writer's Digest Books. (Cause-and-effect narrative progression and Swain expansion).
+4. **McKee, Robert** (1997). *Story: Substance, Structure, Style and the Principles of Screenwriting*. ReganBooks. (Crisis, climax, resolution, turning points, and value polarity shifts).
+5. **Truby, John** (2007). *The Anatomy of Story: 22 Steps to Becoming a Master Storyteller*. Faber & Faber. (Organic narrative structures, moral arguments, and character networks).
+6. **Brooks, Larry** (2011). *Story Engineering: Mastering the 6 Core Competencies of Successful Writing*. Writer's Digest Books. (Four-part structural architecture and milestone percentage pacing).
+7. **Snyder, Blake** (2005). *Save the Cat! The Last Book on Screenwriting You'll Ever Need*. Michael Wiese Productions. (15-beat structural pacing blueprint).
+8. **Campbell, Joseph** (1949). *The Hero with a Thousand Faces*. Pantheon Books. (The Monomyth and archetypal journey).
+9. **Vogler, Christopher** (2007). *The Writer's Journey: Mythic Structure for Writers* (3rd Edition). Michael Wiese Productions. (12-stage pragmatic monomyth framework).
+10. **Provost, Gary** (1985). *100 Ways to Improve Your Writing*. Mentor / Penguin. (Sentence cadence musicality, syllabic acceleration, and rhythmic prose variation).
+11. **Gardner, John** (1983). *The Art of Fiction: Notes on Craft for Young Writers*. Vintage Books. (Psychic distance, fictional dream maintenance, and syntactic rhythm).
+12. **Bakhtin, Mikhail** (1981). *The Dialogic Imagination: Four Essays*. University of Texas Press. (Heteroglossia, polyphony, and socio-ideological character idiolects).
+13. **Shklovsky, Viktor** (1917). *Art as Technique*. (Defamiliarization / *Ostranenie* and prose perception).
+14. **Quinn, Arthur** (1982). *Figures of Speech: 60 Ways to Turn a Phrase*. Gibbs M. Smith. (Classical schemes and tropes of rhetoric).
+15. **Bringhurst, Robert** (2012). *The Elements of Typographic Style* (Version 4.0). Hartley & Marks. (Book design geometry, page proportions, and typographic craft).
+
+### 11.2 Hard Science Worldbuilding, Astrophysics & Planetology
+1. **Dole, Stephen H.** (1964). *Habitable Planets for Man*. RAND Corporation / Blaisdell Publishing. (The seminal mathematical treatise on planetary habitability, stellar luminosity, and orbital dynamics).
+2. **Kasting, James F.** (2010). *How to Find a Habitable Planet*. Princeton University Press. (Atmospheric greenhouse feedback models and circumstellar habitable zone calculations).
+3. **Kopparapu, R. K. et al.** (2013). "Habitable Zones around Main-Sequence Stars: New Estimates". *The Astrophysical Journal*, 765(2), 131. (Modern 1D radiative-convective habitable zone boundaries).
+4. **Holman, M. J. & Wiegert, P. A.** (1999). "Long-Term Stability of Planets in Binary Systems". *The Astronomical Journal*, 117(1), 621–628. (P-type circumbinary and S-type non-circumbinary critical orbital limits).
+5. **Vallis, Geoffrey K.** (2017). *Atmospheric and Oceanic Fluid Dynamics* (2nd Edition). Cambridge University Press. (Held-Hou Hadley cell models, Coriolis deflection, and planetary atmospheric circulation).
+6. **Köppen, Wladimir** (1936). *Das geographische System der Klimate*. Gebrüder Borntraeger. (The Köppen-Geiger planetary climate classification system).
+7. **Odum, Eugene P.** (1971). *Fundamentals of Ecology* (3rd Edition). W.B. Saunders. (Trophic energy pyramids, ecosystem energetics, and nutrient cycles).
+8. **MacArthur, Robert H. & Wilson, Edward O.** (1967). *The Theory of Island Biogeography*. Princeton University Press. (Island equilibrium theory and colonization-extinction curves).
+9. **Pearl, Judea** (2000). *Causality: Models, Reasoning, and Inference*. Cambridge University Press. (Structural Causal Models, do-calculus, and causal DAGs).
+10. **Lanchester, Frederick W.** (1916). *Aircraft in Warfare: The Dawn of the Fourth Arm*. Constable and Company. (Lanchester's Linear and Square Power Laws of Combat).
+11. **Rosenfelder, Mark** (2010). *The Language Construction Kit*. Yonagu Books. (Phonetics, phonotactics, morphological typology, and historical sound shift laws).
+12. **Rosenfelder, Mark** (2012). *The Planet Construction Kit*. Yonagu Books. (Tectonic geology, climate circulation, calendars, and cultural institutions).
+13. **Peterson, David J.** (2015). *The Art of Language Invention*. Penguin Books. (Naturalistic conlang engineering, case declensions, and grammatical evolution).
+
+### 11.3 Landmark Video Lectures, Masterclasses & Documentaries
+1. **Brandon Sanderson's BYU Creative Writing Lectures** (Full University Course on YouTube). Complete masterclass series covering plot architectures, hard magic systems, character arcs, pacing waveforms, and worldbuilding economics.
+2. **Artifexian (Arthur)** (YouTube Worldbuilding Series). Detailed mathematical tutorials on orbital mechanics, Köppen climate mapping, tectonic plate collisions, and conlang syntax.
+3. **Biblaridion** (YouTube Feature Focus & Conlang Showcase). Exhaustive video walkthroughs on naturalistic linguistic phonology, morphology, and alien ecosystem evolution.
+4. **Hello Future Me (Tim Hickson)** (*On Writing* Video Series on YouTube / Books). Architectural breakdowns of Sanderson's laws, dramatic pacing, foreshadowing, and political worldbuilding.
+5. **Tale Foundry** (YouTube Creative Writing Series). Theoretical dissections of narrative tropes, mythic structures, magic systems, and story archetypes.
+6. **Isaac Arthur (SFIA)** (*Science & Futurism with Isaac Arthur* on YouTube). Deep technical explorations of megastructures, interstellar colonization logistics, and exotic planetary habitability.
+7. **PBS Space Time (Matt O'Dowd)** (YouTube Astrophysics Series). Theoretical physics deep dives into relativity, wormhole metrics, black hole thermodynamics, and cosmic topology.
+8. **Writing Excuses Podcast** (Brandon Sanderson, Mary Robinette Kowal, Dan Wells, Howard Tayler). Bite-sized 15-minute craft masterclasses across 18 seasons covering every dimension of speculative fiction writing.
 
 ---
 *Ars Arcanum (Scriptorium) — Designed for the sovereign craft of literature.*

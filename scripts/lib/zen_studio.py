@@ -35,12 +35,32 @@ try:
     from lib.frontmatter import parse_yaml_frontmatter
     from lib.registry import get_engine_catalog
     from lib.resonance import ResonanceMesh
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        filter_world_scope,
+        format_scope_banner,
+        parse_scope_args,
+        resolve_manuscript_dir,
+        resolve_world_dir,
+    )
     from lib.tips import are_tips_enabled, get_tip_database
 except ImportError:
     from _bootstrap import atomic_write
     from frontmatter import parse_yaml_frontmatter
     from registry import get_engine_catalog
     from resonance import ResonanceMesh
+    from scope import (  # type: ignore[no-redef]
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        filter_world_scope,
+        format_scope_banner,
+        parse_scope_args,
+        resolve_manuscript_dir,
+        resolve_world_dir,
+    )
     from tips import are_tips_enabled, get_tip_database
 
 logger = logging.getLogger("arcanum.studio")
@@ -86,35 +106,68 @@ def build_zen_studio_bundle(
     ms_path: Path,
     world_path: Path | None = None,
     output_path: Path | None = None,
+    scope: EngineScope | None = None,
 ) -> Path:
     """Compiles manuscript files and world lore into an offline interactive Zen studio HTML file."""
-    files: list[Path] = []
-    if ms_path.is_file():
-        files.append(ms_path)
-    elif ms_path.is_dir():
-        for p in sorted(ms_path.rglob("*.md")):
-            if not p.name.startswith((".", "_")) and "Backups" not in p.parts and "04_Back_Matter" not in p.parts:
-                files.append(p)
-
     chapters: list[dict[str, Any]] = []
-    for idx, f in enumerate(files, 1):
-        content = f.read_text(encoding="utf-8", errors="replace")
-        fm = parse_yaml_frontmatter(content)
-        body = FRONTMATTER_REGEX.sub("", content).strip()
-        h1 = re.search(r"^#\s+(.+)$", body, flags=re.MULTILINE)
-        title = str(fm.get("title", h1.group(1).strip() if h1 else f.stem.replace("_", " ")))
-        word_count = len(re.findall(r"\b\w+\b", body))
-        chapters.append({
-            "id": f"chap_{idx}",
-            "filename": f.name,
-            "title": title,
-            "frontmatter": fm,
-            "content": content,
-            "body": body,
-            "word_count": word_count,
-        })
+    if scope and (scope.chapters or scope.scenes or scope.manuscript or scope.book):
+        scoped_chaps, _, _ = filter_manuscript_scope(ms_path, scope)
+        for idx, ch in enumerate(scoped_chaps, 1):
+            body = ch.content
+            fm = parse_yaml_frontmatter(body)
+            body_clean = FRONTMATTER_REGEX.sub("", body).strip()
+            word_count = len(re.findall(r"\b\w+\b", body_clean))
+            chapters.append({
+                "id": f"chap_{idx}",
+                "filename": ch.file_path.name,
+                "title": ch.title,
+                "frontmatter": fm,
+                "content": body,
+                "body": body_clean,
+                "word_count": word_count,
+            })
+    else:
+        files: list[Path] = []
+        if ms_path.is_file():
+            files.append(ms_path)
+        elif ms_path.is_dir():
+            for p in sorted(ms_path.rglob("*.md")):
+                if not p.name.startswith((".", "_")) and "Backups" not in p.parts and "04_Back_Matter" not in p.parts:
+                    files.append(p)
 
-    lore_entities = scan_lore_entities(world_path)
+        for idx, f in enumerate(files, 1):
+            content = f.read_text(encoding="utf-8", errors="replace")
+            fm = parse_yaml_frontmatter(content)
+            body = FRONTMATTER_REGEX.sub("", content).strip()
+            h1 = re.search(r"^#\s+(.+)$", body, flags=re.MULTILINE)
+            title = str(fm.get("title", h1.group(1).strip() if h1 else f.stem.replace("_", " ")))
+            word_count = len(re.findall(r"\b\w+\b", body))
+            chapters.append({
+                "id": f"chap_{idx}",
+                "filename": f.name,
+                "title": title,
+                "frontmatter": fm,
+                "content": content,
+                "body": body,
+                "word_count": word_count,
+            })
+
+    if world_path and scope and (scope.lore_categories or scope.world):
+        lore_items = filter_world_scope(world_path, scope)
+        lore_entities = []
+        for l_item in lore_items:
+            meta = parse_yaml_frontmatter(l_item.content)
+            body = FRONTMATTER_REGEX.sub("", l_item.content).strip()
+            lore_entities.append({
+                "name": l_item.name,
+                "category": l_item.category,
+                "path": str(l_item.file_path.relative_to(world_path)).replace("\\", "/") if world_path and world_path in l_item.file_path.parents else l_item.file_path.name,
+                "metadata": meta,
+                "snippet": body[:300] + ("..." if len(body) > 300 else ""),
+            })
+    else:
+        lore_entities = scan_lore_entities(world_path)
+
     engine_catalog = get_engine_catalog()
     try:
         mesh = ResonanceMesh()
@@ -858,23 +911,38 @@ def build_zen_studio_bundle(
 generate_zen_studio_bundle = build_zen_studio_bundle
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Standalone Zen Drafting Studio")
-    parser.add_argument("target", help="Manuscript directory or Markdown chapter file")
+    parser.add_argument("target", nargs="?", default=".", help="Manuscript directory or Markdown chapter file")
     parser.add_argument("--world", "-w", help="Optional World Bible directory for in-situ drawer inspection")
     parser.add_argument("--output", "-o", help="Output standalone HTML file path (default: dist/zen_studio.html)")
     parser.add_argument("--json", action="store_true", help="Print studio metadata as JSON to stdout")
-    args = parser.parse_args()
+    add_scope_arguments(parser)
+    args = parser.parse_args(argv)
+    scope_obj = parse_scope_args(args)
 
-    target_path = Path(args.target)
-    if not target_path.exists():
-        print(f"Error: Target path does not exist: {target_path}", file=sys.stderr)
-        sys.exit(1)
+    if args.target and args.target != ".":
+        p_cand = Path(args.target)
+        if p_cand.exists():
+            target_path = p_cand
+        else:
+            r_str = resolve_manuscript_dir(args.target, scope=scope_obj)
+            if r_str and Path(r_str).exists():
+                target_path = Path(r_str)
+            else:
+                print(f"Error: Target path does not exist: {args.target}", file=sys.stderr)
+                if argv is None:
+                    sys.exit(1)
+                return 1
+    else:
+        r_str = resolve_manuscript_dir(scope=scope_obj)
+        target_path = Path(r_str) if r_str and Path(r_str).exists() else Path.cwd()
 
-    world_path = Path(args.world) if args.world else None
+    raw_world = resolve_world_dir(args.world, scope=scope_obj)
+    world_path = Path(raw_world) if raw_world else None
     out_path = Path(args.output) if args.output else None
 
-    bundle = build_zen_studio_bundle(target_path, world_path=world_path, output_path=out_path)
+    bundle = build_zen_studio_bundle(target_path, world_path=world_path, output_path=out_path, scope=scope_obj)
 
     if args.json:
         report = {
@@ -882,13 +950,16 @@ def main():
             "world": str(world_path) if world_path else None,
             "bundle_path": str(bundle),
             "status": "ready",
+            "scope": {
+                "chapters": scope_obj.chapters,
+                "scenes": scope_obj.scenes,
+                "raw_scope": scope_obj.raw_scope,
+            } if scope_obj else None,
         }
         print(json.dumps(report, indent=2))
-        return
+        return 0
 
-    print("=" * 75)
-    print("  🏛️  Ars Arcanum Sovereign Zen Studio — v2.0.0")
-    print("=" * 75)
+    print(format_scope_banner("Ars Arcanum Sovereign Zen Studio — v2.0.0", scope_obj))
     print(f"Manuscript Target: {target_path}")
     if world_path:
         print(f"World Bible Lore:  {world_path}")
@@ -896,9 +967,12 @@ def main():
     print("-" * 75)
     print("Open the HTML file in any modern web browser for offline drafting.")
     print("=" * 75)
+    return 0
 
 
 if __name__ == "__main__":
     main()
+
+
 
 

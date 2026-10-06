@@ -1,33 +1,60 @@
-# Optional Extras & Specialized Creative Tools Guide
-
-The default Ars Arcanum environment is kept lean and focused. When specialized creative needs arise, the following open-source tools can be installed directly from the Linux Mint Software Manager (or via Flatpak / APT).
+# Optional Extras & Specialized Open-Source Creative Tools Guide (`docs/guides/OPTIONAL_EXTRAS.md`)
+> **Domain A & G: Worldbuilding & Publishing Tooling Ecosystem**
 
 ---
 
-## 1. Fantasy Mapping & Cartography
+## 1. Overview & Tooling Philosophy
 
-### Azgaar's Fantasy Map Generator (Web & Offline)
-- **Use Case**: Procedurally generating continents, biomes, political borders, culture maps, trade routes, and relief maps.
-- **Online Access**: [https://azgaar.github.io/Fantasy-Map-Generator/](https://azgaar.github.io/Fantasy-Map-Generator/)
-- **Offline Setup**:
-  1. Download the offline bundle from GitHub: [https://github.com/Azgaar/Fantasy-Map-Generator/archive/refs/heads/master.zip](https://github.com/Azgaar/Fantasy-Map-Generator/archive/refs/heads/master.zip)
-  2. Extract to `~/Universes/<UniverseName>/<WorldName>/02-Maps/Azgaar/`
-  3. Open `index.html` in Firefox without needing internet.
+Ars Arcanum maintains a lean, zero-dependency core architecture that runs completely offline with standard Python and SQLite. However, when specialized artistic, cartographic, genealogical, or linguistic needs arise, the open-source software ecosystem offers world-class companion applications that integrate directly into your local workspaces.
 
-### Krita (Digital Painting & Sketching)
-- **Use Case**: Hand-drawing world maps, custom city plans, concept art, and book cover illustrations.
-- **Website**: [https://krita.org/](https://krita.org/)
-- **Flatpak ID**: `org.kde.krita`
+```
++-------------------------------------------------------------------------------+
+|                    ARS ARCANUM COMPANION TOOLING ECOSYSTEM                    |
+|                                                                               |
+|  [Cartography & Art]       --> Azgaar (Procedural), Krita, Inkscape (Sigils)  |
+|                                                                               |
+|  [Dynasties & Conlangs]    --> Gramps (Lineages), PolyGlot (Phonology)        |
+|                                                                               |
+|  [Air-Gapped Research]     --> Kiwix (Offline Wikipedia / ZIM Snapshot Dumps) |
+|                                                                               |
+|  [Post-Production E-Book]  --> Sigil (EPUB CSS & Typography Fine-Tuning)      |
+|                                                                               |
+|  [Guarantee: 100% Free, Open-Source, Zero Telemetry, Air-Gapped Capable]      |
++-------------------------------------------------------------------------------+
+```
+
+---
+
+## 2. Cartography & Visual Worldbuilding
+
+```mermaid
+flowchart TD
+    Concept["World Concept"] --> Azgaar["Azgaar's Generator: Continents, Biomes & Borders"]
+    Azgaar --> SVGExport["Export High-Res Vector SVG / GeoJSON"]
+    
+    SVGExport --> Inkscape["Inkscape: Vector Heraldry, Sigils, Faction Borders"]
+    SVGExport --> Krita["Krita: Digital Painting, Topography Shading, Cover Art"]
+    
+    Inkscape & Krita --> VaultAssets["Save Render to World/Assets/ & Manuscripts/Assets/"]
+```
+
+### 2.1 Azgaar's Fantasy Map Generator (Offline Setup)
+- **Primary Function**: Procedural generation of continents, tectonic plates, biomes, river basins, political boundaries, culture distributions, and military trade routes.
+- **Offline Air-Gapped Setup**:
+  1. Download master repository archive: `https://github.com/Azgaar/Fantasy-Map-Generator/archive/refs/heads/master.zip`
+  2. Extract to `~/Worlds/<WorldName>/Assets/Maps/Azgaar/`
+  3. Open `index.html` in Firefox/Chromium with zero internet access.
+
+### 2.2 Krita (Digital Painting & Visual Art)
+- **Primary Function**: Hand-painted regional maps, concept illustrations, creature sketches, and full-color book jacket paintings.
 - **Installation**:
   ```bash
   flatpak install -y flathub org.kde.krita
   # Or: sudo apt install -y krita
   ```
 
-### Inkscape (Vector Art & Emblems)
-- **Use Case**: Vector cartography, coat of arms, faction sigils, typography layout, and scalable map symbols.
-- **Website**: [https://inkscape.org/](https://inkscape.org/)
-- **Flatpak ID**: `org.inkscape.Inkscape`
+### 2.3 Inkscape (Vector Graphics & Faction Heraldry)
+- **Primary Function**: Scalable vector coats of arms, royal seals, astronomical orbital diagrams, and custom typographic runes.
 - **Installation**:
   ```bash
   sudo apt install -y inkscape
@@ -35,42 +62,47 @@ The default Ars Arcanum environment is kept lean and focused. When specialized c
 
 ---
 
-## 2. Worldbuilding & Lore Systems
+## 3. Specialized Worldbuilding & Linguistics Tools
 
-### Gramps (Genealogy & Dynasties)
-- **Use Case**: Advanced standalone desktop genealogy tracking across thousands of family entities.
-- **Native Ars Arcanum Alternative**: `arcanum genealogy <House>` and `arcanum lineage <House>` compile accessible Mermaid.js family tree diagrams into Obsidian notes, render interactive HTML/SVG trees, and audit chronological/biological paradoxes without external apps.
-- **Website**: [https://gramps-project.org/](https://gramps-project.org/)
-- **Flatpak ID**: `org.gramps_project.Gramps`
+### 3.1 Gramps (Genealogical Architecture & Dynasties)
+- **Primary Function**: Standalone database for tracking thousands of historical lineage nodes, cadet branches, and complex inter-dynastic marriages.
+- **Native Arcanum Alternative**: `arcanum genealogy <House>` compiles accessible Mermaid.js family tree diagrams directly into Obsidian notes.
 - **Installation**:
   ```bash
   sudo apt install -y gramps
   ```
 
-### PolyGlot (Conlang & Language Construction)
-- **Use Case**: Advanced desktop conlang construction studio with audio pronunciation modeling.
-- **Native Ars Arcanum Alternative**: `arcanum conlang generate <Lang>`, `arcanum conlang mutate <Lang>`, and `arcanum conlang lexicon <Lang>` generate phonotactically consistent names and apply historical sound-change shift laws directly from Obsidian `Languages/*.md` inventories.
-- **Website**: [https://draque-press.itch.io/polyglot](https://draque-press.itch.io/polyglot)
-- **GitHub**: [https://github.com/DraqueT/PolyGlot](https://github.com/DraqueT/PolyGlot)
-- **Linux Setup**: Java `.jar` / Linux release package executable with OpenJDK.
-  ```bash
-  sudo apt install -y default-jre
-  ```
+### 3.2 PolyGlot (Conlang Construction Studio)
+- **Primary Function**: Constructed language phonology engine, lexicon manager, audio IPA pronunciation synthesizer, and orthography converter.
+- **Native Arcanum Alternative**: `arcanum conlang generate <Lang>` and `arcanum conlang mutate <Lang>` execute historical sound-shift laws directly from Markdown files.
+- **Installation**: Requires OpenJDK JRE. Run via `java -jar PolyGlot.jar`.
 
-### Kiwix (Offline Encyclopedia & Wikipedia Reader)
-- **Use Case**: Complete offline research access. Download full Wikipedia or Wiktionary snapshots (ZIM files) onto an external drive and search everything without internet.
-- **Website**: [https://kiwix.org/](https://kiwix.org/)
-- **Flatpak ID**: `org.kiwix.desktop`
+### 3.3 Kiwix (Offline Research & Complete Wikipedia Dumps)
+- **Primary Function**: Complete air-gapped research capability. Download compressed `.zim` archives of Wikipedia (English, History, Physics, Biology) to an external drive and search encyclopedic knowledge without internet.
 - **Installation**:
   ```bash
   flatpak install -y flathub org.kiwix.desktop
   ```
 
-### Sigil (EPUB Deep Editor)
-- **Use Case**: Advanced fine-tuning of CSS, embedded fonts, and table-of-contents inside `.epub` ebook files prior to commercial distribution.
-- **Website**: [https://sigil-ebook.com/](https://sigil-ebook.com/)
-- **Flatpak ID**: `com.sigil_ebook.Sigil`
+### 3.4 Sigil (EPUB Deep Inspection & CSS Editor)
+- **Primary Function**: Direct editing of XHTML, CSS stylesheets, and embedded OpenType fonts inside compiled `.epub` files prior to distributor submission.
 - **Installation**:
   ```bash
   sudo apt install -y sigil
   ```
+
+---
+
+## 4. Recommended Reading, References & Media
+
+### 4.1 Digital Cartography & Visual Worldbuilding Treatises
+- **Artifexian & Biblaridion**: *Vector Cartography, Plate Tectonics, and Coastline Realism*.  
+  *Designing realistic geography using fractal heightmaps and hydraulic erosion.*
+- **Rosenfelder, Mark (2010)**. *The Language Construction Kit*. Yonagu Books. ISBN: 978-0984144112.  
+  *The defining manual on phonology, grammar, and historical morphology for worldbuilders.*
+
+### 4.2 Software Documentation & Video Guides
+- **Krita Foundation**: *Digital Painting Fundamentals for Concept Artists*. [krita.org/docs](https://krita.org/).  
+  *Techniques for environmental rendering and digital world illustration.*
+- **Inkscape Community**: *Vector Design for Book Covers, Heraldry, and Logos*. [inkscape.org](https://inkscape.org/).  
+  *Mastering Bezier paths, node editing, and scalable typography.*

@@ -30,8 +30,24 @@ from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_number_ranges,
+        parse_scope_args,
+        resolve_manuscript_path,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_number_ranges,
+        parse_scope_args,
+        resolve_manuscript_path,
+    )
 
 logger = logging.getLogger("arcanum.series_continuity")
 
@@ -59,13 +75,20 @@ DEATH_PATTERNS = [
 ]
 
 
-def extract_book_entities(book_dir: Path) -> dict:
+def extract_book_entities(book_dir: Path, scope: EngineScope | None = None) -> dict:
     """Extracts characters, physical traits, and deaths mentioned within a book volume."""
     text_chunks = []
     deaths = set()
     character_traits: dict[str, dict[str, Any]] = defaultdict(lambda: {"eyes": set(), "hair": set(), "mentions": 0, "custom": {}})
 
-    for md_file in sorted(book_dir.rglob("*.md")):
+    md_files = sorted(book_dir.rglob("*.md"))
+    if scope:
+        scoped_chaps, _, _ = filter_manuscript_scope(book_dir, scope)
+        if scoped_chaps:
+            scoped_paths = {c.file_path for c in scoped_chaps if c.file_path}
+            md_files = [f for f in md_files if f in scoped_paths]
+
+    for md_file in md_files:
         if not md_file.name.startswith((".", "_")) and "04_Back_Matter" not in md_file.parts:
             file_text = md_file.read_text(encoding="utf-8", errors="replace")
             text_chunks.append(f"\n\n# {md_file.name}\n{file_text}")
@@ -165,7 +188,7 @@ def extract_book_entities(book_dir: Path) -> dict:
     }
 
 
-def scan_series_continuity(target_dir: Path) -> dict:
+def scan_series_continuity(target_dir: Path, scope: EngineScope | None = None) -> dict:
     """Scans all volumes in a manuscript or series directory for continuity anomalies."""
     # Find volumes: either Book-* subdirectories or the directory itself
     book_dirs = sorted([d for d in target_dir.glob("Book-*") if d.is_dir()])
@@ -174,9 +197,27 @@ def scan_series_continuity(target_dir: Path) -> dict:
         sub_books = sorted([d for d in target_dir.rglob("Book-*") if d.is_dir()])
         book_dirs = sub_books or [target_dir]
 
+    if scope and scope.books:
+        book_nums = parse_number_ranges(scope.books)
+        book_names = [b.lower() for b in scope.books if not str(b).isdigit() and "-" not in str(b)]
+        filtered_books = []
+        for v_idx, b_dir in enumerate(book_dirs, 1):
+            v_name_lower = b_dir.name.lower()
+            if v_idx in book_nums:
+                filtered_books.append(b_dir)
+                continue
+            extracted_nums = [int(n) for n in re.findall(r"\d+", b_dir.name)]
+            if any(n in book_nums for n in extracted_nums):
+                filtered_books.append(b_dir)
+                continue
+            if any(b_name in v_name_lower for b_name in book_names):
+                filtered_books.append(b_dir)
+        if filtered_books:
+            book_dirs = filtered_books
+
     volumes = []
     for b in book_dirs:
-        v_data = extract_book_entities(b)
+        v_data = extract_book_entities(b, scope=scope)
         volumes.append(v_data)
 
     contradictions = []
@@ -313,23 +354,25 @@ def generate_series_html_report(report: dict, output_path: Path) -> Path:
     return output_path
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Series Cross-Book Continuity Engine (WOR-103)")
     parser.add_argument("target", help="Manuscript or series directory containing Book volumes")
     parser.add_argument("--html", help="Generate HTML series ledger report")
     parser.add_argument("--json", action="store_true", help="Output JSON results")
-    args = parser.parse_args()
+    add_scope_arguments(parser, include_world=False, include_manuscript=False, target_pos_arg=False)
+    args = parser.parse_args(argv)
 
-    target_path = Path(args.target)
+    scope = parse_scope_args(args)
+    target_path = resolve_manuscript_path(args.target) or Path(args.target)
     if not target_path.exists():
         print(f"Error: Path does not exist: {target_path}", file=sys.stderr)
         sys.exit(1)
 
-    report = scan_series_continuity(target_path)
+    report = scan_series_continuity(target_path, scope=scope)
 
     if args.json:
         print(json.dumps(report, indent=2))
-        return
+        return 0
 
     print(f"=== Series Cross-Book Continuity Ledger: {target_path.name} ===")
     print(f"Volumes Indexed: {report['total_volumes']} | Total Issues: {report['total_issues']}")
@@ -354,9 +397,10 @@ def main():
         out_p = Path(args.html)
         generate_series_html_report(report, out_p)
         print(f"\nHTML report written to: {out_p}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
 
 

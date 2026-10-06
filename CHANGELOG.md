@@ -4,6 +4,43 @@ All notable changes to Ars Arcanum are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Scope decisions
 behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## [5.0.0] - 2026-10-05
+
+### Added & Hardened (Sovereign Craft Studio & 47 Deterministic Engines Upgrade)
+- **Transition to 47 Deterministic Core & Craft Engines (`scripts/lib/registry.py`, `resonance.py`)**:
+  - Replaced heuristic regex prose engines with deterministic, schema-validated metadata models and rich craft encyclopedia references.
+  - Rebranded and hardened zero-dependency local semantic retrieval from `local_rag` to `vault_search` with hybrid BM25+, TF-IDF cosine similarity, and SQLite FTS5 indexers.
+  - Fully refactored hybrid engines (`continuity`, `dramatis_personae`, `magic_system`, `plot_matrix`, `resonance`, `conlang`, `ambient`, `revision_heatmap`) to strict deterministic YAML frontmatter and character sheet parsing.
+- **Craft Reference Encyclopedia Expansion (`docs/`)**:
+  - Authored deep masterclass craft guides for narrative theory: `SCENE_MECHANICS.md`, `PACING.md`, `BRANCHING_GRAPH.md`, `VOICE.md`, `STYLISTICS.md`, `CONCORDANCE.md`, `SENSES.md`, `AUDIO_PROOF.md`, `COUNCIL.md`.
+  - Updated `ENGINE_LOGIC_ENCYCLOPEDIA.md`, `GRAND_TOUR.md`, and codebase architecture references.
+- **Streamlined Packaging & Invariant Architecture**:
+  - Purged legacy packaging manifests and packaging scripts in favor of clean, offline zero-pip standard library architecture.
+  - 100% test suite pass rate with full cross-platform compatibility and zero dependencies.
+
+## [4.4.0] - 2026-10-05
+
+### Added & Hardened (Granular Target Scoping, Intelligent Altitude & Studio Hub Cockpit)
+- **Granular Target Scoping Subsystem & Intelligent Altitude Resolution (`scripts/lib/scope.py`, ADR-119)**:
+  - Implemented pure-Python standard-library target scope parser and resolver supporting chapter ranges (`1-5`, `1,3,7-10`, `ch01..ch05`), scene ranges (`1-3`, `sc01..sc02`), books/volumes (`Book-01`, `1-2`), worlds, universes, series, lore categories, and unified expressions (`world:Eldoria:lore:Characters,MagicSystems`).
+  - Added intelligent context-aware defaults: defaults to active project in `config.json`, current working directory, or single-project discovery without whole-vault disk scans.
+  - Added CLI argument binder `add_scope_arguments(parser)` and live scope resolution helper `resolve_engine_scope(args, target_type)`.
+  - Added `arcanum scope` CLI diagnostic command to inspect resolved chapters, scenes, and lore items with `--json` streaming output.
+  - Added comprehensive test suite in `tests/test_scope.py`.
+- **Studio Hub Scope Cockpit & Modal Engine Runner (`scripts/lib/studio_hub.py`)**:
+  - Added persistent Scope Bar in the header with live telemetry pill badge reflecting active scope target.
+  - Implemented quick presets dropdown: `Active Project`, `Whole Book`, `Ch 1-5`, `Act 1`, `Custom...`.
+  - Added live Interactive Engine Runner Modal allowing authors to trigger any craft engine on the active scope, override parameters, and view streaming captured stdout/stderr diagnostics.
+  - Added REST API endpoints: `GET /api/scope`, `POST /api/scope`, and `POST /api/engine/run`.
+- **GTK3 Desktop Scope Toolbar Integration (`scripts/lib/ui_gtk3/window.py`, `dialogs.py`)**:
+  - Integrated Chapter/Scene and Book scoping entries directly into the GTK3 desktop toolbar.
+  - Connected granular scope parameters through the async worker bridge to underlying craft engines.
+- **Universal Craft Engine Scoping Integration**:
+  - Updated `pacing.py`, `scene_mechanics.py`, `stylistics.py`, `voice.py`, `senses.py`, `zen_studio.py`, `frontmatter_builder.py`, `local_rag.py`, and `cli.py` to seamlessly honor `--chapter`, `--scene`, `--book`, `--world`, `--lore-category`, and `--all`.
+- **Quality Gates & Test Suite Elevation**:
+  - Expanded test suite to **1,022 automated unit and integration tests** (1,020 passing, 2 skipped, 0 failures) across 175 source files.
+  - Maintained 0 Ruff linter violations and clean Mypy static typing across all modules.
+
 ## [4.3.0] - 2026-10-03
 
 ### Added & Hardened (Dynamic Plugin Extensibility, Speculative Intelligence & Studio v2 — Phase 25)

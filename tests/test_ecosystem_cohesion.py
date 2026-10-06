@@ -28,25 +28,25 @@ from lib import (
     cli,
     corpus_export,
     fs_utils,
-    local_rag,
     manuscript_scaffold,
     registry,
     resonance,
     story_canvas,
     structure,
     timeline_sync,
+    vault_search,
     world_doctor,
 )
 
 
 class TestEcosystemCliDispatch(unittest.TestCase):
-    """Verifies that all 53 registered engines and all aliases route cleanly in CLI."""
+    """Verifies that all 47 registered engines and all aliases route cleanly in CLI."""
 
     def setUp(self) -> None:
         self.reg = registry.get_registry()
 
     def test_registered_engines_count(self) -> None:
-        self.assertEqual(len(self.reg), 56)
+        self.assertEqual(len(self.reg), 47)
 
     def test_all_53_primary_commands_dispatch(self) -> None:
         unrouted = []
@@ -159,8 +159,8 @@ class TestCrossEnginePipeline(unittest.TestCase):
             corpus_export.export_sqlite(scanner, out_sqlite)
             self.assertTrue(out_sqlite.exists())
 
-            # 7. Local Semantic RAG Hybrid Retrieval
-            rag = local_rag.LocalLoreRetrievalEngine()
+            # 7. Local Sovereign Vault Search Hybrid Retrieval
+            rag = vault_search.VaultSearchEngine()
             rag.load_from_sqlite(out_sqlite)
             query_res = rag.query("mercantile solar leylines", top_k=5)
             self.assertGreaterEqual(len(query_res), 1)
@@ -172,12 +172,12 @@ class TestCrossEnginePipeline(unittest.TestCase):
 
 
 class TestResonanceMeshIntegrity(unittest.TestCase):
-    """Verifies that all 53 engines are cohesive nodes with degree >= 2."""
+    """Verifies that all 47 engines are cohesive nodes with degree >= 2."""
 
     def test_full_resonance_mesh_connectivity(self) -> None:
         mesh = resonance.ResonanceMesh()
-        self.assertEqual(len(mesh.nodes), 53)
-        self.assertEqual(len(mesh.edges), 74)
+        self.assertEqual(len(mesh.nodes), 47)
+        self.assertEqual(len(mesh.edges), 71)
 
         node_degrees: dict[str, int] = dict.fromkeys(mesh.nodes, 0)
         for e in mesh.edges:

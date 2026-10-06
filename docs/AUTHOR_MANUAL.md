@@ -36,6 +36,7 @@ Zero programming or terminal experience is required for daily writing. Everythin
    - [Wave 11: Earth-Eponym Scanner, Idiom De-Immersion & 6D Sensory Palette](#wave-11-earth-eponym-scanner-idiom-de-immersion--6d-sensory-palette)
    - [Wave 12: Prophecy Resolution & Oracle Lifecycle](#wave-12-prophecy-resolution--oracle-lifecycle)
 10. [Authorial Craft, Editorial Linters, Plotting & Publishing Tools](#10-authorial-craft-editorial-linters-plotting--publishing-tools)
+11. [Targeting & Granular Scope Control (CLI & GUI Cockpits)](#11-targeting--granular-scope-control-cli--gui-cockpits)
 
 ---
 
@@ -1162,5 +1163,96 @@ arcanum branch Solaris-Rising --subway
 
 ---
 
+## 11. Targeting & Granular Scope Control (CLI & GUI Cockpits)
+
+In large creative projects with multiple books, hundreds of lore articles, and thousands of manuscript scenes, running craft diagnostics across everything can be overwhelming and computationally unnecessary. Ars Arcanum provides a **Granular Target Scoping Subsystem** (`scripts/lib/scope.py`) that lets you aim any engine with laser precision.
+
+### 11.1 Shorthands, Lists & Range Expressions
+
+You can specify chapters and scenes using intuitive shorthand lists and range notations across both CLI and GUI interfaces:
+
+| Scope Filter | Flag / Shorthand | Example Command | Description |
+| :--- | :--- | :--- | :--- |
+| **Chapter Ranges** | `-c`, `--chapter`, `--ch` | `arcanum pace -c 1-5` | Runs pacing analysis on Chapters 1 through 5 |
+| **Chapter Lists** | `-c` | `arcanum voice -c 1,3,7-10` | Runs voice profiling on Chapters 1, 3, and 7 through 10 |
+| **Padded Shorthands** | `-c` | `arcanum stylistics -c ch01..ch05` | Supports standard padded chapter prefixes |
+| **Scene Ranges** | `--scene`, `--scenes`, `--sc` | `arcanum scene --scene 1-3` | Audits Motivation-Reaction Units in Scenes 1 through 3 |
+| **Combined Target** | `-c` and `--scene` | `arcanum senses -c 1-2 --scene 1` | Audits Scene 1 across Chapters 1 and 2 |
+| **Book / Volume** | `-b`, `--book`, `--volume` | `arcanum senses -b Book-01` | Restricts analysis to a specific volume |
+| **World Vault** | `-w`, `--world` | `arcanum magic check -w Eldoria` | Scopes lore verification to a single World Bible |
+| **Lore Categories** | `--lore-category` | `arcanum rag "rune" --lore-category MagicSystems,Artifacts` | Queries specific lore subfolders |
+| **Unified Scope** | `--scope` | `arcanum pace --scope "world:Eldoria:lore:Characters"` | Passes a single structured scope string |
+| **Whole-Vault Scan**| `--all` | `arcanum pace --all` | Bypasses active project defaults and audits full vault |
+
+### 11.2 Context Altitude & Smart Defaults
+
+When you execute an engine without specifying a target or path, Ars Arcanum automatically determines the most relevant context instead of doing a full disk scan:
+1. **Active Project**: Reads the currently selected manuscript or world from your `~/.config/ars-arcanum/config.json`.
+2. **Current Directory**: If invoked inside a manuscript folder or world vault, binds to that directory.
+3. **Single Discovery**: If only one manuscript or world exists on your system, targets it immediately.
+4. **Interactive Prompt**: If multiple targets exist and context is ambiguous, prompts you to select the desired project.
+
+### 11.3 Studio Hub Scope Cockpit & Modal Runner
+
+In the **Studio Desktop Hub** (`arcanum hub`), the header features an active **Scope Bar**:
+- **Quick Presets**: Jump between `Active Project`, `Whole Book`, `Ch 1-5`, `Act 1`, or `Custom...`.
+- **Telemetry Pill Badge**: Displays the currently active target at a glance (e.g. `🎯 Book-01: Ch 1-5`).
+- **Interactive Engine Modal**: Click the **Run Engine** button on any craft panel to open a live runner modal. Choose your target scope, adjust engine flags, and click **Execute** to view real-time streaming terminal output directly inside your browser.
+
+### 11.4 GTK3 Desktop Scope Toolbar
+
+Inside the **Ars Arcanum Control Center** desktop app, the top toolbar provides dedicated **Chapter** and **Scene** range entry fields. Any craft action launched from the GUI automatically passes these ranges through the async worker controller to provide scoped diagnostic feedback.
+
+### 11.5 Live Scope Diagnostic Inspector (`arcanum scope`)
+
+To verify exactly what files and scenes will be analyzed before executing an engine, use the built-in diagnostic tool:
+
+```bash
+# Inspect resolved scope for Chapters 1-5
+arcanum scope MyNovel -c 1-5
+
+# Stream resolved scope metadata as JSON
+arcanum scope MyNovel -c 1-3 --scene 1 --json
+```
+
+---
+
+## 12. Masterclass Bibliography & Recommended Media
+
+### 12.1 Foundational Craft & Dramaturgy Literature
+1. **Swain, Dwight V.** (1965). *Techniques of the Selling Writer*. University of Oklahoma Press. (The foundational text on Motivation-Reaction Units / MRUs and Scene vs Sequel polarity).
+2. **McKee, Robert** (1997). *Story: Substance, Structure, Style and the Principles of Screenwriting*. ReganBooks / HarperCollins. (Classic three-act turning points, crisis-climax architecture, and value polarity shifts).
+3. **Truby, John** (2007). *The Anatomy of Story: 22 Steps to Becoming a Master Storyteller*. Faber & Faber. (Organic moral premise, multi-character network design, and world-story integration).
+4. **Provost, Gary** (1985). *100 Ways to Improve Your Writing*. Mentor / Penguin. (Sentence cadence musicality, syllabic acceleration, and rhythmic prose variation).
+5. **Brooks, Larry** (2011). *Story Engineering: Mastering the 6 Core Competencies of Successful Writing*. Writer's Digest Books. (Milestone percentage pacing and 4-act structural milestones).
+6. **Snyder, Blake** (2005). *Save the Cat! The Last Book on Screenwriting You'll Ever Need*. Michael Wiese Productions. (15-beat structural pacing blueprint and thematic premise integration).
+7. **Weiland, K.M.** (2013). *Structuring Your Novel: Essential Keys for Writing an Outstanding Story*. PenForASword Publishing. (Step-by-step structural milestone blueprints).
+8. **Gardner, John** (1983). *The Art of Fiction: Notes on Craft for Young Writers*. Vintage Books. (Psychic distance, fictional dream maintenance, and syntactic rhythm).
+9. **Le Guin, Ursula K.** (1998). *Steering the Craft: A Twenty-First-Century Guide to Sailing the Sea of Story*. Eighth Mountain Press. (Prose rhythm, grammatical energy, tense shifts, and viewpoint consistency).
+10. **Tufte, Virginia** (2006). *Artful Sentences: Syntax as Style*. Graphics Press. (Syntactic variety, periodic structures, and rhetorical devices).
+11. **Bringhurst, Robert** (2012). *The Elements of Typographic Style* (Version 4.0). Hartley & Marks. (Book design geometry, page proportions, leading, and typographic craft).
+
+### 12.2 Hard Science, Worldbuilding & Planetary Systems
+1. **Dole, Stephen H.** (1964). *Habitable Planets for Man*. RAND Corporation / Blaisdell Publishing. (The classic mathematical treatise on planetary habitability, stellar luminosity, and orbital dynamics).
+2. **Kasting, James F.** (2010). *How to Find a Habitable Planet*. Princeton University Press. (Atmospheric greenhouse feedback models and circumstellar habitable zone derivations).
+3. **Rosenfelder, Mark** (2010). *The Language Construction Kit*. Yonagu Books. (Phonetics, phonotactics, morphological typology, and historical sound shift laws).
+4. **Rosenfelder, Mark** (2012). *The Planet Construction Kit*. Yonagu Books. (Tectonic geology, climate circulation, calendars, and cultural institutions).
+5. **Peterson, David J.** (2015). *The Art of Language Invention: From Horse-Lords to Dark Elves*. Penguin Books. (Naturalistic conlang engineering, case declensions, and script design).
+6. **Pearl, Judea & Mackenzie, Dana** (2018). *The Book of Why: The New Science of Cause and Effect*. Basic Books. (Causal DAG networks, do-calculus, and counterfactual reasoning).
+7. **Keegan, John** (1976). *The Face of Battle: A Study of Agincourt, Waterloo, and the Somme*. Viking Press. (The mechanics of combat morale, physical fatigue, and battlefield psychology).
+8. **Bueno de Mesquita, Bruce & Smith, Alastair** (2011). *The Dictator's Handbook: Why Bad Behavior is Almost Always Good Politics*. PublicAffairs. (Selectorate theory, coalition stability, and political institutional dynamics).
+
+### 12.3 Landmark Video Courses, Masterclasses & Channels
+1. **Brandon Sanderson's BYU Creative Writing Lectures** (Full University Course on YouTube). Complete masterclass series covering plot architectures, hard magic systems, character arcs, pacing waveforms, and worldbuilding economics.
+2. **Artifexian (Arthur)** (YouTube Worldbuilding Series). Detailed mathematical tutorials on orbital mechanics, Köppen climate mapping, tectonic plate collisions, and conlang syntax.
+3. **Biblaridion** (YouTube Feature Focus & Conlang Showcase). Exhaustive video walkthroughs on naturalistic linguistic phonology, morphology, and alien ecosystem evolution.
+4. **Hello Future Me (Tim Hickson)** (*On Writing* Video Series on YouTube / Books). Architectural breakdowns of Sanderson's laws, dramatic pacing, foreshadowing, and political worldbuilding.
+5. **Tale Foundry** (YouTube Creative Writing Series). Theoretical dissections of narrative tropes, mythic structures, magic systems, and story archetypes.
+6. **Isaac Arthur (SFIA)** (*Science & Futurism with Isaac Arthur* on YouTube). Deep technical explorations of megastructures, interstellar colonization logistics, and exotic planetary habitability.
+7. **Writing Excuses Podcast** (Brandon Sanderson, Mary Robinette Kowal, Dan Wells, Howard Tayler). Bite-sized 15-minute craft masterclasses across 18 seasons covering every dimension of speculative fiction writing.
+
+---
+
 *Ars Arcanum — Built with passion for speculative worldbuilders and novelists.*
+
 

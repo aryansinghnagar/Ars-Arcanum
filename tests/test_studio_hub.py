@@ -91,8 +91,8 @@ class TestStudioHubEngine(unittest.TestCase):
         engine_ids = [e["id"] for e in catalog]
         self.assertIn("zen_studio", engine_ids)
         self.assertIn("corpus_export", engine_ids)
-        self.assertIn("local_rag", engine_ids)
-        self.assertIn("branching_graph", engine_ids)
+        self.assertIn("vault_search", engine_ids)
+        self.assertIn("dramatis_personae", engine_ids)
         self.assertIn("causality", engine_ids)
 
     def test_scan_manuscript_chapters(self):

@@ -31,8 +31,20 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        parse_scope_args,
+        resolve_world_path,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from scope import (
+        EngineScope,
+        add_scope_arguments,
+        parse_scope_args,
+        resolve_world_path,
+    )
 
 logger = logging.getLogger("arcanum.codex_export")
 
@@ -97,11 +109,16 @@ def _md_to_basic_html(md_text: str) -> tuple[str, dict]:
     return "\n".join(p_tags), fm_data
 
 
-def scan_world_vault(world_dir: Path) -> dict[str, list[dict]]:
+def scan_world_vault(world_dir: Path, scope: EngineScope | None = None) -> dict[str, list[dict]]:
     """Scans world vault notes grouped by taxonomy."""
     categories = {}
 
-    for tax in TAXONOMIES:
+    target_taxonomies = TAXONOMIES
+    if scope and scope.lore_categories:
+        cat_lowers = {c.lower() for c in scope.lore_categories}
+        target_taxonomies = [t for t in TAXONOMIES if t.lower() in cat_lowers]
+
+    for tax in target_taxonomies:
         tax_dir = world_dir / tax
         items = []
         if tax_dir.is_dir():
@@ -315,18 +332,23 @@ window.addEventListener('hashchange', handleHash);
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Static World Wiki Codex Exporter (WOR-102)")
-    parser.add_argument("world", help="World Lore Vault directory path")
+    parser.add_argument("world", nargs="?", help="World Lore Vault directory path")
     parser.add_argument("-o", "--output", help="Output file path (default: <world_name>_codex.html)")
     parser.add_argument("--html", help="Generate HTML codex export at path")
     parser.add_argument("--json", action="store_true", help="Output JSON vault taxonomy index")
+    add_scope_arguments(parser, include_manuscript=False, target_pos_arg=False)
     args = parser.parse_args(argv)
 
-    world_path = Path(args.world)
+    scope = parse_scope_args(args)
+    raw_world = args.world or scope.world
+    world_dir = str(resolve_world_path(raw_world, scope=scope)) if resolve_world_path(raw_world, scope=scope) else (raw_world or "")
+
+    world_path = Path(world_dir) if world_dir else Path("")
     if not world_path.is_dir():
         print(f"Error: World directory not found: {world_path}", file=sys.stderr)
         return 1
 
-    categories = scan_world_vault(world_path)
+    categories = scan_world_vault(world_path, scope=scope)
 
     if args.json:
         print(json.dumps({tax: len(items) for tax, items in categories.items()}, indent=2))

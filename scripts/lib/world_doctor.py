@@ -24,8 +24,20 @@ from typing import Any
 
 try:
     import lib._bootstrap  # noqa: F401
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+    )
 except ImportError:
     import _bootstrap  # noqa: F401
+    from scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+    )
 
 
 WIKI_LINK = re.compile(r"\[\[([^\]\|#]+)(?:#[^\]\|]+)?(?:\\?\|[^\]\]]*)?\]\]")
@@ -450,6 +462,7 @@ def _validate_manuscript_crossrefs(
     index: dict[str, str],
     aliases: dict[str, str],
     max_bytes: int,
+    scope: EngineScope | None = None,
 ) -> tuple[list[tuple[str, str, str]], int]:
     """Scans manuscript chapters to identify dangling @tags or broken lore links."""
     def resolve(target: str) -> str | None:
@@ -492,44 +505,51 @@ def _validate_manuscript_crossrefs(
                 pass
 
     # Scan manuscript scenes for entity tags and prose lore links
-    for root, dirs, files in os.walk(manuscript_dir):
-        dirs[:] = [d for d in dirs if d not in (".git", "Outlines", ".obsidian")]
-        for fname in sorted(files):
-            if not fname.endswith(".md") or fname.startswith("."):
-                continue
-            path = os.path.join(root, fname)
-            rel = os.path.relpath(path, manuscript_dir)
-            try:
-                text = read_capped(path, max_bytes=max_bytes)
-            except OSError:
-                continue
-            ms_files_scanned += 1
-
-            for line in text.splitlines():
-                stripped = line.strip()
-                m_tag = re.match(r"^@(pov|char|character|location|focus|faction|item|artifact|prophecy):\s*(.+)$", stripped, re.IGNORECASE)
-                if m_tag:
-                    tag_type = m_tag.group(1).lower()
-                    raw_val = m_tag.group(2).strip()
-                    items = [v.strip().strip('"').strip("'") for v in raw_val.split(",") if v.strip()]
-                    for item in items:
-                        if not item or item.startswith(("..", "/")) or norm(item) in PLACEHOLDER_NAMES:
-                            continue
-                        wl_m = WIKI_LINK.match(item)
-                        target = wl_m.group(1).split("#")[0].rstrip("\\").strip() if wl_m else item
-                        if not target or target.startswith(("..", "/")) or norm(target) in PLACEHOLDER_NAMES:
-                            continue
-                        if resolve(target) is None and norm(target) not in ms_index:
-                            manuscript_errors.append((rel, f"@{tag_type}", target))
-                elif stripped.startswith("@"):
+    if scope:
+        scoped_chapters, _, _ = filter_manuscript_scope(Path(manuscript_dir), scope)
+        files_to_scan = [str(c.file_path) for c in scoped_chapters]
+    else:
+        files_to_scan = []
+        for root, dirs, files in os.walk(manuscript_dir):
+            dirs[:] = [d for d in dirs if d not in (".git", "Outlines", ".obsidian")]
+            for fname in sorted(files):
+                if not fname.endswith(".md") or fname.startswith("."):
                     continue
-                else:
-                    for m_wl in WIKI_LINK.finditer(stripped):
-                        target = m_wl.group(1).split("#")[0].rstrip("\\").strip()
-                        if not target or target.startswith(("..", "/")) or norm(target) in PLACEHOLDER_NAMES:
-                            continue
-                        if resolve(target) is None and norm(target) not in ms_index:
-                            manuscript_errors.append((rel, "[[link]]", target))
+                files_to_scan.append(os.path.join(root, fname))
+
+    for path in files_to_scan:
+        rel = os.path.relpath(path, manuscript_dir)
+        try:
+            text = read_capped(path, max_bytes=max_bytes)
+        except OSError:
+            continue
+        ms_files_scanned += 1
+
+        for line in text.splitlines():
+            stripped = line.strip()
+            m_tag = re.match(r"^@(pov|char|character|location|focus|faction|item|artifact|prophecy):\s*(.+)$", stripped, re.IGNORECASE)
+            if m_tag:
+                tag_type = m_tag.group(1).lower()
+                raw_val = m_tag.group(2).strip()
+                items = [v.strip().strip('"').strip("'") for v in raw_val.split(",") if v.strip()]
+                for item in items:
+                    if not item or item.startswith(("..", "/")) or norm(item) in PLACEHOLDER_NAMES:
+                        continue
+                    wl_m = WIKI_LINK.match(item)
+                    target = wl_m.group(1).split("#")[0].rstrip("\\").strip() if wl_m else item
+                    if not target or target.startswith(("..", "/")) or norm(target) in PLACEHOLDER_NAMES:
+                        continue
+                    if resolve(target) is None and norm(target) not in ms_index:
+                        manuscript_errors.append((rel, f"@{tag_type}", target))
+            elif stripped.startswith("@"):
+                continue
+            else:
+                for m_wl in WIKI_LINK.finditer(stripped):
+                    target = m_wl.group(1).split("#")[0].rstrip("\\").strip()
+                    if not target or target.startswith(("..", "/")) or norm(target) in PLACEHOLDER_NAMES:
+                        continue
+                    if resolve(target) is None and norm(target) not in ms_index:
+                        manuscript_errors.append((rel, "[[link]]", target))
 
     return manuscript_errors, ms_files_scanned
 
@@ -539,6 +559,7 @@ def check_world(
     manuscript_dir: Path | str | None = None,
     use_cache: bool = False,
     max_bytes: int = MAX_DEFAULT_BYTES,
+    scope: EngineScope | None = None,
 ) -> dict[str, Any]:
     """Execute deep consistency audit across the World Bible and optional Manuscript."""
     bible_path = Path(bible_dir).resolve()
@@ -561,7 +582,7 @@ def check_world(
 
     # Pass 4: Manuscript Entity Cross-Validation
     manuscript_errors, ms_files_scanned = _validate_manuscript_crossrefs(
-        manuscript_dir, index, aliases, max_bytes
+        manuscript_dir, index, aliases, max_bytes, scope=scope
     )
 
     return {
@@ -636,10 +657,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("-m", "--manuscript", help="Manuscript directory for cross-validation")
     parser.add_argument("--fast", action="store_true", help="Accelerate scans using mtime-keyed in-memory caching")
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON output")
+    add_scope_arguments(parser, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     args = parser.parse_args(argv)
+    scope = parse_scope_args(args)
 
-    world_dir = args.world_dir
+    world_dir = args.world_dir or scope.world
     if not world_dir:
         # Check environment or default discovery
         world_dir = os.environ.get("BIBLE_DIR") or os.environ.get("WORLD_DIR")
@@ -648,11 +671,14 @@ def main(argv: list[str] | None = None) -> int:
         print("Error: World directory not specified (see --help)", file=sys.stderr)
         return 2
 
+    manuscript_dir = args.manuscript or scope.manuscript
+
     try:
         findings = check_world(
             bible_dir=world_dir,
-            manuscript_dir=args.manuscript,
+            manuscript_dir=manuscript_dir,
             use_cache=args.fast,
+            scope=scope,
         )
     except FileNotFoundError as e:
         print(f"Error: {e}", file=sys.stderr)

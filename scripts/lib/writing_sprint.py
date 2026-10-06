@@ -30,11 +30,22 @@ import sys
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        add_scope_arguments,
+        parse_scope_args,
+        resolve_manuscript_dir,
+    )
 except ImportError:
     from _bootstrap import atomic_write  # type: ignore[no-redef]
+    from scope import (  # type: ignore[no-redef]
+        add_scope_arguments,
+        parse_scope_args,
+        resolve_manuscript_dir,
+    )
 
 logger = logging.getLogger("arcanum.writing_sprint")
 
@@ -789,13 +800,26 @@ def generate_sprint_report_html(
 # CLI
 # ---------------------------------------------------------------------------
 
-def _resolve_manuscript_dir(args_dir: str | None) -> Path:
-    """Return an absolute Path for the manuscript directory from CLI args."""
-    return Path(args_dir).resolve() if args_dir else Path(".").resolve()
+def _resolve_manuscript_dir(args_dir: str | None, scope: Any = None) -> Path:
+    """Return an absolute Path for the manuscript directory from CLI args or active context."""
+    target_raw = args_dir or (scope.manuscript if scope else None) or (scope.books[0] if scope and scope.books else None)
+    if target_raw:
+        tp = Path(target_raw).resolve()
+        if tp.exists():
+            return tp
+        resolved = resolve_manuscript_dir(target_raw)
+        if resolved and Path(resolved).exists():
+            return Path(resolved).resolve()
+        return tp
+    resolved = resolve_manuscript_dir()
+    if resolved and Path(resolved).exists():
+        return Path(resolved).resolve()
+    return Path(".").resolve()
 
 
 def _cmd_start(args: argparse.Namespace) -> int:
-    manuscript_dir = _resolve_manuscript_dir(getattr(args, "dir", None))
+    scope = parse_scope_args(args)
+    manuscript_dir = _resolve_manuscript_dir(getattr(args, "dir", None), scope=scope)
     state = start_sprint(
         target_words=args.target,
         duration_minutes=args.duration,
@@ -812,7 +836,8 @@ def _cmd_start(args: argparse.Namespace) -> int:
 
 
 def _cmd_stop(args: argparse.Namespace) -> int:
-    manuscript_dir = _resolve_manuscript_dir(getattr(args, "dir", None))
+    scope = parse_scope_args(args)
+    manuscript_dir = _resolve_manuscript_dir(getattr(args, "dir", None), scope=scope)
     state_file = _default_state_file(manuscript_dir)
     if not state_file.exists():
         print("✗ No active sprint found. Start one with: arcanum sprint start")
@@ -833,7 +858,8 @@ def _cmd_stop(args: argparse.Namespace) -> int:
 
 
 def _cmd_status(args: argparse.Namespace) -> int:
-    manuscript_dir = _resolve_manuscript_dir(getattr(args, "dir", None))
+    scope = parse_scope_args(args)
+    manuscript_dir = _resolve_manuscript_dir(getattr(args, "dir", None), scope=scope)
     state_file = _default_state_file(manuscript_dir)
     status = get_sprint_status(state_file)
     if status is None:
@@ -850,7 +876,8 @@ def _cmd_status(args: argparse.Namespace) -> int:
 
 
 def _cmd_stats(args: argparse.Namespace) -> int:
-    manuscript_dir = _resolve_manuscript_dir(getattr(args, "dir", None))
+    scope = parse_scope_args(args)
+    manuscript_dir = _resolve_manuscript_dir(getattr(args, "dir", None), scope=scope)
     log_file = _default_log_file(manuscript_dir)
     sessions = load_sessions(log_file)
     if not sessions:
@@ -877,7 +904,8 @@ def _cmd_stats(args: argparse.Namespace) -> int:
 
 
 def _cmd_report(args: argparse.Namespace) -> int:
-    manuscript_dir = _resolve_manuscript_dir(getattr(args, "dir", None))
+    scope = parse_scope_args(args)
+    manuscript_dir = _resolve_manuscript_dir(getattr(args, "dir", None), scope=scope)
     log_file = _default_log_file(manuscript_dir)
     sessions = load_sessions(log_file)
     stats = compute_velocity_stats(sessions)
@@ -904,26 +932,31 @@ def main(argv: list | None = None) -> None:
                          help="Word-count target (default: 500)")
     p_start.add_argument("--duration", type=float, default=25.0, metavar="M",
                          help="Sprint length in minutes (default: 25)")
+    add_scope_arguments(p_start, include_world=False, target_pos_arg=False)
 
     # ---- stop ----
     p_stop = sub.add_parser("stop", help="End the current sprint")
     p_stop.add_argument("dir", nargs="?", default=None, metavar="TARGET_DIR")
     p_stop.add_argument("--words", type=int, required=True, metavar="N",
                         help="Actual word count written")
+    add_scope_arguments(p_stop, include_world=False, target_pos_arg=False)
 
     # ---- status ----
     p_status = sub.add_parser("status", help="Show active sprint status")
     p_status.add_argument("dir", nargs="?", default=None, metavar="TARGET_DIR")
+    add_scope_arguments(p_status, include_world=False, target_pos_arg=False)
 
     # ---- stats ----
     p_stats = sub.add_parser("stats", help="Show aggregate session analytics")
     p_stats.add_argument("dir", nargs="?", default=None, metavar="TARGET_DIR")
+    add_scope_arguments(p_stats, include_world=False, target_pos_arg=False)
 
     # ---- report ----
     p_report = sub.add_parser("report", help="Generate HTML velocity dashboard")
     p_report.add_argument("dir", nargs="?", default=None, metavar="TARGET_DIR")
     p_report.add_argument("--html", default=None, metavar="OUT",
                           help="Output HTML file path")
+    add_scope_arguments(p_report, include_world=False, target_pos_arg=False)
 
     parsed = parser.parse_args(argv)
 

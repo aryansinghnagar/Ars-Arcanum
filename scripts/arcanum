@@ -21,11 +21,7 @@ if [ ! -f "${PROJECT_ROOT}/scripts/verify.sh" ] && [ -f "${SCRIPT_DIR}/verify.sh
     fi
 fi
 
-VERSION="4.3.0"
-
-# Source shared worlds discovery library
-# shellcheck source=scripts/lib/worlds.sh
-source "${PROJECT_ROOT}/scripts/lib/worlds.sh"
+VERSION="5.0.0"
 
 usage() {
     cat << USAGE
@@ -1699,7 +1695,7 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/dramatis_personae.py" "$@"
         ;;
     concordance|glossary)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/concordance.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" concordance "$@"
         ;;
     continuity|check-continuity)
         exec python3 "${PROJECT_ROOT}/scripts/lib/continuity.py" "$@"
@@ -1720,10 +1716,10 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/climate.py" "$@"
         ;;
     idioms|idiom|eponyms|immersion)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/stylistics.py" idioms "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" idioms "$@"
         ;;
     senses|sensory|palette)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/senses.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" senses "$@"
         ;;
     prophecy|prophecies|oracle)
         exec python3 "${PROJECT_ROOT}/scripts/lib/prophecy.py" "$@"
@@ -1868,11 +1864,11 @@ case "${COMMAND}" in
     portfolio|catalog)
         exec python3 "${PROJECT_ROOT}/scripts/lib/portfolio.py" "$@"
         ;;
-    rag|query-lore|semantic-search|lore-query)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/local_rag.py" "$@"
+    rag|query-lore|semantic-search|lore-query|search|vault-search)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/vault_search.py" "$@"
         ;;
     branch|branching|narrative-threads|subway-map)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/branching_graph.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" branch "$@"
         ;;
     hub|gui-web|studio-hub|web-hub)
         exec python3 "${PROJECT_ROOT}/scripts/lib/studio_hub.py" "$@"
@@ -1896,7 +1892,7 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/revision_heatmap.py" "$@"
         ;;
     package|dist|bundle)
-        exec python3 "${PROJECT_ROOT}/scripts/package_distribution.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" package "$@"
         ;;
     migrate|upgrade)
         exec python3 "${PROJECT_ROOT}/scripts/lib/migrate.py" "$@"
@@ -1905,13 +1901,13 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/cache.py" wordcounts "$@"
         ;;
     pace|pacing)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/pacing.py" pace "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" pace "$@"
         ;;
     tension|tension-arc)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/pacing.py" tension "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" tension "$@"
         ;;
     voice|voice-profiler)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/voice.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" voice "$@"
         ;;
     cache|cache-engine)
         exec python3 "${PROJECT_ROOT}/scripts/lib/cache.py" "$@"
@@ -1942,52 +1938,7 @@ case "${COMMAND}" in
 
     # --- System Diagnostics & Prose Audits ---
     audit)
-        if [ $# -gt 0 ]; then
-            AUDIT_SUB="$1"
-            case "${AUDIT_SUB}" in
-                dialogue|tags|said-bookisms)
-                    shift
-                    exec python3 "${PROJECT_ROOT}/scripts/lib/stylistics.py" dialogue "$@"
-                    ;;
-                echoes|echo|repetition)
-                    shift
-                    exec python3 "${PROJECT_ROOT}/scripts/lib/stylistics.py" echoes "$@"
-                    ;;
-                voice|voice-bleed)
-                    shift
-                    exec python3 "${PROJECT_ROOT}/scripts/lib/voice.py" "$@"
-                    ;;
-                scenes|scene|mru)
-                    shift
-                    exec python3 "${PROJECT_ROOT}/scripts/lib/scene_mechanics.py" "$@"
-                    ;;
-                structure|paradigm)
-                    shift
-                    exec python3 "${PROJECT_ROOT}/scripts/lib/structure.py" "$@"
-                    ;;
-                rhythm|readability)
-                    shift
-                    exec python3 "${PROJECT_ROOT}/scripts/lib/stylistics.py" rhythm "$@"
-                    ;;
-                prose|stylistics)
-                    shift
-                    exec python3 "${PROJECT_ROOT}/scripts/lib/stylistics.py" scan "$@"
-                    ;;
-                idioms|idiom|eponyms)
-                    shift
-                    exec python3 "${PROJECT_ROOT}/scripts/lib/stylistics.py" idioms "$@"
-                    ;;
-                senses|sensory|palette)
-                    shift
-                    exec python3 "${PROJECT_ROOT}/scripts/lib/senses.py" "$@"
-                    ;;
-                tech|technology|anachronisms)
-                    shift
-                    exec python3 "${PROJECT_ROOT}/scripts/lib/economy.py" tech "$@"
-                    ;;
-            esac
-        fi
-        exec python3 "${PROJECT_ROOT}/scripts/lib/diagnostics.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" audit "$@"
         ;;
     doctor|check)
         if [ $# -gt 0 ] && [ -d "$1" ]; then

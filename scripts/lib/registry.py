@@ -15,12 +15,73 @@ import difflib
 import importlib
 import importlib.util
 import logging
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger("arcanum.registry")
+
+_LIB_DIR = Path(__file__).resolve().parent
+_PROJECT_ROOT = _LIB_DIR.parent.parent
+_DOCS_DIR = _PROJECT_ROOT / "docs"
+
+
+def _load_doc_theory_references(engine_name: str) -> list[dict[str, str]]:
+    """Dynamically parses theoretical references from docs/<ENGINE>.md for an engine."""
+    doc_path = _DOCS_DIR / f"{engine_name.upper()}.md"
+    if not doc_path.is_file():
+        doc_path = _DOCS_DIR / f"{engine_name}.md"
+    if not doc_path.is_file():
+        return []
+    try:
+        text = doc_path.read_text(encoding="utf-8")
+    except Exception:
+        return []
+
+    ref_header = re.search(
+        r"(?:##+\s+(?:[0-9.]+\s+)?(?:Masterclass\s+References|Theoretical\s+Foundations|Recommended\s+Reading|Further\s+Reading|References|Bibliography)|Theoretical\s+Foundations)",
+        text,
+        re.IGNORECASE,
+    )
+    if not ref_header:
+        return []
+
+    section = text[ref_header.end():]
+    next_section_match = re.search(r"\n##\s+(?!#)|\n---\s*\n##\s+", section)
+    if next_section_match:
+        section = section[: next_section_match.start()]
+
+    items: list[dict[str, str]] = []
+    raw_items = re.findall(
+        r"(?:^|\n)(?:[-*]|\d+\.)\s+\*\*([^*]+)\*\*\.?\s*(.*?)(?=\n(?:[-*]|\d+\.)\s+\*\*|\n###|\n##|\Z)",
+        section,
+        re.DOTALL,
+    )
+    for author_yr, body in raw_items:
+        body = body.strip()
+        url_match = re.search(r"\[([^\]]+)\]\((https?://[^\)]+)\)", body)
+        if not url_match:
+            url_match = re.search(r"(https?://[^\s\)]+)", body)
+        url = url_match.group(2) if (url_match and len(url_match.groups()) >= 2) else (url_match.group(1) if url_match else "")
+        if not url:
+            title_token = re.sub(r"[^a-zA-Z0-9]+", "+", author_yr.strip()).strip("+")
+            url = f"https://en.wikipedia.org/wiki/Special:Search?search={title_token}"
+
+        desc_match = re.search(r"\*([^*]+)\*\s*$", body)
+        desc = desc_match.group(1).strip() if desc_match else ""
+
+        clean_body = re.sub(r"\[([^\]]+)\]\((https?://[^\)]+)\)", r"\1", body)
+        clean_body = re.sub(r"\*([^*]+)\*\s*$", "", clean_body).strip()
+
+        items.append({
+            "title": author_yr.strip(),
+            "citation": clean_body.strip(" .") or author_yr.strip(),
+            "url": url,
+            "description": desc,
+        })
+    return items
 
 
 class EngineCategory(str, Enum):
@@ -58,12 +119,15 @@ class EngineSpec:
     subfeatures: list[dict[str, str]] = field(default_factory=list)
     extension_guide: str = ""
     advisory_guidance: list[dict[str, Any]] = field(default_factory=list)
+    theory_references: list[dict[str, str]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if not self.scientific_logic and self.logic_documentation:
             self.scientific_logic = self.logic_documentation
         elif not self.logic_documentation and self.scientific_logic:
             self.logic_documentation = self.scientific_logic
+        if not self.theory_references and self.name:
+            self.theory_references = _load_doc_theory_references(self.name)
 
 
 class BaseCraftEngine:
@@ -83,6 +147,7 @@ class BaseCraftEngine:
     subfeatures: list[dict[str, str]] = []
     extension_guide: str = ""
     advisory_guidance: list[dict[str, Any]] = []
+    theory_references: list[dict[str, str]] = []
 
     def get_spec(self) -> EngineSpec:
         return EngineSpec(
@@ -102,6 +167,7 @@ class BaseCraftEngine:
             subfeatures=list(self.subfeatures),
             extension_guide=self.extension_guide,
             advisory_guidance=list(self.advisory_guidance),
+            theory_references=list(self.theory_references),
         )
 
     def execute(self, argv: list[str]) -> int:
@@ -502,90 +568,6 @@ structure:
         ],
     ),
 
-    "scene_mechanics": EngineSpec(
-        name="scene_mechanics",
-        category=EngineCategory.CRAFT,
-        title="Scene Mechanics & Tension",
-        description="Dwight Swain Motivation-Reaction Units (MRUs), Scene/Sequel cycles, in media res entries, and cliffhangers",
-        module_name="lib.scene_mechanics",
-        cli_command="tension",
-        aliases=["scene", "swain", "mru"],
-        studio_tab="Craft",
-        logic_documentation="Audits Dwight Swain's Scene (Goal -> Conflict -> Disaster) and Sequel (Reaction -> Dilemma -> Decision) Motivation-Reaction Units (MRUs), in media res entries, and cliffhanger exits.",
-        scientific_logic="""1. Dwight Swain Motivation-Reaction Units (MRUs):
-   The micro-rhythm of dramatic prose follows neurological causality:
-   $$\\text{External Motivation (Objective)} \\longrightarrow \\text{Somatic Reaction (Involuntary)} \\longrightarrow \\text{Visceral Action (Reflex)} \\longrightarrow \\text{Rational Speech / Choice}$$
-
-2. Macro Scene-Sequel Alternation Cycle:
-   - SCENE (Active Kinetic Pacing):
-     $$\\text{Goal (Concrete, Immediate)} \\longrightarrow \\text{Conflict (Escalating Obstacles)} \\longrightarrow \\text{Disaster (The Hook: 'No, and furthermore' or 'Yes, but')}$$
-   - SEQUEL (Reflective Emotional Pacing):
-     $$\\text{Reaction (Visceral Emotional Processing)} \\longrightarrow \\text{Dilemma (No Good Options)} \\longrightarrow \\text{Decision (New Active Goal)}$$
-
-3. In Media Res & Chapter Hook Index:
-   Evaluates sentence 1-3 action density versus delayed backstory exposition.""",
-        why_this_way="Scenes feel sluggish when authors reverse MRU order (e.g. having a character speak rationally before reacting physically to an explosion) or when scenes end in flat resolutions without new complications.",
-        worldbuilding_relevance="Embeds world conflicts directly into immediate character stakes.",
-        storytelling_relevance="Ensures every chapter advances plot and character transformation without dead weight.",
-        writing_relevance="Eliminates 'talking heads in a void' and weak chapter endings.",
-        subfeatures=[
-            {"name": "MRU Sequence Validator", "rule": "Flags backwards reaction-before-stimulus constructions in intense action paragraphs.", "example": "arcanum tension Manuscript/01_Chapter.md --mru"},
-            {"name": "Disaster Hook Classifier", "rule": "Audits scene exit endings for 'Yes, but' or 'No, and furthermore' tension.", "example": "arcanum tension Manuscript/ --hooks"},
-        ],
-        extension_guide="""Tag scene mechanics in chapter frontmatter:
-```yaml
----
-title: "The Siege of Dawn"
-scene_type: "Scene" # or "Sequel"
-goal: "Secure the courtyard gate mechanism before the battering ram breaks through"
-conflict: "Iron gate chain is rusted solid; crossbow fire from upper battlements"
-disaster: "Yes, the gate is locked, BUT the lever shears off in Kaelen's hand"
----
-```""",
-        advisory_guidance=[
-            {"pattern": "Scene ends in clean triumph without new complication ('Yes, and')", "option_a": "Transform into Swain 'Yes, but' or 'No, and furthermore' disaster", "option_b": "Use victory to trigger higher external stakes from rival factions", "option_c": "Retain triumph as an earned moment of celebration"},
-        ],
-    ),
-
-    "pacing": EngineSpec(
-        name="pacing",
-        category=EngineCategory.CRAFT,
-        title="Pacing & Dialogue Rhythm",
-        description="Dialogue-to-narrative density ratio, Gary Provost sentence length waveforms, and tension curve oscillations",
-        module_name="lib.pacing",
-        cli_command="pace",
-        aliases=["pacing", "rhythm", "waveform"],
-        studio_tab="Craft",
-        logic_documentation="Analyzes prose mode distribution (Dialogue vs Action vs Monologue vs Exposition), Gary Provost sentence length waveforms, tension curve oscillations, and POV screen-time balance.",
-        scientific_logic="""1. Gary Provost Sentence Rhythm Waveform:
-   Sentence lengths must vary dynamically to produce musical prose:
-   $$\\text{Variance } \\sigma^2 = \\frac{1}{N} \\sum_{i=1}^N (L_i - \\bar{L})^2$$
-   Monotonous prose ($\\sigma < 3.5$ words) triggers reader fatigue. High-rhythm prose oscillates between 3-word punchy staccato and 25-word flowing lyrical sentences.
-
-2. Prose Mode Quad-Distribution:
-   Every paragraph is segmented into one of four modes:
-   - Dialogue ($D$): Spoken speech with attributions.
-   - Action / Kinetics ($A$): Physical movement and somatic reactions.
-   - Interior Monologue ($M$): Character introspection and psychic perception.
-   - Exposition / World Lore ($E$): Background history and environment context.
-   Ideal action scenes maintain $A + D > 75\\%$; reflective sequels maintain $M > 50\\%$. Exposition $E > 30\\%$ in action scenes triggers pacing drag.""",
-        why_this_way="Readers perceive a story as 'fast' or 'slow' not by word count, but by sentence rhythm variance and the ratio of dialogue/action to static exposition.",
-        worldbuilding_relevance="Prevents lore dumps from stalling active narrative momentum.",
-        storytelling_relevance="Balances fast-paced action sequences with reflective sequels and character bonding.",
-        writing_relevance="Flags monotonous sentence structures and dialogue void syndrome.",
-        subfeatures=[
-            {"name": "Sentence Length Waveform", "rule": "Visualizes syllable and word count oscillation across paragraphs.", "example": "arcanum pace Manuscript/01_Chapter.md --waveform"},
-            {"name": "Prose Mode Classifier", "rule": "Calculates percentage distribution of Dialogue vs Action vs Monologue vs Exposition.", "example": "arcanum pace Manuscript/ --modes"},
-        ],
-        extension_guide="""Run pacing analysis via CLI:
-```bash
-arcanum pace Manuscript/ --html dist/pacing_report.html
-```""",
-        advisory_guidance=[
-            {"pattern": "Chapter dialogue density exceeds 80% without somatic action beats", "option_a": "Insert physical character actions, sensory environment cues, and pauses", "option_b": "Retain as a rapid-fire interrogation or tense courtroom debate", "option_c": "Keep stylized theatrical dialogue mode"},
-        ],
-    ),
-
     "plot_matrix": EngineSpec(
         name="plot_matrix",
         category=EngineCategory.CRAFT,
@@ -630,50 +612,6 @@ chekhov_guns:
 ```""",
         advisory_guidance=[
             {"pattern": "Chekhov gun introduced in early chapter without payoff by climax", "option_a": "Integrate payoff during climactic resolution", "option_b": "Frame as an intentional mystery clue carried into sequel volume", "option_c": "Keep as atmospheric background lore element"},
-        ],
-    ),
-
-    "branching_graph": EngineSpec(
-        name="branching_graph",
-        category=EngineCategory.CRAFT,
-        title="Interactive Branching Narrative Graph",
-        description="Topological choice DAG validator and multi-engine exporter (HTML Subway Map, Ink, Twine, Mermaid)",
-        module_name="lib.branching_graph",
-        cli_command="branch",
-        aliases=["branching", "gamebook", "interactive-fiction", "branch-graph", "subway-map"],
-        studio_tab="Editor",
-        logic_documentation="Parses choice directives (@choice, @state), validates choice graph topology, detects dead-ends/unreachable nodes, and exports interactive narrative subway maps.",
-        scientific_logic="""1. Choice Graph Directed Acyclic Graph (DAG) Topology:
-   Graph $G = (V, E)$ where nodes $V$ are narrative scenes and directed edges $E$ are user choices `@choice: [Prompt] -> Target_Scene`.
-
-2. State-Dependent Edge Evaluation:
-   Edge $e = (u, v)$ is navigable if state condition $S \\models \\phi(e)$ holds. Directives `@state: var += delta` mutate the world state vector $S$.
-
-3. Topological Path Invariants:
-   - Dead-End Detection: $\\text{deg}^+(v) = 0$ where $v$ is not marked `@ending`.
-   - Unreachable Node Sweep: Nodes where $\\text{deg}^-(v) = 0$ ($v \\ne v_{\\text{root}}$).
-   - Inevitable Convergence Index: Degree of choice collapse back to canonical bottlenecks.""",
-        why_this_way="Interactive fiction and gamebooks suffer from unnavigable orphan scenes or unintentional infinite loops without automated topological verification.",
-        worldbuilding_relevance="Maps interactive choose-your-own-path gamebooks and branching historical events.",
-        storytelling_relevance="Visualizes multi-POV storyline splits, divergences, and climax convergences.",
-        writing_relevance="Ensures all branching narrative paths are satisfying and structurally balanced.",
-        subfeatures=[
-            {"name": "Topological Dead-End Detector", "rule": "Finds orphan scenes and choice branches with no exit or resolution.", "example": "arcanum branch Manuscript/ --validate"},
-            {"name": "Subway Map HTML Exporter", "rule": "Compiles interactive SVG/HTML visual narrative subway diagram.", "example": "arcanum branch Manuscript/ --html dist/branching_map.html"},
-            {"name": "Twine / Ink Transpiler", "rule": "Transpiles sovereign markdown choice directives into standard Twine Sugarcube and Inkle Ink formats.", "example": "arcanum branch Manuscript/ --export-ink dist/story.ink"},
-        ],
-        extension_guide="""Embed choice directives directly in markdown chapter prose:
-```markdown
-# Chapter 03: The Forked Path
-
-You stand before the Iron Gate.
-
-@state: courage += 1
-@choice: [Force open the rusty gate] -> 04A_Dungeon_Vault
-@choice: [Climb the ivy wall] -> 04B_Rooftop_Escape
-```""",
-        advisory_guidance=[
-            {"pattern": "Dead-end branch node without resolution or choice exit", "option_a": "Add resolution epilogue or redirect choice to convergence node", "option_b": "Frame branch as an intentional tragic failure ending", "option_c": "Keep as work-in-progress draft stub"},
         ],
     ),
 
@@ -917,44 +855,6 @@ handedness: "Right"
         ],
     ),
 
-    "voice": EngineSpec(
-        name="voice",
-        category=EngineCategory.CRAFT,
-        title="Character Voice Profiler",
-        description="Dialogue vocabulary uniqueness, sentence rhythm, verbal tics, and POV voice bleed detection",
-        module_name="lib.voice",
-        cli_command="audit voice",
-        aliases=["voice", "idiolect", "stylometry"],
-        studio_tab="Craft",
-        logic_documentation="Analyzes character idiolects, lexical rarity scores, sentence length cadence, verbal tics, and conversational dominance to detect voice bleed across multiple POV characters.",
-        scientific_logic="""1. Character Idiolect Stylometry & Lexical Rarity:
-   Vocabulary uniqueness for character $C$ dialogue tokens $V_C$ against overall corpus $V_{\\text{corpus}}$:
-   $$\\text{Uniqueness}(C) = \\frac{1}{|V_C|} \\sum_{w \\in V_C} -\\log_2 P_{\\text{corpus}}(w)$$
-
-2. POV Voice Bleed Detection:
-   Computes cosine similarity between token frequency vectors of POV character chapters:
-   $$\\text{Similarity}(C_1, C_2) = \\frac{\\vec{v}_1 \\cdot \\vec{v}_2}{\\|\\vec{v}_1\\| \\|\\vec{v}_2\\|}$$
-   Values $\\text{Similarity} > 0.88$ indicate severe voice bleed (characters sound identical).""",
-        why_this_way="When all characters sound like the author, multi-POV stories lose immersion. Idiolect stylometry ensures a gruff dwarf warrior speaks with distinct sentence cadence and vocabulary compared to a court scholar.",
-        worldbuilding_relevance="Reflects character social class, regional origins, and professional guilds through distinct dialogue registers.",
-        storytelling_relevance="Ensures reader immediately knows who is speaking without relying on dialogue tags.",
-        writing_relevance="Prevents all characters from sounding like the author.",
-        subfeatures=[
-            {"name": "Idiolect Uniqueness Scorer", "rule": "Measures lexical rarity and vocabulary signature per character.", "example": "arcanum audit voice Manuscript/ --characters"},
-            {"name": "Voice Bleed Matrix", "rule": "Compares pairwise dialogue similarity between all POV protagonists.", "example": "arcanum audit voice Manuscript/ --bleed-check"},
-        ],
-        extension_guide="""Configure voice profiles in `World/Characters/jennifer.md`:
-```yaml
-voice_profile:
-  formality: 0.85 # High formality, courtly
-  sentence_cadence: "long-flowing"
-  verbal_tics: ["Indeed", "Preposterous", "Furthermore"]
-  forbidden_slang: ["gonna", "wanna", "ain't"]
-```""",
-        advisory_guidance=[
-            {"pattern": "Two POV characters share nearly identical vocabulary and sentence cadence (voice bleed)", "option_a": "Diversify idiolects with unique verbal tics, catchphrases, and sentence lengths", "option_b": "Frame shared voice as cultural upbringing or shared military academy training", "option_c": "Retain consistent authorial voice across ensemble cast"},
-        ],
-    ),
 
     "conlang": EngineSpec(
         name="conlang",
@@ -1231,88 +1131,8 @@ magic_system:
     ),
 
     # =========================================================================
-    # DOMAIN D: STYLISTICS, SENSORY IMMERSION & EDITORIAL POLISH
+    # DOMAIN D: CONTINUITY & EDITORIAL POLISH
     # =========================================================================
-    "stylistics": EngineSpec(
-        name="stylistics",
-        category=EngineCategory.CRAFT,
-        title="Stylistics & Readability Audits",
-        description="Flesch-Kincaid grade level, passive voice detector, nominalizations ('zombie nouns'), filter words, and echo words",
-        module_name="lib.stylistics",
-        cli_command="audit style",
-        aliases=["stylistics", "style", "readability", "polish-style"],
-        studio_tab="Craft",
-        logic_documentation="Evaluates Flesch-Kincaid grade level, passive voice constructions, nominalizations ('zombie nouns'), filter words ('she heard', 'he saw'), echo word repetitions within sliding windows, and said-bookisms.",
-        scientific_logic="""1. Flesch-Kincaid Grade Level & Reading Ease:
-   $$\\text{FKGL} = 0.39 \\left(\\frac{\\text{total words}}{\\text{total sentences}}\\right) + 11.8 \\left(\\frac{\\text{total syllables}}{\\text{total words}}\\right) - 15.59$$
-   $$\\text{FRE} = 206.835 - 1.015 \\left(\\frac{\\text{words}}{\\text{sentences}}\\right) - 84.6 \\left(\\frac{\\text{syllables}}{\\text{words}}\\right)$$
-   Genre benchmarks: Epic Fantasy ($7.5\\text{--}9.5$), Thriller ($6.0\\text{--}7.5$), Literary Fiction ($9.0\\text{--}12.0$).
-
-2. Nominalization ('Zombie Noun') Detection:
-   Flags verbs smothered into abstract nouns (e.g. 'made an investigation into' $\to$ 'investigated'; 'reached an agreement' $\to$ 'agreed').
-
-3. Filter Words & Psychic Distance Stripper:
-   Flags sensory distance filters ('She saw the door open' $\to$ 'The door flew open'; 'He heard thunder roll' $\to$ 'Thunder rolled') to bring readers directly into character consciousness.
-
-4. Sliding Window Echo Repetition:
-   Detects non-trivial lexical words repeated within a $W$-word sliding window ($W = 150$ words).""",
-        why_this_way="Passive voice, excessive filter words, and unintentional echo words dilute prose power and increase psychic distance between reader and character.",
-        worldbuilding_relevance="Ensures fantasy prose maintains an appropriate, immersive reading level.",
-        storytelling_relevance="Tightens narrative voice, accelerates reader velocity, and eliminates psychic distance.",
-        writing_relevance="Provides actionable line-editing recommendations that elevate draft quality.",
-        subfeatures=[
-            {"name": "Flesch-Kincaid Readability Auditor", "rule": "Computes grade level, sentence syllable complexity, and reading ease.", "example": "arcanum audit style Manuscript/ --readability"},
-            {"name": "Filter Word Stripper", "rule": "Flags sensory distance filters to establish deep POV immersion.", "example": "arcanum audit style Manuscript/ --filter-words"},
-            {"name": "Sliding Window Echo Finder", "rule": "Highlights non-trivial word repetitions within 150-word passages.", "example": "arcanum audit style Manuscript/ --echoes"},
-        ],
-        extension_guide="""Run stylistics audit from CLI:
-```bash
-arcanum audit style Manuscript/ --html dist/stylistics_report.html
-```""",
-        advisory_guidance=[
-            {"pattern": "High filter word density ('she realized', 'he noticed')", "option_a": "Strip filter words for direct psychic immersion", "option_b": "Retain filter words to emphasize deliberate detective observation", "option_c": "Preserve for distant narrator stylistic voice"},
-        ],
-    ),
-
-    "senses": EngineSpec(
-        name="senses",
-        category=EngineCategory.CRAFT,
-        title="Sensory Immersion Heatmap",
-        description="Distribution of visual, auditory, olfactory, gustatory, tactile, kinesthetic, and interoceptive prose",
-        module_name="lib.senses",
-        cli_command="audit senses",
-        aliases=["senses", "sensory", "immersion", "white-room"],
-        studio_tab="Craft",
-        logic_documentation="Scans prose across 8 sensory dimensions (Visual, Auditory, Olfactory, Gustatory, Tactile/Thermal, Kinesthetic/Proprioception, Equilibrium, Interoception) to prevent White Room Syndrome.",
-        scientific_logic="""1. 8-Dimensional Sensory Palette Vector:
-   Prose scanned across 8 somatic sensory channels:
-   - Visual: Color, illumination, shadow, reflection, silhouette.
-   - Auditory: Pitch, timbre, reverberation, murmur, clash, silence.
-   - Olfactory: Ozone, sulfur, pine damp, decay, roasted grain.
-   - Gustatory: Bitter copper, brine, sweet nectar, ash.
-   - Tactile / Thermal: Grit, velvet, searing heat, freezing draft.
-   - Kinesthetic / Proprioception: Muscle strain, weight, momentum.
-   - Vestibular / Equilibrium: Vertigo, dizziness, weightlessness.
-   - Interoception: Heart racing, hollow stomach, adrenaline surge.
-
-2. White Room Syndrome Diagnostic Index:
-   Scenes where $\\text{Visual} > 90\\%$ and other sensory dimensions $< 10\\%$ are flagged as sterile 'talking heads in a void'.""",
-        why_this_way="Writers frequently rely 95% on visual descriptions, ignoring smell, touch, sound, and internal visceral sensations that anchor deep physical immersion.",
-        worldbuilding_relevance="Gives each fantasy/sci-fi location a unique sensory signature (tavern smoke, dungeon damp, desert sulfur).",
-        storytelling_relevance="Enhances immersion during climaxes by intensifying sensory density.",
-        writing_relevance="Flags visual-only exposition and reminds writers to engage smell, sound, and physical touch.",
-        subfeatures=[
-            {"name": "8-Channel Sensory Scanner", "rule": "Measures sensory vocabulary density across all 8 biological modalities.", "example": "arcanum audit senses Manuscript/01_Chapter.md"},
-            {"name": "White Room Syndrome Sweeper", "rule": "Flags sensory-starved scenes lacking auditory, olfactory, or tactile details.", "example": "arcanum audit senses Manuscript/ --white-room"},
-        ],
-        extension_guide="""Run sensory immersion audit from CLI:
-```bash
-arcanum audit senses Manuscript/ --html dist/sensory_heatmap.html
-```""",
-        advisory_guidance=[
-            {"pattern": "Scene has zero auditory or olfactory sensory grounding", "option_a": "Add atmospheric background sounds and scent profiles", "option_b": "Frame sensory absence as character dissociation or sterile environment", "option_c": "Keep sparse sensory style for brisk action velocity"},
-        ],
-    ),
 
     "continuity": EngineSpec(
         name="continuity",
@@ -1618,14 +1438,14 @@ arcanum portfolio Manuscripts/ --html dist/portfolio.html
     # =========================================================================
     # DOMAIN F: RETRIEVAL, INTELLIGENCE & PIPELINE INFRASTRUCTURE
     # =========================================================================
-    "local_rag": EngineSpec(
-        name="local_rag",
+    "vault_search": EngineSpec(
+        name="vault_search",
         category=EngineCategory.CORE,
-        title="Sovereign Local Semantic Retrieval",
+        title="Sovereign Local Vault Search & Lore Engine",
         description="Hybrid TF-IDF vector space and SQLite FTS5 lore query engine with Reciprocal Rank Fusion",
-        module_name="lib.local_rag",
-        cli_command="rag",
-        aliases=["query-lore", "semantic-search", "lore-query", "rag"],
+        module_name="lib.vault_search",
+        cli_command="search",
+        aliases=["search", "vault-search", "rag", "query-lore", "recall"],
         studio_tab="Tools",
         logic_documentation="Zero-dependency hybrid TF-IDF vector space and SQLite FTS5 BM25 search engine with Reciprocal Rank Fusion (RRF), hierarchical parent-child chunking, and local LLM context synthesis.",
         scientific_logic="""1. Hybrid Vector-Lexical Search with Reciprocal Rank Fusion (RRF):
@@ -1637,17 +1457,17 @@ arcanum portfolio Manuscripts/ --html dist/portfolio.html
 
 3. 100% Offline Air-Gapped Operation:
    Executes entirely via standard library SQLite and pure Python math without external network calls or remote embeddings.""",
-        why_this_way="Cloud AI search leaks unpublished world lore and manuscript IP. Local RAG guarantees 100% air-gapped privacy and instantaneous sub-10ms retrieval.",
+        why_this_way="Cloud AI search leaks unpublished world lore and manuscript IP. Local vault search guarantees 100% air-gapped privacy and instantaneous sub-10ms retrieval.",
         worldbuilding_relevance="Answers complex lore queries instantly across tens of thousands of vault notes.",
         storytelling_relevance="Synthesizes relevant character backgrounds, magic constraints, and history before drafting.",
         writing_relevance="Empowers in-situ research without leaving the drafting cockpit.",
         subfeatures=[
-            {"name": "Hybrid RRF Query Engine", "rule": "Fuses BM25 exact matching with TF-IDF semantic relevance.", "example": "arcanum rag 'How does blood magic exhaustion work?'"},
-            {"name": "Context Pack Builder", "rule": "Assembles structured context dossiers for local LLM completion.", "example": "arcanum rag --context 'Battle of Dawn'"},
+            {"name": "Hybrid RRF Query Engine", "rule": "Fuses BM25 exact matching with TF-IDF semantic relevance.", "example": "arcanum search 'How does blood magic exhaustion work?'"},
+            {"name": "Context Pack Builder", "rule": "Assembles structured context dossiers for local LLM completion.", "example": "arcanum search --context 'Battle of Dawn'"},
         ],
         extension_guide="""Query lore from CLI:
 ```bash
-arcanum rag "What are the weaknesses of Frost Wyrms?"
+arcanum search "What are the weaknesses of Frost Wyrms?"
 ```""",
         advisory_guidance=[
             {"pattern": "Ambiguous search query returns multiple cross-domain entities", "option_a": "Apply domain category filter (e.g. Characters, Magic)", "option_b": "Use Reciprocal Rank Fusion to synthesize top matches", "option_c": "Display interactive search disambiguation list"},
@@ -2037,34 +1857,6 @@ arcanum matter build Manuscript/
         ],
     ),
 
-    "concordance": EngineSpec(
-        name="concordance",
-        category=EngineCategory.CORE,
-        title="Dramatis Personae & Glossary Generator",
-        description="Compiles character indices and lore terms into publication-ready back-matter",
-        module_name="lib.concordance",
-        cli_command="concordance",
-        aliases=["glossary", "concordance", "index"],
-        studio_tab="Publishing",
-        logic_documentation="Extracts lore entities from world dossiers, indexes their manuscript occurrences with chapter citations, and formats publication-ready Dramatis Personae and Glossary appendices.",
-        scientific_logic="""1. Concordance Indexing & Chapter Occurrence Mapping:
-   Extracts entity keywords from World Bible dossiers and maps every occurrence across manuscript chapters with exact page/chapter citations.""",
-        why_this_way="Manual indexing of glossaries and character lists is tedious and prone to missing terms.",
-        worldbuilding_relevance="Transforms complex world notes into accessible reader companion guides.",
-        storytelling_relevance="Allows epic fantasy/sci-fi readers to look up houses, ranks, and foreign terms without spoilers.",
-        writing_relevance="Automates tedious manual backmatter indexing with typographical formatting.",
-        subfeatures=[
-            {"name": "Glossary Compiler", "rule": "Generates alphabetized glossary with chapter occurrence citations.", "example": "arcanum concordance Manuscript/ -w World/"},
-            {"name": "Dramatis Personae Indexer", "rule": "Builds character cast index with chapter appearance references.", "example": "arcanum concordance --cast Manuscript/"},
-        ],
-        extension_guide="""Generate glossary backmatter:
-```bash
-arcanum concordance Manuscript/ -w World/ -o Manuscript/04_Back_Matter/Glossary.md
-```""",
-        advisory_guidance=[
-            {"pattern": "Term cited in lore but never mentioned in manuscript", "option_a": "Exclude unused term from book backmatter", "option_b": "Include in extended world codex only", "option_c": "Retain in backmatter for atmospheric worldbuilding"},
-        ],
-    ),
 
     "codex_export": EngineSpec(
         name="codex_export",
@@ -2216,70 +2008,6 @@ arcanum tip --status
         ],
     ),
 
-    "council": EngineSpec(
-        name="council",
-        category=EngineCategory.CRAFT,
-        title="Multi-Agent Editorial Council & Diagnostic Dossier",
-        description="Offline multi-perspective manuscript critique synthesizing Plot Doctor, Lore Auditor, Voice Coach, and Sensory Stylist",
-        module_name="lib.council",
-        cli_command="council",
-        aliases=["editorial-council", "council-audit", "dossier"],
-        studio_tab="Editorial",
-        scientific_logic="""Synthesizes four complementary editorial paradigms into a structured diagnostic assessment:
-1. Plot Doctor: Structural beat pacing compliance, tension-curve variance, scene-sequel balance (Swain MRUs).
-2. Lore Auditor: Cross-volume entity consistency, magic energy conservation, timeline paradox detection, and genealogy integrity.
-3. Voice Coach: Character dialogue registers, said-bookisms, speech rhythm variance, and reading grade-level drift.
-4. Sensory Stylist: 6-Dimensional sensory palette coverage (visual, auditory, olfactory, gustatory, tactile, proprioceptive) and white-room syndrome detection.""",
-        why_this_way="Single-perspective linters produce shallow or contradictory feedback. By coordinating four distinct craft specialists with explicit evaluation rubrics, authors receive a balanced, masterclass diagnostic dossier without sending unpublished prose to cloud APIs.",
-        worldbuilding_relevance="Verifies that world lore rules, deific constraints, and conlang terms are respected throughout the manuscript text.",
-        storytelling_relevance="Flags saggy middles, unresolved narrative promises, and character voice homogenization across multi-POV chapters.",
-        writing_relevance="Pinpoints sensory-dead scenes, dialog fatigue, and clumsy attribution verbs.",
-        subfeatures=[
-            {"name": "Plot Doctor Evaluation", "rule": "Evaluates 3-Act / Monomyth harmony and scene tension trajectory.", "example": "arcanum council Manuscripts/Novel"},
-            {"name": "Lore Auditor Integrity", "rule": "Audits timeline, magic, and character trait continuity.", "example": "arcanum council Manuscripts/Novel -w Worlds/Eldoria"},
-            {"name": "Voice Coach Analysis", "rule": "Detects idiolect collapse and dialogue attribution bloat.", "example": "arcanum council Manuscripts/Novel --json"},
-            {"name": "Sensory Stylist Audit", "rule": "Measures 6D sensory balance and white-room scenes.", "example": "arcanum council Manuscripts/Novel --html dossier.html"},
-        ],
-        extension_guide="""Run council via CLI:
-```bash
-arcanum council Manuscripts/Novel -w Worlds/Eldoria --html dist/dossier.html
-```""",
-        advisory_guidance=[
-            {"pattern": "High sensory deficit in rapid action sequences", "option_a": "Inject tactile recoil and olfactory ozone cues", "option_b": "Keep sparse sensory focus for fast-paced cinematics", "option_c": "Rely entirely on dialogue momentum"},
-        ],
-    ),
-
-    "audio_proof": EngineSpec(
-        name="audio_proof",
-        category=EngineCategory.UTILITY,
-        title="Offline Local TTS Proofreading Exporter",
-        description="Speech-optimized SSML and text chunk generator for offline audio proofreading (Piper TTS, eSpeak NG)",
-        module_name="lib.audio_proof",
-        cli_command="audio-proof",
-        aliases=["audio-proof", "tts-proof", "audio-export", "speech-proof"],
-        studio_tab="Publishing",
-        scientific_logic="""Transforms raw manuscript Markdown into speech-synthesizer-optimized SSML and phonetically cleaned chunks:
-1. Strips non-spoken editorial tags (@pov, @time, YAML frontmatter, markdown table structures).
-2. Inserts natural SSML prosodic pauses: `<break time="500ms"/>` between paragraphs and `<break time="1200ms"/>` across scene dividers (***, ---).
-3. Formats dialogue and narrative into balanced audio chunks for low-latency buffer playback.
-4. Calculates accurate listening duration estimates across 1.0x (150 wpm), 1.25x (187 wpm), and 1.5x (225 wpm) listening speeds.""",
-        why_this_way="Listening to prose through text-to-speech is proven to uncover rhythm flaws, duplicate word echoes, clunky syntax, and accidental rhymes that visual reading misses. Offline generation ensures complete privacy for unreleased manuscripts.",
-        worldbuilding_relevance="Applies in-world phonetic pronunciation rules from conlang lexicons to ensure correct spoken rendering of fictional names and terms.",
-        storytelling_relevance="Tests narrative pacing and dialogue naturalism through auditory rhythm.",
-        writing_relevance="Catches typographical homophones (their/there/they're), missing words, and clumsy sentence structures.",
-        subfeatures=[
-            {"name": "SSML Prosody Optimization", "rule": "Generates valid SSML tags with scene break pauses.", "example": "arcanum audio-proof Manuscripts/Novel --ssml"},
-            {"name": "Chunked Buffer Exporter", "rule": "Splits long chapters into TTS-friendly chunks.", "example": "arcanum audio-proof Manuscripts/Novel --chunk-size 500"},
-            {"name": "Audio Listening Estimator", "rule": "Calculates chapter audio runtimes across multiple playback speeds.", "example": "arcanum audio-proof Manuscripts/Novel --json"},
-        ],
-        extension_guide="""Export audio proofing package:
-```bash
-arcanum audio-proof Manuscripts/Novel --ssml --output Exports/AudioProof/
-```""",
-        advisory_guidance=[
-            {"pattern": "Unnatural cadence in spoken dialogue", "option_a": "Break long sentences with em-dashes or commas", "option_b": "Keep stylized archaic speech patterns", "option_c": "Add phonetic respelling annotations"},
-        ],
-    ),
 
     "cosmology": EngineSpec(
         name="cosmology",
@@ -2539,6 +2267,7 @@ def get_engine_docs(name: str) -> dict[str, Any] | None:
         "subfeatures": spec.subfeatures,
         "extension_guide": spec.extension_guide,
         "advisory_guidance": spec.advisory_guidance,
+        "theory_references": spec.theory_references,
     }
 
 
@@ -2562,6 +2291,7 @@ def get_all_engine_docs() -> list[dict[str, Any]]:
             "subfeatures": spec.subfeatures,
             "extension_guide": spec.extension_guide,
             "advisory_guidance": spec.advisory_guidance,
+            "theory_references": spec.theory_references,
         }
         for spec in _ENGINES.values()
     ]
@@ -2569,7 +2299,7 @@ def get_all_engine_docs() -> list[dict[str, Any]]:
 
 def format_engine_doc(spec_or_name: EngineSpec | str, mode: str = "full") -> str:
     """Formats an engine's educational documentation for terminal CLI display.
-    Modes: 'full', 'math' / 'theory', 'why', 'examples', 'subfeatures', 'advisory'
+    Modes: 'full', 'math' / 'theory', 'sources' / 'references', 'why', 'examples', 'subfeatures', 'advisory'
     """
     if isinstance(spec_or_name, str):
         engine_obj = get_engine(spec_or_name)
@@ -2589,6 +2319,28 @@ def format_engine_doc(spec_or_name: EngineSpec | str, mode: str = "full") -> str
 
 {spec.scientific_logic or spec.logic_documentation}
 """
+
+    if mode_clean in ("sources", "references", "citations", "bibliography", "papers", "reading"):
+        lines = [
+            "══════════════════════════════════════════════════════════════════════════════",
+            f" 📚 {spec.title.upper()} — THEORETICAL FOUNDATIONS & REFERENCE SOURCES",
+            f" Command: 'arcanum {spec.cli_command}'",
+            "══════════════════════════════════════════════════════════════════════════════\n",
+        ]
+        if spec.theory_references:
+            for idx, src in enumerate(spec.theory_references, 1):
+                lines.append(f"[{idx}] {src.get('title', 'Reference')}")
+                if src.get("citation"):
+                    lines.append(f"    • Citation: {src.get('citation')}")
+                if src.get("url"):
+                    lines.append(f"    • Link:     {src.get('url')}")
+                if src.get("description"):
+                    lines.append(f"    • Context:  {src.get('description')}\n")
+                else:
+                    lines.append("")
+        else:
+            lines.append("   (No external theory references indexed for this engine.)")
+        return "\n".join(lines)
 
     if mode_clean in ("why", "rationale"):
         return f"""══════════════════════════════════════════════════════════════════════════════
@@ -2682,6 +2434,15 @@ def format_engine_doc(spec_or_name: EngineSpec | str, mode: str = "full") -> str
             doc.append(f"       • Option B (Speculative Trope): {adv.get('option_b', 'In-world arcane/sci-fi grounding')}")
             doc.append(f"       • Option C (Author Sovereignty): {adv.get('option_c', 'Authorial creative freedom')}")
 
+    if spec.theory_references:
+        doc.append("\n📚 Theoretical Foundations & Reference Sources:")
+        for idx, src in enumerate(spec.theory_references, 1):
+            doc.append(f"\n   [{idx}] {src.get('title', 'Reference')}: {src.get('citation', '')}")
+            if src.get('url'):
+                doc.append(f"       Link: {src.get('url')}")
+            if src.get('description'):
+                doc.append(f"       Context: {src.get('description')}")
+
     doc.append("\n══════════════════════════════════════════════════════════════════════════════\n")
     return "\n".join(doc)
 
@@ -2720,6 +2481,7 @@ def get_engine_catalog() -> list[dict[str, Any]]:
             "subfeatures": d.get("subfeatures", []),
             "extension_guide": d.get("extension_guide", ""),
             "advisory_guidance": d.get("advisory_guidance", []),
+            "theory_references": d.get("theory_references", []),
             "tips": get_engine_tips(d["name"]),
         }
         for d in docs

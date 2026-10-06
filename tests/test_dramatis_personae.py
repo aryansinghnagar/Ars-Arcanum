@@ -19,6 +19,7 @@ from lib.dramatis_personae import (
     cross_reference_manuscripts,
     generate_dramatis_personae_html,
     generate_dramatis_personae_markdown,
+    levenshtein_distance,
     main,
     normalize_name,
     scan_character_profiles,
@@ -365,6 +366,31 @@ The council convened.
         self.assertTrue(out_html.exists())
         self.assertIn("Kaelen", out_md.read_text(encoding="utf-8"))
         self.assertIn("Kaelen", out_html.read_text(encoding="utf-8"))
+
+    def test_levenshtein_distance(self) -> None:
+        """Exact Levenshtein distance calculations between name strings."""
+        self.assertEqual(levenshtein_distance("Kaelen", "Kaelen"), 0)
+        self.assertEqual(levenshtein_distance("Kaelen", "Kaelan"), 1)
+        self.assertEqual(levenshtein_distance("Aria", "Arya"), 1)
+        self.assertEqual(levenshtein_distance("Aeliana", "Aelyana"), 1)
+        self.assertEqual(levenshtein_distance("Garrick", "Lyra"), 6)
+        self.assertEqual(levenshtein_distance("", "Test"), 4)
+        self.assertEqual(levenshtein_distance("Test", ""), 4)
+
+    def test_audit_name_collisions_cas104(self) -> None:
+        """Name collisions with Levenshtein distance <= 2 are flagged as CAS-104."""
+        (self.chars_dir / "Aeliana.md").write_text("---\nname: Aeliana\n---\n", encoding="utf-8")
+        (self.chars_dir / "Aelyana.md").write_text("---\nname: Aelyana\n---\n", encoding="utf-8")
+
+        chars = scan_character_profiles(self.world_dir)
+        _, findings = cross_reference_manuscripts(chars, self.ms_dir)
+
+        cas104 = [f for f in findings if f["id"] == "CAS-104"]
+        self.assertEqual(len(cas104), 1)
+        self.assertEqual(cas104[0]["severity"], "WARNING")
+        self.assertIn("Aeliana", cas104[0]["character"])
+        self.assertIn("Aelyana", cas104[0]["character"])
+        self.assertEqual(cas104[0]["distance"], 1)
 
 
 if __name__ == "__main__":

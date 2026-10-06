@@ -25,8 +25,20 @@ from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from scope import (  # type: ignore[no-redef]
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+    )
 
 NW_TAG_REGEX = re.compile(r"^@[A-Za-z0-9_-]+:")
 TOKEN_REGEX = re.compile(r"\S+|\s+")
@@ -134,11 +146,12 @@ def extract_chapter_title(file_path: Path, content: str) -> str:
 
 
 class ManuscriptComparator:
-    def __init__(self, path_a: Path, path_b: Path, label_a: str = "Draft 1", label_b: str = "Draft 2"):
+    def __init__(self, path_a: Path, path_b: Path, label_a: str = "Draft 1", label_b: str = "Draft 2", scope: Any = None):
         self.path_a = path_a
         self.path_b = path_b
         self.label_a = label_a
         self.label_b = label_b
+        self.scope = scope
         self.chapters: list[dict[str, Any]] = []
         self.summary: dict[str, Any] = {}
 
@@ -187,8 +200,23 @@ class ManuscriptComparator:
         self.chapters.append(chap_data)
 
     def _compare_directories(self, dir_a: Path, dir_b: Path):
-        files_a = {p.relative_to(dir_a): p for p in discover_draft_files(dir_a)}
-        files_b = {p.relative_to(dir_b): p for p in discover_draft_files(dir_b)}
+        if self.scope:
+            scope = self.scope
+            if not isinstance(scope, EngineScope):
+                if isinstance(scope, dict):
+                    from lib.scope import resolve_scope
+                    scope = resolve_scope(scope).scope_filter
+                elif isinstance(scope, str):
+                    from lib.scope import parse_unified_scope_string
+                    p_dict = parse_unified_scope_string(scope)
+                    scope = EngineScope(**p_dict)
+            chaps_a, _, _ = filter_manuscript_scope(dir_a, scope)
+            chaps_b, _, _ = filter_manuscript_scope(dir_b, scope)
+            files_a = {c.file_path.relative_to(dir_a): c.file_path for c in chaps_a}
+            files_b = {c.file_path.relative_to(dir_b): c.file_path for c in chaps_b}
+        else:
+            files_a = {p.relative_to(dir_a): p for p in discover_draft_files(dir_a)}
+            files_b = {p.relative_to(dir_b): p for p in discover_draft_files(dir_b)}
 
         all_rel_paths = sorted(set(files_a.keys()).union(set(files_b.keys())))
 
@@ -867,7 +895,7 @@ class ManuscriptComparator:
             return False
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Manuscript Diff & Redline Generator")
     parser.add_argument("paths", nargs="+", help="Draft directories/files to compare (path_a path_b OR ms_dir draft_b draft_a)")
     parser.add_argument("--label-a", default="", help="Display label for Draft A (default: folder name)")
@@ -876,13 +904,16 @@ def main():
     parser.add_argument("--json", action="store_true", help="Output summary change metrics as JSON")
     parser.add_argument("--terminal", action="store_true", help="Print colorized ANSI diff to stdout")
     parser.add_argument("--libreoffice", action="store_true", help="Export to ODT and launch LibreOffice Writer")
+    add_scope_arguments(parser, include_world=False, target_pos_arg=False)
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+
+    scope = parse_scope_args(args)
 
     if len(args.paths) == 1:
         print("Error: At least two draft paths or a manuscript project with two drafts are required.", file=sys.stderr)
         sys.exit(2)
-    elif len(args.paths) == 2:
+    if len(args.paths) == 2:
         p_a = Path(args.paths[0]).expanduser().resolve()
         p_b = Path(args.paths[1]).expanduser().resolve()
         label_a = args.label_a or p_a.name
@@ -912,7 +943,7 @@ def main():
         print(f"Error: Path B does not exist: {p_b}", file=sys.stderr)
         sys.exit(2)
 
-    comparator = ManuscriptComparator(p_a, p_b, label_a, label_b)
+    comparator = ManuscriptComparator(p_a, p_b, label_a, label_b, scope=scope)
     comparator.compare()
 
     if args.json:
@@ -928,6 +959,8 @@ def main():
         # Default to terminal ANSI diff
         print(comparator.to_terminal_ansi())
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

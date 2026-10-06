@@ -25,8 +25,22 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_path,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_path,
+    )
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -547,7 +561,12 @@ def resolve_active_draft_dir(manuscript_dir: Path, requested_draft: str | None =
     return draft_dirs[-1]
 
 
-def build_manuscript_docx(manuscript_dir: Path, draft_name: str | None = None, preset_name: str | None = None) -> dict:
+def build_manuscript_docx(
+    manuscript_dir: Path,
+    draft_name: str | None = None,
+    preset_name: str | None = None,
+    scope: EngineScope | None = None,
+) -> dict:
     """Builds both per-chapter .docx files and consolidated draft .docx files for a manuscript."""
     mpath = Path(manuscript_dir).resolve()
     draft_dir = resolve_active_draft_dir(mpath, draft_name)
@@ -581,6 +600,11 @@ def build_manuscript_docx(manuscript_dir: Path, draft_name: str | None = None, p
     # Find all Markdown scenes
     md_files = sorted(draft_dir.rglob("*.md"))
     valid_scenes = [f for f in md_files if not f.name.startswith(".") and "Outlines" not in f.parts]
+
+    if scope:
+        scoped_chapters, _, _ = filter_manuscript_scope(draft_dir, scope)
+        scoped_paths = {c.file_path for c in scoped_chapters if c.file_path}
+        valid_scenes = [f for f in valid_scenes if f in scoped_paths]
 
     for scene_file in valid_scenes:
         try:
@@ -846,6 +870,7 @@ def main():
     build_p = subparsers.add_parser("build", help="Build/refresh .docx files for manuscript")
     build_p.add_argument("manuscript", help="Path to manuscript directory")
     build_p.add_argument("-d", "--draft", help="Specific draft name (e.g. Draft-01, Draft-02)")
+    add_scope_arguments(build_p, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     # sync
     sync_p = subparsers.add_parser("sync", help="Bidirectional sync between .docx and .md")
@@ -864,9 +889,11 @@ def main():
     open_p.add_argument("-c", "--chapter", help="Specific chapter file name or path")
 
     args = parser.parse_args()
+    scope = parse_scope_args(args)
 
     if args.subcommand == "build":
-        res = build_manuscript_docx(Path(args.manuscript), draft_name=args.draft)
+        ms_p = resolve_manuscript_path(args.manuscript) or Path(args.manuscript)
+        res = build_manuscript_docx(ms_p, draft_name=args.draft, scope=scope)
         print("=== Ars Arcanum DOCX Build ===")
         print(f"Manuscript: {res['manuscript']} ({res['draft']})")
         print(f"Chapters Built: {len(res['chapters_built'])}")

@@ -35,8 +35,39 @@ from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_world_scope,
+        parse_scope_args,
+        resolve_world_path,
+    )
 except ImportError:
-    from _bootstrap import atomic_write
+    try:
+        from _bootstrap import atomic_write
+        from scope import (
+            EngineScope,
+            add_scope_arguments,
+            filter_world_scope,
+            parse_scope_args,
+            resolve_world_path,
+        )
+    except ImportError:
+        from _bootstrap import atomic_write  # type: ignore
+
+        EngineScope = None  # type: ignore
+
+        def add_scope_arguments(*args, **kwargs):  # type: ignore
+            pass
+
+        def parse_scope_args(*args, **kwargs):  # type: ignore
+            return None
+
+        def filter_world_scope(*args, **kwargs):  # type: ignore
+            return []
+
+        def resolve_world_path(*args, **kwargs):  # type: ignore
+            return None
 from collections import defaultdict
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -103,7 +134,7 @@ def parse_yaml_frontmatter(content: str) -> dict:
     return data
 
 
-def load_characters_and_houses(world_dir: Path) -> dict:
+def load_characters_and_houses(world_dir: Path, scope: EngineScope | None = None) -> dict:
     """Scans Characters/ directory and returns character dictionary indexed by canonical name and aliases."""
     chars = {}
     dirs_to_check = [
@@ -111,11 +142,18 @@ def load_characters_and_houses(world_dir: Path) -> dict:
         world_dir / "00-World-Bible" / "Characters",
     ]
     seen = set()
+    scoped_files: set[Path] | None = None
+    if scope and scope.is_scoped():
+        filtered_items = filter_world_scope(world_dir, scope)
+        scoped_files = {item.file_path.resolve() for item in filtered_items}
+
     for cdir in dirs_to_check:
         if not cdir.is_dir():
             continue
         for md_file in sorted(cdir.rglob("*.md")):
             if md_file in seen or md_file.name.startswith(".") or "Template" in md_file.name:
+                continue
+            if scoped_files is not None and md_file.resolve() not in scoped_files:
                 continue
             seen.add(md_file)
             try:
@@ -563,8 +601,11 @@ def print_terminal_tree(chars: dict, root_name: str, prefix: str = "", visited: 
         print_terminal_tree(chars, child_name, next_prefix, visited)
 
 
-def resolve_world_dir(target_str: str | None = None) -> str:
+def resolve_world_dir(target_str: str | None = None, scope: EngineScope | None = None) -> str:
     """Resolves world input string (path or name) to absolute directory path."""
+    if not target_str and scope and scope.world:
+        target_str = scope.world
+
     if target_str:
         p = Path(target_str).expanduser().resolve()
         if p.is_dir():
@@ -610,12 +651,14 @@ def main():
     p_tree.add_argument("--mermaid", action="store_true", help="Print raw Mermaid.js flowchart code")
     p_tree.add_argument("--html", help="Export standalone interactive HTML report")
     p_tree.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_tree, include_manuscript=False, include_world=False, target_pos_arg=False)
 
     # 2. lineage
     p_lineage = subparsers.add_parser("lineage", help="Display succession order and dynastic lineage roster")
     p_lineage.add_argument("house", help="House / Dynasty name")
     p_lineage.add_argument("-w", "--world", "--world-dir", dest="world_flag", help="World Bible lore directory")
     p_lineage.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_lineage, include_manuscript=False, include_world=False, target_pos_arg=False)
 
     args = parser.parse_args()
 
@@ -624,14 +667,15 @@ def main():
         sys.exit(0)
 
     # Discover world
+    scope = parse_scope_args(args)
     raw_w = getattr(args, "world_flag", None) or getattr(args, "world", None)
-    world_dir = resolve_world_dir(raw_w)
+    world_dir = resolve_world_dir(raw_w, scope=scope)
 
     if not world_dir or not Path(world_dir).is_dir():
         print("Error: No valid World Bible directory specified or discovered.", file=sys.stderr)
         sys.exit(2)
 
-    chars = load_characters_and_houses(Path(world_dir))
+    chars = load_characters_and_houses(Path(world_dir), scope=scope)
     findings = validate_genealogy(chars)
 
     if args.subcommand in ("tree", "genealogy"):

@@ -31,16 +31,26 @@ try:
     from lib._bootstrap import atomic_write
     from lib.frontmatter import parse_yaml_frontmatter
     from lib.resonance import ResonanceMesh
+    from lib.scope import (
+        EngineScope,
+        parse_number_ranges,
+        parse_unified_scope_string,
+    )
     from lib.tips import are_tips_enabled, get_tip_database, toggle_tips
 except ImportError:
     from _bootstrap import atomic_write
     from frontmatter import parse_yaml_frontmatter
     from resonance import ResonanceMesh
+    from scope import (  # type: ignore[no-redef]
+        EngineScope,
+        parse_number_ranges,
+        parse_unified_scope_string,
+    )
     from tips import are_tips_enabled, get_tip_database, toggle_tips
 
 logger = logging.getLogger("arcanum.studio_hub")
 
-HUB_VERSION = "4.3.0"
+HUB_VERSION = "5.0.0"
 FRONTMATTER_REGEX = re.compile(r"^---\s*\r?\n(.*?)\r?\n---\s*(?:\r?\n|$)", re.DOTALL)
 
 
@@ -784,6 +794,75 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     color: var(--accent-gold);
   }}
 
+  /* Granular Scope Bar */
+  .scope-bar {{
+    margin: 14px 28px 0 28px;
+    padding: 10px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }}
+  .scope-item {{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }}
+  .scope-label {{
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+  }}
+  .scope-input {{
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 4px 8px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    width: 110px;
+  }}
+  .scope-input:focus {{
+    border-color: var(--accent-gold);
+    outline: none;
+  }}
+  .scope-preset-btn {{
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 4px 9px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }}
+  .scope-preset-btn:hover, .scope-preset-btn.active {{
+    color: var(--accent-gold);
+    background: var(--bg-card-hover);
+    border-color: var(--accent-gold);
+  }}
+  .scope-badge {{
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: var(--accent-cyan);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+  }}
+
   .content-body {{
     padding: 28px;
     max-width: 1400px;
@@ -1206,6 +1285,31 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     </div>
   </header>
 
+  <!-- GRANULAR SCOPE BAR -->
+  <div class="scope-bar" id="scope-bar">
+    <div class="scope-item">
+      <span class="scope-label">🎯 Target:</span>
+      <span style="font-size: 12px; font-weight: 600; color: var(--text-primary);">{data['project']['manuscript_name']}</span>
+    </div>
+    <div class="scope-item">
+      <span class="scope-label">Chapters:</span>
+      <input type="text" id="scope-input-chapters" class="scope-input" placeholder="All (e.g. 1-5)" onchange="onScopeInputChange()" title="Specify chapters: e.g. 1-5, 8, 10-12 or ch01..ch05">
+    </div>
+    <div class="scope-item">
+      <span class="scope-label">Scenes:</span>
+      <input type="text" id="scope-input-scenes" class="scope-input" placeholder="All (e.g. 1-3)" onchange="onScopeInputChange()" title="Specify scene range: e.g. 1-4 or sc01..sc03">
+    </div>
+    <div class="scope-item" style="gap: 4px;">
+      <span class="scope-label">Presets:</span>
+      <button class="scope-preset-btn active" id="btn-preset-active" onclick="applyScopePreset('active')" title="Active open project scope">⚡ Active</button>
+      <button class="scope-preset-btn" id="btn-preset-all" onclick="applyScopePreset('all')" title="All chapters and scenes in manuscript">📖 Whole Book</button>
+      <button class="scope-preset-btn" id="btn-preset-ch1_5" onclick="applyScopePreset('ch1_5')" title="Chapters 1 through 5">📑 Ch 1-5</button>
+      <button class="scope-preset-btn" id="btn-preset-act1" onclick="applyScopePreset('act1')" title="Act 1 (First 25% of manuscript)">🎭 Act 1</button>
+      <button class="scope-preset-btn" id="btn-preset-custom" onclick="openScopeModal()" title="Open advanced scope targeting modal">⚙️ Custom...</button>
+    </div>
+    <span id="scope-summary-badge" class="scope-badge">Scope: Manuscript (All)</span>
+  </div>
+
   <!-- DYNAMIC CRAFT WISDOM / TIP BANNER -->
   <div id="dynamic-tip-bar" class="dynamic-tip-bar">
     <div class="tip-icon">💡</div>
@@ -1436,8 +1540,9 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
             </div>
             <h4>{eng['name']}</h4>
             <p>{eng['desc']}</p>
-            <div style="display: flex; gap: 8px; margin-top: auto; padding-top: 10px;">
+            <div style="display: flex; gap: 8px; margin-top: auto; padding-top: 10px; flex-wrap: wrap;">
               <button class="btn-doc" onclick="openEngineDocModal('{eng['id']}')">📖 View Logic & Formulas</button>
+              <button class="btn-primary" style="font-size: 11.5px; padding: 4px 10px;" onclick="openEngineRunModal('{eng['id']}', '{eng['name']}')">⚡ Run Scoped</button>
             </div>
           </div>''' for eng in data['engine_catalog'])}
         </div>
@@ -1633,6 +1738,84 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
       <button class="modal-nav-btn" onclick="switchDocModalTab('advisory')">💡 Creative Advisory</button>
     </div>
     <div id="modalBodyContent" class="modal-body"></div>
+  </div>
+</div>
+
+<!-- Interactive Engine Run Modal with Scope Preview & Real-Time Output -->
+<div id="engineRunModal" class="modal-backdrop" onclick="if(event.target===this) closeEngineRunModal()">
+  <div class="modal-dialog" style="max-width: 800px;">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span id="runModalCategoryBadge" class="tag tag-gold">ENGINE RUNNER</span>
+        <h3 id="runModalEngineTitle" style="margin-left: 8px;">Run Scoped Engine</h3>
+      </div>
+      <button class="modal-close" onclick="closeEngineRunModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Target Scope Configuration:</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-size: 11px; color: var(--text-muted);">Chapters (e.g. 1-5, 8 or ch01..ch05):</label>
+            <input type="text" id="run-modal-chapters" class="search-input" style="width: 100%; margin-top: 4px;" oninput="updateRunCommandPreview()">
+          </div>
+          <div>
+            <label style="font-size: 11px; color: var(--text-muted);">Scenes (e.g. 1-4 or sc01..sc03):</label>
+            <input type="text" id="run-modal-scenes" class="search-input" style="width: 100%; margin-top: 4px;" oninput="updateRunCommandPreview()">
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 8px;">
+        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Command Execution Preview:</label>
+        <div id="runModalCmdPreview" class="code-block" style="margin-top: 4px; color: var(--accent-gold);"></div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+        <button class="btn-primary" id="btn-run-engine-execute" onclick="executeEngineRun()">🚀 Execute Scoped Engine</button>
+        <span id="run-status-indicator" style="font-size: 12px; color: var(--text-muted);"></span>
+      </div>
+      <div style="margin-top: 8px;">
+        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Execution Output Console:</label>
+        <pre id="runModalOutput" class="code-block" style="max-height: 280px; overflow-y: auto; background: var(--bg-base); margin-top: 4px;">Ready to execute. Click 'Execute Scoped Engine' above.</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Scope Modal -->
+<div id="customScopeModal" class="modal-backdrop" onclick="if(event.target===this) closeScopeModal()">
+  <div class="modal-dialog" style="max-width: 600px;">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="tag tag-char">SCOPE TARGETING</span>
+        <h3 style="margin-left: 8px;">Advanced Scope Selector</h3>
+      </div>
+      <button class="modal-close" onclick="closeScopeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size: 12.5px; color: var(--text-secondary);">Specify granular targeting parameters for all craft engines. Engines will only process matching chapters, scenes, or lore files.</p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div>
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Chapter Selection (Ranges & Lists):</label>
+          <input type="text" id="modal-scope-chapters" class="search-input" style="width: 100%; margin-top: 4px;" placeholder="e.g. 1-5, 7, 10-12 or ch01..ch05">
+        </div>
+        <div>
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Scene Selection (Ranges & Lists):</label>
+          <input type="text" id="modal-scope-scenes" class="search-input" style="width: 100%; margin-top: 4px;" placeholder="e.g. 1-3, 5 or sc01..sc03">
+        </div>
+        <div>
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Lore Categories (Comma-separated):</label>
+          <input type="text" id="modal-scope-lore" class="search-input" style="width: 100%; margin-top: 4px;" placeholder="e.g. Characters, MagicSystems, Factions">
+        </div>
+        <div>
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Unified Scope String (Alternative):</label>
+          <input type="text" id="modal-scope-raw" class="search-input" style="width: 100%; margin-top: 4px;" placeholder="e.g. Book1:ch01..ch05:sc01..sc03">
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
+        <button class="scope-preset-btn" onclick="closeScopeModal()">Cancel</button>
+        <button class="btn-primary" onclick="saveCustomScope()">Apply Scope</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1832,11 +2015,11 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
   function getEnginesForTab(tabId) {{
     const map = {{
       'tab-overview': ['writing_sprint', 'structure', 'resonance'],
-      'tab-manuscript': ['pacing', 'senses', 'voice', 'scene_mechanics', 'stylistics', 'manuscript_diff'],
+      'tab-manuscript': ['structure', 'plot_matrix', 'story_canvas', 'manuscript_diff', 'typography_cleaner'],
       'tab-lore': ['astrophysics', 'climate', 'conlang', 'magic_system', 'economy', 'genealogy', 'ecology', 'cartography'],
-      'tab-structure': ['structure', 'plot_matrix', 'story_canvas', 'scene_mechanics', 'branching_graph'],
+      'tab-structure': ['structure', 'plot_matrix', 'story_canvas', 'manuscript_scaffold', 'timeline_sync'],
       'tab-timeline': ['timeline_sync', 'causality', 'prophecy', 'calendar'],
-      'tab-intelligence': ['local_rag', 'stylistics', 'dramatis_personae', 'continuity', 'series_continuity'],
+      'tab-intelligence': ['vault_search', 'dramatis_personae', 'continuity', 'series_continuity', 'world_doctor'],
       'tab-engines': ['astrophysics', 'climate', 'tactical_sim', 'factions', 'economy', 'ecology'],
       'tab-resonance': ['resonance', 'causality', 'astrophysics', 'conlang'],
       'tab-guide': ['diagnostics', 'config', 'preflight', 'docx_sync', 'typography_cleaner']
@@ -2086,6 +2269,184 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
       </div>
     `).join('');
   }}
+
+  let activeScope = {{
+    manuscript: HUB_DATA.project.manuscript_name || "",
+    world: HUB_DATA.project.world_name || "",
+    chapters: "",
+    scenes: "",
+    lore_categories: "",
+    raw_filter: ""
+  }};
+  let activeRunningEngine = null;
+
+  function applyScopePreset(preset) {{
+    document.querySelectorAll('.scope-preset-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('btn-preset-' + preset);
+    if (btn) btn.classList.add('active');
+
+    if (preset === 'active' || preset === 'all') {{
+      activeScope.chapters = "";
+      activeScope.scenes = "";
+      document.getElementById('scope-input-chapters').value = "";
+      document.getElementById('scope-input-scenes').value = "";
+    }} else if (preset === 'ch1_5') {{
+      activeScope.chapters = "1-5";
+      activeScope.scenes = "";
+      document.getElementById('scope-input-chapters').value = "1-5";
+      document.getElementById('scope-input-scenes').value = "";
+    }} else if (preset === 'act1') {{
+      const totalCh = HUB_DATA.metrics.total_chapters || 1;
+      const act1Ch = Math.max(1, Math.ceil(totalCh * 0.25));
+      const rangeStr = act1Ch > 1 ? ("1-" + act1Ch) : "1";
+      activeScope.chapters = rangeStr;
+      activeScope.scenes = "";
+      document.getElementById('scope-input-chapters').value = rangeStr;
+      document.getElementById('scope-input-scenes').value = "";
+    }}
+    updateScopeSummaryBadge();
+    syncScopeToServer();
+  }}
+
+  function onScopeInputChange() {{
+    activeScope.chapters = document.getElementById('scope-input-chapters').value.trim();
+    activeScope.scenes = document.getElementById('scope-input-scenes').value.trim();
+    document.querySelectorAll('.scope-preset-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-preset-custom').classList.add('active');
+    updateScopeSummaryBadge();
+    syncScopeToServer();
+  }}
+
+  function updateScopeSummaryBadge() {{
+    const badge = document.getElementById('scope-summary-badge');
+    if (!badge) return;
+    let parts = [];
+    if (activeScope.chapters) {{
+      parts.push("Ch " + activeScope.chapters);
+    }}
+    if (activeScope.scenes) {{
+      parts.push("Sc " + activeScope.scenes);
+    }}
+    if (parts.length === 0) {{
+      badge.innerText = "Scope: " + (activeScope.manuscript || "Active") + " (All)";
+    }} else {{
+      badge.innerText = "Scope: " + parts.join(" • ");
+    }}
+  }}
+
+  function syncScopeToServer() {{
+    if (!IS_API_MODE) return;
+    fetch('/api/scope', {{
+      method: 'POST',
+      headers: {{ 'Content-Type': 'application/json' }},
+      body: JSON.stringify(activeScope)
+    }}).catch(e => console.debug('Scope sync error', e));
+  }}
+
+  function openScopeModal() {{
+    document.getElementById('modal-scope-chapters').value = activeScope.chapters || "";
+    document.getElementById('modal-scope-scenes').value = activeScope.scenes || "";
+    document.getElementById('modal-scope-lore').value = activeScope.lore_categories || "";
+    document.getElementById('modal-scope-raw').value = activeScope.raw_filter || "";
+    document.getElementById('customScopeModal').classList.add('open');
+  }}
+
+  function closeScopeModal() {{
+    document.getElementById('customScopeModal').classList.remove('open');
+  }}
+
+  function saveCustomScope() {{
+    activeScope.chapters = document.getElementById('modal-scope-chapters').value.trim();
+    activeScope.scenes = document.getElementById('modal-scope-scenes').value.trim();
+    activeScope.lore_categories = document.getElementById('modal-scope-lore').value.trim();
+    activeScope.raw_filter = document.getElementById('modal-scope-raw').value.trim();
+
+    document.getElementById('scope-input-chapters').value = activeScope.chapters;
+    document.getElementById('scope-input-scenes').value = activeScope.scenes;
+
+    document.querySelectorAll('.scope-preset-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-preset-custom').classList.add('active');
+
+    updateScopeSummaryBadge();
+    syncScopeToServer();
+    closeScopeModal();
+  }}
+
+  function openEngineRunModal(engineId, engineName) {{
+    activeRunningEngine = engineId;
+    document.getElementById('runModalEngineTitle').innerText = 'Run ' + (engineName || engineId);
+    document.getElementById('run-modal-chapters').value = activeScope.chapters || "";
+    document.getElementById('run-modal-scenes').value = activeScope.scenes || "";
+    document.getElementById('runModalOutput').innerText = "Ready to execute. Click 'Execute Scoped Engine' above.";
+    document.getElementById('run-status-indicator').innerText = "";
+    updateRunCommandPreview();
+    document.getElementById('engineRunModal').classList.add('open');
+  }}
+
+  function closeEngineRunModal() {{
+    document.getElementById('engineRunModal').classList.remove('open');
+    activeRunningEngine = null;
+  }}
+
+  function updateRunCommandPreview() {{
+    if (!activeRunningEngine) return;
+    const ch = document.getElementById('run-modal-chapters').value.trim();
+    const sc = document.getElementById('run-modal-scenes').value.trim();
+    let cmd = 'arcanum ' + activeRunningEngine;
+    if (ch) cmd += ' --chapters ' + ch;
+    if (sc) cmd += ' --scenes ' + sc;
+    document.getElementById('runModalCmdPreview').innerText = cmd;
+  }}
+
+  function executeEngineRun() {{
+    if (!activeRunningEngine) return;
+    const ch = document.getElementById('run-modal-chapters').value.trim();
+    const sc = document.getElementById('run-modal-scenes').value.trim();
+    const outEl = document.getElementById('runModalOutput');
+    const statusEl = document.getElementById('run-status-indicator');
+    const btn = document.getElementById('btn-run-engine-execute');
+
+    btn.disabled = true;
+    statusEl.innerText = "⏳ Executing engine with scope...";
+    outEl.innerText = "Executing...";
+
+    if (!IS_API_MODE) {{
+      setTimeout(() => {{
+        btn.disabled = false;
+        statusEl.innerText = "✓ Static Preview Mode";
+        outEl.innerText = "[Static Mode Preview]\\nCommand: " + document.getElementById('runModalCmdPreview').innerText + "\\n\\nIn live server mode (`arcanum hub`), execution runs directly on your local system with 100% offline privacy.";
+      }}, 300);
+      return;
+    }}
+
+    fetch('/api/engine/run', {{
+      method: 'POST',
+      headers: {{ 'Content-Type': 'application/json' }},
+      body: JSON.stringify({{
+        engine: activeRunningEngine,
+        scope: {{
+          chapters: ch,
+          scenes: sc
+        }}
+      }})
+    }})
+    .then(r => r.json())
+    .then(data => {{
+      btn.disabled = false;
+      if (data.status === 'success') {{
+        statusEl.innerText = "✓ Execution Succeeded (Exit code: " + data.exit_code + ")";
+        outEl.innerText = data.combined_output || "(No output produced)";
+      }} else {{
+        statusEl.innerText = "⚠️ Execution Completed with Exit code: " + data.exit_code;
+        outEl.innerText = data.combined_output || data.stderr || "Error occurred";
+      }}
+    }})
+    .catch(err => {{
+      btn.disabled = false;
+      statusEl.innerText = "❌ Request Failed";
+      outEl.innerText = "Error calling /api/engine/run: " + err;
+    }});
+  }}
 </script>
 </body>
 </html>
@@ -2102,6 +2463,7 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
 
     data: dict[str, Any] = {}
     project_dir: Path = Path.cwd()
+    active_scope: EngineScope = EngineScope()
 
     def _validate_host(self) -> bool:
         host_header = self.headers.get("Host", "")
@@ -2142,6 +2504,21 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(encoded)
         elif path == "/api/status":
             self._send_json(self.data.get("system", {}))
+        elif path == "/api/scope":
+            self._send_json({
+                "status": "success",
+                "scope": {
+                    "universe": self.active_scope.universe,
+                    "world": self.active_scope.world,
+                    "lore_categories": self.active_scope.lore_categories,
+                    "series": self.active_scope.series,
+                    "manuscript": self.active_scope.manuscript,
+                    "book": self.active_scope.book,
+                    "chapters": self.active_scope.chapters,
+                    "scenes": self.active_scope.scenes,
+                    "raw_filter": self.active_scope.raw_filter,
+                }
+            })
         elif path == "/api/lore":
             self._send_json(self.data.get("lore_entities", []))
         elif path == "/api/chapters":
@@ -2332,8 +2709,140 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             mesh = ResonanceMesh(self.project_dir)
             steps = mesh.find_bridge(dom_a, dom_b)
             self._send_json(steps)
+        elif path == "/api/scope":
+            ch = parse_number_ranges(payload.get("chapters")) if payload.get("chapters") is not None else self.active_scope.chapters
+            sc = parse_number_ranges(payload.get("scenes")) if payload.get("scenes") is not None else self.active_scope.scenes
+            raw_f = payload.get("filter") or payload.get("raw_filter") or payload.get("raw_scope")
+            if raw_f:
+                parsed_sc = parse_unified_scope_string(str(raw_f))
+                self.active_scope = EngineScope.from_dict(parsed_sc)
+            else:
+                bk_val = payload.get("book") or payload.get("books")
+                bks = [str(bk_val)] if bk_val and isinstance(bk_val, str) else (bk_val if isinstance(bk_val, list) else self.active_scope.books)
+                self.active_scope = EngineScope(
+                    universe=payload.get("universe") or self.active_scope.universe,
+                    world=payload.get("world") or self.active_scope.world,
+                    lore_categories=payload.get("lore_categories") or self.active_scope.lore_categories,
+                    series=payload.get("series") or self.active_scope.series,
+                    manuscript=payload.get("manuscript") or self.active_scope.manuscript,
+                    books=bks,
+                    chapters=ch,
+                    scenes=sc,
+                    raw_scope=str(raw_f or self.active_scope.raw_scope),
+                )
+            self._send_json({
+                "status": "success",
+                "scope": self.active_scope.to_dict()
+            })
+        elif path == "/api/engine/run":
+            eng_id = payload.get("engine", "")
+            scope_dict = payload.get("scope", {})
+            if scope_dict:
+                bk_val = scope_dict.get("book") or scope_dict.get("books")
+                bks = [str(bk_val)] if bk_val and isinstance(bk_val, str) else (bk_val if isinstance(bk_val, list) else self.active_scope.books)
+                engine_scope = EngineScope(
+                    universe=scope_dict.get("universe") or self.active_scope.universe,
+                    world=scope_dict.get("world") or self.active_scope.world,
+                    lore_categories=scope_dict.get("lore_categories") or self.active_scope.lore_categories,
+                    series=scope_dict.get("series") or self.active_scope.series,
+                    manuscript=scope_dict.get("manuscript") or self.active_scope.manuscript,
+                    books=bks,
+                    chapters=parse_number_ranges(scope_dict.get("chapters")) if scope_dict.get("chapters") is not None else self.active_scope.chapters,
+                    scenes=parse_number_ranges(scope_dict.get("scenes")) if scope_dict.get("scenes") is not None else self.active_scope.scenes,
+                    raw_scope=str(scope_dict.get("raw_scope", self.active_scope.raw_scope)),
+                )
+            else:
+                engine_scope = self.active_scope
+
+            result = self._execute_scoped_engine(eng_id, engine_scope, payload.get("options", {}))
+            self._send_json(result)
         else:
             self.send_error(404, "Endpoint not found")
+
+    def _execute_scoped_engine(self, engine_name: str, scope: EngineScope, options: dict[str, Any]) -> dict[str, Any]:
+        """Executes a craft engine synchronously with captured output and applied scope."""
+        import contextlib
+        import io
+
+        from lib.cli import dispatch_subcommand
+
+        argv: list[str] = []
+        if scope.manuscript:
+            argv.extend(["--manuscript", str(scope.manuscript)])
+        if scope.world:
+            argv.extend(["--world", str(scope.world)])
+        if scope.chapters:
+            argv.extend(["--chapters", ",".join(str(c) for c in scope.chapters)])
+        if scope.scenes:
+            argv.extend(["--scenes", ",".join(str(s) for s in scope.scenes)])
+        if scope.book:
+            argv.extend(["--book", str(scope.book)])
+        if scope.series:
+            argv.extend(["--series", str(scope.series)])
+
+        module_map = {
+            "pacing": "lib.pacing",
+            "pace": "lib.pacing",
+            "scene_mechanics": "lib.scene_mechanics",
+            "scenes": "lib.scene_mechanics",
+            "tension": "lib.scene_mechanics",
+            "stylistics": "lib.stylistics",
+            "style": "lib.stylistics",
+            "voice": "lib.voice",
+            "senses": "lib.senses",
+            "sensory": "lib.senses",
+            "structure": "lib.structure",
+            "plot": "lib.plot_matrix",
+            "plot_matrix": "lib.plot_matrix",
+            "zen_studio": "lib.zen_studio",
+            "studio": "lib.zen_studio",
+            "scope": "lib.scope",
+            "causality": "lib.causality",
+            "prophecy": "lib.prophecy",
+            "astrophysics": "lib.astrophysics",
+            "magic_system": "lib.magic_system",
+            "magic": "lib.magic_system",
+            "genealogy": "lib.genealogy",
+            "conlang": "lib.conlang",
+            "calendar": "lib.calendar",
+            "factions": "lib.factions",
+            "economy": "lib.economy",
+            "ecology": "lib.ecology",
+            "climate": "lib.climate",
+            "journey": "lib.journey",
+        }
+
+        mod_name = module_map.get(engine_name.lower(), f"lib.{engine_name}")
+
+        buf_out = io.StringIO()
+        buf_err = io.StringIO()
+        exit_code = 0
+        try:
+            with contextlib.redirect_stdout(buf_out), contextlib.redirect_stderr(buf_err):
+                exit_code = dispatch_subcommand(mod_name, argv)
+        except Exception as ex:
+            buf_err.write(f"\nExecution error: {ex}")
+            exit_code = 1
+
+        out_text = buf_out.getvalue()
+        err_text = buf_err.getvalue()
+
+        return {
+            "status": "success" if exit_code == 0 else "error",
+            "engine": engine_name,
+            "exit_code": exit_code,
+            "stdout": out_text,
+            "stderr": err_text,
+            "combined_output": (out_text + "\n" + err_text).strip(),
+            "scope_applied": {
+                "manuscript": scope.manuscript,
+                "world": scope.world,
+                "chapters": scope.chapters,
+                "scenes": scope.scenes,
+                "book": scope.book,
+                "series": scope.series,
+            }
+        }
 
     def _send_json(self, data: Any) -> None:
         payload = json.dumps(data, indent=2).encode("utf-8")

@@ -36,9 +36,23 @@ from pathlib import Path
 try:
     from lib._bootstrap import atomic_write
     from lib.frontmatter import parse_yaml_frontmatter
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_path,
+    )
 except ImportError:
     from _bootstrap import atomic_write
     from frontmatter import parse_yaml_frontmatter
+    from scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_path,
+    )
 
 logger = logging.getLogger("arcanum.preflight")
 
@@ -161,7 +175,7 @@ def validate_chapter_formatting(file_path: Path) -> list[dict]:
     return issues
 
 
-def run_preflight_linter(manuscript_dir: Path) -> dict:
+def run_preflight_linter(manuscript_dir: Path, scope: EngineScope | None = None) -> dict:
     """Executes full pre-flight verification on a manuscript repository."""
     if not manuscript_dir.is_dir():
         raise NotADirectoryError(f"Manuscript directory not found: {manuscript_dir}")
@@ -171,6 +185,11 @@ def run_preflight_linter(manuscript_dir: Path) -> dict:
 
     chapter_files = sorted(manuscript_dir.rglob("*.md"))
     content_files = [f for f in chapter_files if not f.name.startswith((".", "_")) and "Backups" not in f.parts and "04_Back_Matter" not in f.parts]
+
+    if scope:
+        scoped_chapters, _, _ = filter_manuscript_scope(manuscript_dir, scope)
+        scoped_paths = {c.file_path for c in scoped_chapters if c.file_path}
+        content_files = [f for f in content_files if f in scoped_paths]
 
     formatting_issues = []
     total_words = 0
@@ -304,23 +323,25 @@ def generate_preflight_html_report(report: dict, output_path: Path) -> Path:
     return output_path
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Pre-Flight Publishing Linter (PUB-101)")
-    parser.add_argument("target", help="Manuscript directory")
+    add_scope_arguments(parser, include_world=False, target_pos_arg=True)
     parser.add_argument("--html", help="Generate HTML pre-flight certificate")
     parser.add_argument("--json", action="store_true", help="Output JSON results")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
-    target_path = Path(args.target)
-    if not target_path.exists():
-        print(f"Error: Target does not exist: {target_path}", file=sys.stderr)
+    scope = parse_scope_args(args)
+    target_raw = args.target or "."
+    target_path = resolve_manuscript_path(target_raw)
+    if not target_path or not target_path.exists():
+        print(f"Error: Target does not exist: {target_raw}", file=sys.stderr)
         sys.exit(1)
 
-    report = run_preflight_linter(target_path)
+    report = run_preflight_linter(target_path, scope=scope)
 
     if args.json:
         print(json.dumps(report, indent=2))
-        return
+        return 0
 
     print(f"=== Pre-Flight Typesetting Linter: {target_path.name} ===")
     print(f"Compliance Score: {report['compliance_score']}% | Ready for Publishing: {'YES (✓)' if report['is_ready_for_publish'] else 'NO (⚠️)'}")
@@ -338,6 +359,7 @@ def main():
         out_p = Path(args.html)
         generate_preflight_html_report(report, out_p)
         print(f"\nHTML Certificate written to: {out_p}")
+    return 0
 
 
 if __name__ == "__main__":

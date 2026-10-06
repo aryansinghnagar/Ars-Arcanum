@@ -1,12 +1,14 @@
 # Ars Arcanum — Sovereign Studio Desktop Hub Guide
 
-> `arcanum hub` · **v3.0.0 — The Sovereign Zenith Release** · 100% Offline · Zero-pip
+> `arcanum hub` · **v4.4.0 — Granular Scope & Telemetry Cockpit** · 100% Offline · Zero-pip
 
 ---
 
 ## Overview
 
-The **Sovereign Studio Desktop Hub** is a unified telemetry cockpit for your entire Ars Arcanum writing project. It aggregates real-time data from all 40+ craft engines — chapters, lore entities, timeline events, paradox alerts, and structural pacing harmony — into a single responsive offline HTML5 dashboard accessible from your browser.
+The **Sovereign Studio Desktop Hub** is a unified telemetry cockpit for your entire Ars Arcanum writing project. It aggregates real-time data from all 55+ craft engines — chapters, lore entities, timeline events, paradox alerts, structural pacing harmony, and the **Granular Scope Cockpit** — into a single responsive offline HTML5 dashboard accessible from your browser.
+
+The hub features a persistent **Header Scope Bar** with quick targeting presets (`Active Project`, `Whole Book`, `Ch 1-5`, `Act 1`, `Custom...`) and an **Interactive Modal Engine Runner** that lets you execute any craft engine directly from the browser on your selected scope, complete with streaming diagnostic output.
 
 The hub runs as an embedded local HTTP server using Python's standard library `http.server`, requires no external pip packages, and generates fully self-contained CSP-compliant HTML that never makes external network requests.
 
@@ -60,6 +62,12 @@ Options:
 
 ## Dashboard Panels
 
+### 🎯 Scope Cockpit & Target Selector
+Header-mounted scope controller allowing authors to select specific books, chapter ranges (`1-5`, `ch01..ch05`), and scene slices. Provides quick presets (`Active Project`, `Whole Book`, `Ch 1-5`, `Act 1`, `Custom...`) and displays a live telemetry pill badge summarizing active targets.
+
+### ⚡ Interactive Engine Runner Modal
+Launch any of the 55+ craft engines directly from the browser on the currently active scope. Inspect live streaming stdout/stderr diagnostics without switching to a terminal.
+
 ### 📖 Chapter Word-Count Telemetry
 Live per-chapter word count bars showing total manuscript progress. Scans all `*.md` files recursively under any `Draft-*/` folder structure.
 
@@ -82,6 +90,9 @@ The embedded local server exposes a lightweight REST API for programmatic integr
 | :--- | :--- | :--- |
 | `GET` | `/` | Full interactive HTML dashboard |
 | `GET` | `/api/hub` | Complete JSON telemetry bundle |
+| `GET` | `/api/scope` | Active session scope configuration and resolved counts |
+| `POST` | `/api/scope` | Update session target scope (`chapter`, `scene`, `book`, `world`, `lore`) |
+| `POST` | `/api/engine/run` | Execute craft engine asynchronously on active scope with captured output |
 | `GET` | `/api/chapters` | Chapter list with word counts |
 | `GET` | `/api/lore` | Lore entity category summary |
 | `GET` | `/api/timeline` | Timeline events and paradox summary |
@@ -90,7 +101,14 @@ The embedded local server exposes a lightweight REST API for programmatic integr
 ### Example API call
 
 ```bash
+# Get current hub data
 curl http://127.0.0.1:8749/api/hub | python3 -m json.tool
+
+# Update active session scope to Chapters 1-5
+curl -X POST http://127.0.0.1:8749/api/scope -d '{"chapter": "1-5"}'
+
+# Execute Pacing engine on the active scope
+curl -X POST http://127.0.0.1:8749/api/engine/run -d '{"engine": "pacing"}'
 ```
 
 ---
@@ -162,3 +180,27 @@ The Studio Hub is registered in `scripts/lib/registry.py` as `"studio_hub"`:
 ## Architectural Decision Records
 
 - **ADR-063**: Sovereign Studio Hub & Unified Offline Local Webview Architecture — see [`decisions.md`](../decisions.md).
+
+---
+
+## Theoretical Foundations & Reference Sources
+
+### Primary Treatises & Dashboard Interface Design
+- **Few, Stephen (2006)**. *Information Dashboard Design: The Effective Visual Communication of Data*. O'Reilly Media. ISBN: 978-0596100162.  
+  *Foundational principles for high-density visual cockpits, single-screen situational awareness, and eliminating chartjunk.*
+- **Shneiderman, Ben (1986)**. *Designing the User Interface: Strategies for Effective Human-Computer Interaction*. Addison-Wesley.  
+  *Establishes the Eight Golden Rules of Interface Design, direct manipulation paradigms, and informative feedback.*
+- **Nielsen, Jakob (1994)**. "Enhancing the Explanatory Power of Usability Heuristics", *Proceedings of the SIGCHI Conference on Human Factors in Computing Systems (CHI '94)*, pp. 152–158. [DOI: 10.1145/191666.191729](https://doi.org/10.1145/191666.191729).  
+  *Authoritative heuristic evaluation framework ensuring visibility of system status, user control, and error prevention.*
+
+### Offline Web Architecture & Zero-Trust Security
+- **Fielding, Roy Thomas (2000)**. *Architectural Styles and the Design of Network-based Software Architectures*. Doctoral dissertation, University of California, Irvine. [UC Irvine eScholarship](https://escholarship.org/uc/item/52m7v0j7).  
+  *Foundational derivation of the REST architectural style and stateless representation interchange over HTTP.*
+- **World Wide Web Consortium (W3C) (2016)**. *Content Security Policy Level 3*. W3C Recommendation. [W3C CSP Spec](https://www.w3.org/TR/CSP3/).  
+  *Normative security standard defining strict sandboxing (`default-src 'none'`) for sovereign offline applications.*
+
+### Beyond the Engine: Advanced Telemetry Frontiers
+- **Server-Sent Events (SSE) Live Telemetry Streaming**: Zero-dependency unidirectional push pipelines delivering real-time word count updates without polling.
+- **Micro-Frontend Architecture for Custom Lore Modules**: Decoupled Web Component plugin architecture allowing author-built custom craft engines to dock into the main hub grid.
+- **Biometric Stress & Typing Velocity Telemetry**: Visualizing authorial typing cadence, pause lengths, and drafting bursts alongside manuscript structure.
+

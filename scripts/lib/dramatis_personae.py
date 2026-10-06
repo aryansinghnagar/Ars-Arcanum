@@ -39,9 +39,25 @@ from typing import Any
 try:
     from lib._bootstrap import atomic_write
     from lib.frontmatter import parse_yaml_frontmatter
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_path,
+        resolve_world_path,
+    )
 except ImportError:
     from _bootstrap import atomic_write  # type: ignore[no-redef]
     from frontmatter import parse_yaml_frontmatter  # type: ignore[no-redef]
+    from scope import (  # type: ignore[no-redef]
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_path,
+        resolve_world_path,
+    )
 
 logger = logging.getLogger("arcanum.dramatis_personae")
 
@@ -150,6 +166,7 @@ def scan_character_profiles(world_dir: Path | None) -> dict[str, CharacterProfil
 def cross_reference_manuscripts(
     characters: dict[str, CharacterProfile],
     series_dir: Path | None,
+    scope: EngineScope | None = None,
 ) -> tuple[dict[str, CharacterProfile], list[dict[str, Any]]]:
     """Cross-references characters against all manuscript volume chapter markdown files."""
     if not series_dir or not series_dir.exists():
@@ -163,7 +180,14 @@ def cross_reference_manuscripts(
             alias_map[normalize_name(alias)] = norm_key
 
     all_chapters: list[Path] = []
-    for p in sorted(series_dir.rglob("*.md")):
+    raw_chapters = sorted(series_dir.rglob("*.md"))
+    if scope:
+        scoped_chaps, _, _ = filter_manuscript_scope(series_dir, scope)
+        if scoped_chaps:
+            scoped_paths = {c.file_path for c in scoped_chaps if c.file_path}
+            raw_chapters = [f for f in raw_chapters if f in scoped_paths]
+
+    for p in raw_chapters:
         if p.name.startswith((".", "_")) or "Backups" in p.parts or "Front_Matter" in p.parts or "Back_Matter" in p.parts:
             continue
         all_chapters.append(p)
@@ -257,11 +281,63 @@ def cross_reference_manuscripts(
     return characters, findings
 
 
+def levenshtein_distance(s1: str, s2: str) -> int:
+    """Calculates exact Levenshtein edit distance between two strings."""
+    if s1 == s2:
+        return 0
+    if not s1:
+        return len(s2)
+    if not s2:
+        return len(s1)
+
+    v0 = list(range(len(s2) + 1))
+    v1 = [0] * (len(s2) + 1)
+
+    for i, c1 in enumerate(s1):
+        v1[0] = i + 1
+        for j, c2 in enumerate(s2):
+            cost = 0 if c1 == c2 else 1
+            v1[j + 1] = min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost)
+        v0[:] = v1[:]
+
+    return v1[len(s2)]
+
+
+def audit_name_collisions(
+    characters: list[CharacterProfile],
+    threshold: int = 2,
+) -> list[dict[str, Any]]:
+    """Audits character roster for near-identical names using exact Levenshtein edit distance (CAS-104)."""
+    findings: list[dict[str, Any]] = []
+    n = len(characters)
+    for i in range(n):
+        for j in range(i + 1, n):
+            c1 = characters[i]
+            c2 = characters[j]
+            name1 = c1.name.strip().lower()
+            name2 = c2.name.strip().lower()
+            if name1 == name2 or len(name1) < 3 or len(name2) < 3:
+                continue
+            dist = levenshtein_distance(name1, name2)
+            if dist <= threshold:
+                findings.append({
+                    "id": "CAS-104",
+                    "severity": "WARNING",
+                    "character": f"{c1.name} / {c2.name}",
+                    "distance": dist,
+                    "message": (
+                        f"Name Collision: '{c1.name}' and '{c2.name}' have Levenshtein edit distance "
+                        f"of {dist} (<= {threshold}), risking reader confusion."
+                    ),
+                })
+    return findings
+
+
 def audit_cast_continuity(
     characters: list[CharacterProfile],
     untracked_mentions: dict[str, list[str]],
 ) -> list[dict[str, Any]]:
-    """Audits character lifecycle continuity and flags CAS-101, CAS-102, CAS-103."""
+    """Audits character lifecycle continuity and flags CAS-101, CAS-102, CAS-103, CAS-104."""
     findings: list[dict[str, Any]] = []
 
     # CAS-101: Ghost Characters (mentioned in manuscript without character dossier)
@@ -305,6 +381,9 @@ def audit_cast_continuity(
                         ),
                     })
                     break
+
+    # CAS-104: Name Collisions (Levenshtein edit distance <= 2)
+    findings.extend(audit_name_collisions(characters, threshold=2))
 
     return findings
 
@@ -458,15 +537,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--html", type=Path, default=None, help="Export interactive HTML character gallery")
     parser.add_argument("--markdown", type=Path, default=None, help="Export formatted Markdown Dramatis Personae appendix")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON cast matrix")
+    add_scope_arguments(parser, target_pos_arg=False)
 
     args = parser.parse_args(argv)
+    scope = parse_scope_args(args)
     root = Path(args.target).resolve()
 
-    world_dir = root / "World" if (root / "World").exists() else root
-    series_dir = root / "Manuscripts" if (root / "Manuscripts").exists() else (root / "Manuscript" if (root / "Manuscript").exists() else root)
+    world_dir = resolve_world_path(args.world) or (root / "World" if (root / "World").exists() else root)
+    series_dir = resolve_manuscript_path(args.manuscript) or (root / "Manuscripts" if (root / "Manuscripts").exists() else (root / "Manuscript" if (root / "Manuscript").exists() else root))
 
     characters_map = scan_character_profiles(world_dir)
-    characters_map, findings = cross_reference_manuscripts(characters_map, series_dir)
+    characters_map, findings = cross_reference_manuscripts(characters_map, series_dir, scope=scope)
     char_list = list(characters_map.values())
 
     data = {

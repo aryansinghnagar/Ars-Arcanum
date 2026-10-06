@@ -22,7 +22,7 @@
 - Run commands:
   ```bash
   ruff check .
-  mypy --explicit-package-bases scripts/lib tests
+  mypy --config-file mypy.ini --explicit-package-bases scripts/lib tests
   ```
 
 ### 3) Import and Module Conventions
@@ -41,7 +41,7 @@
 
 - Test file naming/location rule: Co-located in `tests/test_<module_name>.py`.
 - Mocking strategy norm: `unittest.mock.patch` with temporary directory isolation via `tempfile.TemporaryDirectory()`.
-- Coverage expectation: 100% engine coverage across all 53 registered engines, 789+ automated unit/integration tests with 0 failures permitted.
+- Coverage expectation: 100% engine coverage across all 47 registered engines, 853 automated unit/integration tests with 0 failures permitted.
 
 ### 6) Evidence
 

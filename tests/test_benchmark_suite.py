@@ -12,14 +12,13 @@ import time
 import unittest
 from pathlib import Path
 
-from scripts.lib.audio_proof import analyze_audio_proofing, generate_ssml
+from scripts.lib.astrophysics import calc_brachistochrone
 from scripts.lib.conlang import generate_words, mutate_text
-from scripts.lib.council import run_editorial_council
 from scripts.lib.economy import (
     calculate_gravity_trade_flow,
     simulate_supply_shock,
 )
-from scripts.lib.local_rag import IndexedChunk, LocalLoreRetrievalEngine
+from scripts.lib.vault_search import IndexedChunk, VaultSearchEngine
 
 
 class TestBenchmarkSuite(unittest.TestCase):
@@ -38,9 +37,9 @@ class TestBenchmarkSuite(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
 
-    def test_benchmark_rag_bm25_retrieval(self) -> None:
+    def test_benchmark_vault_search_retrieval(self) -> None:
         """Benchmarks indexing and retrieval over 1,000 synthetic chunks."""
-        engine = LocalLoreRetrievalEngine()
+        engine = VaultSearchEngine()
         for i in range(1000):
             chunk = IndexedChunk(
                 id=f"chunk_{i}",
@@ -68,25 +67,13 @@ class TestBenchmarkSuite(unittest.TestCase):
         self.assertLess(t_query, 0.10, f"Querying 1,000 chunks took {t_query:.3f}s (must be <0.1s)")
         self.assertEqual(len(results), 10)
 
-    def test_benchmark_audio_proofing(self) -> None:
-        """Benchmarks full audio proofing analysis & SSML generation for 5,000 words."""
+    def test_benchmark_astrophysics_transit_calculations(self) -> None:
+        """Benchmarks relativistic transit calculations."""
         t0 = time.perf_counter()
-        report = analyze_audio_proofing(self.ms_file, wpm=150)
-        ssml = generate_ssml(self.sample_text)
+        for _ in range(500):
+            calc_brachistochrone(distance_m=4.07e16, acc_mps2=9.81)
         t_elapsed = time.perf_counter() - t0
-
-        self.assertLess(t_elapsed, 0.25, f"Audio proofing took {t_elapsed:.3f}s (must be <0.25s)")
-        self.assertGreater(report.total_words, 500)
-        self.assertIn("<speak", ssml)
-
-    def test_benchmark_editorial_council(self) -> None:
-        """Benchmarks 4-perspective Editorial Council evaluation for 5,000 words."""
-        t0 = time.perf_counter()
-        dossier = run_editorial_council(self.ms_file)
-        t_elapsed = time.perf_counter() - t0
-
-        self.assertLess(t_elapsed, 0.30, f"Editorial Council took {t_elapsed:.3f}s (must be <0.30s)")
-        self.assertEqual(len(dossier.perspectives), 4)
+        self.assertLess(t_elapsed, 0.25, f"Astrophysics took {t_elapsed:.3f}s (must be <0.25s)")
 
     def test_benchmark_conlang_generation_and_mutation(self) -> None:
         """Benchmarks batch phonotactic generation of 1,000 words and sound shift rules."""

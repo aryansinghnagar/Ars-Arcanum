@@ -3,10 +3,10 @@
 > **A complete, distraction-free writing system for novelists and speculative worldbuilders.**  
 > 100% offline · zero cloud · no subscriptions · your files, forever.
 
-[![Release: v4.3.0](https://img.shields.io/badge/Release-v4.3.0-blue.svg)](CHANGELOG.md)
+[![Release: v4.4.0](https://img.shields.io/badge/Release-v4.4.0-blue.svg)](CHANGELOG.md)
 [![Status: Production Stable](https://img.shields.io/badge/Status-Production%20Stable-brightgreen.svg)](#)
 [![CI](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml/badge.svg)](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml)
-[![Tests: 997](https://img.shields.io/badge/Tests-995%2F997%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
+[![Tests: 1022](https://img.shields.io/badge/Tests-1020%2F1022%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
 [![Coverage: 86%](https://img.shields.io/badge/Coverage-86%25-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
@@ -28,7 +28,8 @@ Everything you write is stored as **plain Markdown** (`.md`) and standard **Word
 
 | Studio | What it does |
 |:--|:--|
-| **🖥️ Control Center** | One-click GTK desktop app (Linux) & browser-based Studio Hub (Cross-Platform) — your authoring cockpit. No terminal needed for daily writing. |
+| **🖥️ Control Center** | One-click GTK desktop app (Linux) & browser-based Studio Hub (Cross-Platform) with real-time Scope Bar cockpit and live modal engine runner. |
+| **🎯 Granular Target Scoping** | Run craft engines on exact targets — scenes (`--scene 1-3`), chapters (`-c 1-5`, `ch01..ch05`), books (`-b Book-01`), worlds (`-w`), or lore categories without whole-vault overhead. |
 | **🪐 World Bible** | Obsidian-powered lore vault with pre-configured plugins for characters, maps, timelines, and magic systems. |
 | **✍️ Drafting** | Write in Microsoft Word, LibreOffice, or Google Docs. Changes sync back to Markdown automatically. |
 | **🔮 55+ Craft & Utility Engines** | Dynamic plugin extensibility, astrophysics, hard magic, conlang morphosyntax, deific cosmology, multi-agent editorial council, trade networks, and more — all offline. |
@@ -144,13 +145,16 @@ arcanum new universe SolarisVerse
 # Writing & sync
 arcanum word [ms]                         # Open in Word/LibreOffice/Google Docs
 arcanum docx sync [ms]                    # Sync DOCX ↔ Markdown (preserves all metadata)
-arcanum studio [ms]                       # Launch offline Zen Drafting Studio
+arcanum studio [ms] -c 1-5                # Launch Zen Studio scoped to Chapters 1 through 5
 
 # Auditing & craft
-arcanum pace [ms]                         # Pacing & tension analysis
-arcanum audit dialogue [ms]              # Dialogue mechanics linter
-arcanum magic check                       # Magic system consistency check
-arcanum continuity                        # Character & lore consistency audit
+arcanum pace [ms] -c 1-5                  # Pacing & tension on specific chapter range
+arcanum audit dialogue [ms] --scene 1-2   # Dialogue mechanics on specific scene numbers
+arcanum audit voice [ms] -c ch01..ch04    # Character voice profiler on chapters 1-4
+arcanum senses [ms] -b Book-01            # 6D sensory immersion on Book 1
+arcanum magic check -w Eldoria            # Magic system consistency on specific world lore
+arcanum continuity -w Eldoria -m MyNovel  # Multi-volume character & lore continuity audit
+arcanum scope [target] -c 1-3 --scene 1   # Live scope resolution & diagnostic inspector
 
 # Publishing
 arcanum publish [ms] --format all        # PDF + EPUB + DOCX in one command
@@ -223,7 +227,7 @@ bash scripts/verify.sh                   # Full 7-stage verification harness
 
 | Doc | What it is |
 |:--|:--|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture, invariants, exit codes, ADR-001–ADR-118 |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture, invariants, exit codes, ADR-001–ADR-119 |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Project charter, milestones, hardware baseline |
 | [CHANGELOG.md](CHANGELOG.md) | Notable changes by release |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Ground rules, quality gate, commit style |

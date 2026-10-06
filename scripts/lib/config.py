@@ -17,6 +17,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 try:
     import lib._bootstrap  # noqa: F401
@@ -241,6 +242,81 @@ def toggle_tips() -> bool:
     return not current
 
 
+def get_active_manuscript_name() -> str:
+    """Returns configured active manuscript name/path or empty string."""
+    cfg = load_config()
+    return str(cfg.get("active_manuscript") or "").strip()
+
+
+def set_active_manuscript(name: str) -> bool:
+    """Sets and persists the active manuscript name or path."""
+    cfg = load_config()
+    cfg["active_manuscript"] = str(name).strip()
+    return save_config(cfg)
+
+
+def clear_active_manuscript() -> bool:
+    """Clears the active manuscript preference."""
+    cfg = load_config()
+    cfg.pop("active_manuscript", None)
+    return save_config(cfg)
+
+
+def get_active_world_name() -> str:
+    """Returns configured active world name/path or empty string."""
+    cfg = load_config()
+    return str(cfg.get("active_world") or "").strip()
+
+
+def set_active_world(name: str) -> bool:
+    """Sets and persists the active world name or path."""
+    cfg = load_config()
+    cfg["active_world"] = str(name).strip()
+    return save_config(cfg)
+
+
+def clear_active_world() -> bool:
+    """Clears the active world preference."""
+    cfg = load_config()
+    cfg.pop("active_world", None)
+    return save_config(cfg)
+
+
+def get_active_universe_name() -> str:
+    """Returns configured active universe name/path or empty string."""
+    cfg = load_config()
+    return str(cfg.get("active_universe") or "").strip()
+
+
+def set_active_universe(name: str) -> bool:
+    """Sets and persists the active universe name or path."""
+    cfg = load_config()
+    cfg["active_universe"] = str(name).strip()
+    return save_config(cfg)
+
+
+def clear_active_universe() -> bool:
+    """Clears the active universe preference."""
+    cfg = load_config()
+    cfg.pop("active_universe", None)
+    return save_config(cfg)
+
+
+def get_default_scope() -> dict[str, Any]:
+    """Returns default scope settings dictionary."""
+    cfg = load_config()
+    scope = cfg.get("default_scope", {})
+    return scope if isinstance(scope, dict) else {}
+
+
+def set_default_scope(scope_data: dict[str, Any]) -> bool:
+    """Sets and persists default scope dictionary."""
+    cfg = load_config()
+    cfg["default_scope"] = scope_data
+    return save_config(cfg)
+
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Configuration Tool")
     subparsers = parser.add_subparsers(dest="subcommand", required=True)
@@ -277,6 +353,30 @@ def main(argv: list[str] | None = None) -> int:
     tips_sub.add_parser("toggle", help="Toggle dynamic tips display")
     set_tips_p = tips_sub.add_parser("set", help="Set tips enabled status (true/false)")
     set_tips_p.add_argument("state", help="true or false")
+
+    # active-manuscript subcommand
+    ams_parser = subparsers.add_parser("active-manuscript", help="Manage active manuscript default")
+    ams_sub = ams_parser.add_subparsers(dest="action", required=False)
+    ams_sub.add_parser("get", help="Get active manuscript")
+    ams_set = ams_sub.add_parser("set", help="Set active manuscript")
+    ams_set.add_argument("name", help="Manuscript name or directory")
+    ams_sub.add_parser("clear", help="Clear active manuscript")
+
+    # active-world subcommand
+    aw_parser = subparsers.add_parser("active-world", help="Manage active world default")
+    aw_sub = aw_parser.add_subparsers(dest="action", required=False)
+    aw_sub.add_parser("get", help="Get active world")
+    aw_set = aw_sub.add_parser("set", help="Set active world")
+    aw_set.add_argument("name", help="World name or directory")
+    aw_sub.add_parser("clear", help="Clear active world")
+
+    # active-universe subcommand
+    au_parser = subparsers.add_parser("active-universe", help="Manage active universe default")
+    au_sub = au_parser.add_subparsers(dest="action", required=False)
+    au_sub.add_parser("get", help="Get active universe")
+    au_set = au_sub.add_parser("set", help="Set active universe")
+    au_set.add_argument("name", help="Universe name or directory")
+    au_sub.add_parser("clear", help="Clear active universe")
 
     args = parser.parse_args(argv)
 
@@ -373,7 +473,50 @@ def main(argv: list[str] | None = None) -> int:
         print(f"tips_enabled: {enabled}")
         return 0
 
+    elif args.subcommand == "active-manuscript":
+        action = getattr(args, "action", None)
+        if action == "set" and hasattr(args, "name"):
+            set_active_manuscript(args.name)
+            print(f"[CONFIG] Active manuscript set to: {args.name}")
+            return 0
+        if action == "clear":
+            clear_active_manuscript()
+            print("[CONFIG] Active manuscript cleared.")
+            return 0
+        val = get_active_manuscript_name()
+        print(val or "None")
+        return 0
+
+    elif args.subcommand == "active-world":
+        action = getattr(args, "action", None)
+        if action == "set" and hasattr(args, "name"):
+            set_active_world(args.name)
+            print(f"[CONFIG] Active world set to: {args.name}")
+            return 0
+        if action == "clear":
+            clear_active_world()
+            print("[CONFIG] Active world cleared.")
+            return 0
+        val = get_active_world_name()
+        print(val or "None")
+        return 0
+
+    elif args.subcommand == "active-universe":
+        action = getattr(args, "action", None)
+        if action == "set" and hasattr(args, "name"):
+            set_active_universe(args.name)
+            print(f"[CONFIG] Active universe set to: {args.name}")
+            return 0
+        if action == "clear":
+            clear_active_universe()
+            print("[CONFIG] Active universe cleared.")
+            return 0
+        val = get_active_universe_name()
+        print(val or "None")
+        return 0
+
     return 0
+
 
 
 if __name__ == "__main__":

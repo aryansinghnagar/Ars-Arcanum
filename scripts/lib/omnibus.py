@@ -36,9 +36,27 @@ from typing import Any
 try:
     from lib._bootstrap import atomic_write
     from lib.frontmatter import parse_yaml_frontmatter
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_number_ranges,
+        parse_scope_args,
+        resolve_manuscript_path,
+        resolve_universe_path,
+    )
 except ImportError:
     from _bootstrap import atomic_write
     from frontmatter import parse_yaml_frontmatter
+    from scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_number_ranges,
+        parse_scope_args,
+        resolve_manuscript_path,
+        resolve_universe_path,
+    )
 
 logger = logging.getLogger("arcanum.omnibus")
 
@@ -61,7 +79,7 @@ class VolumeData:
         return asdict(self)
 
 
-def discover_series_volumes(target_path: Path) -> list[VolumeData]:
+def discover_series_volumes(target_path: Path, scope: EngineScope | None = None) -> list[VolumeData]:
     """Discovers all volumes/books within a universe, cosmos, or manuscript directory."""
     volumes: list[VolumeData] = []
 
@@ -93,6 +111,25 @@ def discover_series_volumes(target_path: Path) -> list[VolumeData]:
             seen.add(str(b))
             unique_books.append(b)
 
+    # Filter books by scope if provided
+    if scope and scope.books:
+        book_nums = parse_number_ranges(scope.books)
+        book_names = [b.lower() for b in scope.books if not str(b).isdigit() and "-" not in str(b)]
+        filtered_unique = []
+        for v_idx, b_dir in enumerate(unique_books, 1):
+            v_name_lower = b_dir.name.lower()
+            if v_idx in book_nums:
+                filtered_unique.append(b_dir)
+                continue
+            extracted_nums = [int(n) for n in re.findall(r"\d+", b_dir.name)]
+            if any(n in book_nums for n in extracted_nums):
+                filtered_unique.append(b_dir)
+                continue
+            if any(b_name in v_name_lower for b_name in book_names):
+                filtered_unique.append(b_dir)
+        if filtered_unique:
+            unique_books = filtered_unique
+
     for idx, b_dir in enumerate(unique_books, 1):
         # Find latest draft directory
         draft_dirs = sorted([d for d in b_dir.glob("Draft-*") if d.is_dir()], reverse=True)
@@ -102,10 +139,16 @@ def discover_series_volumes(target_path: Path) -> list[VolumeData]:
         vol_words = 0
         vol_povs = set()
 
-        for ch_file in sorted(active_draft.rglob("*.md")):
-            if ch_file.name.startswith((".", "_")) or "Backups" in ch_file.parts or "04_Back_Matter" in ch_file.parts:
-                continue
+        raw_ch_files = sorted(active_draft.rglob("*.md"))
+        ch_files = [f for f in raw_ch_files if not f.name.startswith((".", "_")) and "Backups" not in f.parts and "04_Back_Matter" not in f.parts]
 
+        if scope:
+            scoped_chaps, _, _ = filter_manuscript_scope(active_draft, scope)
+            if scoped_chaps:
+                scoped_paths = {c.file_path for c in scoped_chaps if c.file_path}
+                ch_files = [f for f in ch_files if f in scoped_paths]
+
+        for ch_file in ch_files:
             content = ch_file.read_text(encoding="utf-8", errors="replace")
             words = len(re.findall(r"\b\w+\b", content))
             vol_words += words
@@ -327,7 +370,7 @@ def generate_omnibus_html_reader(omnibus_report: dict[str, Any], output_path: Pa
     return output_path
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Multi-Volume Series Omnibus Compiler")
     parser.add_argument("target", help="Universe, Cosmos, or Manuscript directory")
     parser.add_argument("--output", "-o", help="Output directory or file path")
@@ -335,14 +378,16 @@ def main():
     parser.add_argument("--author", default="Author", help="Author name")
     parser.add_argument("--html", help="Generate HTML5 reader document to path")
     parser.add_argument("--json", action="store_true", help="Output manifest JSON")
-    args = parser.parse_args()
+    add_scope_arguments(parser, include_world=False, include_manuscript=False, target_pos_arg=False)
+    args = parser.parse_args(argv)
 
-    target_path = Path(args.target)
+    scope = parse_scope_args(args)
+    target_path = resolve_manuscript_path(args.target) or resolve_universe_path(args.target) or Path(args.target)
     if not target_path.exists():
         print(f"Error: Target path does not exist: {target_path}", file=sys.stderr)
         sys.exit(1)
 
-    volumes = discover_series_volumes(target_path)
+    volumes = discover_series_volumes(target_path, scope=scope)
     if not volumes:
         print(f"Error: No volumes or book chapters found under {target_path}", file=sys.stderr)
         sys.exit(1)
@@ -352,7 +397,7 @@ def main():
     if args.json:
         manifest = {k: v for k, v in report.items() if k != "markdown_content"}
         print(json.dumps(manifest, indent=2))
-        return
+        return 0
 
     out_dir = Path(args.output) if args.output else (target_path if target_path.is_dir() else target_path.parent)
     md_file = out_dir / f"{re.sub(r'[^A-Za-z0-9_-]', '_', args.title)}_Omnibus.md"
@@ -368,6 +413,7 @@ def main():
         out_html = Path(args.html)
         generate_omnibus_html_reader(report, out_html)
         print(f"Omnibus HTML Reader: {out_html}")
+    return 0
 
 
 if __name__ == "__main__":

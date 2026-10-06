@@ -30,8 +30,20 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+    )
 
 logger = logging.getLogger("arcanum.magic_system")
 
@@ -184,7 +196,12 @@ def extract_character_magic_profiles(world_dir: Path) -> dict:
     return chars
 
 
-def scan_scene_magic_constraints(manuscript_dir: Path, magic_systems: dict, char_profiles: dict) -> list:
+def scan_scene_magic_constraints(
+    manuscript_dir: Path,
+    magic_systems: dict,
+    char_profiles: dict,
+    scope: EngineScope | None = None,
+) -> list:
     """Scans manuscript scene files and detects magic rule breaches and arcane anomalies."""
     findings = []
 
@@ -194,9 +211,16 @@ def scan_scene_magic_constraints(manuscript_dir: Path, magic_systems: dict, char
         for d in s_data.get("disciplines", []):
             all_disciplines[d.lower()] = s_name
 
-    for md_file in sorted(manuscript_dir.rglob("*.md")):
-        if ".git" in md_file.parts or md_file.name.startswith(".") or any(p in ("Outlines", "Exports", "Backups") for p in md_file.parts):
-            continue
+    if scope:
+        scoped_chapters, _, _ = filter_manuscript_scope(manuscript_dir, scope)
+        md_files = [c.file_path for c in scoped_chapters]
+    else:
+        md_files = [
+            f for f in sorted(manuscript_dir.rglob("*.md"))
+            if ".git" not in f.parts and not f.name.startswith(".") and not any(p in ("Outlines", "Exports", "Backups") for p in f.parts)
+        ]
+
+    for md_file in md_files:
         try:
             rel_path = str(md_file.relative_to(manuscript_dir)).replace("\\", "/")
             lines = md_file.read_text(encoding="utf-8", errors="replace").splitlines()
@@ -334,7 +358,11 @@ def scan_scene_magic_constraints(manuscript_dir: Path, magic_systems: dict, char
     return findings
 
 
-def run_magic_audit(world_dir: str, manuscript_dir: str | None = None) -> dict:
+def run_magic_audit(
+    world_dir: str | Path,
+    manuscript_dir: str | Path | None = None,
+    scope: EngineScope | None = None,
+) -> dict:
     """Runs full arcane audit on World Bible and optional Manuscript draft."""
     wpath = Path(world_dir).resolve()
     mpath = Path(manuscript_dir).resolve() if manuscript_dir else None
@@ -344,7 +372,7 @@ def run_magic_audit(world_dir: str, manuscript_dir: str | None = None) -> dict:
     findings = []
 
     if mpath and mpath.is_dir():
-        findings = scan_scene_magic_constraints(mpath, systems, chars)
+        findings = scan_scene_magic_constraints(mpath, systems, chars, scope=scope)
 
     return {
         "world": wpath.name,
@@ -516,6 +544,7 @@ def main():
     p_check.add_argument("-w", "--world", "--world-dir", dest="world_flag", help="World Bible lore directory")
     p_check.add_argument("-m", "--manuscript", help="Manuscript draft directory")
     p_check.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_check, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     # 2. magic-report
     p_rep = subparsers.add_parser("report", help="Generate full arcane matrix report and optional HTML export")
@@ -524,6 +553,7 @@ def main():
     p_rep.add_argument("-m", "--manuscript", help="Manuscript draft directory")
     p_rep.add_argument("--html", help="Path to export standalone HTML report")
     p_rep.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_rep, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     args = parser.parse_args()
 
@@ -531,17 +561,21 @@ def main():
         parser.print_help()
         sys.exit(0)
 
+    scope = parse_scope_args(args)
+
     # Discover / resolve world
-    raw_world = getattr(args, "world_flag", None) or getattr(args, "world", None)
+    raw_world_val = getattr(args, "world_flag", None) or getattr(args, "world", None) or scope.world
+    raw_world = str(raw_world_val) if raw_world_val else None
     world_dir = resolve_world_dir(raw_world)
 
     if not world_dir or not Path(world_dir).is_dir():
         print("Error: No valid World Bible directory specified or discovered.", file=sys.stderr)
         sys.exit(2)
 
-    raw_ms = getattr(args, "manuscript", None)
+    raw_ms_val = getattr(args, "manuscript", None) or scope.manuscript
+    raw_ms = str(raw_ms_val) if raw_ms_val else None
     manuscript_dir = resolve_manuscript_dir(raw_ms) if raw_ms else None
-    audit = run_magic_audit(world_dir, manuscript_dir)
+    audit = run_magic_audit(world_dir, manuscript_dir, scope=scope)
 
     if getattr(args, "json", False):
         print(json.dumps(audit, indent=2))

@@ -34,8 +34,24 @@ from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_dir,
+        resolve_world_dir,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from scope import (  # type: ignore[no-redef]
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        parse_scope_args,
+        resolve_manuscript_dir,
+        resolve_world_dir,
+    )
 
 try:
     from lib.manuscript_scaffold import get_paradigm_key, list_presets, read_manifest_structure
@@ -206,34 +222,75 @@ PARADIGMS = {
 }
 
 
-def scan_manuscript_structure(target_path: Path, paradigm_key: str = "three_act") -> dict:
-    """Scans manuscript chapters and evaluates alignment against the chosen paradigm."""
-    files = []
-    if target_path.is_file():
-        files.append(target_path)
-    elif target_path.is_dir():
-        for p in sorted(target_path.rglob("*.md")):
-            if not p.name.startswith((".", "_")) and "Backups" not in p.parts and "04_Back_Matter" not in p.parts:
-                files.append(p)
+def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_key: str = "three_act", scope: Any = None) -> dict:
+    """Scans manuscript chapters and evaluates alignment against the chosen paradigm with granular scope support."""
+    target_str = resolve_manuscript_dir(target_path) if target_path else resolve_manuscript_dir()
+    if target_path and Path(target_path).exists():
+        p_target = Path(target_path)
+    elif target_str and Path(target_str).exists():
+        p_target = Path(target_str)
     else:
-        raise FileNotFoundError(f"Target path not found: {target_path}")
+        p_target = Path(target_path) if target_path else Path.cwd()
 
-    paradigm = PARADIGMS.get(paradigm_key, PARADIGMS["three_act"])
-
-    # Compute chapter words & cumulative curve
     chapters = []
     total_words = 0
-    for idx, f in enumerate(files, 1):
-        content = f.read_text(encoding="utf-8", errors="replace")
+
+    if p_target.is_file():
+        content = p_target.read_text(encoding="utf-8", errors="replace")
         words = len(re.findall(r'\b\w+\b', content))
-        total_words += words
+        total_words = words
         chapters.append({
-            "index": idx,
-            "filename": f.name,
-            "path": str(f),
+            "index": 1,
+            "filename": p_target.name,
+            "path": str(p_target),
             "words": words,
-            "cumulative_words": total_words
+            "cumulative_words": words,
         })
+    elif p_target.is_dir():
+        if scope:
+            if not isinstance(scope, EngineScope):
+                if isinstance(scope, dict):
+                    from lib.scope import resolve_scope
+                    scope = resolve_scope(scope).scope_filter
+                elif isinstance(scope, str):
+                    from lib.scope import parse_unified_scope_string
+                    p_dict = parse_unified_scope_string(scope)
+                    scope = EngineScope(**p_dict)
+            scoped_chaps, scoped_scenes, _ = filter_manuscript_scope(p_target, scope)
+            if scope.scenes and scoped_scenes:
+                items_to_map = [(s.global_scene_idx, s.title, s.content, str(s.chapter_file)) for s in scoped_scenes]
+            else:
+                items_to_map = [(c.chapter_num, c.title, c.scoped_content, str(c.file_path)) for c in scoped_chaps]
+            for idx, title, content, fpath in items_to_map:
+                words = len(re.findall(r'\b\w+\b', content))
+                total_words += words
+                chapters.append({
+                    "index": idx,
+                    "filename": title,
+                    "path": fpath,
+                    "words": words,
+                    "cumulative_words": total_words,
+                })
+        else:
+            files = []
+            for p in sorted(p_target.rglob("*.md")):
+                if not p.name.startswith((".", "_")) and "Backups" not in p.parts and "04_Back_Matter" not in p.parts:
+                    files.append(p)
+            for idx, f in enumerate(files, 1):
+                content = f.read_text(encoding="utf-8", errors="replace")
+                words = len(re.findall(r'\b\w+\b', content))
+                total_words += words
+                chapters.append({
+                    "index": idx,
+                    "filename": f.name,
+                    "path": str(f),
+                    "words": words,
+                    "cumulative_words": total_words,
+                })
+    else:
+        raise FileNotFoundError(f"Target path not found: {p_target}")
+
+    paradigm = PARADIGMS.get(paradigm_key, PARADIGMS["three_act"])
 
     # Add percentages
     prev_words = 0
@@ -386,8 +443,9 @@ def generate_structure_html_report(report: dict, output_path: Path) -> Path:
 
 
 def analyze_character_arc_geometry(
-    target_path: Path,
-    world_path: Path | None = None,
+    target_path: Path | str | None = None,
+    world_path: Path | str | None = None,
+    scope: Any = None,
 ) -> dict[str, Any]:
     """
     Evaluates 3-Dimensional Character Arc Geometry across manuscript chapters:
@@ -395,30 +453,24 @@ def analyze_character_arc_geometry(
     - Flaw -> Crucible Crisis -> Transformation / Tragedy trajectory
     - Thematic want vs need tension across chapter beats
     """
-    files: list[Path] = []
-    if target_path.is_file():
-        files.append(target_path)
-    elif target_path.is_dir():
-        for p in sorted(target_path.rglob("*.md")):
-            if (
-                not p.name.startswith((".", "_"))
-                and "Backups" not in p.parts
-                and "04_Back_Matter" not in p.parts
-                and "Characters" not in p.parts
-                and "Templates" not in p.parts
-                and "00-World-Bible" not in p.parts
-                and "Outlines" not in p.parts
-            ):
-                files.append(p)
+    target_str = resolve_manuscript_dir(target_path) if target_path else resolve_manuscript_dir()
+    if target_path and Path(target_path).exists():
+        p_target = Path(target_path)
+    elif target_str and Path(target_str).exists():
+        p_target = Path(target_str)
+    else:
+        p_target = Path(target_path) if target_path else Path.cwd()
 
-    total_words = 0
+    w_str = resolve_world_dir(world_path) if world_path else resolve_world_dir()
+    p_world = Path(w_str) if (w_str and Path(w_str).exists()) else (Path(world_path) if world_path else None)
+
     chapter_entries = []
-    for idx, f in enumerate(files, 1):
-        txt = f.read_text(encoding="utf-8", errors="replace")
-        words = len(re.findall(r"\b\w+\b", txt))
-        total_words += words
+    total_words = 0
 
-        # Extract POV or characters
+    if p_target.is_file():
+        txt = p_target.read_text(encoding="utf-8", errors="replace")
+        words = len(re.findall(r"\b\w+\b", txt))
+        total_words = words
         pov = ""
         m_pov = re.search(r"@pov:\s*([^\n\r]+)", txt, re.IGNORECASE)
         if m_pov:
@@ -426,19 +478,81 @@ def analyze_character_arc_geometry(
         chars = [m.group(1).strip() for m in re.finditer(r"@char:\s*([^\n\r]+)", txt, re.IGNORECASE)]
         if pov and pov not in chars:
             chars.insert(0, pov)
-
         chapter_entries.append({
-            "idx": idx,
-            "filename": f.name,
+            "idx": 1,
+            "filename": p_target.name,
             "words": words,
             "pov": pov,
             "characters": chars,
         })
+    elif p_target.is_dir():
+        if scope:
+            if not isinstance(scope, EngineScope):
+                if isinstance(scope, dict):
+                    from lib.scope import resolve_scope
+                    scope = resolve_scope(scope).scope_filter
+                elif isinstance(scope, str):
+                    from lib.scope import parse_unified_scope_string
+                    p_dict = parse_unified_scope_string(scope)
+                    scope = EngineScope(**p_dict)
+            scoped_chaps, scoped_scenes, _ = filter_manuscript_scope(p_target, scope)
+            if scope.scenes and scoped_scenes:
+                items_to_map = [(s.global_scene_idx, s.title, s.content) for s in scoped_scenes]
+            else:
+                items_to_map = [(c.chapter_num, c.title, c.scoped_content) for c in scoped_chaps]
+            for idx, title, txt in items_to_map:
+                words = len(re.findall(r"\b\w+\b", txt))
+                total_words += words
+                pov = ""
+                m_pov = re.search(r"@pov:\s*([^\n\r]+)", txt, re.IGNORECASE)
+                if m_pov:
+                    pov = m_pov.group(1).strip()
+                chars = [m.group(1).strip() for m in re.finditer(r"@char:\s*([^\n\r]+)", txt, re.IGNORECASE)]
+                if pov and pov not in chars:
+                    chars.insert(0, pov)
+                chapter_entries.append({
+                    "idx": idx,
+                    "filename": title,
+                    "words": words,
+                    "pov": pov,
+                    "characters": chars,
+                })
+        else:
+            files: list[Path] = []
+            for p in sorted(p_target.rglob("*.md")):
+                if (
+                    not p.name.startswith((".", "_"))
+                    and "Backups" not in p.parts
+                    and "04_Back_Matter" not in p.parts
+                    and "Characters" not in p.parts
+                    and "Templates" not in p.parts
+                    and "00-World-Bible" not in p.parts
+                    and "Outlines" not in p.parts
+                ):
+                    files.append(p)
+            for idx, f in enumerate(files, 1):
+                txt = f.read_text(encoding="utf-8", errors="replace")
+                words = len(re.findall(r"\b\w+\b", txt))
+                total_words += words
+                pov = ""
+                m_pov = re.search(r"@pov:\s*([^\n\r]+)", txt, re.IGNORECASE)
+                if m_pov:
+                    pov = m_pov.group(1).strip()
+                chars = [m.group(1).strip() for m in re.finditer(r"@char:\s*([^\n\r]+)", txt, re.IGNORECASE)]
+                if pov and pov not in chars:
+                    chars.insert(0, pov)
+                chapter_entries.append({
+                    "idx": idx,
+                    "filename": f.name,
+                    "words": words,
+                    "pov": pov,
+                    "characters": chars,
+                })
 
-    # Read Character dossiers if world_path provided
+    # Read Character dossiers if world_path provided or found
     character_dossiers = {}
-    if world_path and world_path.is_dir():
-        c_dirs = [world_path / "Characters", world_path / "00-World-Bible" / "Characters"]
+    if p_world and p_world.is_dir():
+        c_dirs = [p_world / "Characters", p_world / "00-World-Bible" / "Characters"]
         for cdir in c_dirs:
             if not cdir.is_dir():
                 continue
@@ -508,7 +622,7 @@ def analyze_character_arc_geometry(
         annotated_chapters.append(c)
 
     return {
-        "target": target_path.name,
+        "target": p_target.name,
         "total_words": total_words,
         "total_chapters": len(chapter_entries),
         "characters_tracked": list(character_dossiers.values()),
@@ -536,9 +650,9 @@ def main(argv: list[str] | None = None) -> int:
         help="Manuscript structure key (maps preset to analysis paradigm if available)"
     )
     parser.add_argument("--arc", "--character-arc", action="store_true", help="Run 3D Character Arc Geometry & Lie vs Truth audit")
-    parser.add_argument("-w", "--world", help="World Bible directory for character dossiers")
     parser.add_argument("--html", help="Generate HTML report to output path")
     parser.add_argument("--json", action="store_true", help="Output JSON results")
+    add_scope_arguments(parser)
     args = parser.parse_args(argv)
 
     if args.list_structures:
@@ -548,18 +662,27 @@ def main(argv: list[str] | None = None) -> int:
             print("Structure presets module unavailable.", file=sys.stderr)
         return 0
 
-    if not args.target:
+    scope = parse_scope_args(args)
+
+    target_raw = args.target or scope.manuscript or (scope.books[0] if scope.books else None)
+    if not target_raw:
         parser.print_help()
         return 1
 
-    target_path = Path(args.target)
-    if not target_path.exists():
-        print(f"Error: Target path does not exist: {target_path}", file=sys.stderr)
-        return 1
+    tp = Path(target_raw)
+    if tp.exists():
+        target_path = tp
+    else:
+        resolved_dir = resolve_manuscript_dir(target_raw)
+        if resolved_dir and Path(resolved_dir).exists():
+            target_path = Path(resolved_dir)
+        else:
+            print(f"Error: Target path does not exist: {target_raw}", file=sys.stderr)
+            return 1
 
     if getattr(args, "arc", False):
         world_p = Path(args.world) if args.world else None
-        arc_report = analyze_character_arc_geometry(target_path, world_path=world_p)
+        arc_report = analyze_character_arc_geometry(target_path, world_path=world_p, scope=scope)
         if args.json:
             print(json.dumps(arc_report, indent=2))
             return 0
@@ -600,7 +723,7 @@ def main(argv: list[str] | None = None) -> int:
     if not chosen_paradigm:
         chosen_paradigm = "three_act"
 
-    report = scan_manuscript_structure(target_path, paradigm_key=chosen_paradigm)
+    report = scan_manuscript_structure(target_path, paradigm_key=chosen_paradigm, scope=scope)
 
     if args.json:
         print(json.dumps(report, indent=2))

@@ -43,8 +43,32 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        parse_scope_args,
+        resolve_world_path,
+    )
 except ImportError:
-    from _bootstrap import atomic_write
+    try:
+        from _bootstrap import atomic_write
+        from scope import (
+            EngineScope,
+            add_scope_arguments,
+            parse_scope_args,
+            resolve_world_path,
+        )
+    except ImportError:
+        EngineScope = None  # type: ignore
+
+        def add_scope_arguments(*args, **kwargs):  # type: ignore
+            pass
+
+        def parse_scope_args(*args, **kwargs):  # type: ignore
+            return None
+
+        def resolve_world_path(*args, **kwargs):  # type: ignore
+            return None
 
 try:
     from lib.climate import calc_atmospheric_circulation, calc_planetary_insolation
@@ -739,6 +763,7 @@ def main():
     p_transit.add_argument("--ve", default=None, help="Exhaust velocity in m/s for rocket propellant mass ratio calculation")
     p_transit.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_transit.add_argument("--html", help="Path to export interactive HTML report")
+    add_scope_arguments(p_transit, include_manuscript=False, include_world=True, target_pos_arg=False)
 
     # 2. Time Dilation
     p_td = subparsers.add_parser("time-dilation", help="Calculate relativistic velocity and gravitational time dilation")
@@ -748,6 +773,7 @@ def main():
     p_td.add_argument("--mass", type=float, help="Primary body mass (kg) for gravitational dilation")
     p_td.add_argument("--radius", type=float, help="Orbital/surface radius (meters) for gravitational dilation")
     p_td.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_td, include_manuscript=False, include_world=True, target_pos_arg=False)
 
     # 3. Orbit / Hohmann Transfer
     p_orbit = subparsers.add_parser("orbit", help="Calculate Keplerian orbital mechanics and Hohmann transfers")
@@ -755,11 +781,13 @@ def main():
     p_orbit.add_argument("--r1", required=True, help="Initial orbit radius (e.g. '1.0 AU', '7000 km')")
     p_orbit.add_argument("--r2", required=True, help="Target orbit radius (e.g. '1.52 AU', '42164 km')")
     p_orbit.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_orbit, include_manuscript=False, include_world=True, target_pos_arg=False)
 
     # 4. Comms Latency
     p_comms = subparsers.add_parser("comms", help="Calculate light-speed communication delays")
     p_comms.add_argument("distance", help="Baseline distance (e.g. 'earth-mars-avg', '5.2 AU', '4.3 ly')")
     p_comms.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_comms, include_manuscript=False, include_world=True, target_pos_arg=False)
 
     # 5. Habitability & Surface Gravity
     p_hab = subparsers.add_parser("habitability", help="Calculate planetary surface gravity & habitable zone boundaries")
@@ -767,6 +795,7 @@ def main():
     p_hab.add_argument("--radius", default="1.0", help="Planet radius in Earth radii (e.g. '1.0', or '6371 km')")
     p_hab.add_argument("--star-lum", default="1.0", help="Host star luminosity relative to Sun (default: 1.0)")
     p_hab.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_hab, include_manuscript=False, include_world=True, target_pos_arg=False)
 
     # 6. Roche Limit & Ring Formation
     p_roche = subparsers.add_parser("roche", help="Calculate planetary tidal Roche limits and ring boundaries")
@@ -776,7 +805,7 @@ def main():
     p_roche.add_argument("--density-ratio", type=float, default=None, help="Direct density ratio (rho_M / rho_m)")
     p_roche.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_roche.add_argument("--html", help="Path to export interactive HTML report")
-
+    add_scope_arguments(p_roche, include_manuscript=False, include_world=True, target_pos_arg=False)
 
     p_dossier = subparsers.add_parser("dossier", help="Generate comprehensive Star System Dossier for non-standard planets")
     p_dossier.add_argument("--mass", default="1.0", help="Planet mass in Earth masses")
@@ -787,6 +816,7 @@ def main():
     p_dossier.add_argument("--html", help="Path to export interactive HTML report")
     p_dossier.add_argument("--md", help="Path to export Markdown report")
     p_dossier.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    add_scope_arguments(p_dossier, include_manuscript=False, include_world=True, target_pos_arg=False)
 
     args = parser.parse_args()
 

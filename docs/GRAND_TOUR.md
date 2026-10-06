@@ -1,12 +1,12 @@
 # Ars Arcanum — The Grand Tour: 21-Stage Sovereign Lifecycle Verification
 
-> `tests/test_grand_tour_e2e.py` · **v4.0.0 — The Sovereign Modernization Release** · Full-Pipeline Integration Harness
+> `tests/test_grand_tour_e2e.py` · **v5.0.0 — The Sovereign Craft Studio & Reference Encyclopedia** · Full-Pipeline Integration Harness
 
 ---
 
 ## Overview
 
-The **Grand Tour** is the definitive end-to-end integration test harness for Ars Arcanum. It exercises all craft engines in a single ordered test (`TestGrandTourE2E.test_complete_grand_tour_lifecycle`), verifying that the full sovereign authoring pipeline operates as a coherent integrated system from Cosmos initialization through to multi-bundle release distribution and static telemetry cockpit export.
+The **Grand Tour** is the definitive end-to-end integration test harness for Ars Arcanum. It exercises the deterministic craft engines in a single ordered test ([`tests/test_grand_tour_e2e.py`](file:///tests/test_grand_tour_e2e.py)), verifying that the full sovereign authoring pipeline operates as a coherent integrated system from Cosmos initialization through to multi-bundle release compilation and static telemetry cockpit export.
 
 Each of the 21 stages asserts invariants before proceeding to the next, making it impossible for a downstream stage to silently mask an upstream failure.
 
@@ -14,15 +14,15 @@ Each of the 21 stages asserts invariants before proceeding to the next, making i
 
 ## Why the Grand Tour Exists
 
-Unit tests verify individual engine correctness in isolation. The Grand Tour answers the harder question: **do all 40+ engines work together as a sovereign authoring operating system?**
+Unit tests verify individual engine correctness in isolation. The Grand Tour answers the harder question: **do all deterministic domain engines work together as a sovereign authoring operating system?**
 
-Specifically, the Grand Tour catches:
+Specifically, the Grand Tour verifies:
 
-- **API contract regressions**: A parameter rename in `generate_words()` or `export_jsonl()` is caught immediately.
-- **Data flow breakage**: If `BranchingNarrativeEngine.load_from_directory()` stops returning chapters, the Stage 9 assertion fails before Stage 10 runs.
-- **Cross-engine pipeline integrity**: The corpus exported in Stage 10 and 21 must be consistent with the manuscript authored in Stage 3.
-- **Strict offline CSP enforcement**: Verifies that every generated HTML report contains valid Content-Security-Policy headers without external CDNs.
-- **Version consistency**: The Grand Tour runs against the current code on every `ruff check` + `mypy` + `unittest discover tests` sweep.
+- **API contract stability**: Parameter validation, data classes, and method signatures operate seamlessly across engine boundaries.
+- **Data flow integrity**: From initial YAML frontmatter and chapter drafting through to knowledge mesh graphs and FTS5 indexes.
+- **Cross-engine pipeline coherence**: The corpus exported in Stage 10 and 21 is mathematically consistent with the manuscript authored in Stage 3.
+- **Strict offline CSP enforcement**: Verifies that every generated HTML report contains valid Content-Security-Policy headers (`default-src 'none'`) without external CDNs.
+- **Zero-Pip Dependency Guarantee**: All 21 stages execute exclusively on standard library Python primitives.
 
 ---
 
@@ -32,17 +32,8 @@ Specifically, the Grand Tour catches:
 # Run the Grand Tour standalone
 python -m unittest tests/test_grand_tour_e2e.py
 
-# Run as part of the full suite
+# Run as part of the full test discovery suite (853 tests)
 python -m unittest discover tests
-```
-
-Expected output:
-```
-.
-----------------------------------------------------------------------
-Ran 1 test in 0.450s
-
-OK
 ```
 
 ---
@@ -50,244 +41,115 @@ OK
 ## The 21 Stages
 
 ### Stage 1 — Cosmos Universe & Manuscript Scaffolding
-**Engine**: `scripts/lib/worlds.sh` / `scripts/arcanum`
-
-Scaffolds a test Cosmos directory with the canonical directory layout:
-```
-Aethelgard-Cosmos/
-├── universe.yaml
-├── Aethelgard-Prime/
-│   ├── world.yaml
-│   ├── Characters/
-│   ├── Places/
-│   ├── Magic/
-│   └── Factions/
-└── Manuscripts/
-    └── Book-01-The-Obsidian-Crown/
-        └── Draft-01/
-            ├── manuscript.yaml
-            └── 01_Chapter_01.md
-```
-
-**Assert**: Manifests exist and parse cleanly.
-
----
+**Engine**: [`scripts/lib/fs_utils.py`](file:///scripts/lib/fs_utils.py) / [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py)
+Scaffolds a test Cosmos directory with the canonical directory layout: `universe.yaml`, `world.yaml`, `Characters/`, `Places/`, `Magic/`, `Factions/`, and `Manuscripts/`.
 
 ### Stage 2 — Cosmos Lore Bible Population
-**Engine**: Standardized YAML frontmatter note generation
-
-Populates canonical lore entities across four categories:
-- `Characters/Lyra_Vael.md`, `Characters/Lord_Malakar.md`
-- `Places/Valenreach.md`
-- `Magic/Aetheric_Resonance.md` (with hard magic limitations and costs)
-- `Factions/Silver_Tribunal.md`
-
-**Assert**: All entity files exist and contain expected frontmatter.
-
----
+**Engine**: Standardized YAML frontmatter note generation.
+Populates canonical lore entities: `Characters/Lyra_Vael.md`, `Places/Valenreach.md`, `Magic/Aetheric_Resonance.md`, and `Factions/Silver_Tribunal.md`.
 
 ### Stage 3 — Multi-Chapter Manuscript Drafting with Directives
-**Engine**: Markdown authoring with `@pov`, `@time`, `@choice`, `@state`, and `@req` directives
-
-Authors multiple chapters with embedded narrative metadata and branching choice annotations.
-
-**Assert**: Chapter markdown files exist and contain formatted headings and directives.
-
----
+**Engine**: Markdown authoring with `@pov:`, `@time:`, `@char:`, `@location:`, and scene headers.
+Authors multiple chapters with embedded narrative metadata and frontmatter declarations.
 
 ### Stage 4 — World Doctor Diagnostic Audit
-**Engine**: `scripts/lib/world_doctor.py` → `check_world(world_dir)`
-
+**Engine**: [`scripts/lib/world_doctor.py`](file:///scripts/lib/world_doctor.py) $\to$ `check_world(world_dir)`
 Runs deep diagnostic validation across link integrity, YAML schemas, and timeline invariants.
 
-**Assert**: `doc_report["errors"] == 0`.
-
----
-
 ### Stage 5 — Dual-Track Timeline Synchronization
-**Engine**: `scripts/lib/timeline_sync.py` → `extract_timeline_events()` + `analyze_timeline_synchronization()`
-
+**Engine**: [`scripts/lib/timeline_sync.py`](file:///scripts/lib/timeline_sync.py) $\to$ `extract_timeline_events()` + `analyze_timeline_synchronization()`
 Extracts chronologic dates vs. narrative sequence and detects temporal bilocation paradoxes.
 
-**Assert**: `total_events >= 2`, `len(paradoxes) == 0`.
-
----
-
 ### Stage 6 — Character Cast & Entity Association
-**Engine**: `scripts/lib/dramatis_personae.py` → `scan_character_profiles()`
+**Engine**: [`scripts/lib/dramatis_personae.py`](file:///scripts/lib/dramatis_personae.py) $\to$ `scan_character_profiles()`
+Extracts character dossiers from YAML frontmatter and computes Levenshtein name collisions.
 
-Extracts all character dossiers and cross-references them against scene mentions.
-
-**Assert**: Profiles extracted and cross-referenced.
-
----
-
-### Stage 7 — Local Semantic Retrieval (RAG) Indexing & Query
-**Engine**: `scripts/lib/local_rag.py` → `LocalLoreRetrievalEngine().load_from_directory()` + `.query()`
-
+### Stage 7 — Local Semantic Retrieval (Vault Search) Indexing & Query
+**Engine**: [`scripts/lib/vault_search.py`](file:///scripts/lib/vault_search.py) $\to$ `LocalLoreRetrievalEngine().load_from_directory()` + `.query()`
 Loads the World Bible into hybrid TF-IDF / SQLite FTS5 search index and executes semantic lore queries.
 
-**Assert**: Top match resolves to the queried lore document (`Aetheric_Resonance`).
-
----
-
 ### Stage 8 — Multi-Calendar & Era Chronology
-**Engine**: `scripts/lib/calendar.py` → `load_calendar_spec()` + `get_moon_phase()`
-
+**Engine**: [`scripts/lib/calendar.py`](file:///scripts/lib/calendar.py) $\to$ `load_calendar_spec()` + `get_moon_phase()`
 Calculates astronomical moon phases and synodic cycles from world calendar configurations.
 
-**Assert**: Moon phases calculate accurately with matching glyphs.
-
----
-
-### Stage 9 — Interactive Branching Narrative DAG Compilation
-**Engine**: `scripts/lib/branching_graph.py` → `BranchingNarrativeEngine().load_from_directory()` + multi-format export
-
-Compiles interactive branching gamebook choices into standalone playable HTML, Ink scripts, Twine Twee, and Mermaid DAGs.
-
-**Assert**: Playable HTML, Ink, Twine, and Mermaid exports generated.
-
----
+### Stage 9 — Narrative Structure & Story Canvas Modeling
+**Engine**: [`scripts/lib/structure.py`](file:///scripts/lib/structure.py) + [`scripts/lib/story_canvas.py`](file:///scripts/lib/story_canvas.py)
+Evaluates manuscript beat distribution across 11 classical paradigms and generates the interactive corkboard.
 
 ### Stage 10 — Universal Corpus Exporter (JSONL, SQLite, Markdown)
-**Engine**: `scripts/lib/corpus_export.py` → `CorpusScanner` + `export_jsonl()` + `export_sqlite()` + `export_markdown_summary()`
-
+**Engine**: [`scripts/lib/corpus_export.py`](file:///scripts/lib/corpus_export.py) $\to$ `CorpusScanner` + `export_jsonl()` + `export_sqlite()` + `export_markdown_summary()`
 Scans the cosmos and exports structured JSONL datasets and SQLite databases with FTS5 search indexing.
 
-**Assert**: JSONL, SQLite database, and Markdown digests exported cleanly.
-
----
-
 ### Stage 11 — Multi-Volume Series Omnibus Compilation
-**Engine**: `scripts/lib/omnibus.py` → `discover_series_volumes()` + `compile_omnibus_manuscript()`
-
+**Engine**: [`scripts/lib/omnibus.py`](file:///scripts/lib/omnibus.py) $\to$ `discover_series_volumes()` + `compile_omnibus_manuscript()`
 Discovers all series volumes and compiles an omnibus manuscript with unified frontmatter and unified Table of Contents.
 
-**Assert**: Multi-volume content compiled with unified TOC.
-
----
-
-### Stage 12 — Release Package Distribution & Manifest
-**Engine**: `scripts/package_distribution.py` → `package_reader_edition()`, `package_submission_bundle()`, `package_arc_bundle()`
-
-Packages manuscripts into distributable ZIP bundles with SHA-256 cryptographic verification manifests.
-
-**Assert**: All 3 release packages exist with valid SHA-256 digests.
-
----
+### Stage 12 — Series Continuity & Mortality Tracking
+**Engine**: [`scripts/lib/series_continuity.py`](file:///scripts/lib/series_continuity.py) $\to$ `audit_series_continuity()`
+Audits character trait drift, aging timeskips, and mortality invariants across multi-volume series.
 
 ### Stage 13 — Sovereign Studio Desktop Hub Static Telemetry Compilation
-**Engine**: `scripts/lib/studio_hub.py` → `collect_studio_hub_data()` + `export_static_studio_hub()`
-
+**Engine**: [`scripts/lib/studio_hub.py`](file:///scripts/lib/studio_hub.py) $\to$ `collect_studio_hub_data()` + `export_static_studio_hub()`
 Compiles live telemetry into a standalone, 100% offline CSP-compliant HTML telemetry dashboard.
 
-**Assert**: HTML dashboard exported with strict Content Security Policy.
-
----
-
 ### Stage 14 — Sovereign Writing Sprint & Session Velocity Analytics
-**Engine**: `scripts/lib/writing_sprint.py` → `start_sprint()`, `end_sprint()`, `compute_velocity_stats()`, `generate_sprint_report_html()`
-
+**Engine**: [`scripts/lib/writing_sprint.py`](file:///scripts/lib/writing_sprint.py) $\to$ `start_sprint()`, `end_sprint()`, `compute_velocity_stats()`, `generate_sprint_report_html()`
 Tracks writing sprint sessions, computes words-per-minute velocity, calculates daily streaks, and renders analytics HTML.
 
-**Assert**: Sprint session state machine cycles cleanly and produces valid analytics.
-
----
-
 ### Stage 15 — Causal DAG Novikov Self-Consistency & Revision Density Heatmap
-**Engine**: `scripts/lib/causality.py` + `scripts/lib/revision_heatmap.py`
-
-Audits multi-paradigm causality timelines for closed timelike curves (CTCs) and generates chapter revision churn heatmaps.
-
-**Assert**: Causal graph contains 0 critical paradoxes and revision heatmap generates cleanly.
-
----
+**Engine**: [`scripts/lib/causality.py`](file:///scripts/lib/causality.py) + [`scripts/lib/revision_heatmap.py`](file:///scripts/lib/revision_heatmap.py)
+Audits multi-paradigm causality timelines for closed timelike curves (CTCs) and generates chapter revision churn metrics.
 
 ### Stage 16 — Multi-Volume Dramatis Personae Synthesis
-**Engine**: `scripts/lib/dramatis_personae.py` → `cross_reference_manuscripts()`, `generate_dramatis_personae_markdown()`, `generate_dramatis_personae_html()`
-
+**Engine**: [`scripts/lib/dramatis_personae.py`](file:///scripts/lib/dramatis_personae.py) $\to$ `cross_reference_manuscripts()`, `generate_dramatis_personae_markdown()`, `generate_dramatis_personae_html()`
 Synthesizes cross-volume character rosters into Markdown tables and interactive visual character galleries.
 
-**Assert**: Markdown and CSP-compliant HTML cast galleries generated.
-
----
-
-### Stage 17 — World Codex, Arcane Constraints, Genealogy, Conlang, Factions & Battles
+### Stage 17 — World Codex, Arcane Constraints, Genealogy, Conlang & Factions
 **Engine**:
-- `scripts/lib/codex_export.py` (Static single-file offline encyclopedia wiki)
-- `scripts/lib/magic_system.py` (Arcane rule consistency validator)
-- `scripts/lib/genealogy.py` (Dynastic lineage flowcharts & validation)
-- `scripts/lib/conlang.py` (Phonotactics & historical sound shift engine)
-- `scripts/lib/factions.py` (Geopolitical diplomacy audit, Lanchester battle simulator, campaign logistics)
-- `scripts/lib/calendar.py` (Multi-moon synodic phase calculations)
+- [`scripts/lib/codex_export.py`](file:///scripts/lib/codex_export.py) (Static single-file offline encyclopedia wiki)
+- [`scripts/lib/magic_system.py`](file:///scripts/lib/magic_system.py) (Thermodynamic arcane rule and catalyst validator)
+- [`scripts/lib/genealogy.py`](file:///scripts/lib/genealogy.py) (Dynastic lineage flowcharts & validation)
+- [`scripts/lib/conlang.py`](file:///scripts/lib/conlang.py) (Phonotactics & historical sound shift engine)
+- [`scripts/lib/factions.py`](file:///scripts/lib/factions.py) (Geopolitical diplomacy audit, alliance balance)
 
-**Assert**: All 6 craft engines execute with valid outputs and zero fatal errors.
-
----
-
-### Stage 18 — Story Craft, Journey Modeler, Cartography, Pacing, Structure, Voice & Stylistics
+### Stage 18 — Planetary Economics, Journey Modeler & Cartography
 **Engine**:
-- `scripts/lib/economy.py` (In-world economy, PPP commodity baskets, tech anachronisms)
-- `scripts/lib/journey.py` (Overland travel calculations and journey reports)
-- `scripts/lib/cartography.py` (Vector SVG map generation and interactive map viewer)
-- `scripts/lib/pacing.py` (Dialogue density, action rhythm, tension curves)
-- `scripts/lib/structure.py` (Multi-paradigm structural beat mapping: 3-Act, Save the Cat, Kishōtenketsu)
-- `scripts/lib/voice.py` (Character dialogue voice distinctiveness & fingerprinting)
-- `scripts/lib/stylistics.py` (Prose craft linting: said-bookisms, adverb tags, word echoes)
+- [`scripts/lib/economy.py`](file:///scripts/lib/economy.py) (In-world economy, trade route gravity model, supply shocks)
+- [`scripts/lib/journey.py`](file:///scripts/lib/journey.py) (Overland travel calculations, Naismith's rule, and journey reports)
+- [`scripts/lib/cartography.py`](file:///scripts/lib/cartography.py) (Vector SVG map generation and interactive map viewer)
 
-**Assert**: All reports generate cleanly with CSP headers.
-
----
-
-### Stage 19 — Worldbuilding Sciences & Narrative Mechanics Expansion
+### Stage 19 — Worldbuilding Sciences, Climate, Ecology & Astrophysics
 **Engine**:
-- `scripts/lib/ambient.py` (Focus soundscape generator & synthesizer)
-- `scripts/lib/tactical_sim.py` (Monte Carlo tactical combat simulator)
-- `scripts/lib/scene_mechanics.py` (Motivation-Reaction Unit / MRU analyzer)
-- `scripts/lib/plot_matrix.py` (Multi-track plot grid and subplot matrix)
-- `scripts/lib/timeline_sync.py` (Narrative vs chronological timeline report)
-- `scripts/lib/climate.py` (Planetary insolation, atmospheric circulation, orographic rain shadows)
-- `scripts/lib/ecology.py` (Trophic energy pyramids, 10% rule, food-web Mermaid graphs)
-- `scripts/lib/stylistics.py` (Cultural idiom and Earth-eponym immersion checker)
+- [`scripts/lib/astrophysics.py`](file:///scripts/lib/astrophysics.py) (Stellar classification, Keplerian orbits, habitable zones)
+- [`scripts/lib/climate.py`](file:///scripts/lib/climate.py) (Planetary insolation, atmospheric circulation, orographic rain shadows)
+- [`scripts/lib/ecology.py`](file:///scripts/lib/ecology.py) (Trophic energy pyramids, 10% rule, food-web cycle detection)
+- [`scripts/lib/tactical_sim.py`](file:///scripts/lib/tactical_sim.py) (Lanchester law tactical combat simulator)
 
-**Assert**: Simulation calculations, ecological pyramids, and climate models generate accurately.
-
----
-
-### Stage 20 — Authoring Studios, Publishing Toolchains & Creative Scaffolding
+### Stage 20 — Authoring Studios, Ambient Audio & Typography Cleaner
 **Engine**:
-- `scripts/lib/concordance.py` (Automatic back-matter glossary and dramatis personae generator)
-- `scripts/lib/zen_studio.py` (Distraction-free typewriter studio with in-situ lore drawer)
-- `scripts/lib/story_canvas.py` (Interactive visual corkboard and scene card organizer)
-- `scripts/lib/omnibus.py` (Multi-volume series omnibus compiler)
-- `scripts/lib/portfolio.py` (Multi-manuscript catalog dashboard and velocity analytics)
-- `scripts/lib/typography_cleaner.py` (Curly quotes, em-dashes, and ellipsis normalizer)
+- [`scripts/lib/ambient.py`](file:///scripts/lib/ambient.py) (Pure trigonometric sine-wave binaural beat soundscape)
+- [`scripts/lib/zen_studio.py`](file:///scripts/lib/zen_studio.py) (Distraction-free typewriter studio with in-situ lore drawer)
+- [`scripts/lib/typography_cleaner.py`](file:///scripts/lib/typography_cleaner.py) (Curly quotes, em-dashes, and ellipsis normalizer)
+- [`scripts/lib/portfolio.py`](file:///scripts/lib/portfolio.py) (Multi-manuscript catalog dashboard and velocity analytics)
 
-**Assert**: Generated HTML studios and typography cleaners operate with 100% precision.
-
----
-
-### Stage 21 — Local Intelligence & Distribution Verification
+### Stage 21 — Universal Resonance Mesh & Knowledge Discovery
 **Engine**:
-- `scripts/lib/branching_graph.py` (Multi-POV narrative subway map exporter)
-- `scripts/lib/local_rag.py` (Local semantic retrieval viewer)
-- `scripts/lib/corpus_export.py` (Universal corpus JSONL, SQLite database, and Markdown digest)
-- `scripts/package_distribution.py` (Codex ZIP release bundle packager)
-- `scripts/lib/world_doctor.py` (Deep cosmos integrity audit)
-
-**Assert**: Full suite passes with 0 broken links and verified SHA-256 archive digests.
+- [`scripts/lib/resonance.py`](file:///scripts/lib/resonance.py) (47-node deterministic knowledge mesh graph & causal cascades)
+- [`scripts/lib/tips.py`](file:///scripts/lib/tips.py) (Contextual craft wisdom rotation)
+- [`scripts/lib/vault_search.py`](file:///scripts/lib/vault_search.py) (Local semantic retrieval query)
+- [`scripts/lib/world_doctor.py`](file:///scripts/lib/world_doctor.py) (Deep cosmos integrity audit)
 
 ---
 
 ## Verification Pipeline
 
 ```bash
-# Run the complete test suite
+# Run the complete test suite (853 tests)
 python -m unittest discover tests
 
 # Verify zero lint errors
 ruff check .
 
 # Verify type safety
-mypy --config-file mypy.ini scripts/lib
+mypy --config-file mypy.ini --explicit-package-bases scripts/lib tests
 ```

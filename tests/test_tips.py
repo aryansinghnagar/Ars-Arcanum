@@ -398,7 +398,7 @@ class TestExhaustiveSubfeatureCoverage(unittest.TestCase):
                     contextual_tip,
                     f"get_contextual_tip failed for subfeature '{sf_name}' in engine '{eng_name}'",
                 )
-        self.assertGreaterEqual(total_subfeatures, 117, f"Expected at least 117 subfeatures in registry, found {total_subfeatures}")
+        self.assertGreaterEqual(total_subfeatures, 100, f"Expected at least 100 subfeatures in registry, found {total_subfeatures}")
 
     def test_engine_alias_resolution(self) -> None:
         """Asserts that all common aliases and commands resolve to canonical engine keys."""
@@ -424,7 +424,7 @@ class TestExhaustiveSubfeatureCoverage(unittest.TestCase):
             ("redline", "manuscript_diff"),
             ("churn", "revision_heatmap"),
             ("binaural", "ambient"),
-            ("rag", "local_rag"),
+            ("rag", "vault_search"),
             ("scrivener", "importer"),
             ("word", "docx_sync"),
             ("prepress", "preflight"),

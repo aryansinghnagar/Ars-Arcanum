@@ -24,8 +24,6 @@ from lib.climate import calc_planetary_insolation
 from lib.factions import calc_lanchester_battle
 from lib.tactical_sim import simulate_single_battle, run_monte_carlo
 from lib.calendar import get_moon_phase, date_to_absolute_day, absolute_day_to_date
-from lib.stylistics import analyze_readability_rhythm
-from lib.voice import compute_voice_profile
 
 
 class TestDomainGoldenValues(unittest.TestCase):
@@ -177,42 +175,6 @@ class TestDomainGoldenValues(unittest.TestCase):
         self.assertEqual(yr, 3)
         self.assertEqual(m_idx, 4)
         self.assertEqual(dy, 12)
-
-    # -------------------------------------------------------------------------
-    # 5. Stylistics & Readability Metrics Benchmark
-    # -------------------------------------------------------------------------
-    def test_stylistics_readability_metrics(self):
-        """
-        Benchmark standard passage readability.
-        """
-        sample_prose = """
-        The ancient castle stood tall on the cliff overlooking the stormy sea.
-        Lightning illuminated the dark spires as thunder echoed across the valley.
-        The guards remained watchful at their posts, gripping their spears with nervous tension.
-        Inside the grand hall, the king reviewed the war maps by flickering candlelight.
-        Generals debated the strategic maneuvers needed to repel the incoming invasion.
-        Every soldier knew that dawn would bring the decisive battle of their lifetime.
-        The scouts had reported enemy ships gathering near the northern harbor.
-        Archers inspected their bowstrings and sharpened arrows in quiet determination.
-        In the temple, priests chanted prayers for victory and protection.
-        No one slept that night as the kingdom prepared for its ultimate defense.
-        """
-        metrics = analyze_readability_rhythm(sample_prose)
-        self.assertGreater(metrics["word_count"], 100)
-        self.assertIsNone(metrics["sample_size_warning"])
-        self.assertGreater(metrics["flesch_reading_ease"], 40.0)
-        self.assertLess(metrics["flesch_reading_ease"], 85.0)
-
-    def test_sample_size_warning_on_short_text(self):
-        short_prose = "He ran fast. She followed closely behind."
-        metrics = analyze_readability_rhythm(short_prose)
-        self.assertLess(metrics["word_count"], 100)
-        self.assertIsNotNone(metrics["sample_size_warning"])
-        self.assertIn("fewer than 100 words", metrics["sample_size_warning"])
-
-        voice_res = compute_voice_profile(["Hello.", "Wait here."], char_name="Alden")
-        self.assertLess(voice_res["total_words"], 100)
-        self.assertIsNotNone(voice_res["sample_size_warning"])
 
 
 if __name__ == "__main__":

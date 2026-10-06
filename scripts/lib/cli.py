@@ -20,7 +20,7 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
-VERSION = "4.3.0"
+VERSION = "5.0.0"
 
 # Add scripts directory to path
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent
@@ -71,6 +71,7 @@ Usage:
   sprint [MS]                  Sovereign writing sprint timer & productivity analytics
   revision-heatmap [MS]        Manuscript revision density & churn heatmap
   resonance [CMD] [opts]       Universal Knowledge Mesh, Causal Cascade & Creative Spark bridges
+  scope [TARGET] [opts]        Granular manuscript & lore scope targeting & diagnostic
   tip [opts]                   Dynamic non-obvious craft advice & engine wisdom (aliases: tips, hint)
   doc [ENGINE]                 Display educational craft logic documentation & advisory resolution guide (alias: guide, explain)
 
@@ -213,7 +214,7 @@ def handle_doc_command(argv: list[str]) -> int:
         docs = get_all_engine_docs()
         print(f"🏛️  Ars Arcanum Author Craft Guide & Advisory Matrix ({len(docs)} Engines Available)\n")
         print("To view deep craft logic, scientific foundations, and advisory guidance for an engine, run:")
-        print("  arcanum doc <ENGINE> [--math|--why|--examples|--subfeatures|--json]\n")
+        print("  arcanum doc <ENGINE> [--math|--theory|--sources|--why|--examples|--subfeatures|--json]\n")
         print(f"{'Command':<20} {'Category':<12} {'Engine Title':<32} {'Relevance Summary'}")
         print("=" * 95)
         for d in sorted(docs, key=lambda x: (x['category'], x['name'])):
@@ -230,8 +231,10 @@ def handle_doc_command(argv: list[str]) -> int:
     idx = 0
     while idx < len(argv):
         arg = argv[idx]
-        if arg in ("--math", "--theory", "--physics", "--logic"):
+        if arg in ("--math", "--physics", "--logic"):
             mode = "math"
+        elif arg in ("--sources", "--references", "--citations", "--bibliography", "--theory", "--papers", "--reading"):
+            mode = "sources"
         elif arg in ("--why", "--rationale"):
             mode = "why"
         elif arg in ("--examples", "--extension", "--how-to", "--guide"):
@@ -415,52 +418,55 @@ def _handle_calc(rest: list[str]) -> int:
     return 2
 
 
+def _handle_pruned(doc_name: str, args: list[str]) -> int:
+    """Provides craft reference advisory message and optional doc redirection."""
+    print(
+        f"Ars Arcanum Craft Studio — Reference Doctrine ({doc_name.upper()})\n"
+        f"Note: The standalone regex/heuristic '{doc_name.lower()}' engine has transitioned\n"
+        f"to deterministic metadata and authoritative craft documentation.\n\n"
+        f"For theoretical foundations, formulas, and rubrics, see docs/{doc_name.upper()}.md\n"
+        f"or run: arcanum doc {doc_name.lower()}"
+    )
+    return 0
+
+
 def _handle_audit(rest: list[str]) -> int:
     """Handle 'arcanum audit <subcommand>' sub-dispatch."""
     if not rest:
-        return dispatch_script("arcanum_doctor.sh", [])
+        return dispatch_subcommand("lib.diagnostics", ["audit"])
     sub = rest[0].lower()
     sub_args = rest[1:]
-    _audit_dispatch: dict[str, tuple[str, list[str]]] = {
-        "dialogue": ("lib.stylistics", ["dialogue"]),
-        "tags": ("lib.stylistics", ["dialogue"]),
-        "said-bookisms": ("lib.stylistics", ["dialogue"]),
-        "echoes": ("lib.stylistics", ["echoes"]),
-        "echo": ("lib.stylistics", ["echoes"]),
-        "repetition": ("lib.stylistics", ["echoes"]),
-        "rhythm": ("lib.stylistics", ["rhythm"]),
-        "readability": ("lib.stylistics", ["rhythm"]),
-        "prose": ("lib.stylistics", ["scan"]),
-        "style": ("lib.stylistics", ["scan"]),
-        "stylistics": ("lib.stylistics", ["scan"]),
-        "voice": ("lib.voice", []),
-        "voice-bleed": ("lib.voice", []),
-        "scenes": ("lib.scene_mechanics", []),
-        "scene": ("lib.scene_mechanics", []),
-        "mru": ("lib.scene_mechanics", []),
-        "structure": ("lib.structure", []),
-        "paradigm": ("lib.structure", []),
-        "idioms": ("lib.stylistics", ["idiom"]),
-        "idiom": ("lib.stylistics", ["idiom"]),
-        "eponyms": ("lib.stylistics", ["idiom"]),
-        "senses": ("lib.senses", []),
-        "sensory": ("lib.senses", []),
-        "palette": ("lib.senses", []),
-        "tech": ("lib.economy", ["tech"]),
-        "technology": ("lib.economy", ["tech"]),
-        "anachronisms": ("lib.economy", ["tech"]),
+    _pruned_audit = {
+        "dialogue": "STYLISTICS",
+        "tags": "STYLISTICS",
+        "said-bookisms": "STYLISTICS",
+        "echoes": "STYLISTICS",
+        "echo": "STYLISTICS",
+        "repetition": "STYLISTICS",
+        "rhythm": "PACING",
+        "readability": "STYLISTICS",
+        "prose": "STYLISTICS",
+        "style": "STYLISTICS",
+        "stylistics": "STYLISTICS",
+        "voice": "VOICE",
+        "voice-bleed": "VOICE",
+        "scenes": "SCENE_MECHANICS",
+        "scene": "SCENE_MECHANICS",
+        "mru": "SCENE_MECHANICS",
+        "idioms": "STYLISTICS",
+        "idiom": "STYLISTICS",
+        "eponyms": "STYLISTICS",
+        "senses": "SENSES",
+        "sensory": "SENSES",
+        "palette": "SENSES",
     }
-    entry = _audit_dispatch.get(sub)
-    if entry:
-        return dispatch_subcommand(entry[0], [*entry[1], *sub_args])
+    if sub in _pruned_audit:
+        return _handle_pruned(_pruned_audit[sub], sub_args)
+    if sub in ("structure", "paradigm"):
+        return dispatch_subcommand("lib.structure", sub_args)
+    if sub in ("tech", "technology", "anachronisms"):
+        return dispatch_subcommand("lib.economy", ["tech", *sub_args])
     return dispatch_subcommand("lib.diagnostics", rest)
-
-
-def _handle_pace(rest: list[str]) -> int:
-    """Handle 'arcanum pace' with default sub-action prefix."""
-    if rest and rest[0] in ("pace", "tension", "pov"):
-        return dispatch_subcommand("lib.pacing", rest)
-    return dispatch_subcommand("lib.pacing", ["pace", *rest])
 
 
 def _handle_doctor(rest: list[str]) -> int:
@@ -507,11 +513,13 @@ _DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "corpus": ("module", "lib.corpus_export"), "corpus-export": ("module", "lib.corpus_export"),
     "export-corpus": ("module", "lib.corpus_export"), "rag-export": ("module", "lib.corpus_export"),
     "corpus-restore": ("module", "lib.corpus_export"),
-    "rag": ("module", "lib.local_rag"), "query-lore": ("module", "lib.local_rag"),
-    "semantic-search": ("module", "lib.local_rag"), "lore-query": ("module", "lib.local_rag"),
-    "branch": ("module", "lib.branching_graph"), "branching": ("module", "lib.branching_graph"),
-    "gamebook": ("module", "lib.branching_graph"), "interactive-fiction": ("module", "lib.branching_graph"),
-    "branch-graph": ("module", "lib.branching_graph"), "subway-map": ("module", "lib.branching_graph"),
+    "search": ("module", "lib.vault_search"), "vault-search": ("module", "lib.vault_search"),
+    "rag": ("module", "lib.vault_search"), "query-lore": ("module", "lib.vault_search"),
+    "semantic-search": ("module", "lib.vault_search"), "lore-query": ("module", "lib.vault_search"),
+    "recall": ("module", "lib.vault_search"),
+    "branch": ("handler", "pruned_branch"), "branching": ("handler", "pruned_branch"),
+    "gamebook": ("handler", "pruned_branch"), "interactive-fiction": ("handler", "pruned_branch"),
+    "branch-graph": ("handler", "pruned_branch"), "subway-map": ("handler", "pruned_branch"),
     "hub": ("module", "lib.studio_hub"), "dashboard": ("module", "lib.studio_hub"),
     "gui-web": ("module", "lib.studio_hub"), "studio-hub": ("module", "lib.studio_hub"),
     "causality": ("module", "lib.causality"), "causal": ("module", "lib.causality"),
@@ -520,9 +528,9 @@ _DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "prophecy": ("module", "lib.prophecy"), "prophecies": ("module", "lib.prophecy"),
     "oracle": ("module", "lib.prophecy"), "delphic": ("module", "lib.prophecy"),
     "arcane-inscription": ("module", "lib.prophecy"), "prophecy-matrix": ("module", "lib.prophecy"),
-    "senses": ("module", "lib.senses"), "sensory": ("module", "lib.senses"),
-    "immersion": ("module", "lib.senses"), "white-room": ("module", "lib.senses"),
-    "palette": ("module", "lib.senses"),
+    "senses": ("handler", "pruned_senses"), "sensory": ("handler", "pruned_senses"),
+    "immersion": ("handler", "pruned_senses"), "white-room": ("handler", "pruned_senses"),
+    "palette": ("handler", "pruned_senses"),
     "sprint": ("module", "lib.writing_sprint"), "writing-sprint": ("module", "lib.writing_sprint"),
     "pomodoro": ("module", "lib.writing_sprint"), "session": ("module", "lib.writing_sprint"),
     "velocity": ("module", "lib.writing_sprint"),
@@ -532,11 +540,11 @@ _DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "words": ("script", "arcanum", "words"), "wordcount": ("script", "arcanum", "words"),
     "report": ("script", "arcanum", "words"), "count": ("script", "arcanum", "words"),
     "stats": ("script", "arcanum", "words"),
-    "pace": ("handler", "pace"), "pacing": ("handler", "pace"),
-    "rhythm": ("handler", "pace"), "waveform": ("handler", "pace"),
-    "tension": ("module", "lib.scene_mechanics"), "tension-arc": ("module", "lib.scene_mechanics"),
-    "scene": ("module", "lib.scene_mechanics"), "scenes": ("module", "lib.scene_mechanics"),
-    "swain": ("module", "lib.scene_mechanics"), "mru": ("module", "lib.scene_mechanics"),
+    "pace": ("handler", "pruned_pacing"), "pacing": ("handler", "pruned_pacing"),
+    "rhythm": ("handler", "pruned_pacing"), "waveform": ("handler", "pruned_pacing"),
+    "tension": ("handler", "pruned_scene_mechanics"), "tension-arc": ("handler", "pruned_scene_mechanics"),
+    "scene": ("handler", "pruned_scene_mechanics"), "scenes": ("handler", "pruned_scene_mechanics"),
+    "swain": ("handler", "pruned_scene_mechanics"), "mru": ("handler", "pruned_scene_mechanics"),
     "plot": ("module", "lib.plot_matrix"), "plot-matrix": ("module", "lib.plot_matrix"),
     "subplot": ("module", "lib.plot_matrix"), "subplots": ("module", "lib.plot_matrix"),
     "matrix": ("module", "lib.plot_matrix"),
@@ -556,8 +564,8 @@ _DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "binaural": ("handler", "ambient"), "focus-sound": ("handler", "ambient"),
     "portfolio": ("module", "lib.portfolio"), "catalog": ("module", "lib.portfolio"),
     "series-overview": ("module", "lib.portfolio"),
-    "package": ("script", "package_distribution.py"), "dist": ("script", "package_distribution.py"),
-    "bundle": ("script", "package_distribution.py"),
+    "package": ("handler", "pruned_package"), "dist": ("handler", "pruned_package"),
+    "bundle": ("handler", "pruned_package"),
     "resonance": ("handler", "resonance"), "mesh": ("handler", "resonance"),
     "cascade": ("handler", "resonance"), "spark": ("handler", "resonance"),
     "bridge": ("handler", "resonance"), "ecosystem": ("handler", "resonance"),
@@ -585,8 +593,8 @@ _DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "battle": ("handler", "sim"), "combat": ("handler", "sim"), "tactical": ("handler", "sim"),
     "cast": ("module", "lib.dramatis_personae"), "dramatis-personae": ("module", "lib.dramatis_personae"),
     "dramatis": ("module", "lib.dramatis_personae"), "characters-cast": ("module", "lib.dramatis_personae"),
-    "concordance": ("module", "lib.concordance"), "glossary": ("module", "lib.concordance"),
-    "index": ("module", "lib.concordance"),
+    "concordance": ("handler", "concordance"), "glossary": ("handler", "concordance"),
+    "index": ("handler", "concordance"),
     "continuity": ("module", "lib.continuity"), "check-continuity": ("module", "lib.continuity"),
     "traits": ("module", "lib.continuity"),
     "faction": ("module", "lib.factions"), "factions": ("module", "lib.factions"),
@@ -598,10 +606,10 @@ _DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "magic": ("handler", "magic"), "magic-check": ("handler", "magic"),
     "magic-report": ("handler", "magic"),
     "arcana": ("handler", "magic"), "spells": ("handler", "magic"),
-    "council": ("module", "lib.council"), "editorial-council": ("module", "lib.council"),
-    "dossier": ("module", "lib.council"), "council-audit": ("module", "lib.council"),
-    "audio-proof": ("module", "lib.audio_proof"), "tts-proof": ("module", "lib.audio_proof"),
-    "speech-proof": ("module", "lib.audio_proof"), "audio-export": ("module", "lib.audio_proof"),
+    "council": ("handler", "pruned_council"), "editorial-council": ("handler", "pruned_council"),
+    "dossier": ("handler", "pruned_council"), "council-audit": ("handler", "pruned_council"),
+    "audio-proof": ("handler", "pruned_audio_proof"), "tts-proof": ("handler", "pruned_audio_proof"),
+    "speech-proof": ("handler", "pruned_audio_proof"), "audio-export": ("handler", "pruned_audio_proof"),
     "cosmology": ("module", "lib.cosmology"), "pantheon": ("module", "lib.cosmology"),
     "theology": ("module", "lib.cosmology"), "heresy": ("module", "lib.cosmology"),
     "deities": ("module", "lib.cosmology"),
@@ -621,11 +629,13 @@ _DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "biomes": ("module", "lib.climate"), "insolation": ("module", "lib.climate"),
     "journey": ("module", "lib.journey"), "travel": ("module", "lib.journey"),
     "expedition": ("module", "lib.journey"), "logistics": ("module", "lib.journey"),
-    "voice": ("module", "lib.voice"), "voice-bleed": ("module", "lib.voice"),
-    "idiolect": ("module", "lib.voice"), "stylometry": ("module", "lib.voice"),
-    "style": ("module", "lib.stylistics", "scan"), "stylistics": ("module", "lib.stylistics", "scan"),
-    "polish-style": ("module", "lib.stylistics", "scan"), "readability": ("module", "lib.stylistics", "scan"),
+    "voice": ("handler", "pruned_voice"), "voice-bleed": ("handler", "pruned_voice"),
+    "idiolect": ("handler", "pruned_voice"), "stylometry": ("handler", "pruned_voice"),
+    "style": ("handler", "pruned_stylistics"), "stylistics": ("handler", "pruned_stylistics"),
+    "polish-style": ("handler", "pruned_stylistics"), "readability": ("handler", "pruned_stylistics"),
     "audit": ("handler", "audit"),
+    "scope": ("module", "lib.scope"), "target-scope": ("module", "lib.scope"),
+    "engine-scope": ("module", "lib.scope"),
     # --- Data Protection & Safety ---
     "backup": ("module", "lib.backup"), "backup-world": ("module", "lib.backup"),
     "backup-dest": ("module", "lib.config", "backup-dest"),
@@ -666,11 +676,20 @@ _HANDLERS: dict[str, object] = {
     "magic": _handle_magic,
     "calc": _handle_calc,
     "audit": _handle_audit,
-    "pace": _handle_pace,
     "doctor": _handle_doctor,
     "engines": handle_engines_command,
     "resonance": _handle_resonance,
     "conlang": _handle_conlang,
+    "pruned_branch": lambda args: _handle_pruned("BRANCHING_GRAPH", args),
+    "pruned_pacing": lambda args: _handle_pruned("PACING", args),
+    "pruned_scene_mechanics": lambda args: _handle_pruned("SCENE_MECHANICS", args),
+    "pruned_senses": lambda args: _handle_pruned("SENSES", args),
+    "pruned_voice": lambda args: _handle_pruned("VOICE", args),
+    "pruned_stylistics": lambda args: _handle_pruned("STYLISTICS", args),
+    "concordance": lambda args: _handle_pruned("CONCORDANCE", args),
+    "pruned_council": lambda args: _handle_pruned("COUNCIL", args),
+    "pruned_audio_proof": lambda args: _handle_pruned("AUDIO_PROOF", args),
+    "pruned_package": lambda args: _handle_pruned("PACKAGING", args),
 }
 
 

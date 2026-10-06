@@ -36,8 +36,22 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        filter_world_scope,
+        parse_scope_args,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_manuscript_scope,
+        filter_world_scope,
+        parse_scope_args,
+    )
 
 logger = logging.getLogger("arcanum.causality")
 
@@ -56,7 +70,11 @@ def normalize_id(text: str) -> str:
     return re.sub(r"[\s_#-]+", "-", str(text).strip().lower())
 
 
-def extract_causal_nodes(world_dir: Path | None = None, manuscript_dir: Path | None = None) -> tuple:
+def extract_causal_nodes(
+    world_dir: Path | None = None,
+    manuscript_dir: Path | None = None,
+    scope: EngineScope | None = None,
+) -> tuple:
     """
     Extracts events, temporal metadata, timeline branches, and causal edges from world and manuscript.
     Returns: (events_dict, timelines_dict)
@@ -64,19 +82,31 @@ def extract_causal_nodes(world_dir: Path | None = None, manuscript_dir: Path | N
     events = {}
     timelines = {"prime": {"id": "prime", "name": "Prime Timeline", "branches": [], "events": []}}
 
-    dirs_to_scan = []
+    files_to_scan: list[tuple[Path, str, Path]] = []
     if manuscript_dir and manuscript_dir.is_dir():
-        dirs_to_scan.append((manuscript_dir, "manuscript"))
-    if world_dir and world_dir.is_dir():
-        for sub in ("History", "00-World-Bible/History", "Cosmology", "00-World-Bible/Cosmology"):
-            hdir = world_dir / sub
-            if hdir.is_dir():
-                dirs_to_scan.append((hdir, "world"))
+        if scope:
+            scoped_chapters, _, _ = filter_manuscript_scope(manuscript_dir, scope)
+            for c in scoped_chapters:
+                files_to_scan.append((c.file_path, "manuscript", manuscript_dir))
+        else:
+            for md_file in sorted(manuscript_dir.rglob("*.md")):
+                if not md_file.name.startswith(".") and "Front_Matter" not in md_file.parts and "Back_Matter" not in md_file.parts:
+                    files_to_scan.append((md_file, "manuscript", manuscript_dir))
 
-    for base_dir, source_type in dirs_to_scan:
-        for md_file in sorted(base_dir.rglob("*.md")):
-            if md_file.name.startswith(".") or "Front_Matter" in md_file.parts or "Back_Matter" in md_file.parts:
-                continue
+    if world_dir and world_dir.is_dir():
+        if scope and scope.lore_categories:
+            scoped_world = filter_world_scope(world_dir, scope)
+            for item in scoped_world:
+                files_to_scan.append((item.file_path, "world", world_dir))
+        else:
+            for sub in ("History", "00-World-Bible/History", "Cosmology", "00-World-Bible/Cosmology"):
+                hdir = world_dir / sub
+                if hdir.is_dir():
+                    for md_file in sorted(hdir.rglob("*.md")):
+                        if not md_file.name.startswith(".") and "Front_Matter" not in md_file.parts and "Back_Matter" not in md_file.parts:
+                            files_to_scan.append((md_file, "world", hdir))
+
+    for md_file, source_type, base_dir in files_to_scan:
             try:
                 content = md_file.read_text(encoding="utf-8", errors="ignore")
                 fm = parse_yaml_frontmatter(content)
@@ -616,6 +646,7 @@ def main():
     p_check.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_check.add_argument("--html", help="Path to export standalone HTML report")
     p_check.add_argument("--write-note", help="Export Mermaid.js DAG note")
+    add_scope_arguments(p_check, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     p_dag = subparsers.add_parser("dag", help="Display causal DAG and timelines")
     p_dag.add_argument("world", nargs="?", help="World Bible lore directory")
@@ -625,6 +656,7 @@ def main():
     p_dag.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_dag.add_argument("--html", help="Path to export standalone HTML report")
     p_dag.add_argument("--write-note", help="Export Mermaid.js DAG note")
+    add_scope_arguments(p_dag, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     # 2. branch scaffolding
     p_branch = subparsers.add_parser("branch", help="Scaffold a multiverse branch coordinate")
@@ -640,12 +672,16 @@ def main():
     if not args.subcommand:
         args.subcommand = "check"
 
+    scope = parse_scope_args(args)
+
     if args.subcommand in ("check", "dag"):
-        raw_world = getattr(args, "world_flag", None) or getattr(args, "world", None)
+        raw_world_val = getattr(args, "world_flag", None) or getattr(args, "world", None) or scope.world
+        raw_world = str(raw_world_val) if raw_world_val else None
         world_dir_str = resolve_world_dir(raw_world) if raw_world else None
         world_path = Path(world_dir_str) if world_dir_str else None
 
-        raw_ms = getattr(args, "manuscript", None) or getattr(args, "manuscript_pos", None)
+        raw_ms_val = getattr(args, "manuscript", None) or getattr(args, "manuscript_pos", None) or scope.manuscript
+        raw_ms = str(raw_ms_val) if raw_ms_val else None
         ms_dir_str = resolve_manuscript_dir(raw_ms) if raw_ms else None
         ms_path = Path(ms_dir_str) if ms_dir_str else None
 
@@ -653,7 +689,7 @@ def main():
             print("Error: Specify a World Bible or Manuscript directory.", file=sys.stderr)
             sys.exit(2)
 
-        events, timelines = extract_causal_nodes(world_path, ms_path)
+        events, timelines = extract_causal_nodes(world_path, ms_path, scope=scope)
         findings = audit_causality(events, timelines)
         mermaid_dag = generate_causality_mermaid(events, timelines)
 

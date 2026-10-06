@@ -34,8 +34,48 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        EngineScope,
+        add_scope_arguments,
+        filter_world_scope,
+        parse_scope_args,
+        resolve_world_path,
+    )
+    from lib.scope import (
+        resolve_world_dir as resolve_scope_world_dir,
+    )
 except ImportError:
-    from _bootstrap import atomic_write
+    try:
+        from _bootstrap import atomic_write
+        from scope import (
+            EngineScope,
+            add_scope_arguments,
+            filter_world_scope,
+            parse_scope_args,
+            resolve_world_path,
+        )
+        from scope import (
+            resolve_world_dir as resolve_scope_world_dir,
+        )
+    except ImportError:
+        from _bootstrap import atomic_write  # type: ignore
+
+        EngineScope = None  # type: ignore
+
+        def add_scope_arguments(*args, **kwargs):  # type: ignore
+            pass
+
+        def parse_scope_args(*args, **kwargs):  # type: ignore
+            return None
+
+        def filter_world_scope(*args, **kwargs):  # type: ignore
+            return []
+
+        def resolve_world_path(*args, **kwargs):  # type: ignore
+            return None
+
+        def resolve_scope_world_dir(*args, **kwargs):  # type: ignore
+            return ""
 
 logger = logging.getLogger("arcanum.ecology")
 
@@ -70,7 +110,7 @@ def normalize_name(name: str) -> str:
     return re.sub(r"[\s_-]+", " ", str(name).strip().lower())
 
 
-def extract_species_profiles(world_dir: Path) -> dict:
+def extract_species_profiles(world_dir: Path, scope: EngineScope | None = None) -> dict:
     """Scans Bestiary/ and Flora/ directories and extracts structured trophic profiles."""
     species = {}
     dirs_to_check = [
@@ -81,11 +121,18 @@ def extract_species_profiles(world_dir: Path) -> dict:
     ]
 
     seen_files = set()
+    scoped_files: set[Path] | None = None
+    if scope and scope.is_scoped():
+        filtered_items = filter_world_scope(world_dir, scope)
+        scoped_files = {item.file_path.resolve() for item in filtered_items}
+
     for sdir in dirs_to_check:
         if not sdir.is_dir():
             continue
         for md_file in sorted(sdir.rglob("*.md")):
             if md_file in seen_files or md_file.name.startswith(".") or "Template" in md_file.name:
+                continue
+            if scoped_files is not None and md_file.resolve() not in scoped_files:
                 continue
             seen_files.add(md_file)
             try:
@@ -424,8 +471,11 @@ def generate_ecology_html_report(audit_data: dict, output_path: Path):
     atomic_write(output_path, html_content)
 
 
-def resolve_world_dir(target_str: str | None = None) -> str:
+def resolve_world_dir(target_str: str | None = None, scope: EngineScope | None = None) -> str:
     """Resolves world input string (path or name) to absolute directory path."""
+    if not target_str and scope and scope.world:
+        target_str = scope.world
+
     if target_str:
         p = Path(target_str).expanduser().resolve()
         if p.is_dir():
@@ -470,6 +520,9 @@ def main():
     p_check.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_check.add_argument("--html", help="Path to export standalone HTML report")
     p_check.add_argument("--write-note", help="Export Mermaid.js Food Web note")
+    add_scope_arguments(p_check, include_manuscript=False, include_world=False, target_pos_arg=False)
+    p_check.add_argument("-u", "--universe", dest="universe", help="Target Universe directory or name")
+    p_check.add_argument("--lore-category", "--lore-categories", dest="lore_categories", help="Filter by lore categories")
 
     p_rep = subparsers.add_parser("report", help="Display food web and trophic roster report")
     p_rep.add_argument("world", nargs="?", help="World Bible lore directory")
@@ -477,6 +530,9 @@ def main():
     p_rep.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_rep.add_argument("--html", help="Path to export standalone HTML report")
     p_rep.add_argument("--write-note", help="Export Mermaid.js Food Web note")
+    add_scope_arguments(p_rep, include_manuscript=False, include_world=False, target_pos_arg=False)
+    p_rep.add_argument("-u", "--universe", dest="universe", help="Target Universe directory or name")
+    p_rep.add_argument("--lore-category", "--lore-categories", dest="lore_categories", help="Filter by lore categories")
 
     if len(sys.argv) > 1 and sys.argv[1] not in ("check", "report", "-h", "--help", "-v", "--version"):
         sys.argv.insert(1, "check")
@@ -486,14 +542,15 @@ def main():
     if not args.subcommand:
         args.subcommand = "check"
 
+    scope = parse_scope_args(args)
     raw_world = getattr(args, "world_flag", None) or getattr(args, "world", None)
-    world_dir_str = resolve_world_dir(raw_world)
+    world_dir_str = resolve_world_dir(raw_world, scope=scope)
     if not world_dir_str or not Path(world_dir_str).is_dir():
         print("Error: No valid World Bible directory specified or discovered.", file=sys.stderr)
         sys.exit(2)
 
     world_path = Path(world_dir_str)
-    species = extract_species_profiles(world_path)
+    species = extract_species_profiles(world_path, scope=scope)
     findings = audit_ecosystem(species)
     mermaid_web = generate_ecology_mermaid(species)
 

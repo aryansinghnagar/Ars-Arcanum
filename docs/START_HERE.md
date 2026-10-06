@@ -1,14 +1,15 @@
 # Ars Arcanum / Scriptorium — Author's Quick Start Guide
 > **The Sovereign, 100% Offline Writing & Worldbuilding Studio for Fiction Authors.**
+> **Release Version:** `v5.0.0` | **License:** MIT | **Privacy:** 100% Offline, Zero Telemetry
 
-Welcome! Ars Arcanum provides a distraction-free, professional writing environment that puts you in complete control of your creative work. All notes, chapters, and lore dossiers remain in standard plain Markdown (`.md`) and open formats on your own computer—free from subscription fees, cloud lock-in, or telemetry.
+Welcome! Ars Arcanum provides a distraction-free, professional writing environment that puts you in complete control of your creative work. All notes, chapters, and lore dossiers remain in standard plain Markdown (`.md`) and YAML frontmatter manifests on your own computer—free from subscription fees, cloud lock-in, or telemetry.
 
 ---
 
 ## 🚀 1. Getting Started in 3 Clicks
 
-### Step 1: Launch the Desktop App
-Double-click the **"Ars Arcanum Control Center"** icon on your Desktop (or run `arcanum` in your terminal).
+### Step 1: Launch the Studio
+Launch the GTK3 Desktop App via `python scripts/arcanum_app.py` or run the CLI dispatcher `arcanum` in your terminal. For the browser-based studio, run `arcanum hub` or `arcanum zen`.
 
 ### Step 2: First-Flight Onboarding
 When you launch for the first time, the **Onboarding Wizard** appears:
@@ -18,78 +19,79 @@ When you launch for the first time, the **Onboarding Wizard** appears:
 
 ---
 
-## 🎨 2. The 6 Creative Studios
+## 🎨 2. The Integrated Creative Studios
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        Ars Arcanum Studio Hub                          │
 ├──────────────┬──────────────┬──────────────┬─────────────┬─────────────┤
-│ 🪐 Cosmos     │ ✍️ Drafting   │ 🔮 Craft &   │ 📚 Publish  │ 🔒 Safety   │
-│   & Worlds   │   & Word     │    Speculate │   & Export  │   & Backups │
+│ 🪐 Cosmos     │ ✍️ Drafting   │ 🔮 Speculative │ 📚 Publish  │ 🔒 Safety   │
+│   & Worlds   │   & Word     │    Sciences  │   & Export  │   & Backups │
 └──────────────┴──────────────┴──────────────┴─────────────┴─────────────┘
 ```
 
 ### Studio 1: 🪐 Cosmos & Worlds (Lore Bible)
-- **Open World Bible**: Launches **Obsidian** configured with all 10 pre-installed plugins (Dataview, Storyline, Calendarium, Longform, Metadata Menu, and more).
+- **Open World Bible**: Launches your lore vault with full support for Obsidian wikilinks and structured frontmatter dossiers.
 - **Taxonomy Register**: View instant counts of characters, factions, magic systems, languages, and historical events registered across your world.
 
 ### Studio 2: ✍️ Manuscripts & Drafting
 - **Visual Scene Inspector**: Select any chapter scene to view and edit scene metadata headers (`@pov:`, `@location:`, `@status:`, `@thread:`) without breaking your writing flow.
-- **Word Processor Sync**: Click **"📝 Open in Word Processor"** to write or edit chapters directly in Microsoft Word, LibreOffice Writer, or Google Docs. Click **"🔄 Sync DOCX ↔ Markdown"** to import changes safely without losing scene metadata.
-- **Redline Comparator**: Compare draft revisions (e.g. `Draft-01` vs `Draft-02`) with an interactive, color-coded visual redline report in your browser.
+- **Word Processor Sync**: Click **"📝 Open in Word Processor"** to write or edit chapters directly in Microsoft Word or LibreOffice Writer. Click **"🔄 Sync DOCX ↔ Markdown"** to import changes safely.
+- **Story Canvas & Corkboard**: Open `arcanum canvas` for visual drag-and-drop story corkboards and scene beat tracking.
+- **Zen Studio**: Open `arcanum zen` for distraction-free typewriter drafting with in-situ lore drawer and sine-wave ambient soundscapes.
 
-### Studio 3: 🔮 Speculative Fiction & Craft Studio
-Access 18 offline modeling and consistency engines:
-- **Magic System Rules**: Verify character affinity tiers, catalyst reagents, and fatigue limits.
-- **Timeline & Multi-Era Chronology**: Check dates, syzygies, and historical event sequences.
-- **Story Structure Check**: Align manuscript pacing against Save the Cat, Hero's Journey, 7-Point Structure, and 3-Act templates.
-- **Dialogue & Stylistics Linter**: Scan for said-bookisms, floating dialogue, and sliding-window word echoes.
+### Studio 3: 🔮 Speculative Sciences & Craft Studio
+Access 47 deterministic offline modeling and consistency engines:
+- **Astrophysics & Habitable Zones**: Calculate Keplerian orbits, stellar classification, and Roche limits.
+- **Climate & Köppen Biomes**: Model atmospheric circulation cells, Coriolis deflections, and rain shadows.
+- **Magic System Thermodynamics**: Verify energy sources, transformation costs, and caster exhaustion curves.
+- **Timeline & Multi-Era Chronology**: Check dates, moon phases, and historical event sequences.
+- **Faction Dynamics & Combat**: Evaluate diplomatic alliances and Lanchester law combat balances.
+- **Conlang & Sound Shifts**: Generate phonemic inventories and apply historical sound shift mutations.
 
 ### Studio 4: 📚 Publishing & Book Compilation
-- **1-Click Print PDF**: Sub-second compilation into trade-quality PDF using **Typst 0.14.2**.
-- **EPUB & Ebook**: Compiles validated EPUB with cover art detection.
-- **Submission Manuscript**: Produces industry-standard Shunn/Modern format `.docx` for literary agents and editors.
-- **Automatic Concordance**: Generates *Dramatis Personae* and *Glossary* back-matter automatically.
-- **Release Packaging**: 1-click generation of Reader, Submission, ARC, and Lore Codex ZIP bundles with SHA-256 manifests (`arcanum package`).
+- **1-Click Print PDF**: Sub-second compilation into trade-quality PDF using **Typst**.
+- **EPUB & Ebook**: Compiles validated EPUB with cover art detection via Calibre.
+- **Universal Corpus Exporter**: Export structured JSONL datasets and SQLite FTS5 databases for local LLMs and offline semantic retrieval (`vault_search`).
+- **Omnibus Compiler**: Compile multi-volume series into unified anthologies with global Tables of Contents.
 
 ### Studio 5: 🔒 Snapshots & Safe Backups
 - **📷 Quick Snapshot**: Record a 1-click version milestone in local Git (`Ctrl+S`).
 - **Offline Verified Archive**: Create a standalone `.tar.gz` archive with SHA-256 integrity verification (`Ctrl+B`).
-- **GPG Military-Grade Encryption**: Protect confidential manuscripts with AES-256 passphrase or recipient public-key encryption (`--symmetric`, `--encrypt`).
-- **External Drive Replication**: Configure an external USB drive or secondary hard drive in Settings for automated 3-2-1 backup protection.
-
-### Studio 6: 🩺 System Health & Doctor
-- Run comprehensive diagnostics on system compilers, Flatpak apps, world lore vaults, and backup destinations.
-- Plain-language alerts guide you if any tool needs configuration.
+- **GPG Military-Grade Encryption**: Protect confidential manuscripts with AES-256 passphrase encryption.
 
 ---
 
-## ⚡ Quick Reference
-For a single-page printable reference of all keyboard shortcuts, scene metadata tags, and CLI flags, see **[`docs/CHEATSHEET.md`](CHEATSHEET.md)**.
+## 📖 3. Master Reference Documentation
+
+Every craft discipline in Ars Arcanum is paired with a masterclass reference manual in `docs/`:
+
+| Craft / Science Discipline | Master Reference Manual |
+| :--- | :--- |
+| **Scene Construction & Swain MRUs** | [`docs/SCENE_MECHANICS.md`](file:///docs/SCENE_MECHANICS.md) |
+| **Pacing & Provost Cadence** | [`docs/PACING.md`](file:///docs/PACING.md) |
+| **Interactive Fiction & Branching** | [`docs/BRANCHING_GRAPH.md`](file:///docs/BRANCHING_GRAPH.md) |
+| **Character Idiolects & Voice** | [`docs/VOICE.md`](file:///docs/VOICE.md) |
+| **Classical Rhetoric & Prose Style** | [`docs/STYLISTICS.md`](file:///docs/STYLISTICS.md) |
+| **Speculative Lexicons & Glossaries** | [`docs/CONCORDANCE.md`](file:///docs/CONCORDANCE.md) |
+| **8-Channel Sensory Immersion** | [`docs/SENSES.md`](file:///docs/SENSES.md) |
+| **Audio Proofing & Prosody** | [`docs/AUDIO_PROOF.md`](file:///docs/AUDIO_PROOF.md) |
+| **Editorial Personas & Critique** | [`docs/COUNCIL.md`](file:///docs/COUNCIL.md) |
+| **Astrophysics & Orbital Mechanics** | [`docs/ASTROPHYSICS.md`](file:///docs/ASTROPHYSICS.md) |
+| **Planetary Climate & Biomes** | [`docs/CLIMATE.md`](file:///docs/CLIMATE.md) |
+| **Trophic Ecology & Food Webs** | [`docs/ECOLOGY.md`](file:///docs/ECOLOGY.md) |
+| **Lanchester Tactical Warfare** | [`docs/TACTICAL_SIM.md`](file:///docs/TACTICAL_SIM.md) |
+| **Hard Magic System Thermodynamics** | [`docs/MAGIC_SYSTEM.md`](file:///docs/MAGIC_SYSTEM.md) |
+| **Conlang Phonotactics & Grammar** | [`docs/CONLANG.md`](file:///docs/CONLANG.md) |
 
 ---
 
-## 💡 3. Recommended Author Workflow
+## 📚 4. Recommended Reading & Media
 
-```mermaid
-flowchart LR
-    A["1. Worldbuild in Obsidian\n(Characters, Lore, Maps)"] --> B["2. Draft Scenes in Word / Markdown\n(Chapters & Scene Tags)"]
-    B --> C["3. Snapshot & Sync\n(Quick Snapshot & Sync DOCX)"]
-    C --> D["4. Polish & Audit\n(Stylistics, Pacing, Consistency)"]
-    D --> E["5. One-Click Publish\n(Print PDF, EPUB, DOCX)"]
-```
-
----
-
-## ❓ Frequently Asked Questions
-
-**Q: Do I need an internet connection?**  
-**A:** No. Ars Arcanum is 100% local-first and works completely offline. Zero telemetry, zero cloud dependencies.
-
-**Q: Where are my files stored?**  
-**A:** Everything lives under your home directory:
-- `~/Universes/<YourUniverse>/<YourWorld>/` (World lore bibles)
-- `~/Manuscripts/<YourManuscript>/` (Novels, chapters, and exported books)
-
-**Q: How do I export my book?**  
-**A:** Open the Control Center, switch to **"📚 Publishing & Exports"**, select your volume and trim size (e.g. US Trade 6x9), and click **"1-Click Publish"**. Your PDF, EPUB, and DOCX files will appear in `~/Manuscripts/<Name>/Exports/`.
+1. **McKee, Robert** (1997). *Story: Substance, Structure, Style and the Principles of Screenwriting*. ReganBooks.
+2. **Truby, John** (2007). *The Anatomy of Story: 22 Steps to Becoming a Master Storyteller*. Faber & Faber.
+3. **Swain, Dwight V.** (1965). *Techniques of the Selling Writer*. University of Oklahoma Press.
+4. **Dole, Stephen H.** (1964). *Habitable Planets for Man*. RAND Corporation.
+5. **Rosenfelder, Mark** (2010). *The Language Construction Kit*. Yonagu Books.
+6. **Brandon Sanderson** (2020). *Creative Writing Lectures at BYU* (YouTube Course).
+7. **Artifexian & Biblaridion** (YouTube Worldbuilding & Conlang Masterclasses).

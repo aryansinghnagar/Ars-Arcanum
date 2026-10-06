@@ -1,23 +1,19 @@
-# Universal Knowledge Mesh, Causal Cascades & Cross-Domain Resonance (`docs/RESONANCE.md`)
+# Universal Knowledge Mesh, Causal Cascades & Thematic Resonance (`docs/RESONANCE.md`)
 > **Domain Z: Universal Interconnectivity, Synergy & Synthesis Mesh** | **CLI:** `arcanum resonance` / `arcanum cascade` / `arcanum spark` / `arcanum bridge`
 
 ---
 
 ## 1. Overview & Theoretical Rationale
 
-The **Universal Resonance & Knowledge Mesh Engine** (`scripts/lib/resonance.py`) is a deterministic synthesis, graph-theoretic cross-domain bridge, and causal cascade engine designed to weave all 50+ domain engines of *Ars Arcanum* into an interconnected worldbuilding ecosystem.
+The **Ars Arcanum Universal Resonance & Knowledge Mesh Engine** (`scripts/lib/resonance.py`) is a deterministic synthesis, graph-theoretic cross-domain bridge, and causal cascade engine designed to weave all 50+ domain modules of *Ars Arcanum* into an interconnected, non-contradictory worldbuilding ecosystem.
 
-Authors and narrative architects frequently encounter cognitive silos when building intricate speculative universes:
-1. **Physical $\leftrightarrow$ Societal Disconnect**: Planetary axial tilt or stellar radiation models (`astrophysics`, `climate`) are modified without tracing their ripple effects into agrarian calendars, macroeconomics (`economy`), religious feast days, or strategic military campaigns (`tactical_sim`).
-2. **Linguistic $\leftrightarrow$ Metaphysical Isolation**: Conlang phonetic shifts (`conlang`) and naming conventions evolve separately from magical resonance frequencies (`magic_system`) or geological strata (`cartography`).
-3. **Narrative $\leftrightarrow$ Stylistic Decoupling**: Plot tension arcs (`pacing`, `structure`) lack structural isomorphism with character cadence rhythms (`voice`, `stylistics`) or sensory palettes (`senses`, `ambient`).
-4. **Lack of Emergent Combinatorial Sparks**: Ideation stalls when world elements are designed in vacuum rather than sparked through multidisciplinary analogies.
+Authors and speculative worldbuilders frequently encounter cognitive silos:
+1. **Cosmological $\leftrightarrow$ Societal Decoupling**: Modifying planetary axial tilt or stellar classification (`astrophysics`, `climate`) without propagating the downstream effects into agrarian calendars, macroeconomic trade cycles (`economy`), religious feast days, and military campaigning seasons (`tactical_sim`).
+2. **Linguistic $\leftrightarrow$ Metaphysical Isolation**: Conlang phonetic shifts and naming conventions (`conlang`) evolving independently from metaphysical casting runes (`magic_system`).
+3. **Thematic $\leftrightarrow$ Structural Disconnect**: Plot tension arcs (`pacing`, `structure`) lacking structural isomorphism with character dialogue leitmotifs (`voice`, `stylistics`) and sensory palettes (`senses`).
+4. **Causal Circularity & Orphaned Nodes**: Unchecked cross-domain dependencies producing causal paradoxes (cycles in directed dependency graphs) or ungrounded lore fragments.
 
-The Resonance Engine bridges these silos by mapping all domain engines and craft features into a weighted bi-directional graph across 5 master domain pillars, calculating multi-hop causal cascades, finding shortest metaphorical paths between disparate concepts, and auditing global world coherence.
-
----
-
-## 2. Universal Architecture & 5-Pillar Topology
+The Resonance Engine maps all entities, domains, and thematic motifs into a weighted Directed Acyclic Graph (DAG) across 5 master pillars, executes multi-hop causal simulations, performs transitive closure reachability analyses, and audits global world coherence.
 
 ```mermaid
 flowchart TD
@@ -25,115 +21,167 @@ flowchart TD
     P2["**Pillar 2: Society & Systems**<br><i>economy, factions, genealogy, conlang, tactical_sim</i>"]
     P3["**Pillar 3: Narrative & Chronology**<br><i>causality, magic_system, timeline_sync, story_canvas, pacing</i>"]
     P4["**Pillar 4: Stylistics & Senses**<br><i>voice, stylistics, senses, ambient, idioms</i>"]
-    P5["**Pillar 5: Authoring OS & Diagnostics**<br><i>world_doctor, corpus_export, local_rag, omnibus, zen_studio</i>"]
+    P5["**Pillar 5: Authoring OS & Diagnostics**<br><i>world_doctor, corpus_export, omnibus, zen_studio</i>"]
 
-    P1 <==>|Biogeography, Seasonal Trade, Resource Scarcity| P2
-    P2 <==>|Factional Strife, Dynastic Oaths, Cultural Clashes| P3
-    P3 <==>|Dramaturgical Pacing, Sensory Cadence, Dialogic Idiolects| P4
-    P4 <==>|Zen Drafting Feedback, Structural Auditing| P5
-    P5 <==>|Global Verification, Graph Traversal| P1
-```
-
-### 2.1 The 5 Master Pillars
-1. **Cosmology & Physics**: Planetary orbits, tidal ranges, biomes, geological formations, terrain networks, and celestial timekeeping.
-2. **Society & Systems**: Trade networks, currencies, lineage genetics, political power structures, linguistic syntax, and military doctrine.
-3. **Narrative & Chronology**: Non-linear causality DAGs, metaphysical magic conservation, dual-track timeline sync, story corkboard, and plot tension matrices.
-4. **Stylistics & Senses**: Character idiolect signatures, readability metrics, 5-sense sensory saturation, ambient atmospheric acoustic palettes, and cultural figures of speech.
-5. **Authoring OS & Diagnostics**: Inconsistency diagnosis (`world_doctor`), multi-volume continuity, SQLite/FTS5 semantic retrieval (`local_rag`), corpus export, and distraction-free drafting (`zen_studio`).
-
----
-
-## 3. Core Engine Mechanics & Mathematical Invariants
-
-### 3.1 Causal Cascade Simulation
-When an author alters a fundamental worldbuilding parameter $u$, the change cascades through the graph $G = (V, E)$:
-
-$$\text{Impact}(v) = \text{InitialMagnitude}(u) \cdot \prod_{e=(i, j) \in \text{Path}(u, v)} \text{EdgeWeight}(e) \cdot \text{DampingFactor}^{d(u, v)}$$
-
-- **Damping Factor**: $\gamma = 0.85$ per edge traversal, preventing infinite energetic amplification.
-- **Forward-Chaining Horizon**: Explores up to $k$ hops (default: 4) across physical, socioeconomic, and narrative boundaries.
-- **Multi-Perspective Resolution Pathways**:
-  - *Hard Realism*: Physical and mathematical direct consequences.
-  - *Speculative Trope*: Genre-specific narrative drama and mythological resonance.
-  - *Creative Sovereignty*: The author's ultimate narrative prerogative and symbolic balance.
-
-### 3.2 Shortest Path Conceptual Bridging
-To connect two seemingly unrelated elements (e.g. `astrophysics.axial_tilt` and `conlang.phonetics`), the engine executes breadth-first shortest-path traversals on the weighted resonance graph:
-
-$$\text{Path}^* = \arg\min_{\text{paths } P} \sum_{e \in P} \frac{1}{\text{Weight}(e)}$$
-
-The path produces intermediate storytelling steps and narrative metaphor rationales at every hop.
-
-### 3.3 Combinatorial Spark Generation
-The spark engine samples cross-pillar node pairs across distinct conceptual layers, testing for structural isomorphisms (e.g., *Pressure Accumulation $\leftrightarrow$ Political Rebellion*, *Orbital Resonance $\leftrightarrow$ Rhythmic Stanza Metre*), and outputs actionable prompts for scene drafting and worldbuilding.
-
----
-
-## 4. CLI Command Reference
-
-### Inspect Ecosystem Knowledge Mesh
-```bash
-# View textual summary of pillars, node count, and cross-domain edge density
-python -m scripts.lib.cli resonance mesh
-
-# Export single-file, 100% offline interactive HTML network visualization
-python -m scripts.lib.cli resonance mesh --html reports/resonance_mesh.html
-```
-
-### Simulate Causal Cascades
-```bash
-# Trace ripple effects of a planetary parameter change
-python -m scripts.lib.cli cascade "Axial tilt increased to 38.5 degrees" --hops 3
-
-# Trace a metaphysical or economic shock
-python -m scripts.lib.cli cascade "Silver mana conductivity halved by stellar flare"
-```
-
-### Synthesize Cross-Domain Sparks
-```bash
-# Generate 5 interdisciplinary worldbuilding sparks
-python -m scripts.lib.cli spark --count 5
-
-# Focus sparks on specific pillars
-python -m scripts.lib.cli spark --pillar "Cosmology & Physics" --pillar "Society & Systems"
-```
-
-### Discover Metaphorical Bridges
-```bash
-# Connect two disparate engine domains
-python -m scripts.lib.cli bridge "astrophysics" "conlang"
-python -m scripts.lib.cli bridge "tactical_sim" "ambient"
-```
-
-### Audit Inter-Engine Coherence
-```bash
-# Scan project manuscripts and world lore for cross-domain integrity
-python -m scripts.lib.cli resonance audit
+    P1 <==>|Biogeography, Solar Calendars, Scarcity| P2
+    P2 <==>|Factional Oaths, Feudal Succession, Clashes| P3
+    P3 <==>|Dramaturgical Pacing, Sensory Cadence| P4
+    P4 <==>|Zen Telemetry, Stylistic Validation| P5
+    P5 <==>|Global Graph Verification, Causal Traversal| P1
 ```
 
 ---
 
-## 5. UI Integration Surfaces
+## 2. Graph Theory & Mathematical Formulations
 
-### 5.1 Desktop Studio Hub (`🌌 Resonance & Synergy Mesh`)
-- **Live Ecosystem Telemetry**: Node counts, inter-engine edge counts, and cross-pillar density gauges.
-- **Causal Cascade Sandbox**: Input a hypothetical disruption and visualize multi-hop consequences with advisory resolution tabs (*Hard Realism*, *Speculative Trope*, *Creative Sovereignty*).
-- **Creative Spark Lab**: Instant combinatorial ideation generator with copy-to-clipboard markdown cards.
-- **Visual Network Graph**: Interactive canvas rendering cross-pillar nodes and real-time causal paths.
+### 2.1 Causal Cascade Simulation & Propagation
+Let the worldbuilding knowledge mesh be a directed graph $G = (V, E, W)$, where vertices $v \in V$ represent domain parameters (e.g., `axial_tilt`, `crop_yield`, `grain_price`, `peasant_revolt`) and directed edges $e = (u, v) \in E$ represent causal dependencies with coupling weight $W(u, v) \in [-1.0, 1.0]$.
 
-### 5.2 Zen Drafting Studio (`💡 Sparks` Drawer)
-- Offline, distraction-free drafting drawer embedding live cross-domain prompts.
-- Click **"Roll Cross-Domain Spark"** during writing block to inject multidisciplinary analogies directly into the draft buffer.
+When an author modifies parameter $u_0$ by perturbation $\delta_0$, the impact cascades to downstream node $v$ along path $\pi = (u_0, u_1, \dots, u_k = v)$:
+
+$$\text{Impact}(v) = \delta_0 \cdot \prod_{i=0}^{k-1} W(u_i, u_{i+1}) \cdot \gamma^k$$
+
+Where $\gamma \in (0, 1]$ is the spatial/causal damping factor ($\gamma = 0.85$ default) preventing runaway energetic amplification over long traversal chains.
+
+```
+[ Axial Tilt (28.5°) ] --(+0.90)--> [ Extreme Seasonal Temp Δ ] --(+0.80)--> [ Winter Crop Failure ]
+                                                                                   |
+                                                                                (+0.85)
+                                                                                   v
+[ Feudal Siege Season Delayed ] <--(-0.75)-- [ Urban Grain Price Spike ] <--------+
+```
+
+### 2.2 Topological Sort & Acyclicity Guarantee
+To ensure logical consistency and prevent causal bootstrap paradoxes, the dependency graph must be a DAG (Directed Acyclic Graph). The engine executes Kahn's Algorithm or DFS-based topological ordering in $\mathcal{O}(|V| + |E|)$ time:
+
+$$\text{Valid World Order}: \quad \forall (u, v) \in E, \quad \text{Order}(u) < \text{Order}(v)$$
+
+If a cycle is detected (e.g., $A \to B \to C \to A$), the engine flags `RES-101: CAUSAL_CYCLE_DETECTED`.
+
+### 2.3 Transitive Closure Reachability Matrix
+The global reachability matrix $\mathbf{T} \in \{0, 1\}^{|V| \times |V|}$ is calculated via the Floyd-Warshall algorithm ($\mathcal{O}(|V|^3)$) or Boolean matrix exponentiation:
+
+$$\mathbf{T} = \bigvee_{k=1}^{|V|} \mathbf{A}^k$$
+
+Where $\mathbf{A}$ is the adjacency matrix. $\mathbf{T}_{ij} = 1$ indicates that altering domain parameter $i$ inevitably cascades into parameter $j$.
+
+### 2.4 Graph Centrality & Worldbuilding Keystone Metrics
+To identify **Keystone Worldbuilding Concepts** (elements whose alteration shatters the widest array of lore systems), the engine calculates:
+1. **Betweenness Centrality ($C_B$)**:
+   $$C_B(v) = \sum_{s \ne v \ne t} \frac{\sigma_{st}(v)}{\sigma_{st}}$$
+2. **Eigenvector Centrality / PageRank ($\vec{x}$)**:
+   $$\lambda \vec{x} = \mathbf{A}^T \vec{x}$$
+
+### 2.5 Semantic Echo Lattices & Leitmotif Recurrence
+In prose analysis, recurring thematic motifs $M$ (e.g. "Broken Mirrors", "Ash", "Clockwork") are tracked across narrative time:
+
+$$\text{Resonance}(M, t) = \sum_{k=1}^{K} \text{Salience}(M, k) \cdot \exp\left( -\frac{(t - t_k)^2}{2\sigma_{\text{memory}}^2} \right)$$
 
 ---
 
-## 6. Verification & Invariants
+## 3. Subfeatures Matrix & Diagnostic Codes
 
-```bash
-# Execute the complete Resonance Engine unit and integration test suite
-python -m unittest tests/test_resonance.py
+| Diagnostic Code | Flag | Root Cause | Resolution |
+|---|---|---|---|
+| `RES-101` | `CAUSAL_CYCLE` | Circular dependency in lore rules (e.g. Magic derives from Gods who derive from Magic). | Break cycle by designating one node as the primordial uncaused axiom. |
+| `RES-102` | `ORPHAN_KNOWLEDGE_NODE` | Lore element has in-degree 0 and out-degree 0 across the entire graph. | Connect node to regional economy, faction history, or geographic landmark. |
+| `RES-103` | `UNPROPAGATED_CASCADE` | Fundamental cosmological/geological change made without updating downstream societal files. | Run `arcanum cascade` and accept suggested automated adjustments. |
+| `RES-104` | `LEITMOTIF_EXTINCTION` | Core thematic motif introduced in Act I disappears completely from Act II & III. | Re-introduce sensory echo in climax reflection scene. |
+| `RES-105` | `CROSS_DOMAIN_CONTRADICTION` | Physical law declared in `Astrophysics` directly contradicted by `Cartography` travel times. | Synchronize orbital distances with overland marching velocity. |
 
-# Verify static typing and style compliance
-ruff check scripts/lib/resonance.py
-mypy scripts/lib/resonance.py
+---
+
+## 4. Frontmatter Directives & YAML Schemas
+
+### 4.1 Knowledge Mesh Node Declaration (`World/Sociology/Economy/Grain_Trade.md`)
+```yaml
+---
+node_id: "grain_market"
+domain: "society_systems"
+category: "economy"
+parameters:
+  base_price_per_bushel: 4.5 # copper crowns
+  scarcity_elasticity: 1.8
+dependencies:
+  - source: "astrophysics.orbital_eccentricity"
+    weight: 0.75
+    mechanism: "Drives severity of winter frost duration."
+  - source: "ecology.locust_swarm_frequency"
+    weight: -0.60
+    mechanism: "Reduces annual crop harvest yield."
+downstream_impacts:
+  - target: "factions.peasant_guild.rebellion_risk"
+    weight: 0.85
+  - target: "military.garrison_ration_cost"
+    weight: 0.90
+thematic_leitmotifs:
+  - "The Weighing of the Scale"
+  - "Chaff in the Wind"
+---
 ```
+
+### 4.2 Scene Motif Directive (`Manuscript/Chapter-11.md`)
+```markdown
+# Chapter 11: The Bitter Harvest
+@motif: "Chaff in the Wind"
+@leitmotif_salience: 0.8
+@domain_link: "economy.grain_market"
+
+Old Willem ran dry grain through his fingers. It crumbled to dust like brittle bone.
+```
+
+---
+
+## 5. Worked Step-by-Step Example
+
+### Scenario: Shifting a Planet's Axial Tilt from $23.5^\circ \to 31.0^\circ$
+1. **Cosmology Trigger**: Planetary axial tilt increased by $\Delta = +7.5^\circ$.
+2. **First-Hop Cascade (`Climate`)**:
+   - Summer polar insolation increases by $+22\%$.
+   - Winter polar freezing deepens; equatorial thermal equator oscillates wildly.
+3. **Second-Hop Cascade (`Ecology & Agronomy`)**:
+   - Single annual harvest window shrinks from 180 days to 110 days in temperate zones.
+   - Crop yields drop by $35\%$ ($W = 0.85 \times 0.85 = 0.72$ net impact).
+4. **Third-Hop Cascade (`Society & Military`)**:
+   - Armies cannot sustain winter sieges; military campaigning restricted strictly to high summer ($t = 60\text{ days}$).
+   - Faction treaties enforce mandatory communal grain granaries protected by religious vows.
+5. **Fourth-Hop Cascade (`Narrative & Motifs`)**:
+   - Climax battle must take place before the "Black Frost Solstice" deadline (natural ticking clock).
+   - Verbal idiom generated: *"A word spoken before the frost"* (meaning an urgent, fleeting promise).
+
+---
+
+## 6. Recommended Reading, References & Media
+
+### 6.1 Foundational Craft & Academic Books
+- **Forster, E. M. (1927)**. *Aspects of the Novel*. Edward Arnold / Harcourt Brace. ISBN: 978-0156091800.  
+  *Introduced the foundational distinction between Story (chronological sequence) and Plot (causal connection), alongside musical rhythm and leitmotif patterns.*
+- **Frye, Northrop (1957)**. *Anatomy of Criticism: Four Essays*. Princeton University Press. ISBN: 978-0691012988.  
+  *The landmark work on archetypal criticism, mythos structures, and systematic literary taxonomy.*
+- **Hofstadter, Douglas R. (1979)**. *Gödel, Escher, Bach: An Eternal Golden Braid*. Basic Books. ISBN: 978-0465026562.  
+  *Masterpiece examining recursive systems, strange loops, self-reference, and fugue-like leitmotif weaving.*
+- **Pearl, Judea (2000)**. *Causality: Models, Reasoning, and Inference*. Cambridge University Press. ISBN: 978-0521895606.  
+  *The foundational mathematical text on Directed Acyclic Graphs (DAGs), causal inference, and counterfactual reasoning.*
+- **Bordwell, David (1985)**. *Narration in the Fiction Film*. University of Wisconsin Press. ISBN: 978-0299101749.  
+  *Exhaustive cognitive narratology study on syuzhet patterning, motif integration, and causal hypothesis testing.*
+
+### 7.2 Landmark Scientific / Worldbuilding Papers & Textbooks
+- **Wolf, Mark J. P. (2012)**. *Building Imaginary Worlds: The Theory and History of Subcreation*. Routledge. ISBN: 978-0415631204.  
+  *Formalizes world consistency, completeness, and invention across secondary-world causal systems.*
+- **Newman, Mark (2010)**. *Networks: An Introduction*. Oxford University Press. ISBN: 978-0199206650.  
+  *The authoritative scientific textbook on graph theory, centrality metrics, small-world phenomena, and network clustering.*
+
+### 7.3 Seminal Video Lectures, Masterclasses & Channels
+- **Isaac Arthur (SFIA, 2016–Present)**. *Science & Futurism with Isaac Arthur: Worldbuilding & Megastructures*. YouTube.  
+  *Exhaustive scientific examinations of interconnected speculative physics, planetary engineering, and downstream societal evolutions.*
+- **Artifexian (2015–Present)**. *Systematic Speculative Worldbuilding & Climate Dynamics*. YouTube.  
+  *Algorithmic step-by-step videos connecting stellar mechanics to weather, geology, and civilizations.*
+- **Biblaridion (2018–Present)**. *Alien Biospheres & Conlang Integration*. YouTube.  
+  *Masterclass series mapping evolutionary biologies to cultural linguistic frameworks.*
+- **Hello Future Me (Tim Hickson, 2020)**. *How to Create Thematic Resonance in Speculative Fiction*. YouTube.  
+  *Deep dive into integrating motifs, worldbuilding rules, and character dilemmas into a unified thematic core.*
+
+### 7.4 Landmark Speculative Case Studies
+- **Frank Herbert, *Dune* (1965)**: The undisputed masterclass in ecological-societal-theological causal resonance (Sandworms $\to$ Melange $\to$ Spacing Guild $\to$ Imperial Geopolitics).
+- **Ursula K. Le Guin, *The Left Hand of Darkness* (1969)**: Rigorous causal integration of ambisexual biology with political culture, language, and philosophy (Karhide vs Orgoreyn).
+- **Kim Stanley Robinson, *Red Mars* (1992)**: Textbook simulation of geological terraforming triggering sociopolitical revolutions and legal schisms.

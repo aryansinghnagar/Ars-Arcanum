@@ -40,7 +40,7 @@ class TestRegistry(unittest.TestCase):
         self.assertIn("migrate", core_names)
         self.assertIn("docx_sync", core_names)
         self.assertIn("world_doctor", core_names)
-        self.assertIn("concordance", core_names)
+        self.assertIn("vault_search", core_names)
         self.assertIn("diagnostics", core_names)
         self.assertIn("manuscript_scaffold", core_names)
 
@@ -53,7 +53,7 @@ class TestRegistry(unittest.TestCase):
         self.assertIn("causality", craft_names)
         self.assertIn("factions", craft_names)
         self.assertIn("magic_system", craft_names)
-        self.assertIn("voice", craft_names)
+        self.assertIn("dramatis_personae", craft_names)
 
     def test_get_engine_by_name_and_alias(self):
         # By primary name
@@ -92,8 +92,7 @@ class TestRegistry(unittest.TestCase):
     def test_get_engine_lookups_and_aliases(self):
         # Hyphenated vs underscore
         self.assertIsNotNone(get_engine("magic-system"))
-        self.assertIsNotNone(get_engine("scene-mechanics"))
-        self.assertIsNotNone(get_engine("branching-graph"))
+        self.assertIsNotNone(get_engine("vault-search"))
         self.assertIsNotNone(get_engine("series-continuity"))
         self.assertIsNotNone(get_engine("docx-sync"))
         self.assertIsNotNone(get_engine("world-doctor"))
@@ -115,19 +114,23 @@ class TestRegistry(unittest.TestCase):
         self.assertTrue(len(doc["storytelling_relevance"]) > 10)
         self.assertTrue(len(doc["writing_relevance"]) > 10)
         self.assertGreaterEqual(len(doc["advisory_guidance"]), 1)
+        self.assertIn("theory_references", doc)
+        self.assertGreaterEqual(len(doc["theory_references"]), 1)
+        self.assertTrue(any("Kopparapu" in ref.get("title", "") or "Kasting" in ref.get("title", "") or "Barnes" in ref.get("title", "") for ref in doc["theory_references"]))
 
         # Hyphenated lookup in get_engine_docs
         doc_hyphen = get_engine_docs("magic-system")
         self.assertIsNotNone(doc_hyphen)
         assert doc_hyphen is not None
         self.assertEqual(doc_hyphen["name"], "magic_system")
+        self.assertGreaterEqual(len(doc_hyphen["theory_references"]), 1)
 
         # Non-existent
         self.assertIsNone(get_engine_docs("non_existent_fake"))
 
     def test_get_all_engine_docs(self):
         all_docs = get_all_engine_docs()
-        self.assertGreaterEqual(len(all_docs), 50)
+        self.assertGreaterEqual(len(all_docs), 47)
         for d in all_docs:
             self.assertIn("name", d)
             self.assertIn("title", d)
@@ -138,6 +141,7 @@ class TestRegistry(unittest.TestCase):
             self.assertIn("storytelling_relevance", d)
             self.assertIn("writing_relevance", d)
             self.assertIn("advisory_guidance", d)
+            self.assertIn("theory_references", d)
             for adv in d["advisory_guidance"]:
                 self.assertIn("pattern", adv)
                 self.assertIn("option_a", adv)
@@ -149,6 +153,13 @@ class TestRegistry(unittest.TestCase):
         self.assertIn("MAGIC SYSTEM CONSTRAINTS", formatted)
         self.assertIn("Engine Logic & Scientific / Structural Foundations:", formatted)
         self.assertIn("Advisory Mechanics & Creative Freedom Resolution Pathways:", formatted)
+        self.assertIn("Theoretical Foundations & Reference Sources:", formatted)
+
+        # Sources mode
+        sources_fmt = format_engine_doc("astrophysics", mode="sources")
+        self.assertIn("THEORETICAL FOUNDATIONS & REFERENCE SOURCES", sources_fmt)
+        self.assertIn("Citation:", sources_fmt)
+        self.assertIn("http", sources_fmt)
 
         # Formatted via hyphenated string
         formatted_hyphen = format_engine_doc("magic-system")

@@ -1,22 +1,13 @@
-# Hard Magic Systems, Arcane Constraints & Sanderson Laws (`docs/MAGIC_SYSTEM.md`)
+# Hard Magic Systems, Arcane Thermodynamics & Sanderson Laws (`docs/MAGIC_SYSTEM.md`)
 > **Domain C: Magic Systems, Metaphysics, Metasystems & Causality** | **CLI:** `arcanum magic-check` / `arcanum magic-report`
 
 ---
 
 ## 1. Overview & Theoretical Rationale
 
-The **Ars Arcanum Magic System Engine** (`scripts/lib/magic_system.py`) is an offline metaphysical constraint validator, thermodynamic balance checker, and narrative magic auditor built for fantasy worldbuilders and rationalist fiction authors.
+The **Ars Arcanum Magic System Engine** (`scripts/lib/magic_system.py`) is an offline metaphysical constraint validator, thermodynamic balance checker, and narrative magic auditor built for rationalist fantasy worldbuilders, hard magic designers, and speculative fiction authors.
 
-Unconstrained or inconsistent magic systems dissolve dramatic tension and ruin narrative stakes (*Deus ex Machina*). Brandon Sanderson's foundational Laws of Magic state:
-1. **Sanderson's First Law**: An author's ability to solve problems with magic in a satisfying way is directly proportional to how well the reader understands said magic.
-2. **Sanderson's Second Law**: Limitations > Powers. What a magic user *cannot* do is vastly more interesting than what they *can* do.
-3. **Sanderson's Third Law**: Expand what you already have before you add something new.
-
-The Magic System Engine enforces these laws deterministically: it scans metaphysical definitions in `World/Magic-Technology/*.md`, verifies character arcane tiers and inventories in `World/Characters/*.md`, validates casting actions and costs in manuscript scenes, tracks biological/arcane fatigue overdraw, and prevents hard metaphysical contradictions (such as spontaneous resurrection or infinite energy loops).
-
----
-
-## 2. Metaphysical Principles & Mathematical Formulation
+Unconstrained, hand-waved, or internally contradictory magic systems dissolve dramatic stakes, eliminate tension, and reduce climactic resolutions to cheap *Deus ex Machina*. A well-crafted magic system operates as a coherent set of physical, metaphysical, and economic laws whose strict boundaries create genuine problem-solving drama.
 
 ```mermaid
 flowchart TD
@@ -26,152 +17,210 @@ flowchart TD
     
     Validator & CostEngine --> Audit["Metaphysical Integrity Auditor"]
     Audit --> D101["MAG-101: Tier Limit Breach"]
-    Audit --> D102["MAG-102: Missing Catalyst"]
-    Audit --> D103["MAG-103: Hard Limitation Breach"]
-    Audit --> D104["MAG-104: Fatigue Overdraw Warning"]
+    Audit --> D102["MAG-102: Missing Catalyst / Reagent Depletion"]
+    Audit --> D103["MAG-103: Hard Limitation Breach (Rule Broken)"]
+    Audit --> D104["MAG-104: Fatigue Overdraw Warning (Burnout)"]
+    Audit --> D105["MAG-105: Thermodynamic Conservation Violation"]
     
     Audit --> Dashboard["Offline Interactive HTML Arcane Matrix"]
 ```
 
-### 2.1 Thermodynamic Conservation & Energy Balances
-In rationalist hard magic systems, magical energy obeys conservation laws where arcane energy $E_{\text{arcane}}$ derives from a defined physical or metaphysical reservoir $E_{\text{source}}$:
+---
 
-$$E_{\text{output}} = \eta \cdot E_{\text{source}} - E_{\text{entropy}}$$
+## 2. Sanderson's Laws of Magic & The Metaphysical Spectrum
 
-Where $\eta \in (0, 1)$ represents casting efficiency and $E_{\text{entropy}}$ represents heat, acoustic shock, or arcane radiation released into the surrounding environment.
+```
++-----------------------------------------------------------------------------------+
+|                           THE HARD-SOFT MAGIC SPECTRUM                            |
++---------------------------------------------------+-------------------------------+
+| SOFT MAGIC (Mystical / Numeneous)                 | HARD MAGIC (Rational / Lawful)|
+| - Rules unknown to reader                         | - Strict, transparent rules   |
+| - Evokes awe, dread, wonder                       | - Operates like physics       |
+| - Used to create problems, not solve them         | - Used for proactive solutions|
+| - Examples: Tolkien's Gandalf, Miyazaki spirits   | - Examples: Allomancy, Sympathy|
++---------------------------------------------------+-------------------------------+
+```
 
-### 2.2 Fatigue Accumulation & Biological Overdraw
-For a caster performing $K$ magical invocations in a scene with costs $C = [c_1, c_2, \dots, c_K]$:
-
-$$F_{\text{current}}(t) = \sum_{i=1}^k c_i \cdot e^{-\lambda (t - t_i)}$$
-
-$$\text{Fatigue Overdraw Alert} \iff F_{\text{current}} > F_{\text{max}} \quad (\text{Triggers MAG-104})$$
-
-Where $\lambda$ is the natural metabolic recovery rate and $F_{\text{max}}$ is the caster's biological threshold.
-
-### 2.3 Tier Boundary & Catalyst Predicates
-Let a spell $S$ require tier level $T(S)$ and reagent set $\mathcal{R}(S)$. A character $C$ with tier $T(C)$ and inventory $\mathcal{I}(C)$ is legally permitted to cast $S$ if and only if:
-
-$$T(C) \ge T(S) \quad \land \quad \mathcal{R}(S) \subseteq \mathcal{I}(C) \cup \mathcal{R}_{\text{scene}}$$
-
-$$\text{Violations}: \quad T(C) < T(S) \implies \texttt{MAG-101}, \qquad \mathcal{R}(S) \not\subseteq (\mathcal{I} \cup \mathcal{R}_{\text{scene}}) \implies \texttt{MAG-102}$$
+### 2.1 Brandon Sanderson's Four Laws of Magic
+1. **The Zeroth Law**: *Err on the side of awesome, but justify it internally.*  
+   Make the magic thrilling, evocative, and visually striking, but ensure its internal logic supports the premise without breaking world invariants.
+2. **Sanderson's First Law**: *An author's ability to solve problems with magic in a satisfying way is directly proportional to how well the reader understands said magic.*  
+   $$\text{Satisfaction}(\text{Solution}) \propto \text{Comprehension}(\text{Rules})$$  
+   If the audience does not understand how a spell works before the climax, using that spell to defeat the antagonist feels unearned.
+3. **Sanderson's Second Law**: *Limitations are greater than powers.*  
+   $$\text{Dramatic Potential} = f(\text{Limitations}, \text{Weaknesses}, \text{Costs}) \gg f(\text{Raw Power})$$  
+   Superman is interesting not because he can lift buildings, but because Kryptonite exists and he cannot save everyone at once. What a magic user *cannot* do drives plot tension.
+4. **Sanderson's Third Law**: *Expand what you already have before you add something new.*  
+   $$\text{World Coherence} = \frac{\text{Interconnected Depth}}{\text{Number of Disparate Magic Types}}$$  
+   Extrapolate cultural, industrial, military, and culinary consequences of a single magical rule rather than inventing five separate magic systems.
 
 ---
 
-## 3. Subfeatures Matrix
+## 3. Arcane Thermodynamics & Mathematical Invariants
 
-| Subfeature | Algorithmic Mechanism | Diagnostic Output / Rule | Narrative Significance |
+### 3.1 Energy Conservation Equation for Magic
+In hard magic systems, arcane energy obeys fundamental thermodynamic conservation principles. Magical work $\Delta E_{\text{magic}}$ derived from a source reservoir $E_{\text{source}}$ must satisfy:
+
+$$\Delta E_{\text{magic}} = \eta \cdot E_{\text{source}} - C_{\text{strain}} - E_{\text{entropy}}$$
+
+Where:
+- $E_{\text{source}}$: The energy reservoir (Metabolic calories, ambient thermal energy, kinetic momentum, stored solar flux, or catalytic chemical bonds).
+- $\eta \in (0.0, 1.0)$: The casting efficiency coefficient (governed by caster skill, attunement tier, and conduit quality).
+- $C_{\text{strain}}$: Somatic, neurological, or metaphysical cost absorbed directly by the caster's body.
+- $E_{\text{entropy}}$: Waste heat, acoustic shock, ionizing radiation, or ethereal miasma released into the local environment.
+
+### 3.2 Caster Exhaustion & Overdraw Threshold Curves
+For a caster performing $K$ magical invocations at timestamps $t_1, t_2, \dots, t_K$ with energetic strain costs $c_1, c_2, \dots, c_K$:
+
+$$F(t) = \sum_{i=1}^{K} c_i \cdot \exp\left( -\lambda (t - t_i) \right) \cdot \mathbb{I}(t \ge t_i)$$
+
+Where $\lambda$ is the biological/arcane metabolic recovery rate constant ($\text{time}^{-1}$).
+
+```
+Fatigue F(t)
+ ^
+ |             * Cast 3 (Overdraw!) -> MAG-104 Alert
+F_max + - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ |                 * Cast 2
+ |       * Cast 1   \
+ |      / \          \
+ |     /   \          \
+ 0 +--+-----+----------+------------------------------------> Time (t)
+```
+
+$$\text{Fatigue State} = \begin{cases} 
+\text{Optimal} & \text{if } F(t) \le 0.50 F_{\text{max}} \\
+\text{Strained} & \text{if } 0.50 F_{\text{max}} < F(t) \le F_{\text{max}} \\
+\text{Overdrawn / Burnout} & \text{if } F(t) > F_{\text{max}} \quad (\text{Triggers MAG-104: Hemorrhage / Loss of Power})
+\end{cases}$$
+
+### 3.3 Catalyst Depletion & Reagent Economics
+Let spell $S$ require a consumable reagent quantity $q_{\text{req}}(R)$. In an economic ecosystem, the market price $P(R)$ of arcane catalysts follows supply scarcity and hazardous extraction curves:
+
+$$P(R) = P_0 \cdot \left( \frac{S_0}{S_{\text{current}}} \right)^\alpha \cdot (1 + \tau_{\text{risk}})$$
+
+Where $S_{\text{current}}$ is regional remaining stockpiles, and $\tau_{\text{risk}}$ reflects guild embargoes or monster nest proximity.
+
+---
+
+## 4. Subfeatures Matrix & Diagnostic Codes
+
+| Diagnostic Code | Flag | Trigger Condition | Worldbuilding Correction |
 |---|---|---|---|
-| **Magic Rule & Tier Compiler** | Parses `World/Magic-Technology/*.md` for constraints and affinities. | Builds lookup tables of valid spells, reagents, and tier costs. | Centralizes metaphysical rules into an authoritative engine model. |
-| **Character Attunement Profiler** | Scans character dossiers for tier ratings and focus items. | Generates cast capability profiles per character. | Prevents novice characters from casting grandmaster spells accidentally. |
-| **Scene Semantic Casting Auditor**| Evaluates `@cast`, `@magic`, `@reagent`, and `@cost` in chapters. | Emits `MAG-101` through `MAG-104` diagnostic flags. | Ensures battle and magic scenes maintain logical, rules-bound tension. |
-| **Hard Limitation Enforcer** | Checks prose against `hard_limitations` forbidden strings. | Emits `MAG-103: HARD_LIMIT_BREACH` with line references. | Eliminates narrative-breaking plot holes (e.g. unearned resurrections). |
-| **Fatigue Overdraw Tracker** | Accumulates casting costs per scene and checks against caster max. | Emits `MAG-104: FATIGUE_OVERDRAW`. | Enforces biological or psychological costs for powerful magic. |
+| `MAG-101` | `TIER_LIMIT_BREACH` | Caster tier $T(C) < T_{\text{req}}(S)$ without external amplifier relic. | Lower spell circle, raise character attunement, or provide sacrificial catalyst. |
+| `MAG-102` | `MISSING_REAGENT` | Scene casting action `@cast` without required item in character inventory $\mathcal{I}(C)$. | Add prior scene where character harvests/purchases reagent. |
+| `MAG-103` | `HARD_LIMIT_BREACH` | Casting violates declared hard limitation (e.g. creating true life, teleporting through lead). | Reframe action using indirect physical application of valid rules. |
+| `MAG-104` | `FATIGUE_OVERDRAW` | Rolling fatigue $F(t) > F_{\text{max}}$. | Depict physical consequences: unconsciousness, ruptured capillaries, permanent power loss. |
+| `MAG-105` | `THERMODYNAMIC_DEFICIT` | Output work exceeds input source by $> 100\times$ without ambient reservoir. | Account for thermal heat sink or environmental cooling backlash. |
+| `MAG-106` | `UNEXPLAINED_RECOVERY` | Caster recovers from maximum burnout in minutes without medical/alchemical intervention. | Enforce realistic recovery downtime or permanent scars. |
 
 ---
 
-## 4. Author Extension & Configuration Guide
+## 5. Frontmatter Directives & YAML Schemas
 
-### 4.1 Magic System Lore Dossier (`World/Magic-Technology/Aether_Weaving.md`)
-```markdown
+### 5.1 Magic System Rule Declaration (`World/Magic-Technology/Hemocraft.md`)
+```yaml
 ---
-name: "Aether Weaving"
-type: magic_tech_system
-classification: "Hard Magic"
-source_of_power: "Atmospheric Aether"
-danger_cost: "High"
-max_tier: 5
-disciplines:
-  - "Pyromancy"
-  - "Chronomancy"
-catalysts:
-  - "Ruby Focus"
-  - "Silver Thread"
+magic_system: "Hemomancy"
+paradigm: "hard"
+law_alignment: "sanderson_hard"
+source_reservoir: "somatic_metabolic_blood"
+efficiency_coefficient: 0.72
 hard_limitations:
-  - "Cannot resurrect the dead"
-  - "Cannot create matter from nothing"
-  - "Cannot travel backwards in time"
+  - "Cannot animate inorganic stone or dead bone."
+  - "Cannot transmute blood type; requires genetic compatibility."
+  - "Cannot reverse brain death after 3 minutes."
+costs:
+  somatic_strain: "vascular_pressure_increase"
+  environmental_entropy: "localized_temperature_drop"
+catalysts:
+  - id: "refined_vitriol"
+    consumption_rate: 1.0 # grams per cast
+    rarity: "uncommon"
+tiers:
+  1: "Capillary Shaping (Minor lacerations, needles)"
+  2: "Arterial Weaving (Blades, armor hardening)"
+  3: "Sanguine Puppet (External motor control of living targets)"
 ---
-
-# Aether Weaving
-Aether Weaving manipulates ambient light and heat through focused crystalline prisms.
 ```
 
-### 4.2 Character Arcane Attunement (`World/Characters/Valen.md`)
+### 5.2 Character Arcane Dossier (`World/Characters/Kaelen.md`)
+```yaml
+---
+name: "Kaelen Vane"
+attunement:
+  system: "Hemomancy"
+  tier: 2
+  max_fatigue: 100.0
+  recovery_rate: 0.05 # λ per minute
+inventory:
+  - item: "refined_vitriol"
+    quantity: 4.5
+  - item: "obsidian_lancet"
+---
+```
+
+### 5.3 Scene In-Text Directives (`Manuscript/Chapter-14.md`)
 ```markdown
----
-name: "Valen Vance"
-type: character
-role: Protagonist
-magic_tier: 2
-magic_ability: "Pyromancy"
-catalyst: "Ruby Focus"
-max_fatigue: 80
----
-```
+# Chapter 14: The Blood Bastion
+@cast: Arterial_Shield
+@system: Hemomancy
+@tier: 2
+@reagent: refined_vitriol (qty: 1.0)
+@cost: 35.0
+@strain: "Severe forearm bruising"
 
-### 4.3 Scene Casting Directives (`Manuscript/Book-01/03_Siege.md`)
-```markdown
-# Chapter 3: The Siege
-@pov: Valen Vance
-@reagent: Ruby Focus
-@cast: Valen Vance, Firebolt, tier=2, catalyst=Ruby Focus, cost=35
-
-Valen channeled the ambient heat into the crimson gemstone.
-A spear of flame erupted across the courtyard.
-
-@cast: Valen Vance, Inferno-Wall, tier=2, catalyst=Ruby Focus, cost=55
-# Total fatigue = 90 > 80 (Triggers MAG-104 Fatigue Overdraw)
+Kaelen crushed the vitriol vial in his palm and whispered the binding verse.
 ```
 
 ---
 
-## 5. Command-Line Interface (CLI) Reference
+## 6. Worked Step-by-Step Example
 
-```bash
-# Run magic consistency check across world notes and manuscript
-arcanum magic-check World/ -m Manuscript/
-
-# Output raw JSON diagnostics for editor integration
-arcanum magic-check World/ -m Manuscript/ --json
-
-# Generate standalone offline interactive HTML arcane dashboard
-arcanum magic-report World/ -m Manuscript/ --html reports/magic_dashboard.html
-
-# Query Sanderson laws, thermodynamic math, and fatigue formulas
-arcanum doc magic_system --math --why
-```
+### Scenario: Thermodynamic Kinetic Redistribution System
+1. **Rule**: Kinetic energy can be absorbed into iron rings and discharged into steel projectiles.
+2. **Absorption**: Kaelen leaps from a 10-meter tower ($m = 80\text{ kg}, g = 9.81\text{ m/s}^2, h = 10\text{ m}$):
+   $$E_{\text{absorbed}} = m g h = 80 \times 9.81 \times 10 = 7,848\text{ Joules}$$
+3. **Efficiency & Waste Heat**: With $\eta = 0.80$, usable energy is $6,278.4\text{ J}$. Waste heat is $1,569.6\text{ J}$ absorbed into the ring ($m_{\text{ring}} = 0.05\text{ kg}, c_{\text{iron}} = 450\text{ J/(kg}\cdot\text{K)}$):
+   $$\Delta T = \frac{1,569.6}{0.05 \times 450} = \frac{1,569.6}{22.5} \approx 69.8^\circ\text{C}$$
+   *Sensory Consequence*: The ring scorches the caster's finger, leaving a permanent blistered ring of scar tissue.
+4. **Discharge**: Firing an iron coin ($m_{\text{coin}} = 0.01\text{ kg}$):
+   $$v = \sqrt{\frac{2 \cdot 6,278.4}{0.01}} = \sqrt{1,255,680} \approx 1,120.5\text{ m/s} \quad (\approx \text{Mach 3.3})$$
+   *Result*: Bullet-speed supersonic kinetic strike with authentic sonic boom and thermal flash.
 
 ---
 
-## 6. Tri-Fold Creative Advisory Resolutions
+## 7. Recommended Reading, References & Media
 
-```mermaid
-flowchart TD
-    Alert["Magic Alert: MAG-101 Tier Limit Breach (Valen Tier 2 cast Tier 4 Spell)"] --> PathA["Path A: Hard Realism / Strict Rule Adherence"]
-    Alert --> PathB["Path B: Speculative / Diegetic Trope"]
-    Alert --> PathC["Path C: Authorial Sovereignty"]
-    
-    PathA --> SolA["Downgrade spell to Tier 2 equivalent or require a relic amplifier."]
-    PathB --> SolB["Introduce a forbidden blood pact, relic sacrifice, or catastrophic overcharge."]
-    PathC --> SolC["Elevate Valen's registered tier in World/Characters/Valen.md to Tier 4."]
-```
+### 7.1 Foundational Craft & Academic Books
+- **Sanderson, Brandon (2007–2013)**. *Sanderson's Laws of Magic* (Three-part essay series in *Dragonsteel Publications* / Tor.com).  
+  *The foundational codification of hard vs soft magic, limitations over powers, and system depth.*
+- **Grossman, Lev (2009)**. *The Magicians*. Viking Press. ISBN: 978-0670020553.  
+  *Pioneering exploration of the academic, physical, and psychological weight of magic as advanced applied mathematics and linguistics.*
+- **Friedman, C. S. (1991)**. *Black Sun Rising* (The Coldfire Trilogy, Book 1). DAW Books. ISBN: 978-0886774851.  
+  *Masterpiece in metaphysical consistency, detailing the Faed-field and psychic thermodynamic sacrifice.*
+- **Frazer, James George (1890)**. *The Golden Bough: A Study in Comparative Religion*. Macmillan.  
+  *The anthropological root text establishing the principles of Sympathetic Magic (Law of Similarity and Law of Contact/Contagion).*
+- **Card, Orson Scott (1990)**. *How to Write Science Fiction & Fantasy*. Writer's Digest Books. ISBN: 978-0898794168.  
+  *Contains the classic MICE Quotient and foundational chapters on establishing rules and costs for magical technologies.*
 
-### Scenario: Tier Limit Violation (`MAG-101`)
-- **Path A (Hard Realism / Strict Metaphysical Rules)**:
-  - Downgrade the spell to a Tier 2 power level, maintaining established world rules.
-  - Or, introduce an external amplifying artifact (e.g. an ancient archmage's staff) in the scene to justify the temporary power spike.
-- **Path B (Speculative / Diegetic Trope)**:
-  - Frame the over-tier cast as a dangerous **Arcane Overcharge / Blood Sacrifice**: the character successfully casts the spell, but their catalyst shatters, their arm is permanently scarred, or they fall unconscious for three days.
-- **Path C (Authorial Sovereignty)**:
-  - Update `magic_tier: 4` in `World/Characters/Valen.md`, establishing that the character has canonically leveled up their powers.
+### 7.2 Landmark Scientific / Worldbuilding Papers & Textbooks
+- **Rothfuss, Patrick (2007)**. *The Name of the Wind*. DAW Books. ISBN: 978-0756404741.  
+  *Textbook case study of Sympathy: conservation of energy, source-to-target linkage efficiency, and slippage heat dissipation (Binder's Chills).*
+- **Schroeder, Daniel V. (1999)**. *An Introduction to Thermal Physics*. Addison Wesley Longman. ISBN: 978-0201380279.  
+  *The physical reference text for calculating thermal energy, entropy transfer, and thermodynamic efficiency.*
 
----
+### 7.3 Seminal Video Lectures, Masterclasses & Channels
+- **Brandon Sanderson (2020)**. *Lecture #5: Worldbuilding — Magic Systems & Technology*, BYU Creative Writing Lectures. YouTube.  
+  *The definitive university masterclass breaking down the mechanics, economics, and limitations of hard magic.*
+- **Tale Foundry (2017–Present)**. *Hard vs Soft Magic Systems: The Spectrum of Fantasy*. YouTube.  
+  *Exhaustive analytical breakdown of magic classifications, psychological immersion, and thematic relevance.*
+- **Hello Future Me (Tim Hickson, 2018)**. *On Writing: Hard Magic Systems & Limitations*. YouTube.  
+  *Detailed examination of casting costs, physical consequences, and narrative integration.*
+- **Artifexian (2019)**. *Building Magic Systems: Soft, Hard, and Hybrid Paradigms*. YouTube.  
+  *Structured worldbuilding diagrams for designing consistent metaphysical frameworks.*
 
-## 7. Content Security Policy & Offline Isolation
-
-Generated arcane dashboards and audit reports are 100% offline and compliant with the Ars Arcanum manifesto:
-
-```html
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
-```
+### 7.4 Landmark Speculative Case Studies
+- **Brandon Sanderson, *Mistborn: The Final Empire* (2006)**: The premier case study in Allomancy, Feruchemy, and Hemalurgy obeying strict Newton's Third Law kinetic reactions.
+- **Robert Jordan, *The Wheel of Time* (1990–2013)**: The Five Powers (Earth, Fire, Air, Water, Spirit) and the tragic psychological decay of the Taint on Saidin.
+- **Hiromu Arakawa, *Fullmetal Alchemist* (2001–2010)**: The Law of Equivalent Exchange as an immutable metaphysical and ethical invariant.

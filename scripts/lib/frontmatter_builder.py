@@ -33,8 +33,20 @@ from pathlib import Path
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import (
+        add_scope_arguments,
+        format_scope_banner,
+        parse_scope_args,
+        resolve_manuscript_dir,
+    )
 except ImportError:
     from _bootstrap import atomic_write
+    from scope import (  # type: ignore[no-redef]
+        add_scope_arguments,
+        format_scope_banner,
+        parse_scope_args,
+        resolve_manuscript_dir,
+    )
 
 logger = logging.getLogger("arcanum.frontmatter_builder")
 
@@ -215,12 +227,12 @@ def scaffold_matter(manuscript_path: Path, metadata: dict, force: bool = False) 
     }
 
 
-def main():
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Modular Front & Back Matter Builder (PUB-103)")
     subparsers = parser.add_subparsers(dest="command", help="Command mode")
 
     p_build = subparsers.add_parser("build", help="Scaffold front & back matter into manuscript")
-    p_build.add_argument("target", help="Manuscript directory path")
+    p_build.add_argument("target", nargs="?", default=".", help="Manuscript directory path")
     p_build.add_argument("--title", help="Novel title")
     p_build.add_argument("--author", help="Author name")
     p_build.add_argument("--isbn", help="ISBN-13 number")
@@ -228,17 +240,39 @@ def main():
     p_build.add_argument("--publisher", help="Publisher imprint")
     p_build.add_argument("-f", "--force", action="store_true", help="Overwrite existing matter files")
     p_build.add_argument("--json", action="store_true", help="Output JSON results")
+    add_scope_arguments(p_build)
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if not args.command or args.command != "build":
         parser.print_help()
-        sys.exit(0)
+        if argv is None:
+            sys.exit(0)
+        return 0
 
-    target_path = Path(args.target)
-    if not target_path.exists():
-        print(f"Error: Target path does not exist: {target_path}", file=sys.stderr)
-        sys.exit(1)
+    scope_obj = parse_scope_args(args)
+    if args.target:
+        p_cand = Path(args.target)
+        if p_cand.exists():
+            target_path = p_cand
+        else:
+            r_str = resolve_manuscript_dir(args.target, scope=scope_obj)
+            if r_str and Path(r_str).is_dir():
+                target_path = Path(r_str)
+            else:
+                print(f"Error: Target path does not exist: {args.target}", file=sys.stderr)
+                if argv is None:
+                    sys.exit(1)
+                return 1
+    else:
+        r_str = resolve_manuscript_dir(scope=scope_obj)
+        if r_str and Path(r_str).is_dir():
+            target_path = Path(r_str)
+        else:
+            print("Error: No valid manuscript directory specified or discovered.", file=sys.stderr)
+            if argv is None:
+                sys.exit(1)
+            return 1
 
     meta = {
         "title": target_path.name.replace("_", " "),
@@ -276,9 +310,10 @@ def main():
 
     if args.json:
         print(json.dumps(res, indent=2))
-        return
+        return 0
 
-    print(f"=== Modular Front & Back Matter Scaffolder: {target_path.name} ===")
+    print(format_scope_banner("Modular Front & Back Matter Scaffolder", scope_obj))
+    print(f"Target Manuscript: {target_path.name}")
     print(f"Created: {res['created_count']} files | Skipped (already exist): {res['skipped_count']} files")
     print("-" * 65)
     for c in res["created"]:
@@ -286,6 +321,10 @@ def main():
     for s in res["skipped"]:
         print(f"  · Exists (use --force to overwrite): {Path(s).relative_to(target_path)}")
 
+    return 0
+
 
 if __name__ == "__main__":
     main()
+
+

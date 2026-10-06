@@ -1,412 +1,198 @@
-# TIMELINE_SYNC — Dual-Track Narrative vs Chronological Timeline Synchronizer
-
-> **Module**: `scripts/lib/timeline_sync.py`  
-> **CLI Command**: `arcanum timeline`  
-> **Purpose**: Parses time-coordinate tags from manuscript chapters to build two parallel timelines — narrative order (reading order) and chronological order (in-world order) — then detects paradoxes, flashbacks, flashforwards, and bilocation anomalies.
+# Dual-Track Narrative vs Chronological Timeline Synchronizer (`docs/TIMELINE_SYNC.md`)
+> **Domain B: Narrative Architecture, Structure & Dynamics** | **CLI:** `arcanum timeline` / `arcanum sync`
 
 ---
 
-## Table of Contents
+## 1. Overview & Theoretical Rationale
 
-1. [Overview](#overview)
-2. [CLI Usage](#cli-usage)
-3. [Key API Reference](#key-api-reference)
-4. [Time Format Reference](#time-format-reference)
-5. [Source Tags Scanned](#source-tags-scanned)
-6. [TimelineEvent Dataclass](#timelineevent-dataclass)
-7. [Paradox Detection](#paradox-detection)
-8. [Diagnostic Codes](#diagnostic-codes)
-9. [Behavioral Notes](#behavioral-notes)
-10. [Example Workflow](#example-workflow)
+The **Ars Arcanum Timeline Synchronizer Engine** (`scripts/lib/timeline_sync.py`) is an offline dual-track temporal analyzer, non-linear discourse mapper, and causal anomaly detector built for multi-POV epics, mystery thrillers, and relativistic hard science fiction.
 
----
+In non-linear, multi-POV, or relativistic storytelling, the sequence in which the reader encounters events rarely matches the true chronological sequence in which events transpired within the fictional universe. Authors encounter severe cognitive pitfalls:
+1. **Temporal Bilocation Anomalies (`TIM-101`)**: The same POV character physically present at two disparate geographic locations at the identical calendar timestamp without teleportation or clone mechanics.
+2. **Causal Inversion Paradoxes (`TIM-102`)**: Character $B$ reacting to an outcome of an event that has not yet occurred in the in-world chronology.
+3. **Disorienting Analepsis / Prolepsis Drift (`TIM-103`)**: Unanchored flashbacks or flashforwards lacking clear sensory, causal, or frame-narrative justification.
+4. **Relativistic Time Dilation Errors (`TIM-104`)**: Failing to calculate the differential clock rates between near-light-speed relativistic starships and planetary baseline civilizations.
 
-## Overview
+The Timeline Engine maps narrative discourse time (*sjuzhet*) against true chronological story time (*fabula*), normalizes diverse fictional and astronomical calendar coordinates, detects paradoxes, and renders interactive dual-lane SVG timeline reports.
 
-The `timeline_sync` module is the **temporal continuity auditor** of the Ars Arcanum engine. In multi-POV, non-linear narratives, scenes jump between time periods, perspectives, and locations. The timeline synchronizer pulls `@time:` tags from each chapter, normalises them to a shared numeric coordinate space, and renders both the narrative reading order and the true chronological order side by side.
-
-**What the module detects:**
-
-| Detection | Description |
-|---|---|
-| **Flashbacks** | Chapters set earlier in time than the narrative "current" position |
-| **Flashforwards** | Chapters set later in time than the narrative current position |
-| **Non-linear narration** | Whether the manuscript is told in strict chronological order |
-| **Bilocation paradoxes** | The same POV character appearing at the same time coordinate but in two different locations |
-
-**Output formats:**
-
-- Console summary of event counts and paradox flags
-- JSON export of the full event list and analysis
-- HTML dual-track timeline (narrative lane vs chronological lane) with event cards
-
----
-
-## CLI Usage
-
-```
-arcanum timeline [MANUSCRIPT] [OPTIONS]
+```mermaid
+flowchart TD
+    Chapters["Manuscript Chapter Stream (.md)"] --> TagScanner["Time Tag Extractor (@time, @loc, @pov)"]
+    TagScanner --> Normalizer["Calendar Coordinate Normalizer (Epoch t_chrono)"]
+    
+    Normalizer --> DualTrack["Dual-Track Timeline Matrix: Sjuzhet vs Fabula"]
+    DualTrack --> ParadoxEngine["Paradox & Bilocation Detector (TIM-101, TIM-102)"]
+    DualTrack --> RelativityEngine["Relativistic Lorentz & Gravitational Dilation Calculator"]
+    
+    ParadoxEngine & RelativityEngine --> Report["Offline Interactive HTML Dual-Track Visualizer"]
 ```
 
-### Arguments
+---
 
-| Argument | Description |
-|---|---|
-| `MANUSCRIPT` | Path to the manuscript directory |
+## 2. Narratological Theory: Fabula vs Sjuzhet & Genette's Dimensions
 
-### Options
+```
++-----------------------------------------------------------------------------------+
+|                        NARRATIVE TIME VS STORY TIME                               |
++------------------------------------+----------------------------------------------+
+| FABULA (Chronological Story Time)  | SJUZHET (Discourse / Reading Time)           |
+| - In-world objective causal stream | - Subjective artistic arrangement in text    |
+| - t_story ∈ [-∞, +∞]               | - Chapter stream index k ∈ [1, K]            |
+| - Russian Formalist: Causal-tempo- | - French Narratology: Order, Duration,       |
+|   ral reality of events            |   Frequency (Gérard Genette)                 |
++------------------------------------+----------------------------------------------+
+```
 
-| Flag | Type | Default | Description |
+### 2.1 Gérard Genette's Three Temporal Dimensions
+1. **Order (Chronology vs Anachrony)**:
+   - **Analepsis (Flashback)**: Retrospective narration recounting events prior to the current narrative baseline.
+     - *External Analepsis*: Events before the story began (backstory).
+     - *Internal Analepsis*: Events that occurred earlier within the novel's timeframe but were skipped.
+   - **Prolepsis (Flashforward)**: Anticipatory narration revealing future events.
+2. **Duration (Velocity / Pacing Ratio $\mathcal{V} = \frac{\Delta t_{\text{reading}}}{\Delta t_{\text{story}}}$)**:
+   - *Scene* ($\mathcal{V} \approx 1$): Real-time dialogue and action.
+   - *Summary* ($\mathcal{V} < 1$): Weeks or years compressed into a single paragraph.
+   - *Ellipsis* ($\mathcal{V} = 0$): Time passed without textual mention.
+   - *Pause* ($\mathcal{V} = \infty$): Long descriptive or philosophical passage while story time stops.
+   - *Stretch* ($\mathcal{V} > 1$): Slow-motion magnification of a split-second bullet impact.
+3. **Frequency (Event Iteration)**:
+   - *Singulative*: Narrating once what happened once ($1N / 1S$).
+   - *Repeating*: Narrating $n$ times what happened once ($nN / 1S$, e.g. *Rashomon* multiple perspectives).
+   - *Iterative*: Narrating once what happened $n$ times ($1N / nS$, e.g. *"Every Sunday they walked to church"*).
+
+---
+
+## 3. Mathematical Models & Relativistic Physics
+
+### 3.1 Temporal Mapping Function: Sjuzhet to Fabula
+Let a manuscript have $K$ chapters in reading order $k \in \{1, 2, \dots, K\}$. Each chapter contains a set of events $e$, each tagged with an in-world timestamp coordinate $t_{\text{chrono}}(e) \in \mathbb{R}$.
+
+$$\text{Chronological Drift Function}: \quad \Delta \tau(k) = t_{\text{chrono}}(k) - t_{\text{chrono}}(k-1)$$
+
+$$\text{Classification}: \quad \begin{cases} 
+\Delta \tau(k) > 0 & \text{Chronological Forward Progression} \\
+\Delta \tau(k) < 0 & \text{Analepsis (Flashback)} \\
+\Delta \tau(k) \gg \text{Median}(\Delta \tau) & \text{Narrative Ellipsis (Time Jump)}
+\end{cases}$$
+
+### 3.2 Bilocation Paradox Invariant
+Let $\text{Presence}(C, t, L)$ indicate character $C$ at in-world time $t$ and location $L$.
+
+$$\text{Bilocation Paradox} \iff \exists t, L_1, L_2 \text{ s.t. } \text{Presence}(C, t, L_1) \land \text{Presence}(C, t, L_2) \land L_1 \neq L_2 \land \mathcal{D}(L_1, L_2) > 0$$
+
+### 3.3 Relativistic Time Dilation in Hard Sci-Fi
+For interstellar spaceflight at relativistic velocities $v$ relative to stationary planetary reference frame $S$:
+
+1. **Special Relativity (Kinetic Lorentz Dilation)**:
+   $$\gamma = \frac{1}{\sqrt{1 - \frac{v^2}{c^2}}}$$
+   $$\Delta t_{\text{ship}} = \frac{\Delta t_{\text{planetary}}}{\gamma}$$
+   *Example*: A ship traveling at $v = 0.99c$ ($\gamma \approx 7.088$) journeys to Sirius ($d = 8.6\text{ light-years}$).
+   - Planetary frame elapsed time: $\Delta t_{\text{planet}} \approx 8.687\text{ years}$.
+   - Ship crew elapsed time: $\Delta t_{\text{ship}} = \frac{8.687}{7.088} \approx 1.225\text{ years}$.
+
+2. **General Relativity (Gravitational Dilation Near Black Holes)**:
+   $$t_f = t_0 \sqrt{1 - \frac{2GM}{r c^2}} = t_0 \sqrt{1 - \frac{r_s}{r}}$$
+   Where $r_s = \frac{2GM}{c^2}$ is the Schwarzschild radius.
+
+---
+
+## 4. Subfeatures Matrix & Diagnostic Codes
+
+| Diagnostic Code | Flag | Trigger Condition | Worldbuilding Correction |
 |---|---|---|---|
-| `--html OUT` | path | *(none)* | Generate HTML dual-track timeline report |
-| `--json` | flag | off | Output raw JSON analysis |
-| `--paradox-only` | flag | off | Print only chapters with detected paradoxes |
-
-### Quick Examples
-
-```powershell
-# Full timeline analysis
-arcanum timeline Manuscript/
-
-# Generate HTML report
-arcanum timeline Manuscript/ --html reports/timeline.html
-
-# Print only paradox-flagged chapters
-arcanum timeline Manuscript/ --paradox-only
-
-# JSON output
-arcanum timeline Manuscript/ --json > timeline_data.json
-```
-
-> [!TIP]
-> Use `--paradox-only` for a fast CI-style check during revision. If it outputs nothing, your temporal continuity is clean.
+| `TIM-101` | `BILOCATION_ANOMALY` | Same POV character in two places at identical timestamp $t_{\text{chrono}}$. | Adjust chapter timestamp or add travel sequence. |
+| `TIM-102` | `CAUSAL_INVERSION` | Character references information prior to its chronological discovery. | Move discovery chapter earlier or rephrase dialogue. |
+| `TIM-103` | `UNANCHORED_FLASHBACK` | Chapter jumps $> 1$ year backward with zero framing trigger or time tag. | Add explicit sensory anchor or chapter frontmatter header. |
+| `TIM-104` | `RELATIVISTIC_DESYNC` | Interstellar starship arrives at planet without factoring Lorentz factor $\gamma$. | Compute crew age vs planetary civilization age using dilation formulas. |
+| `TIM-105` | `TIMELINE_OVERLAP_COLLISION` | Two concurrent POV battles in same fortress describe contradictory weather. | Synchronize weather conditions in `World/Climate/`. |
 
 ---
 
-## Key API Reference
+## 5. Frontmatter Directives & YAML Schemas
 
-### `parse_time_coordinate`
-
-```python
-parse_time_coordinate(
-    raw_time: str,
-    fallback_idx: int
-) -> tuple[float, bool, bool]
-```
-
-Parses a raw time string into a normalized numeric coordinate.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|---|---|---|
-| `raw_time` | `str` | The raw time string from a `@time:` tag or frontmatter `time:` field |
-| `fallback_idx` | `int` | Chapter index used as fallback if parsing fails |
-
-**Returns**: A tuple of `(numeric_coord, is_flashback, is_flashforward)`
-
-| Element | Type | Description |
-|---|---|---|
-| `numeric_coord` | `float` | Normalised chronological position (see Time Format Reference) |
-| `is_flashback` | `bool` | True if the time string explicitly declares a flashback |
-| `is_flashforward` | `bool` | True if the time string explicitly declares a flashforward |
-
----
-
-### `extract_timeline_events`
-
-```python
-extract_timeline_events(target_path: str | Path) -> list[TimelineEvent]
-```
-
-Scans all `.md` files in `target_path`, reads their time, POV, location, character, and summary metadata, and returns a list of `TimelineEvent` dataclass instances sorted by narrative order (file system sort order).
-
----
-
-### `analyze_timeline_synchronization`
-
-```python
-analyze_timeline_synchronization(events: list[TimelineEvent]) -> dict
-```
-
-Takes the event list from `extract_timeline_events` and computes the full dual-track analysis.
-
-**Return dict fields:**
-
-| Field | Type | Description |
-|---|---|---|
-| `total_events` | `int` | Total number of timeline events (chapters with `@time:` tags) |
-| `flashback_count` | `int` | Number of events flagged as flashbacks |
-| `flashforward_count` | `int` | Number of events flagged as flashforwards |
-| `is_linear` | `bool` | True if narrative order equals chronological order (no non-linear jumps) |
-| `paradoxes` | `list[dict]` | List of paradox records (see Paradox Detection) |
-| `chronological_events` | `list[TimelineEvent]` | Events sorted by `normalized_time` (ascending) |
-| `narrative_events` | `list[TimelineEvent]` | Events in original narrative (reading) order |
-
----
-
-### `generate_timeline_html_report`
-
-```python
-generate_timeline_html_report(
-    report: dict,
-    output_path: str | Path
-) -> Path
-```
-
-Generates a dual-lane HTML timeline report. The top lane shows narrative (reading) order; the bottom lane shows chronological order. Events are rendered as labeled cards connected by lines showing temporal displacement. Flashbacks appear in blue; flashforwards in amber; paradoxes in red.
-
----
-
-## Time Format Reference
-
-The `@time:` tag (or YAML `time:` field) accepts multiple time expression formats:
-
-### Year / Epoch Format
-
-```
-@time: 1422 3E
-@time: Year 304
-@time: Year -500
-```
-
-| Pattern | Numeric Coordinate | Notes |
-|---|---|---|
-| `1422 3E` | `1422.0` | Epoch suffix (`3E`, `4E`, `2A`) is stripped; the numeric year is used |
-| `Year 304` | `304.0` | `Year` prefix is stripped |
-| `Year -500` | `-500.0` | Negative values represent pre-era dates |
-
-### Day Offset Format
-
-```
-@time: Day 14
-@time: Day 14, 08:00
-```
-
-| Pattern | Numeric Coordinate | Notes |
-|---|---|---|
-| `Day 14` | `14.0` | Fractional day not added |
-| `Day 14, 08:00` | `14.333...` | Hour converted to fraction: 8/24 ≈ 0.333 |
-
-### Relative / Narrative Format
-
-```
-@time: Flashback: 10 years earlier
-@time: 5 years later
-@time: 200 years before the Sundering
-```
-
-| Pattern | `is_flashback` | `is_flashforward` | Coordinate |
-|---|---|---|---|
-| `Flashback: ...` | `True` | `False` | `fallback_idx - extracted_years` |
-| `... years earlier` | `True` | `False` | `fallback_idx - extracted_years` |
-| `... years later` | `False` | `True` | `fallback_idx + extracted_years` |
-
-> [!NOTE]
-> Relative time expressions are resolved **relative to the chapter's narrative position** (`fallback_idx`), not to an absolute calendar anchor. For absolute precision, use Year or Day formats.
-
-### ISO Date Format
-
-```
-@time: 2045-10-12
-```
-
-Parsed as `float(year) + (day_of_year / 365)`. Suitable for science fiction or alternate-history settings using real-world dates.
-
-### Unrecognised Format
-
-If the raw time string does not match any known format, `numeric_coord` is set to `float(fallback_idx)` and neither `is_flashback` nor `is_flashforward` is set.
-
----
-
-## Source Tags Scanned
-
-Each chapter file may declare timeline metadata via YAML frontmatter or inline tags. Both sources are merged.
-
-### YAML Frontmatter
-
+### 5.1 Scene Frontmatter Temporal Tagging (`Manuscript/Chapter-14.md`)
 ```yaml
 ---
-title: "Embers of the First Age"
-pov: "Archivist Theron"
-location: "The Sunken Library, Kalrath"
-time: "Year -500"
-characters:
-  - "Archivist Theron"
-  - "High Keeper Mael"
+title: "The Fall of the Western Bastion"
+chapter: 14
+pov: "Captain_Rylan"
+timeline:
+  calendar: "imperial_solar"
+  year: 1442
+  month: 8
+  day: 19
+  hour: 14.5 # 2:30 PM
+  narrative_type: "analepsis" # chronological | analepsis | prolepsis
+  analepsis_anchor: "Rylan clutching his father's broken compass"
+relativistic_frame:
+  velocity_fraction_c: 0.0 # Planetary frame
 ---
 ```
 
-### Inline Tags
-
-```markdown
-@pov: Archivist Theron
-@location: The Sunken Library, Kalrath
-@time: Year -500
-@char: Archivist Theron
-@char: High Keeper Mael
-```
-
-### Tag Priority
-
-If a tag appears in both frontmatter and as an inline tag, the **frontmatter value takes precedence** for `pov`, `location`, and `time`. For `characters` / `@char:`, values from both sources are merged into a deduplicated list.
-
+### 5.2 Relativistic Starship Flight Frontmatter (`Manuscript/Chapter-22.md`)
+```yaml
 ---
-
-## TimelineEvent Dataclass
-
-```python
-@dataclass
-class TimelineEvent:
-    id: int                    # Sequential event ID (1-based)
-    narrative_index: int       # Position in reading/file-sort order (0-based)
-    title: str                 # Chapter title
-    filename: str              # Basename of source file
-    path: Path                 # Absolute path to source file
-    pov: str                   # POV character name
-    location: str              # Scene location string
-    raw_time: str              # Original unparsed time string
-    normalized_time: float     # Numeric chronological coordinate
-    is_flashback: bool         # True if declared as flashback
-    is_flashforward: bool      # True if declared as flashforward
-    characters: list[str]      # All characters present in the scene
-    summary: str               # First non-empty, non-tag paragraph (auto-extracted)
+title: "Transit to Epsilon Eridani"
+chapter: 22
+pov: "Navigator_Chen"
+timeline:
+  ship_proper_time_years: 2.4
+  earth_coordinate_time_years: 11.8
+  lorentz_gamma: 4.917
+  relativistic_velocity: 0.979 # fraction of c
+---
 ```
 
 ---
 
-## Paradox Detection
+## 6. Worked Step-by-Step Example
 
-### Bilocation Paradox
-
-The **bilocation** paradox is currently the only automated paradox type detected.
-
-**Condition**: Two or more `TimelineEvent` objects satisfy all of the following:
-
-1. They share the same `pov` character name (case-insensitive comparison).
-2. Their `normalized_time` values are **equal** (within floating-point tolerance: `abs(a - b) < 0.01`).
-3. Their `location` strings are **different** (case-insensitive comparison).
-
-**Interpretation**: The same POV character appears in two different places at the exact same moment in the world's chronology. This is almost always an authoring error — either the `@time:` tag is wrong in one chapter, or two chapters that were written separately have accidentally been placed at the same in-world date.
-
-**Paradox record fields:**
-
-| Field | Description |
-|---|---|
-| `type` | `"bilocation"` |
-| `pov` | The POV character involved |
-| `time` | The shared `normalized_time` coordinate |
-| `events` | List of event IDs involved in the paradox |
-| `locations` | List of distinct locations at that time |
-| `filenames` | List of source files contributing to the paradox |
+### Scenario: Auditing a Non-Linear Murder Mystery (Sjuzhet vs Fabula)
+1. **Reading Stream (Sjuzhet)**:
+   - Ch 01: Detective arrives at crime scene ($t_{\text{chrono}} = \text{Day 3, 09:00}$).
+   - Ch 02: Flashback to the Victim's argument at the tavern ($t_{\text{chrono}} = \text{Day 1, 21:00}$).
+   - Ch 03: Flashback to the Murderer forging the will ($t_{\text{chrono}} = \text{Day 2, 14:00}$).
+   - Ch 04: Detective interrogates the suspect ($t_{\text{chrono}} = \text{Day 3, 11:30}$).
+2. **Timeline Synchronizer Execution**:
+   - Reorders events into **Fabula**:
+     1. [Day 1, 21:00] Victim argues at tavern (Ch 02).
+     2. [Day 2, 14:00] Murderer forges will (Ch 03).
+     3. [Day 3, 09:00] Detective arrives at scene (Ch 01).
+     4. [Day 3, 11:30] Detective interrogates suspect (Ch 04).
+   - **Audit Check**:
+     - In Ch 04, the Detective asks about the forged will.
+     - Did Detective find the will in Ch 01? Yes ($t = \text{Day 3, 09:30}$).
+     - **Result**: Valid. Causal chain preserved. Zero causal inversions.
 
 ---
 
-## Diagnostic Codes
+## 7. Recommended Reading, References & Media
 
-| Code | Severity | Condition | Resolution |
-|---|---|---|---|
-| `TL-001` | ERROR | Bilocation paradox detected | Correct `@time:` tag in one of the conflicting chapters |
-| `TL-002` | INFO | Chapter has no `@time:` tag | Add a `@time:` tag for full timeline coverage |
-| `TL-003` | INFO | Unrecognised time format; using fallback index | Use a supported time format (see Time Format Reference) |
-| `TL-010` | INFO | Manuscript is non-linear | Expected for stories with flashbacks; noted for awareness |
-| `TL-011` | WARNING | Flashback count exceeds 30% of total events | High flashback density can confuse readers; review pacing |
+### 7.1 Foundational Craft & Academic Books
+- **Genette, Gérard (1980)**. *Narrative Discourse: An Essay in Method* (trans. Jane E. Lewin). Cornell University Press. ISBN: 978-0801492594.  
+  *The foundational structuralist narratology text establishing Order, Duration, Frequency, Analepsis, and Prolepsis.*
+- **Ricoeur, Paul (1984–1988)**. *Time and Narrative* (Volumes 1–3, trans. Kathleen McLaughlin and David Pellauer). University of Chicago Press. ISBN: 978-0226713328.  
+  *The landmark philosophical treatise on threefold mimesis, human temporal experience, and narrative configuration.*
+- **Chiang, Ted (1998)**. *Story of Your Life* (in *Stories of Your Life and Others*). Tor Books. ISBN: 978-1101972120.  
+  *Masterclass in non-linear simultaneous temporal consciousness, variational physics (Fermat's Principle of Least Time), and linguistic determinism.*
+- **Bordwell, David (1985)**. *Narration in the Fiction Film*. University of Wisconsin Press. ISBN: 978-0299101749.  
+  *Comprehensive breakdown of fabula construction, syuzhet cues, and cinematic non-linear storytelling.*
 
----
+### 7.2 Landmark Scientific / Worldbuilding Papers & Textbooks
+- **Thorne, Kip S. (1994)**. *Black Holes and Time Warps: Einstein's Outrageous Legacy*. W. W. Norton & Co. ISBN: 978-0393312768.  
+  *The authoritative physicist's guide to relativistic kinematics, gravitational time dilation, and wormhole causality.*
+- **Einstein, Albert (1905)**. "Zur Elektrodynamik bewegter Körper" (*On the Electrodynamics of Moving Bodies*), *Annalen der Physik*, 17(10), 891–921.  
+  *The original formulation of Special Relativity and Lorentz transformations.*
 
-## Behavioral Notes
+### 7.3 Seminal Video Lectures, Masterclasses & Channels
+- **PBS Space Time (Matt O'Dowd, 2015–Present)**. *The Physics of Time Dilation, Relativity & Spacetime Curvature*. YouTube.  
+  *Invaluable visual derivations of Lorentz contractions, light cones, and causal boundaries.*
+- **Lessons from the Screenplay (2017)**. *Arrival — How Sound and Editing Tell the Story*. YouTube.  
+  *Examines the non-linear editing techniques and psychological anchoring of flash-forwards.*
+- **StudioBinder (2020)**. *Nonlinear Storytelling: How Directors Play with Time*. YouTube.  
+  *Detailed breakdowns of Memento, Pulp Fiction, and Dunkirk temporal structures.*
 
-- **Chapter sort order**: Files are sorted alphabetically by filename. Use zero-padded chapter numbers in filenames to guarantee correct narrative order.
-- **Missing `@time:` tags**: Chapters without a `@time:` tag are still included in `narrative_events` but are excluded from `chronological_events`. Their `normalized_time` is set to `float(narrative_index)`.
-- **Bilocation tolerance**: Two times are considered equal if they differ by less than `0.01` in normalized space. For Day-format coordinates, this means events within ~15 minutes of each other are treated as simultaneous.
-- **Character list deduplication**: `@char:` tags and YAML `characters:` lists are merged and deduplicated with case-sensitive comparison.
-- **Summary auto-extraction**: The `summary` field is populated by extracting the first paragraph of prose text after the frontmatter block, skipping blank lines and lines beginning with `@` or `#`.
-- **`is_linear` determination**: The manuscript is flagged `is_linear: False` if any event's `normalized_time` is lower than the `normalized_time` of the event immediately preceding it in narrative order.
-- **Pre-era negative coordinates**: Year `-500` is a valid coordinate. Negative values sort correctly before positive values in chronological order.
-
----
-
-## Example Workflow
-
-### Workflow 1: Full Timeline with HTML Report
-
-```powershell
-arcanum timeline Manuscript/ --html reports/timeline.html
-```
-
-The HTML report renders two lanes:
-- **Narrative lane** (top): chapters in reading order, left to right
-- **Chronological lane** (bottom): same chapters sorted by `normalized_time`
-
-Connecting arcs show how chapters jump forward or backward in time.
-
-### Workflow 2: Paradox Audit
-
-```powershell
-arcanum timeline Manuscript/ --paradox-only
-```
-
-**Sample output:**
-```
-[TL-001] BILOCATION PARADOX
-  POV: Archivist Theron
-  Time: -500.0 (Year -500)
-  Files:
-    - 04_Embers_of_the_First_Age.md  → Location: "The Sunken Library"
-    - 11_The_Archivist_at_Sea.md     → Location: "The Storm Galley, Sea of Verath"
-  Resolution: Correct the @time: tag in one of the above files.
-```
-
-### Workflow 3: Python API
-
-```python
-from scripts.lib.timeline_sync import (
-    extract_timeline_events,
-    analyze_timeline_synchronization,
-    generate_timeline_html_report,
-)
-
-events = extract_timeline_events("Manuscript/")
-report = analyze_timeline_synchronization(events)
-
-print(f"Total events: {report['total_events']}")
-print(f"Flashbacks:   {report['flashback_count']}")
-print(f"Flashforwards:{report['flashforward_count']}")
-print(f"Is linear:    {report['is_linear']}")
-
-if report["paradoxes"]:
-    for p in report["paradoxes"]:
-        print(f"\n⚠ PARADOX [{p['type'].upper()}]: {p['pov']} at t={p['time']}")
-        for fn in p["filenames"]:
-            print(f"   - {fn}")
-else:
-    print("\n✓ No temporal paradoxes detected.")
-
-generate_timeline_html_report(report, "reports/timeline.html")
-```
-
-### Workflow 4: Annotating a Chapter
-
-```markdown
----
-title: "The Last Council of Kalrath"
-pov: "High Keeper Mael"
-location: "The Grand Spire, Kalrath"
-time: "Year 1422 3E"
-characters:
-  - "High Keeper Mael"
-  - "Tribune Sorvaine"
----
-
-@pov: High Keeper Mael
-@location: The Grand Spire, Kalrath
-@time: 1422 3E
-
-The council chamber fell silent as High Keeper Mael raised the Seal of Continuance...
-```
-
-This chapter will appear at `normalized_time: 1422.0` in the chronological lane.
-
----
-
-*Part of the **Ars Arcanum Scriptorium** craft engine. For platform-wide CLI reference, see `docs/CLI_REFERENCE.md`.*
+### 7.4 Landmark Speculative Case Studies
+- **Christopher Nolan, *Memento* (2000)**: Textbook alternating dual-track architecture: Color scenes moving backward in fabula, Black-and-White scenes moving forward in fabula, meeting at the revelation climax.
+- **Quentin Tarantino, *Pulp Fiction* (1994)**: Masterclass in circular non-linear syuzhet creating fresh dramatic irony and emotional resurrection.
+- **Alastair Reynolds, *Revelation Space* series (2000–Present)**: The pinnacle of hard relativistic space opera with realistic decades of time dilation between lighthugger crews and planetary worlds.

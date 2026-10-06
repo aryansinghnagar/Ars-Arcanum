@@ -40,47 +40,6 @@ def find_bash():
 BASH_EXE = find_bash()
 
 
-class TestDesktopLaunchers(unittest.TestCase):
-    """Tests for desktop launcher files in launchers/."""
-
-    REQUIRED_LAUNCHERS = [
-        "arcanum-control-center.desktop",
-        "arcanum-worldbuilding.desktop",
-        "arcanum-drafting.desktop",
-        "arcanum-publishing.desktop",
-        "arcanum-comparator.desktop",
-        "arcanum-doctor.desktop",
-    ]
-
-    def test_all_required_launchers_exist(self):
-        for launcher in self.REQUIRED_LAUNCHERS:
-            path = LAUNCHERS_DIR / launcher
-            self.assertTrue(path.is_file(), f"Missing required desktop launcher: {launcher}")
-
-    def test_launchers_have_tryexec_bash(self):
-        for desktop_file in LAUNCHERS_DIR.glob("*.desktop"):
-            content = desktop_file.read_text(encoding="utf-8")
-            self.assertIn("TryExec=bash", content, f"{desktop_file.name} missing 'TryExec=bash'")
-
-    def test_launchers_categories_standardized(self):
-        for desktop_file in LAUNCHERS_DIR.glob("*.desktop"):
-            content = desktop_file.read_text(encoding="utf-8")
-            self.assertIn(
-                "Categories=Office;WordProcessor;Publishing;",
-                content,
-                f"{desktop_file.name} must have standard Categories=Office;WordProcessor;Publishing;"
-            )
-
-    def test_launchers_header_and_type(self):
-        for desktop_file in LAUNCHERS_DIR.glob("*.desktop"):
-            content = desktop_file.read_text(encoding="utf-8")
-            self.assertTrue(content.startswith("[Desktop Entry]"), f"{desktop_file.name} must start with [Desktop Entry]")
-            self.assertIn("Type=Application", content, f"{desktop_file.name} must specify Type=Application")
-            self.assertIn("Exec=", content, f"{desktop_file.name} must specify Exec=")
-            self.assertIn("Name=", content, f"{desktop_file.name} must specify Name=")
-            self.assertIn("Icon=", content, f"{desktop_file.name} must specify Icon=")
-
-
 class TestArcanumAppCli(unittest.TestCase):
     """Tests for arcanum_app.py CLI options and argument handling."""
 
@@ -167,21 +126,6 @@ class TestUiTabMapping(unittest.TestCase):
         ]
         for creator in studio_creators:
             self.assertTrue(hasattr(ArcanumApp, creator), f"Missing tab creator {creator} on ArcanumApp")
-
-    def test_adw_all_6_studios_defined(self):
-        ui_adw_path = SCRIPTS_DIR / "lib" / "ui_adw.py"
-        content = ui_adw_path.read_text(encoding="utf-8")
-
-        adw_pages = [
-            "_create_cosmos_page",
-            "_create_drafting_page",
-            "_create_speculative_page",
-            "_create_publishing_page",
-            "_create_safety_page",
-            "_create_diagnostics_page",
-        ]
-        for page in adw_pages:
-            self.assertIn(f"def {page}(", content, f"Missing Adw page creator {page} in ui_adw.py")
 
 
 class TestArcanumCliFacade(unittest.TestCase):

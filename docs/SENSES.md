@@ -1,119 +1,266 @@
 # 8-Channel Sensory Palette, Perceptual Immersion & Shannon Entropy (`docs/SENSES.md`)
-> **Domain B: Linguistics, Conlang, Idioms & Stylistics** | **CLI:** `arcanum senses` / `arcanum sensory`
+> **Domain B: Linguistics, Conlang, Idioms & Stylistics** | **CLI Commands:** `arcanum senses` / `arcanum sensory` | **Module:** `scripts/lib/senses.py`
 
 ---
 
 ## 1. Overview & Theoretical Rationale
 
-The **Ars Arcanum Sensory Palette Engine** (`scripts/lib/senses.py`) is an offline cognitive perception profiler, sensory monoculture auditor, and embodied immersion analyzer designed for speculative fiction novelists and creative prose stylists.
+The **Ars Arcanum Sensory Palette Engine** (`scripts/lib/senses.py`) is an offline cognitive perception profiler, sensory monoculture auditor, and embodied immersion analyzer engineered for speculative fiction novelists and creative prose stylists.
 
-Novice and intermediate manuscripts frequently suffer from **Visual Monoculture (or "White Room Syndrome")**: prose that relies $90\%+$ on sight verbs and light adjectives (*"she saw"*, *"he looked"*, *"it appeared dark red"*) while completely neglecting the acoustic, olfactory, gustatory, thermal, and proprioceptive textures of the scene. When a character stands in an ancient crypt without the smell of damp ozone, the cold bite of basalt on their skin, or the ringing silence in their ears, the reader experiences emotional detachment rather than visceral presence.
+Human consciousness does not experience reality as a silent, two-dimensional movie screen. Perceptual presence is an integrated, multi-sensory hallucination constructed by the brain from eight distinct neurological channels. Yet, in unrefined manuscripts, authors overwhelmingly suffer from **Visual Monoculture (or "White Room Syndrome")**: prose that relies $90\%+$ on sight verbs and light adjectives (*"she saw"*, *"he looked"*, *"it was dark red"*) while completely neglecting acoustic reverberation, volatile scents, thermal gradients, tactile friction, and visceral gut reflexes.
 
-The Sensory Palette Engine scans chapter prose against calibrated multi-channel lexicons, computes Shannon sensory entropy ($H_{\text{sensory}}$), calculates the Perceptual Immersion Index ($V_{\text{immersion}}$), flags White Room scenes, and generates interactive SVG radar charts.
-
----
-
-## 2. Perceptual Cognition & Mathematical Formulation
+When a character explores an ancient tomb without the smell of damp ozone, the rough bite of crumbling mortar, or the cold settling in their chest, the reader's somatic mirror neurons fail to fire, resulting in emotional detachment.
 
 ```mermaid
 flowchart TD
-    Prose["Manuscript Scene Text"] --> Tokenizer["Perceptual Lexicon Matcher"]
-    Tokenizer --> ChannelCounts["8 Perceptual Channel Vectors C = [C_vis, C_aud, C_olf, C_gust, C_tact, C_prop, C_therm, C_chrono]"]
-    
-    ChannelCounts --> ProbDist["Empirical Probability Distribution p_i = C_i / ∑ C_k"]
-    ProbDist --> ShannonEntropy["Shannon Sensory Entropy H_sensory = -∑ p_i log₂(p_i)"]
-    ProbDist --> Vividness["Perceptual Immersion Index V_immersion ∈ [0, 100%]"]
-    
-    ChannelCounts --> WhiteRoom["White Room Syndrome Detector (SNS-101: NonVisual < 2)"]
-    ChannelCounts --> SkewDetector["Sensory Monoculture Detector (SNS-102: Visual ≥ 90%)"]
-    
-    ShannonEntropy & WhiteRoom & SkewDetector --> SVGRadar["Offline Standalone SVG Sensory Radar Chart"]
+    subgraph SomatosensoryNeuro["1. Cognitive Neuroscience & Somatics"]
+        Neuro["Sensory Cortex & Somatosensory Homunculus"]
+        Proust["Proustian Involuntary Memory (Olfactory / Gustatory)"]
+        Synesthesia["Cross-Modal Synesthesia in Speculative Worldbuilding"]
+    end
+
+    subgraph SensoryChannels["2. The 8 Perceptual Channels"]
+        C1["Visual (Chromatic, Luminosity)"]
+        C2["Auditory (Resonance, Dissonance)"]
+        C3["Olfactory (Volatile Scents, Ozone)"]
+        C4["Gustatory (Chemical, Trigeminal)"]
+        C5["Tactile (Texture, Viscosity)"]
+        C6["Vestibular / Balance (Vertigo, Inertia)"]
+        C7["Interoceptive / Visceral (Heartbeat, Nausea)"]
+        C8["Thermoceptive / Temporal (Heat, Drag)"]
+    end
+
+    subgraph InformationTheory["3. Mathematical Entropy & Auditing"]
+        Shannon["Shannon Sensory Entropy: H_sensory = -∑ pᵢ log₂(pᵢ)"]
+        Vividness["Perceptual Immersion Index: V_immersion ∈ [0, 100%]"]
+        WhiteRoom["White Room Detector (SNS-101) & Skew Linter (SNS-102)"]
+    end
+
+    SomatosensoryNeuro --> SensoryChannels --> InformationTheory
 ```
 
-### 2.1 The 8 Perceptual Channels Taxonomy
-The engine monitors eight distinct somatic sensory dimensions:
-1. **Visual ($V$)**: Chromatic hue, luminosity, shadow, silhouette, optical motion (*crimson, azure, gloom, radiant*).
-2. **Auditory ($A$)**: Acoustic pitch, resonance, dissonance, timbre, volume (*clang, whisper, murmur, shrill*).
-3. **Olfactory ($O$)**: Volatile scents, smoke, rot, petrichor, flora, sulfur (*acrid, musk, incense, sulfur*).
-4. **Gustatory ($G$)**: Chemical taste, salinity, bitterness, metallic tang (*briny, bitter, copper, honey*).
-5. **Tactile ($T$)**: Mechanical texture, friction, roughness, viscosity (*velvet, coarse, gritty, silken*).
-6. **Proprioception ($P$)**: Kinesthetic balance, muscle tension, vertigo, inertia (*lurch, vertigo, pulse, stagger*).
-7. **Thermoception ($\Theta$)**: Environmental heat, frost, fever, shivering (*blazing, frost, clammy, searing*).
-8. **Chronoception ($\tau$)**: Subjective time perception, ticking urgency, temporal drag (*dilation, stasis, rushed*).
+---
 
-### 2.2 Shannon Sensory Entropy ($H_{\text{sensory}}$)
-To quantify whether a scene achieves rich perceptual balance rather than visual monoculture:
+## 2. Theoretical Foundations of Somatic Perception & Sensory Immersion
+
+### 2.1 Somatosensory Neuroscience & Mirror Neurons
+Cognitive neuroimaging (e.g., studies by V.S. Ramachandran and Antonio Damasio) demonstrates that reading sensory-rich words activates the corresponding motor and sensory cortices of the human brain:
+- Reading the word *"cinnamon"* activates the olfactory cortex.
+- Reading *"she grasped the rough granite"* activates the primary somatosensory cortex ($S_1$) and motor cortex ($M_1$).
+- Abstract prose (*"she felt uncomfortable"*) activates only the language-processing Wernicke and Broca areas.
+
+By engaging non-visual sensory channels, the author converts reading from an abstract decode operation into a **somatic, embodied experience**.
+
+### 2.2 The 8 Perceptual Channels Taxonomy
+
+```
+ ┌─────────────────────────────────────────────────────────────────────────┐
+ │                       THE 8 PERCEPTUAL CHANNELS                         │
+ ├───────────────────┬─────────────────────────────────────────────────────┤
+ │ 1. Visual         │ Chromatic hue, luminosity, shadow, silhouette       │
+ │ 2. Auditory       │ Pitch, resonance, dissonance, acoustic reverb, tone │
+ │ 3. Olfactory      │ Volatile chemicals, smoke, ozone, decay, petrichor  │
+ │ 4. Gustatory      │ 5 tastes, metallic tang, trigeminal burn            │
+ │ 5. Tactile        │ Texture, friction, compliance, grain, viscosity     │
+ │ 6. Vestibular     │ Gravitational balance, vertigo, g-force, inertia    │
+ │ 7. Interoceptive  │ Visceral heartbeat, lung constriction, nausea, pain │
+ │ 8. Thermoceptive  │ Heat radiation, frost bite, fever, ambient chill    │
+ └───────────────────┴─────────────────────────────────────────────────────┘
+```
+
+### 2.3 Proustian Involuntary Memory (*Mémoire Involontaire*)
+In *In Search of Lost Time* (1913), Marcel Proust described how dipping a madeleine cake in tea triggered a flood of forgotten childhood memories. 
+
+Because the olfactory bulb and gustatory pathways connect directly to the limbic system (amygdala and hippocampus) without passing through the thalamus, **smell and taste are the most emotionally potent, memory-dense sensory triggers**. In speculative fiction, tying a worldbuilding secret, trauma, or emotional epiphany to a specific scent (e.g., the smell of burning solarite resin or bitter brine) produces instant emotional resonance.
+
+### 2.4 Cross-Modal Synesthesia in Speculative Worldbuilding
+Synesthesia—the blending of two distinct sensory modalities—is a powerful defamiliarization tool in fantasy and science fiction:
+- *"The arcane barrier hummed a bitter violet frequency."* (Auditory + Gustatory + Visual)
+- *"The starship's silence felt heavy and damp like cold wool."* (Auditory + Tactile + Thermoceptive)
+
+---
+
+## 3. Mathematical Models & Information-Theoretic Formulations
+
+```mermaid
+xychart-beta
+    title "Sensory Channel Probability Distribution (Masterclass vs Visual Monoculture)"
+    x-axis ["Visual", "Auditory", "Olfactory", "Gustatory", "Tactile", "Vestibular", "Interoceptive", "Thermoceptive"]
+    y-axis "Channel Probability p_i (%)" 0 --> 100
+    line [92, 4, 1, 0, 2, 1, 0, 0]
+    line [25, 20, 10, 8, 15, 8, 8, 6]
+```
+
+### 3.1 Shannon Sensory Entropy ($H_{\text{sensory}}$)
+To measure the multi-sensory diversity of a scene and detect visual monoculture, the engine computes the Shannon Entropy across the 8 perceptual channels:
 
 $$p_i = \frac{C_i}{\sum_{k=1}^8 C_k}, \qquad H_{\text{sensory}} = -\sum_{i=1}^8 p_i \log_2(p_i) \quad [\text{bits}]$$
 
-For an 8-channel uniform distribution ($p_i = \frac{1}{8}$), maximum entropy is:
-$$H_{\text{max}} = \log_2(8) = 3.0 \text{ bits}$$
+Where:
+- $C_i$: Frequency count of matched sensory descriptors for channel $i$.
+- For an 8-channel uniform distribution ($p_i = \frac{1}{8} = 0.125$):
+  $$H_{\text{max}} = \log_2(8) = 3.0 \text{ bits}$$
 
-The normalized **Perceptual Immersion Index ($V_{\text{immersion}}$)**:
+### 3.2 Perceptual Immersion Index ($V_{\text{immersion}}$)
+The normalized immersion index expresses sensory balance as a percentage:
+
 $$V_{\text{immersion}} = \left(\frac{H_{\text{sensory}}}{H_{\text{max}}}\right) \times 100\%$$
 
-- **Sensory Monoculture Warning**: If $H_{\text{sensory}} < 1.2\text{ bits}$ ($V_{\text{immersion}} < 40\%$) over a scene of $> 300\text{ words}$.
-- **Master-Class Immersion**: $H_{\text{sensory}} \ge 2.2\text{ bits}$ ($V_{\text{immersion}} \ge 73\%$).
+- **Masterclass Immersion**: $H_{\text{sensory}} \ge 2.25\text{ bits}$ ($V_{\text{immersion}} \ge 75\%$).
+- **Balanced Commercial Prose**: $1.60 \le H_{\text{sensory}} < 2.25\text{ bits}$ ($53\% \le V_{\text{immersion}} < 75\%$).
+- **Visual Monoculture / White Room Warning**: $H_{\text{sensory}} < 1.20\text{ bits}$ ($V_{\text{immersion}} < 40\%$).
+
+### 3.3 Non-Visual Grounding Coefficient ($K_{\text{nv}}$)
+To verify that prose does not abandon somatic textures:
+
+$$K_{\text{nv}} = \frac{\sum_{i \ne \text{visual}} C_i}{C_{\text{visual}} + 1.0}$$
+
+- **Target Immersion**: $K_{\text{nv}} \ge 1.2$ (at least 1.2 non-visual sensory cues for every visual descriptor).
 
 ---
 
-## 3. Subfeatures Matrix & Diagnostic Codes
+## 4. The 8-Channel Sensory Palette Matrix (5 Speculative Archetypes)
 
-| Code / Feature | Algorithmic Mechanism | Severity | Diagnostic Rule / Trigger | Narrative Craft Significance |
-|:---|---|:---:|---|---|
-| **`SNS-101`** | Evaluates total non-visual sensory anchor count. | `WARNING` | **White Room Syndrome**: Words $> 150$, but non-visual anchors $< 2$. | Prevents abstract floating dialogue lacking somatic grounding. |
-| **`SNS-102`** | Calculates visual channel share ($p_{\text{visual}}$). | `WARNING` | **Visual Monoculture**: Total anchors $\ge 5$, but visual share $\ge 90\%$. | Broadens sensory registers across action and description. |
-| **Sensory Radar Generator** | Projects 8-channel coordinates onto polar radial axes. | `INFO` | Emits interactive standalone SVG spider/radar charts. | Gives authors immediate visual feedback on perceptual balance. |
-| **Somatic Anchor Counter** | Tallying somatic (thermal + tactile + proprioceptive) hits. | `INFO` | Measures physical embodiment and POV visceral presence. | Enhances horror, thriller, and action scene immersion. |
-
----
-
-## 4. Author Extension & Configuration Guide
-
-### 4.1 CLI Command Reference
-```bash
-# Analyze sensory palette across full manuscript directory
-arcanum senses Manuscript/
-
-# Export standalone offline HTML report with SVG radar charts
-arcanum senses Manuscript/ --html reports/sensory_report.html
-
-# Output machine-readable JSON sensory channel distributions
-arcanum senses Manuscript/ --json
-
-# Query Shannon sensory entropy mathematics and cognitive theory
-arcanum doc senses --math --why
-```
+| Perceptual Channel | 1. Ancient Crypt / Ruins | 2. Orbital Starship Combat | 3. Eldritch Sorcery Casting | 4. Intimate Confession | 5. Toxic Ashlands / Wasteland |
+|---|---|---|---|---|---|
+| **Visual ($V$)** | Chipped bas-reliefs, sputtering torch embers, lime dust. | Strobe alarms, venting plasma jets, cracked viewport. | Prismatic corona, bending light, shadow detachment. | Sputtering candle wick, dilated pupils, flushed collar. | Ochre dunes, particulate smog, bleached bone ridges. |
+| **Auditory ($A$)** | Scrape of settling granite, distant water drips, hollow echo. | Hull decompression shriek, hydraulic groans, radio hiss. | Sub-audible bone-hum, backward whispered chants. | Raspy intake of breath, stuttered cadence, silence. | Howling dust devil, dry grit rattling on armor plates. |
+| **Olfactory ($O$)** | Wet moss, ancient mold, bat guano, cold slate. | Scorched copper wiring, boiling hydraulic oil, ozone. | Sharp sulfur, burning sweet resin, dried blood. | Lavender soap, stale wine, sweat on skin. | Sulfuric acid, charred synthetic rubber, dry alkali. |
+| **Gustatory ($G$)** | Dry chalk dust, stale metallic stagnant air. | Bitter chemical foam, copper tang of bitten tongue. | Metallic battery acid, ash on the back of the palate. | Salty tears, bitter tea dregs, sweet honeyed wine. | Gritty silt between teeth, caustic stinging alkaline. |
+| **Tactile ($T$)** | Flaking sandstone, cold greasy cobwebs, rough iron. | Concussive deck plating vibration, cold harness mesh. | Static electricity raising arm hair, needle-pricks on skin. | Warm velvet sleeve, rough calloused fingertips, trembling hand. | Abrasive dust grinding inside joints, blistered leather. |
+| **Vestibular ($P$)** | Uneven flagstone steps, sudden floor drop, disorienting slope. | Zero-g stomach drop, violent inertial dampener hitch. | Disconnected spatial vertigo, phantom falling sensation. | Lightheaded dizziness, leaning forward into contact. | Stumbling through shifting shale, horizon disorientation. |
+| **Interoceptive ($I$)** | Throat clenching in darkness, shallow oxygen panic. | Ribs bruised against crash webbing, adrenaline heart spike. | Icy needles in marrow, diaphragm spasm, nausea. | Fluttering pulse at carotid artery, knot in stomach. | Scorched bronchi, dry hacking cough, burning lungs. |
+| **Thermoceptive ($\Theta$)** | Cold damp subterranean seep leeching through boot soles. | Blistering bulkhead radiant heat followed by vacuum frost. | Sudden absolute zero aura freezing breath instantly. | Radiating body warmth across narrow spatial gap. | Searing solar radiation burning skin through heavy linen. |
 
 ---
 
-## 5. Tri-Fold Creative Advisory Resolutions
+## 5. Ars Arcanum Engine & CLI Architecture
 
 ```mermaid
-flowchart TD
-    Alert["Sensory Alert: SNS-101 White Room Syndrome in Scene 04 (Words: 420, Non-Visual Anchors: 0)"] --> PathA["Path A: Hard Realism / Somatic Grounding"]
-    Alert --> PathB["Path B: Speculative / Diegetic Trope"]
-    Alert --> PathC["Path C: Authorial Sovereignty"]
+flowchart LR
+    ProseMD["Scene Markdown (.md)"] --> LexiconMatcher["8-Channel Sensory Lexicon Parser"]
+    LexiconMatcher --> Vector["Channel Counts C = [C₁, C₂, ..., C₈]"]
+    Vector --> ShannonCalc["Shannon Entropy & Immersion Index Calculator"]
+    Vector --> WhiteRoomLinter["White Room & Monoculture Detector"]
     
-    PathA --> SolA["Add 2 non-visual anchors: the smell of ozone and cold stone on fingertips."]
-    PathB --> SolB["Justify the sterile absence of sensation as a psychic void or simulation room."]
-    PathC --> SolC["Tag scene with @senses: abstract_dialogue to mute warnings."]
+    ShannonCalc & WhiteRoomLinter --> SVGRadar["Interactive Standalone SVG Radar Chart"]
+    ShannonCalc & WhiteRoomLinter --> HTMLReport["Sensory Diagnostic Dossier"]
 ```
 
-### Scenario: White Room Syndrome Alert (`SNS-101`)
-- **Path A (Hard Realism / Somatic Layering)**:
-  - Insert two non-visual anchors into the scene: the metallic taste of adrenaline in the character's mouth and the damp chill of the subterranean cellar floor through their boots.
-- **Path B (Speculative / Diegetic Trope)**:
-  - If the scene is set inside a virtual reality simulation, an astral void, or a sensory deprivation chamber, keep the lack of senses and tag with `@environment: sensory_void`.
-- **Path C (Authorial Sovereignty)**:
-  - If writing a rapid, staccato dialogue interchange between two operatives where physical description would break conversational velocity, bypass the warning via `@senses: fast_dialogue`.
+### 5.1 CLI Command Reference
+
+```powershell
+# Analyze sensory channel balance and Shannon entropy across manuscript
+arcanum senses Manuscript/
+
+# Audit a single scene for White Room Syndrome with standalone SVG radar chart
+arcanum sensory Manuscript/Act_2/Chapter_11.md --radar reports/ch11_radar.svg
+
+# Generate full sensory immersion HTML dashboard
+arcanum senses Manuscript/ --html reports/sensory_immersion.html
+```
+
+### 5.2 Diagnostic Codes Matrix
+
+| Code | Severity | Description | Remediating Action |
+|---|---|---|---|
+| `SNS-101` | **CRITICAL** | White Room Syndrome (Scene $> 300\text{ words}$ with $\sum_{i \ne \text{vis}} C_i < 2$) | Ground scene in at least 3 non-visual sensory modalities (sound, texture, temperature). |
+| `SNS-102` | **HIGH** | Sensory Monoculture ($p_{\text{visual}} \ge 0.88$) | Replace visual descriptions with auditory, olfactory, or tactile textures. |
+| `SNS-103` | **MEDIUM** | Low Sensory Entropy ($H_{\text{sensory}} < 1.20\text{ bits}$) | Diversify sensory channels; incorporate vestibular balance and interoceptive reflexes. |
+| `SNS-104` | **LOW** | Gustatory / Olfactory Absence in Food or Combat Scene | Add distinctive scent notes or chemical taste sensations to trigger limbic memory. |
+| `SNS-105` | **MEDIUM** | Kinetic Combat Without Proprioception/Interoception | Inject physical exhaustion, bruised ribs, adrenaline crash, or balance shifts. |
+| `SNS-106` | **LOW** | Synesthetic Mismatch / Cliché Sensory Blending | Ensure synesthetic metaphors maintain universe-authentic physical logic. |
 
 ---
 
-## 6. Content Security Policy & Offline Isolation
+## 6. Practical Authorial Worksheets & Worked Masterclass Examples
 
-All sensory palette analyzers and SVG radar charts operate 100% offline with zero CDN dependencies:
+### 6.1 Step-by-Step Sensory Transformation Case Study
 
-```html
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
+#### Flawed Amateur Draft (Visual Monoculture / White Room Syndrome):
+> Valeria entered the secret alchemy laboratory. The room was dark and lit by glowing green lanterns on the stone walls. She saw large glass beakers filled with red liquids on the wooden tables. In the center of the room was an old metal cauldron. An ancient grimoire lay on the desk with strange symbols drawn on the parchment. It looked very dangerous.
+
+**Engine Diagnostics:**
+- Visual Channel: $100\%$ (*dark, glowing, green, stone, saw, large, glass, red, wooden, old, metal, strange, looked*).
+- Non-Visual Channels: $0\%$ (**SNS-101: WHITE ROOM SYNDROME DETECTED**).
+- Shannon Sensory Entropy: $H_{\text{sensory}} = 0.0\text{ bits}$ ($V_{\text{immersion}} = 0\%$).
+
+#### Masterclass Revision (8-Channel Immersion, High Shannon Entropy):
+> The iron latch burned with sub-zero frost, tearing skin from Valeria’s fingertips as she forced the door inward. *(Tactile + Thermoceptive)*  
+> A wave of stale ozone and boiling sulfur washed over her, thick enough to coat the back of her throat in bitter copper. *(Olfactory + Gustatory)*  
+> Green luminescence bled from phosphorescent lanterns, casting jittery emerald shadows across the workbench. *(Visual)*  
+> Glass retorts hummed with internal steam, vibrating against the wet slate flagstones. *(Auditory)*  
+> As she stepped toward the central vat, the uneven floor pitched underfoot; her stomach lurched in sudden vertigo as the air pressure spiked, making her eardrums pop. *(Vestibular + Interoceptive)*
+
+**Engine Improvements:**
+- 8-Channel Distribution: $V = 22\%, A = 14\%, O = 14\%, G = 14\%, T = 14\%, P = 11\%, \Theta = 11\%$.
+- Shannon Sensory Entropy: $H_{\text{sensory}} = 2.78\text{ bits}$ ($V_{\text{immersion}} = 92.7\%$) (**MASTERCLASS SENSORY HARMONY**).
+
+---
+
+### 6.2 Scene Sensory Palette Blueprint (YAML Schema)
+
+```yaml
+---
+scene_id: "CH11_LABORATORY_BREACH"
+sensory_targets:
+  target_entropy_bits: 2.40
+  min_non_visual_cues: 6
+
+palette_allocation:
+  visual:
+    - "Phosphorescent emerald glare"
+    - "Distorted meniscus in bubbling retorts"
+  auditory:
+    - "Steam hissing through hairline fractures"
+    - "Low bone-vibrating hum of the cooling grid"
+  olfactory:
+    - "Volatile ozone"
+    - "Pungent scorched animal fat"
+  gustatory:
+    - "Metallic galvanic battery tang in the air"
+  tactile:
+    - "Greasy residue on brass fittings"
+    - "Freezing draft prickling arm hair"
+  vestibular:
+    - "Vertigo from localized gravity dampeners"
+  interoceptive:
+    - "Diaphragm spasm from noxious gas exposure"
+  thermoceptive:
+    - "Thermal gradient: face sweating, feet freezing"
+---
 ```
+
+---
+
+## 7. Recommended Reading, References & Media
+
+### 7.1 Foundational Craft & Academic Books
+- **Ackerman, Diane (1990)**. *A Natural History of the Senses*. Random House. ISBN: 978-0679735663.  
+  *The definitive literary and physiological exploration of smell, touch, taste, hearing, and vision.*
+- **Proust, Marcel (1913)**. *Swann's Way (In Search of Lost Time, Vol. 1)* (trans. C.K. Scott Moncrieff). Grasset.  
+  *The foundational literary study of involuntary sensory memory, olfactory triggers, and perceptual texture.*
+- **Pallasmaa, Juhani (2005)**. *The Eyes of the Skin: Architecture and the Senses*. John Wiley & Sons. ISBN: 978-0470015780.  
+  *Essential treatise on the tyranny of the visual and how haptic, acoustic, and spatial senses create authentic presence.*
+- **Maass, Donald (2016)**. *The Emotional Craft of Fiction: How to Write the Story Beneath the Surface*. Writer's Digest Books. ISBN: 978-1440348372.  
+  *Bridging external sensory details with internal character emotional transformations.*
+- **Oliver, Mary (1994)**. *A Poetry Handbook*. Mariner Books / Houghton Mifflin. ISBN: 978-0156724005.  
+  *Masterclass on the sound and somatic texture of words, consonants, and sensory grounding.*
+- **Ramachandran, V.S. & Blakeslee, Sandra (1998)**. *Phantoms in the Brain: Probing the Mysteries of the Human Mind*. William Morrow. ISBN: 978-0688172176.  
+  *Seminal neuroscience text on mirror neurons, body schema maps, and synesthesia.*
+
+### 7.2 Landmark Lectures, Video Masterclasses & Podcasts
+- **Hello Future Me / Timothy Hickson (2020)**. *Worldbuilding and the Five Senses: Sensory Description in Sci-Fi and Fantasy*. YouTube Video Essay.  
+  *Practical breakdown of sensory grounding in speculative world design and eliminating white rooms.*
+- **Writing Excuses (2011–2019)**. *Season 6 & Season 13: Sensory Detail, Visceral Immersion, and Synesthesia*. Hosted by Mary Robinette Kowal, Brandon Sanderson, Howard Tayler, and Dan Wells.  
+  *Workshops on using non-visual senses to establish setting, convey magic, and escalate combat tension.*
+- **PBS Space Time / Neuroscience Series (2021)**. *How the Brain Constructs Reality: Perception and Sensory Integration*. PBS Digital Studios.  
+  *Cognitive models of perceptual synthesis and sensory entropy.*
+
+### 7.3 Landmark Speculative Fiction Case Studies
+- **Süskind, Patrick (1985)**. *Perfume: The Story of a Murderer*. Diogenes Verlag.  
+  *The absolute pinnacle of olfactory-dominated narrative prose.*
+- **VanderMeer, Jeff (2014)**. *Annihilation (The Southern Reach Trilogy)*. FSG Originals.  
+  *Masterclass in eldritch vestibular disorientation, fungal olfactory textures, and bio-sensory horror.*
+- **Leckie, Ann (2013)**. *Ancillary Justice*. Orbit.  
+  *Virtuosic integration of thermal sensing, atmospheric pressure changes, and acoustic multi-perspective awareness.*

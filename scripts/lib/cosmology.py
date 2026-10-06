@@ -37,9 +37,16 @@ from typing import Any
 try:
     from lib._bootstrap import atomic_write
     from lib.frontmatter import parse_yaml_frontmatter
+    from lib.scope import add_scope_arguments, filter_world_scope, parse_scope_args
+    from lib.scope import resolve_world_dir as base_resolve_world_dir
 except ImportError:
     from _bootstrap import atomic_write
     from frontmatter import parse_yaml_frontmatter
+    try:
+        from scope import add_scope_arguments, filter_world_scope, parse_scope_args
+        from scope import resolve_world_dir as base_resolve_world_dir
+    except ImportError:
+        pass
 
 logger = logging.getLogger("arcanum.cosmology")
 
@@ -53,10 +60,17 @@ CANONICAL_DOMAINS = [
 ]
 
 
-def extract_deity_profiles(world_dir: Path | None) -> dict[str, dict[str, Any]]:
+def extract_deity_profiles(world_dir: Path | None, scope: Any = None) -> dict[str, dict[str, Any]]:
     """Scans Cosmology/*.md and World Bible notes for deific entity definitions."""
     if not world_dir or not world_dir.is_dir():
         return _default_pantheon()
+
+    scoped_files: set[Path] | None = None
+    if scope is not None and getattr(scope, "is_scoped", lambda: False)():
+        try:
+            scoped_files = filter_world_scope(world_dir, scope)
+        except Exception:
+            scoped_files = None
 
     deities = {}
     cosmo_dirs = [
@@ -71,6 +85,8 @@ def extract_deity_profiles(world_dir: Path | None) -> dict[str, dict[str, Any]]:
             continue
         for md_file in sorted(cdir.rglob("*.md")):
             if md_file.name.startswith((".", "_")) or "Template" in md_file.name:
+                continue
+            if scoped_files is not None and md_file.resolve() not in scoped_files:
                 continue
             try:
                 content = md_file.read_text(encoding="utf-8", errors="replace")
@@ -162,6 +178,7 @@ def _default_pantheon() -> dict[str, dict[str, Any]]:
 def audit_cosmology(
     world_dir: Path | None,
     factions_dir: Path | None = None,
+    scope: Any = None,
 ) -> dict[str, Any]:
     """
     Executes full theological consistency and pantheon conflict audit:
@@ -170,7 +187,7 @@ def audit_cosmology(
     3. Checks doctrinal heresy between allied factions (COS-103)
     4. Evaluates divine energy intervention scaling (COS-104)
     """
-    deities = extract_deity_profiles(world_dir)
+    deities = extract_deity_profiles(world_dir, scope=scope)
     findings: list[dict[str, Any]] = []
 
     # 1. Domain Overlap Audit (COS-101)
@@ -404,8 +421,11 @@ def generate_cosmology_html_report(audit_data: dict[str, Any], output_path: Path
     return output_path
 
 
-def resolve_world_dir(target_str: str | None = None) -> str:
+def resolve_world_dir(target_str: str | None = None, scope: Any = None) -> str:
     """Resolves world input string (path or name) to absolute directory path."""
+    if not target_str and scope is not None and getattr(scope, "world", None):
+        target_str = scope.world
+
     if target_str:
         p = Path(target_str).expanduser().resolve()
         if p.is_dir():
@@ -420,6 +440,13 @@ def resolve_world_dir(target_str: str | None = None) -> str:
         p_cwd = Path.cwd() / target_str
         if p_cwd.is_dir():
             return str(p_cwd)
+
+    try:
+        res = base_resolve_world_dir(target_str, scope=scope)
+        if res:
+            return str(res)
+    except Exception:
+        pass
 
     home = Path.home()
     universes = sorted((home / "Universes").glob("*/*"), key=lambda p: str(p))
@@ -443,6 +470,10 @@ def main():
     p_check.add_argument("-w", "--world", dest="world_flag", help="World Bible lore directory")
     p_check.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_check.add_argument("--html", help="Path to export standalone HTML report")
+    try:
+        add_scope_arguments(p_check, include_manuscript=False, include_world=False, target_pos_arg=False)
+    except NameError:
+        pass
 
     # 2. pantheon
     p_pan = subparsers.add_parser("pantheon", help="Display deific pantheon domain matrix")
@@ -450,12 +481,20 @@ def main():
     p_pan.add_argument("-w", "--world", dest="world_flag", help="World Bible lore directory")
     p_pan.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_pan.add_argument("--html", help="Path to export standalone HTML report")
+    try:
+        add_scope_arguments(p_pan, include_manuscript=False, include_world=False, target_pos_arg=False)
+    except NameError:
+        pass
 
     # 3. heresy
     p_her = subparsers.add_parser("heresy", help="Audit theological schisms and doctrinal contradictions")
     p_her.add_argument("world", nargs="?", help="World Bible lore directory")
     p_her.add_argument("-w", "--world", dest="world_flag", help="World Bible lore directory")
     p_her.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    try:
+        add_scope_arguments(p_her, include_manuscript=False, include_world=False, target_pos_arg=False)
+    except NameError:
+        pass
 
     if len(sys.argv) > 1 and sys.argv[1] not in ("check", "pantheon", "heresy", "-h", "--help", "-v", "--version"):
         sys.argv.insert(1, "check")
@@ -465,11 +504,17 @@ def main():
     if not args.subcommand:
         args.subcommand = "check"
 
+    scope = None
+    try:
+        scope = parse_scope_args(args)
+    except NameError:
+        pass
+
     raw_world = getattr(args, "world_flag", None) or getattr(args, "world", None)
-    world_dir_str = resolve_world_dir(raw_world)
+    world_dir_str = resolve_world_dir(raw_world, scope=scope)
     world_path = Path(world_dir_str) if world_dir_str else None
 
-    audit_data = audit_cosmology(world_path)
+    audit_data = audit_cosmology(world_path, scope=scope)
 
     if args.json:
         print(json.dumps(audit_data, indent=2))

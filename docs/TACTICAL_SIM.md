@@ -1,156 +1,305 @@
-# Dynamic Tactical Combat Simulator & Monte Carlo Encounter Design (`docs/TACTICAL_SIM.md`)
-> **Domain D: Sociology, Factions, Economics, Genealogy & Warfare** | **CLI:** `arcanum tactical` / `arcanum skirmish`
+# Lanchester Combat Dynamics, Morale Shock & Operational Logistics (`docs/TACTICAL_SIM.md`)
+> **Domain B: Societies, Lineages, Geopolitics & Tactical War** | **CLI:** `arcanum tactics` / `arcanum wargame`
 
 ---
 
-## 1. Overview & Theoretical Rationale
+## 1. Executive Summary & Epistemological Architecture
 
-The **Ars Arcanum Tactical Combat Simulator** (`scripts/lib/tactical_sim.py`) is an offline encounter design tool, stochastic battle simulator, and Monte Carlo probability modeler built for military fantasy novelists, tactical fiction authors, and tabletop RPG designers.
+The **Ars Arcanum Tactical Warfare & Wargaming Engine** (`scripts/lib/tactical_sim.py`) is an offline battle simulation compiler, Lanchester combat attrition integrator, troop morale collapse auditor, and army march column calculator designed for military fantasy novelists, wargame system designers, and historical tacticians.
 
-Writing battle scenes without data backing frequently causes narrative tension to collapse:
-1. **Unbelievable Underdog Victories**: Depicting 5 peasant recruits defeating 20 armored knights without explaining terrain force multipliers, ambushes, or tactical choke-points.
-2. **Arbitrary Plot Armor**: Main characters surviving impossible numerical odds without quantified defensive mechanics.
-3. **Static Combat Flow**: Battles where units deal identical damage every round without morale decay, critical hits, or weapon reach advantages.
+Military combat in fiction frequently succumbs to Hollywood romanticisms that contradict operational reality:
+1. **The "Fight to the Last Man" Fallacy (`TAC-101`)**: Depicting armies fighting down to 99% extermination before breaking, ignoring that historical armies almost universally rout and dissolve upon sustaining **10%–30% casualties**.
+2. **Linear Mass Scaling Errors (`TAC-102`)**: Treating a 2:1 numerical advantage as merely twice as effective in ranged or concentrated combat, ignoring Lanchester's Square Law where a 2:1 numerical superiority yields a **4:1 combat advantage**.
+3. **The Bloodbath Myth of the Clashing Line**: Assuming the majority of casualties occur during the shield wall clash, ignoring that **80%–90% of all battlefield casualties occur during the rout** when broken troops drop shields and flee.
+4. **Column Length Amnesia**: Depicting an army of 40,000 marching onto a battlefield simultaneously, ignoring that their single-file road column stretches over $35\text{ km}$, taking 10+ hours to deploy into battle lines.
 
-The Tactical Simulator executes round-by-round combat loops with terrain-aware mechanics, calculates stochastic win-rate distributions via Monte Carlo runs ($N = 100 \text{ to } 10,000$), identifies tactical MVP combatants, and outputs formatted prose combat logs.
-
----
-
-## 2. Combat Mechanics & Stochastic Formulation
+The Tactical Engine numerically integrates Lanchester differential equations, tracks cumulative morale shock multipliers, computes terrain/fortification defilade modifiers, and simulates unit routing dynamics.
 
 ```mermaid
 flowchart TD
-    Rosters["Combatant Rosters (Side 1 & Side 2 YAML)"] --> Initiative["Initiative Sorting (Speed + Stochastic Jitter)"]
-    Terrain["Terrain Modifiers (Cover, High Ground, Choke Points)"] --> Modifiers["Attribute Multipliers (μ_atk, μ_def, μ_acc)"]
-    
-    Initiative & Modifiers --> RoundLoop["Round-by-Round Execution Loop"]
-    RoundLoop --> HitCalc["Hit Probability P(Hit) & Damage Resolution"]
-    RoundLoop --> MoraleCalc["Morale Shock & Team Rout Evaluation"]
-    
-    RoundLoop --> SingleLog["Prose Battle Narrative Log"]
-    RoundLoop --> MonteCarlo["Monte Carlo Simulator (N = 500 Runs)"]
-    MonteCarlo --> WinRates["Win-Rate Probability Distribution & MVP Ranking"]
+    subgraph Army Roster & Doctrine
+        RedRoster["Red Force (Size R₀, Quality α)"] & BlueRoster["Blue Force (Size B₀, Quality β)"] --> BattleMode{"Engagement Mode"}
+        BattleMode --> LinearLaw["Lanchester Linear Law: Melee / Ancient Skirmish"]
+        BattleMode --> SquareLaw["Lanchester Square Law: Ranged / Targeted Salvos"]
+    end
+
+    subgraph Tactical Modifiers & Terrain
+        Terrain["Terrain & Elevation (+25% to +50% High Ground)"] --> Modifiers["Composite Tactical Multiplier Matrix"]
+        Defilade["Fortifications & Cover (4x to 10x Defense)"] --> Modifiers
+        Flanking["Flanking & Rear Encirclement (Morale Shock 2x)"] --> Modifiers
+        Modifiers --> LanchesterODE["Lanchester Differential Numerical Integrator"]
+    end
+
+    subgraph Morale & Rout Dynamics
+        LanchesterODE --> CasualtyRate["Casualty Tracker (% Losses Sustained)"]
+        CasualtyRate & ShockEvents["Shock Events (General Slain, Flank Broken)"] --> MoraleAudit{"Morale Check (Threshold 10–30%)"}
+        MoraleAudit -- "Rout Triggered" --> PursuitPhase["Pursuit & Slaughter Phase (80% Total Casualties)"]
+    end
+
+    subgraph Output Telemetry
+        LanchesterODE & PursuitPhase --> TacticalReport["Offline Standalone Battle Dossier & Casualty Graph"]
+    end
 ```
 
-### 2.1 Turn-Based Initiative & Action Ordering
-Combatants are sorted dynamically each round by instantaneous initiative $I_i$:
+---
 
-$$I_i = \text{Speed}_i + \mathcal{U}(-2, +2)$$
+## 2. The Lanchester Combat Power Laws
 
-Where $\mathcal{U}(a, b)$ is a uniform random integer perturbation simulating reflexes and battlefield chaos.
+Frederick W. Lanchester (1916) formulated the mathematical foundations of military attrition. The outcome of a battle depends entirely on whether forces engage in **unaimed/ancient duels** (Linear Law) or **concentrated targeted fire** (Square Law).
 
-### 2.2 Attack Resolution & Damage Calculation
-For an attacker $A$ targeting defender $D$ in a given terrain environment:
+```
+                      [ LANCHESTER ENGAGEMENT REGIMES ]
+  1. LINEAR LAW (Ancient Melee)        ──► dB/dt = -β  ;  dR/dt = -α  ──► Power ∝ N · Quality
+  2. SQUARE LAW (Ranged Concentration) ──► dB/dt = -β R;  dR/dt = -α B──► Power ∝ N² · Quality
+```
 
-#### Hit Probability:
-$$P(\text{Hit}) = \max\left(0.05, \, \min\left(0.95, \, \frac{\text{Accuracy}_A \cdot \mu_{\text{acc, terrain}}}{\text{Evasion}_D \cdot \mu_{\text{cover, terrain}}}\right)\right)$$
+### 2.1 Lanchester’s Linear Law (Ancient Melee & Frontage-Constrained Duels)
+When units fight along a narrow front (e.g., Thermopylae pass, shield wall clash) where only the soldiers in the front rank can engage, each warrior fights one opponent at a time:
 
-#### Damage Formulation:
-$$\text{Raw Damage} = \text{Attack}_A \cdot \mu_{\text{atk, terrain}} \cdot \text{CritMultiplier}$$
-$$\text{Effective Damage} = \max\left(1, \, \lfloor \text{Raw Damage} - \text{Defense}_D \cdot \mu_{\text{def, terrain}} \rfloor\right)$$
+$$\frac{dB}{dt} = -\beta, \quad \frac{dR}{dt} = -\alpha$$
 
-Where $\text{CritMultiplier} = 2.0$ with probability $P(\text{Crit}) = \frac{\text{Skill}_A}{100}$.
+Integrating across battle duration:
 
-### 2.3 Morale Decay & Tactical Rout Probability
-When a team suffers heavy casualties, surviving combatants experience morale shocks:
+$$\beta (R_0 - R(t)) = \alpha (B_0 - B(t))$$
 
-$$M_{\text{current}}(t) = M_{\text{initial}} \cdot \left(\frac{\text{Active Combatants}}{\text{Total Initial Roster}}\right) - \text{LossShocks}$$
-$$\text{Rout Trigger} \iff M_{\text{current}}(t) \le 0.30 \cdot M_{\text{initial}} \implies \text{Team Routs (Forced Surrender / Retreat)}$$
+- **Combat Power Metric**:
+  $$\text{Combat Power}_{\text{Linear}} = \text{Force Size } N \times \text{Individual Quality } \alpha$$
+  In narrow melee choke points, high individual quality (Spartan hoplites, elite knights) can hold off vast numerical superiorities.
 
-### 2.4 Monte Carlo Win-Rate Convergence
-For $N$ independent battle simulations between Team 1 and Team 2:
+### 2.2 Lanchester’s Square Law (Modern Ranged & Targeted Concentrated Fire)
+When every unit in Force Red can freely acquire, target, and fire upon any unit in Force Blue simultaneously (e.g., longbow volleys, musket lines, artillery salvos, starship broadsides):
 
-$$\hat{P}(\text{Team 1 Win}) = \frac{1}{N}\sum_{i=1}^N \mathbb{I}(\text{Winner}_i = 1)$$
-$$\text{Standard Error } \sigma_{\hat{P}} = \sqrt{\frac{\hat{P}(1 - \hat{P})}{N}}$$
+$$\frac{dB}{dt} = -\beta R(t)$$
+$$\frac{dR}{dt} = -\alpha B(t)$$
 
-For $N = 1000$ runs, estimation error is bounded to $\pm 1.5\%$, giving authors statistical certainty regarding encounter lethality.
+Where $\alpha$ is Red's individual kill-rate efficiency and $\beta$ is Blue's efficiency. Multiplying and integrating:
+
+$$\beta \left( R_0^2 - R(t)^2 \right) = \alpha \left( B_0^2 - B(t)^2 \right)$$
+
+- **Lanchester's Law of Fighting Power**:
+  $$\text{Fighting Power} = \alpha \cdot N^2$$
+
+#### The Geometric Power of Numerical Superiority:
+Because fighting power scales with the **square of troop numbers ($N^2$)**, numerical superiority dominates individual unit quality:
+- If Force Red has $2,000$ archers ($\alpha = 1.0$) and Force Blue has $1,000$ elite archers ($\beta = 1.5$):
+  $$\text{Power}(\text{Red}) = 1.0 \times 2,000^2 = 4,000,000$$
+  $$\text{Power}(\text{Blue}) = 1.5 \times 1,000^2 = 1,500,000$$
+  Force Red possesses **$2.67\times$ the combat power** of Force Blue and will annihilate Blue with minimal losses.
+- *Clausewitz's Principle of the Schwerpunkt*: Concentrating forces locally transforms a fair fight into an overwhelmingly asymmetric Lanchester Square slaughter.
 
 ---
 
-## 3. Terrain Modifiers Reference Matrix
+## 3. Force Multipliers & Tactical Terrain Modifiers
 
-| Terrain Key | Environment | Attack Mod ($\mu_{\text{atk}}$) | Def Mod ($\mu_{\text{def}}$) | Accuracy Mod ($\mu_{\text{acc}}$) | Narrative Significance |
-|:---|---|:---:|:---:|:---:|---|
-| `open_field` | Grassy Plains | $1.0\times$ | $1.0\times$ | $1.0\times$ | Neutral baseline wargame setting. |
-| `dense_forest` | Boreal Woods | $0.85\times$ | $1.15\times$ | $0.75\times$ | High cover; favors stealth and light skirmishers. |
-| `castle_walls` | Fortified Ramparts | $0.70\times$ (Attacker) | $2.0\times$ (Defender) | $1.3\times$ (Defender) | Enormous defender advantage; favors archers. |
-| `dungeon_corridor` | Narrow Chokepoint | $1.0\times$ | $1.3\times$ | $0.90\times$ | Limits flanking; favors heavy shieldwalls. |
-| `mountain_pass` | Rocky Incline | $0.80\times$ | $1.2\times$ | $0.80\times$ | High ground bonuses and difficult footing. |
+Composite operational effectiveness $\alpha_{\text{eff}}$ scales the base unit lethality:
+
+$$\alpha_{\text{eff}} = \alpha_0 \times \prod_{k} M_k$$
+
+```
+                        [ TACTICAL MULTIPLIER MATRIX ]
+  Factor                      Modifier (M_k)    Tactical Effect
+  ──────                      ──────────────    ───────────────
+  High Ground / Crest Defense +25% to +50%      Gravity boosts missile range / slows charge
+  Stone Castle Defilade       4.0x to 10.0x     Massive missile protection; narrow arrow slits
+  Encirclement / Flank Attack 2.0x to 3.0x      Nullifies shields; triggers catastrophic panic
+  Deep Mud / Trench Obstacle  0.3x to 0.5x      Neutralizes cavalry shock charge velocity
+  Heavy Rain / High Winds     0.2x to 0.5x      Slacks bowstrings; ruins gunpowder priming
+```
 
 ---
 
-## 4. Author Extension & Configuration Guide
+## 4. Morale Mechanics & The Anatomy of the Rout
 
-### 4.1 Team Roster Manifest (`knights.yaml`)
+Historical battle studies by John Keegan (*The Face of Battle*) and Col. Trevor N. Dupuy prove that armies are psychological entities, not mathematical health bars.
+
+```
+      Casualties Sustained (%)
+           ▲
+       100 ┼ - - - - - - - - - - - - - - - - - - - Hollywood Myth: Fight to 100% Death
+           │
+        50 ┼ - - - - - - - - - - - - - - - - - - - Elite / Fanatical Veteran Breaking Point
+           │
+        15 ┼────────────────────────────────────── REAL HISTORICAL BREAKING POINT (10%–20%)
+           │                                       (Rout Triggers -> The Massacre Begins)
+         0 ┼──────────────────────────────────────► Time (t)
+```
+
+### 4.1 Historical Casualty Breaking Points
+- **Conscript / Green Levy**: Routs after sustaining **$5\%\text{–}10\%$ casualties**.
+- **Standard Regular Infantry**: Routs after sustaining **$15\%\text{–}20\%$ casualties**.
+- **Hardened Veterans / Knights**: Routs after sustaining **$30\%\text{–}40\%$ casualties**.
+- **Fanatical Martyrs / Paladins**: Breaks only at $> 50\%$ (historically exceedingly rare; e.g., Spartans at Thermopylae, Swiss Guard at Rome).
+
+### 4.2 Shock Events Triggering Instant Morale Collapse
+Even at $0\%$ physical casualties, a unit immediately breaks if subjected to sudden psychological shock:
+1. **General / Sovereign Slain**: Sudden loss of supreme command ($\text{Morale Penalty } -50\%$).
+2. **Cavalry Charge from the Rear**: Sudden realization of entrapment ($\text{Morale Penalty } -60\%$).
+3. **Adjacent Friendly Unit Routing**: Contagious panic spreading across the line.
+4. **Ammunition Exhaustion**: Missile troops unable to return fire.
+
+### 4.3 The Slaughter of the Rout
+> **In pre-modern warfare, 80% to 90% of all battle casualties occur *after* the line breaks.**
+
+While the shield wall holds, armor and shields keep casualty rates low ($< 5\%\text{/hour}$). Once the line turns its back and flees, fleeing soldiers throw down heavy shields and weapons, enabling pursuing light cavalry and skirmishers to butcher them from behind with zero retaliation.
+
+---
+
+## 5. Column Length & Operational March Logistics
+
+An army on the march does not travel in wide battle lines; it moves in narrow single- or double-file columns along dirt roads.
+
+```
+  ◄── 10 km Vanguard ──►◄───── 15 km Main Body ─────►◄── 12 km Baggage Train ──►
+  ═══════════════════════════════════════════════════════════════════════════════
+  Total Road Column Length L_column ≈ 37 km (Takes 10+ hours to pass a single point)
+```
+
+### 5.1 The March Column Length Formula
+For an army of $N_{\text{inf}}$ infantry, $N_{\text{cav}}$ cavalry, and $N_{\text{wagons}}$ supply wagons:
+
+$$L_{\text{column}} = \left( \frac{N_{\text{inf}}}{D_{\text{inf}}} \right) + \left( \frac{N_{\text{cav}}}{D_{\text{cav}}} \right) + \left( N_{\text{wagons}} \times \Delta_{\text{wagon}} \right)$$
+
+Where typical road marching densities are:
+- Infantry marching 4-abreast: $D_{\text{inf}} \approx 2,000\text{ men/km}$ (with spacing).
+- Cavalry marching 2-abreast: $D_{\text{cav}} \approx 400\text{ horses/km}$.
+- Baggage wagons: $\Delta_{\text{wagon}} \approx 20\text{ meters per wagon}$ ($50\text{ wagons/km}$).
+
+#### Example: A Medieval Royal Host of 20,000 Men
+- $15,000$ Infantry (4-abreast): $\frac{15,000}{2,000} = 7.5\text{ km}$.
+- $5,000$ Cavalry (2-abreast): $\frac{5,000}{400} = 12.5\text{ km}$.
+- $600$ Supply Wagons: $600 \times 0.02\text{ km} = 12.0\text{ km}$.
+- **Total Column Length**: $L_{\text{column}} = 7.5 + 12.5 + 12.0 = 32.0\text{ km}$.
+
+*Operational Reality*: If the vanguard arrives at a battlefield at 08:00, the rearguard and supply wagons will not arrive until after 18:00. An enemy ambushing the column in transit will defeat the army piecemeal.
+
+---
+
+## 6. Worked Step-by-Step Tactical Simulation
+
+### Scenario: The Battle of the Red Ridge
+- **Force Red (Defenders on High Ground)**: $3,000$ longbowmen on a steep ridge ($M_{\text{terrain}} = 1.4$), kill-rate efficiency $\alpha = 0.08\text{ kills/min/man}$.
+- **Force Blue (Attackers in the Plain)**: $5,000$ armored crossbowmen, kill-rate efficiency $\beta = 0.05\text{ kills/min/man}$.
+- Both forces engage simultaneously in targeted ranged combat (Lanchester Square Law).
+- Morale breaking threshold: $20\%$ losses for Blue ($1,000$ casualties); $25\%$ losses for Red ($750$ casualties).
+
+#### Step 1: Compute Effective Effectiveness Coefficients
+- $\alpha_{\text{eff}} = \alpha \times M_{\text{terrain}} = 0.08 \times 1.40 = 0.112$.
+- $\beta_{\text{eff}} = 0.050$.
+
+#### Step 2: Calculate Lanchester Combat Power
+$$\text{Power}(\text{Red}) = \alpha_{\text{eff}} \times R_0^2 = 0.112 \times (3000)^2 = 0.112 \times 9,000,000 = 1,008,000$$
+$$\text{Power}(\text{Blue}) = \beta_{\text{eff}} \times B_0^2 = 0.050 \times (5000)^2 = 0.050 \times 25,000,000 = 1,250,000$$
+
+*Initial Outlook*: Blue holds a slight total power edge ($1.25\text{M}$ vs $1.01\text{M}$), but will Blue break from morale before Red is defeated?
+
+#### Step 3: Determine Losses at Blue's Morale Break Threshold
+Blue routs when $B(t) = 4,000$ ($1,000$ casualties sustained).
+Using the Lanchester invariant:
+
+$$\alpha_{\text{eff}} (B_0^2 - B(t)^2) = \beta_{\text{eff}} (R_0^2 - R(t)^2)$$
+
+$$0.112 \times \left( 5000^2 - 4000^2 \right) = 0.050 \times \left( 3000^2 - R(t)^2 \right)$$
+
+$$0.112 \times (25,000,000 - 16,000,000) = 0.050 \times (9,000,000 - R^2)$$
+
+$$0.112 \times 9,000,000 = 1,008,000$$
+
+$$9,000,000 - R(t)^2 = \frac{1,008,000}{0.050} = 20,160,000$$
+
+*Mathematical Implication*: Because $20,160,000 > 9,000,000$, Red's roster $R(t)^2$ reaches zero *before* Blue loses $1,000$ men. 
+Let's find Red's casualties when Red hits its own $25\%$ breaking point ($R(t) = 2,250$):
+
+$$0.050 \times (3000^2 - 2250^2) = 0.050 \times (9,000,000 - 5,062,500) = 0.050 \times 3,937,500 = 196,875$$
+
+$$B_0^2 - B(t)^2 = \frac{196,875}{0.112} = 1,757,812$$
+
+$$B(t)^2 = 25,000,000 - 1,757,812 = 23,242,188 \implies B(t) \approx 4,821 \text{ men}$$
+
+*Battle Conclusion*: Force Red sustains $750$ casualties and **routs from the ridge**. Force Blue loses only $179$ men ($3.6\%$ casualties). Blue's overwhelming $5:3$ numerical mass completely overcame Red's high-ground advantage.
+
+---
+
+## 7. Practical YAML Schemas
+
 ```yaml
-- name: "Sir Galahad"
-  role: "Knight Commander"
-  hp: 120
-  attack: 28
-  defense: 18
-  speed: 12
-  accuracy: 85
-  morale: 100
-  weapon: "Sunsteel Greatsword"
+schema_version: "2.0"
+battle_engagement:
+  id: "battle_of_red_ridge"
+  engagement_type: "lanchester_square"
 
-- name: "Spire Bowman"
-  role: "Ranged Marksman"
-  hp: 60
-  attack: 22
-  defense: 8
-  speed: 16
-  accuracy: 92
-  morale: 75
-  weapon: "Yew Longbow"
+force_red:
+  name: "Aurelian Ridge Archers"
+  initial_strength: 3000
+  base_lethality_alpha: 0.08
+  terrain_multiplier: 1.40 # High ground crest
+  morale_breaking_threshold_pct: 0.25
+  is_fortified: false
+
+force_blue:
+  name: "Iron Vanguard Crossbowmen"
+  initial_strength: 5000
+  base_lethality_beta: 0.05
+  terrain_multiplier: 1.00 # Open flat plain
+  morale_breaking_threshold_pct: 0.20
+  is_fortified: false
+
+logistical_column:
+  force_blue_total_troops: 5000
+  marching_formation_width: 4
+  cavalry_count: 800
+  supply_wagons: 120
+  total_column_length_km: 7.9
 ```
 
 ---
 
-## 5. Command-Line Interface (CLI) Reference
+## 8. CLI Reference & Scriptorium Integration
 
 ```bash
-# Simulate a single battle with detailed prose narrative log
-arcanum tactical --side1 knights.yaml --side2 bandits.yaml --terrain dense_forest --log
+# Run Lanchester Square Law battle simulation with morale breaking points
+arcanum tactics --simulate-battle World/Military/red_ridge.yaml
 
-# Run 1000-iteration Monte Carlo simulation for encounter balance with custom defending side
-arcanum tactical --side1 garrison.yaml --side2 siege_force.yaml --terrain castle_walls --defending-side 1 --runs 1000
+# Calculate road march column length and transit deployment timeline
+arcanum wargame --column-length --infantry 15000 --cavalry 5000 --wagons 600
 
-# Output machine-readable JSON battle statistics
-arcanum tactical --side1 heroes.yaml --side2 boss.yaml --json
-
-# Query combat simulation mathematics and Lanchester damage equations
-arcanum doc tactical_sim --math --why
+# Generate standalone offline HTML casualty graph and battle dossier
+arcanum tactics --battle World/Military/red_ridge.yaml --html reports/battle_report.html
 ```
 
 ---
 
-## 6. Tri-Fold Creative Advisory Resolutions
+## 9. Recommended Reading, References & Media
 
-```mermaid
-flowchart TD
-    Alert["Tactical Alert: LETHAL_IMBALANCE (Monte Carlo indicates 99.4% Team 2 Win Rate)"] --> PathA["Path A: Hard Realism / Encounter Tuning"]
-    Alert --> PathB["Path B: Speculative / Diegetic Trope"]
-    Alert --> PathC["Path C: Authorial Sovereignty"]
-    
-    PathA --> SolA["Shift terrain to 'castle_walls' or add 4 auxiliary archers to Team 1."]
-    PathB --> SolB["Introduce a tactical surprise: explosive sapper kegs or magical blizzard."]
-    PathC --> SolC["Embrace the slaughter: write scene as a heroic last stand / tragic massacre."]
-```
+### Foundational Craft & Academic Textbooks
+- **Lanchester, Frederick W. (1916)**. *Aircraft in Warfare: The Dawn of the Fourth Arm*. Constable and Company.  
+  *The historic foundational work formulating the Linear and Square Laws of military attrition.*
+- **Keegan, John (1976)**. *The Face of Battle: A Study of Agincourt, Waterloo, and the Somme*. Jonathan Cape.  
+  *The revolutionary military history masterwork detailing the psychological reality of combat, fear, and the mechanics of the rout.*
+- **von Clausewitz, Carl (1832)**. *Vom Kriege* (*On War*). Dümmlers Verlag.  
+  *The philosophical cornerstone of military strategy, the fog of war, friction, and the center of gravity (Schwerpunkt).*
+- **Sun Tzu (5th Century BCE)**. *The Art of War*.  
+  *Timeless tactical treatise on deception, terrain advantages, and winning without battle.*
+- **Dupuy, Trevor N. (1987)**. *Understanding War: History and Theory of Combat*. Paragon House.  
+  *The comprehensive operational research treatise detailing the Quantified Judgment Model (QJM) and environmental multipliers.*
 
-### Scenario: Lethal Encounter Imbalance Warning (Win Rate $< 5\%$)
-- **Path A (Hard Realism / Tactical Rebalancing)**:
-  - Give the defending underdog heavy terrain fortification (`castle_walls`) or introduce chokepoint defensive advantages to raise survival odds to $\approx 30\%-40\%$.
-- **Path B (Speculative / Diegetic Trope)**:
-  - Keep the unequal odds, but script a specific asymmetric catalyst: an ancient relic discharge, an unexpected cavalry flank charge, or an assassin eliminating the enemy commander.
-- **Path C (Authorial Sovereignty)**:
-  - Intentionally write the battle as a catastrophic defeat or heroic sacrifice (e.g. Thermopylae or The Alamo).
+### Landmark Scientific & Operations Research Papers
+- **Taylor, James G. (1983)**. *Lanchester Models of Warfare* (2 vols). Operations Research Society of America (ORSA).  
+  *The university standard for differential equation modeling of combined arms warfare.*
+- **Epstein, Joshua M. (1985)**. *The Calculus of Conventional War: Dynamic Analysis Without Lanchester Theory*. Brookings Institution.  
+  *Pioneered modern adaptive threshold attrition modeling.*
 
----
+### Seminal Video Lectures, Masterclasses & Channels
+- **Bret Devereaux (ACOUP)** (*The Universal Battle*, *How Did Ancient Battles Actually Work?*).  
+  *The premier academic military historian analyzing weapon ranges, morale breaks, and the myth of sword-fighting.*
+- **Kings and Generals** (YouTube Series: *Animated Historical Tactical Battles*).  
+  *Exquisite visual tactical battle maps illustrating flanking maneuvers, column deployments, and encirclements.*
+- **BazBattles** (YouTube Series: *Tactical Formations & Morale Mechanics*).  
+  *Deep step-by-step reconstructions of ancient and medieval command structures and casualty spikes.*
+- **Invicta** (YouTube Series: *Ancient Siege Warfare & Military Engineering*).  
+  *Detailed breakdowns of fortifications, sapping techniques, and logistical sieges.*
 
-## 7. Content Security Policy & Offline Isolation
-
-All tactical combat simulations and Monte Carlo engines execute 100% offline with zero CDN dependencies:
-
-```html
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
-```
+### Landmark Speculative Case Studies
+- **Tolkien, J.R.R.** *The Lord of the Rings* (The Battle of the Pelennor Fields: cavalry flank shock charges breaking morale, Grond siege mechanics, and rearguard lines).
+- **Martin, George R.R.** *A Clash of Kings* (The Battle of the Blackwater: naval chain boom choke point, wildfire area-denial shock, and Tywin's unexpected cavalry flank).
+- **Erikson, Steven**. *Malazan Book of the Fallen* (*Deadhouse Gates* / *Memories of Ice*: Morale limits during the Chain of Dogs, sapper explosives, and combined arms sorcery).
+- **Abercrombie, Joe**. *The Heroes* (Exhaustive, unromanticized three-day minute-by-minute battle study showing confusion, friendly fire, exhaustion, and rout mechanics).

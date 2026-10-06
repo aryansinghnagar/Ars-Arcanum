@@ -90,6 +90,8 @@ class ArcanumApp(
         self.combo_diff_a = None
         self.combo_diff_b = None
         self.lbl_secure_dest = None
+        self.entry_scope_ch = None
+        self.entry_scope_sc = None
 
         self._world_lore_counts: dict = {}
         self._dialog_cache: dict = {}
@@ -240,7 +242,7 @@ class ArcanumApp(
                 return
             context_map = {
                 0: ("cosmos", "cartography"),
-                1: ("drafting", "pacing"),
+                1: ("drafting", "structure"),
                 2: ("worldbuilding", "magic_system"),
                 3: ("publishing", "codex_export"),
                 4: ("safety", "fs_utils"),
@@ -299,12 +301,46 @@ class ArcanumApp(
         btn_new_ms.connect("clicked", self.on_new_manuscript_clicked)
         bar.pack_start(btn_new_ms, False, False, 0)
 
+        bar.pack_start(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), False, False, 4)
+
+        # 4. Scope Targeting (Chapters & Scenes)
+        lbl_scope_ch = Gtk.Label(label="<b>Ch:</b>", use_markup=True)
+        bar.pack_start(lbl_scope_ch, False, False, 0)
+
+        self.entry_scope_ch = Gtk.Entry()
+        self.entry_scope_ch.set_placeholder_text("1-5, 8")
+        self.entry_scope_ch.set_width_chars(7)
+        self.entry_scope_ch.set_tooltip_text("Filter target chapters: e.g. 1-5, 8, 10-12 or ch01..ch05")
+        bar.pack_start(self.entry_scope_ch, False, False, 0)
+
+        lbl_scope_sc = Gtk.Label(label="<b>Sc:</b>", use_markup=True)
+        bar.pack_start(lbl_scope_sc, False, False, 0)
+
+        self.entry_scope_sc = Gtk.Entry()
+        self.entry_scope_sc.set_placeholder_text("1-3")
+        self.entry_scope_sc.set_width_chars(5)
+        self.entry_scope_sc.set_tooltip_text("Filter target scenes within chapters: e.g. 1-4 or sc01..sc03")
+        bar.pack_start(self.entry_scope_sc, False, False, 0)
+
         btn_refresh = Gtk.Button(label="🔄")
         btn_refresh.set_tooltip_text("Refresh discovered universes, worlds, and manuscripts (Ctrl+R)")
         btn_refresh.connect("clicked", lambda b: self.refresh_all_discovery())
         bar.pack_start(btn_refresh, False, False, 0)
 
         return bar
+
+    def get_current_scope_args(self) -> list[str]:
+        """Returns active scope CLI arguments based on selector bar state."""
+        args: list[str] = []
+        if hasattr(self, "entry_scope_ch") and self.entry_scope_ch:
+            ch = self.entry_scope_ch.get_text().strip()
+            if ch:
+                args.extend(["--chapters", ch])
+        if hasattr(self, "entry_scope_sc") and self.entry_scope_sc:
+            sc = self.entry_scope_sc.get_text().strip()
+            if sc:
+                args.extend(["--scenes", sc])
+        return args
 
     # -------------------------------------------------------------------------
     # Discovery & State Synchronization

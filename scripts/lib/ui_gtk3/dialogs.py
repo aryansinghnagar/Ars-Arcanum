@@ -55,10 +55,34 @@ class SpeculativeDialogsMixin:
         dialog.run()
         dialog.destroy()
 
+    def _show_craft_doc_modal(self, doc_name: str, title: str):
+        dialog, box = self._create_dialog_shell(title, 840, 600)
+        lbl = Gtk.Label(
+            label=f"<b>📖 {title}</b>\n"
+                  f"<span size='small' color='#666666'>Ars Arcanum Sovereign Craft Reference Doctrine (docs/{doc_name.upper()}.md)</span>",
+            use_markup=True,
+            xalign=0,
+        )
+        box.pack_start(lbl, False, False, 0)
+        scrolled, out_buf = self._create_dialog_output_view()
+        box.pack_start(scrolled, True, True, 0)
+
+        doc_file = PROJECT_ROOT / "docs" / f"{doc_name.upper()}.md"
+        if doc_file.is_file():
+            content = doc_file.read_text(encoding="utf-8", errors="replace")
+        else:
+            try:
+                from lib.registry import format_engine_doc
+                content = format_engine_doc(doc_name.lower())
+            except Exception:
+                content = f"Reference doctrine available in docs/{doc_name.upper()}.md or via 'arcanum doc {doc_name.lower()}'"
+        out_buf.set_text(content)
+        dialog.show_all()
+        dialog.run()
+        dialog.destroy()
+
     def open_pacing_dialog(self):
-        target = self.current_manuscript_path or str(MANUSCRIPTS_DIR)
-        base_cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "pacing.py"), target]
-        self._run_dialog_html_cmd(base_cmd, is_svg=False, status_msg="Analyzing Prose Pacing & Dialogue Density...")
+        self._show_craft_doc_modal("PACING", "Narrative Pacing, Prose Rhythm & Tension Arc Doctrine")
 
     def open_journey_calendar_dialog(self):
         target_w = self.current_world_path or str(WORLDS_DIR)
@@ -86,9 +110,7 @@ class SpeculativeDialogsMixin:
         self._run_dialog_html_cmd(base_cmd, is_svg=False, status_msg="Modeling Planetary Climate & Food-Web Pyramids...")
 
     def open_idioms_senses_dialog(self):
-        target = self.current_manuscript_path or str(MANUSCRIPTS_DIR)
-        base_cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "senses.py"), target]
-        self._run_dialog_html_cmd(base_cmd, is_svg=False, status_msg="Analyzing 6D Sensory Grounding Palette...")
+        self._show_craft_doc_modal("SENSES", "8-Channel Sensory Immersion & World-Grounded Palettes")
 
     def open_prophecy_dialog(self):
         target_w = self.current_world_path or str(WORLDS_DIR)
@@ -100,14 +122,10 @@ class SpeculativeDialogsMixin:
     # Craft, Editorial, Publishing & Operations Dialogs
     # -------------------------------------------------------------------------
     def open_stylistics_dialog(self):
-        target = self.current_manuscript_path or str(MANUSCRIPTS_DIR)
-        base_cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "stylistics.py"), "scan", target]
-        self._run_dialog_html_cmd(base_cmd, is_svg=False, status_msg="Running Stylistics & Dialogue Mechanics audit...")
+        self._show_craft_doc_modal("STYLISTICS", "Prose Stylistics, Cognitive Readability & Cadence Linters")
 
     def open_voice_dialog(self):
-        target = self.current_manuscript_path or str(MANUSCRIPTS_DIR)
-        base_cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "voice.py"), target]
-        self._run_dialog_html_cmd(base_cmd, is_svg=False, status_msg="Profiling character voice fingerprints...")
+        self._show_craft_doc_modal("VOICE", "Character Voice Profiler & Idiolect Fingerprint Doctrine")
 
     def open_typography_dialog(self):
         dialog, box = self._create_dialog_shell("Smart Typography Normalizer", 720, 450)
@@ -130,18 +148,18 @@ class SpeculativeDialogsMixin:
         dialog.destroy()
 
     def open_scene_mechanics_dialog(self):
-        target = self.current_manuscript_path or str(MANUSCRIPTS_DIR)
-        base_cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "scene_mechanics.py"), target]
-        self._run_dialog_html_cmd(base_cmd, is_svg=False, status_msg="Analyzing Scene Mechanics & MRU flow...")
+        self._show_craft_doc_modal("SCENE_MECHANICS", "Scene Mechanics & Dwight Swain Motivation-Reaction Units")
 
     def open_plot_matrix_dialog(self):
         target = self.current_manuscript_path or str(MANUSCRIPTS_DIR)
-        base_cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "plot_matrix.py"), target]
+        scope_args = self.get_current_scope_args() if hasattr(self, "get_current_scope_args") else []
+        base_cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "plot_matrix.py"), target, *scope_args]
         self._run_dialog_html_cmd(base_cmd, is_svg=False, status_msg="Generating Multi-Track Plot Grid...")
 
     def open_structure_dialog(self):
         target = self.current_manuscript_path or str(MANUSCRIPTS_DIR)
-        base_cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "structure.py"), target]
+        scope_args = self.get_current_scope_args() if hasattr(self, "get_current_scope_args") else []
+        base_cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "structure.py"), target, *scope_args]
         self._run_dialog_html_cmd(base_cmd, is_svg=False, status_msg="Evaluating Story Paradigm Structure...")
 
     def open_ambient_dialog(self):
@@ -150,7 +168,8 @@ class SpeculativeDialogsMixin:
 
     def open_preflight_dialog(self):
         target = self.current_manuscript_path or str(MANUSCRIPTS_DIR)
-        base_cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "preflight.py"), target]
+        scope_args = self.get_current_scope_args() if hasattr(self, "get_current_scope_args") else []
+        base_cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "preflight.py"), target, *scope_args]
         self._run_dialog_html_cmd(base_cmd, is_svg=False, status_msg="Running Pre-Flight Publishing Linter...")
 
     def open_corpus_dialog(self):
@@ -261,20 +280,25 @@ class SpeculativeDialogsMixin:
 
     def open_package_dialog(self):
         target = self.current_manuscript_path or str(MANUSCRIPTS_DIR)
-        dialog, box = self._create_dialog_shell("Multi-Platform Distribution Packager", 720, 480)
-        lbl = Gtk.Label(label=f"Bundle {Path(target).name} into Reader Edition, Submission Package, and ARC.")
+        dialog, box = self._create_dialog_shell("Publication Export & Packaging", 720, 450)
+        lbl = Gtk.Label(
+            label=f"<b>📦 Publication Export & Artifact Packaging</b>\n"
+                  f"<span size='small' color='#666666'>Compile and bundle {Path(target).name} into release formats.</span>",
+            use_markup=True,
+            xalign=0,
+        )
         box.pack_start(lbl, False, False, 0)
-        btn = Gtk.Button(label="📦 Package All Release Archives")
-        btn.get_style_context().add_class("suggested-action")
         scrolled, out_buf = self._create_dialog_output_view()
-        box.pack_start(btn, False, False, 0)
         box.pack_start(scrolled, True, True, 0)
-
-        def _do_pkg():
-            cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "package_distribution.py"), target, "-t", "all"]
-            self._run_dialog_cmd(cmd, out_buf, "Packaging release archives...")
-
-        btn.connect("clicked", lambda b: _do_pkg())
+        out_buf.set_text(
+            f"To compile publication formats (Print PDF via Typst, Ebook EPUB via Pandoc, or Standard Submission DOCX):\n\n"
+            f"1. Open Studio 4 (Publishing Studio) tab and click '🚀 Compile Publication'.\n"
+            f"2. Or execute via terminal:\n"
+            f"   arcanum export {target} --format pdf\n"
+            f"   arcanum export {target} --format epub\n"
+            f"   arcanum export {target} --format docx\n"
+            f"   arcanum export {target} --format all\n"
+        )
         dialog.show_all()
         dialog.run()
         dialog.destroy()
@@ -284,9 +308,7 @@ class SpeculativeDialogsMixin:
         self._run_dialog_html_cmd(base_cmd, is_svg=False, status_msg="Generating Portfolio Hub...")
 
     def open_branching_dialog(self):
-        target = self.current_manuscript_path or str(MANUSCRIPTS_DIR)
-        base_cmd = [sys.executable, str(PROJECT_ROOT / "scripts" / "lib" / "branching_graph.py"), target, "--subway"]
-        self._run_dialog_html_cmd(base_cmd, is_svg=False, status_msg="Rendering Multi-POV Narrative Thread Subway Map...")
+        self._show_craft_doc_modal("BRANCHING_GRAPH", "Interactive Fiction Graph Theory & Choice Topologies")
 
     def open_craft_guide_dialog(self):
         dialog, box = self._create_dialog_shell("Author Craft Guide & Advisory Matrix", 840, 600)

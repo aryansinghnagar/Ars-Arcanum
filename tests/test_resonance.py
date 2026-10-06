@@ -58,33 +58,30 @@ class TestResonanceMeshPrimitives(unittest.TestCase):
         self.assertIn(DomainPillar.AUTHORING_PRODUCTION, pillars)
 
     def test_foundational_mesh_nodes(self) -> None:
-        # All 53 canonical domain engines should be initialized as domain nodes
-        self.assertEqual(len(self.mesh.nodes), 53)
+        # All 47 canonical domain engines should be initialized as domain nodes
+        self.assertEqual(len(self.mesh.nodes), 47)
         self.assertIn("astrophysics", self.mesh.nodes)
         self.assertIn("climate", self.mesh.nodes)
         self.assertIn("economy", self.mesh.nodes)
         self.assertIn("factions", self.mesh.nodes)
         self.assertIn("magic_system", self.mesh.nodes)
         self.assertIn("conlang", self.mesh.nodes)
-        self.assertIn("scene_mechanics", self.mesh.nodes)
-        self.assertIn("voice", self.mesh.nodes)
+        self.assertIn("dramatis_personae", self.mesh.nodes)
         self.assertIn("manuscript_scaffold", self.mesh.nodes)
         self.assertIn("tips", self.mesh.nodes)
         self.assertIn("resonance", self.mesh.nodes)
+        self.assertIn("vault_search", self.mesh.nodes)
 
     def test_foundational_mesh_edges(self) -> None:
-        self.assertEqual(len(self.mesh.edges), 74)
+        self.assertEqual(len(self.mesh.edges), 71)
         # Check specific cross-domain causal edges
         relations = [(e.source_id, e.target_id, e.relation) for e in self.mesh.edges]
         self.assertIn(("astrophysics", "climate", "causally_drives"), relations)
         self.assertIn(("ecology", "economy", "economically_impacts"), relations)
         self.assertIn(("factions", "tactical_sim", "manifests_in"), relations)
-        self.assertIn(("scene_mechanics", "senses", "sensory_grounding_for"), relations)
-        self.assertIn(("causality", "branching_graph", "causally_drives"), relations)
         self.assertIn(("world_doctor", "codex_export", "constrains"), relations)
         self.assertIn(("writing_sprint", "zen_studio", "manifests_in"), relations)
         self.assertIn(("manuscript_diff", "revision_heatmap", "causally_drives"), relations)
-        self.assertIn(("senses", "ambient", "manifests_in"), relations)
         self.assertIn(("portfolio", "studio_hub", "manifests_in"), relations)
         self.assertIn(("importer", "manuscript_scaffold", "causally_drives"), relations)
         self.assertIn(("docx_sync", "preflight", "constrains"), relations)
@@ -92,7 +89,7 @@ class TestResonanceMeshPrimitives(unittest.TestCase):
         self.assertIn(("frontmatter_builder", "continuity", "constrains"), relations)
         self.assertIn(("migrate", "world_doctor", "causally_drives"), relations)
         self.assertIn(("config", "studio_hub", "manifests_in"), relations)
-        self.assertIn(("cache", "local_rag", "causally_drives"), relations)
+        self.assertIn(("cache", "vault_search", "causally_drives"), relations)
         self.assertIn(("fs_utils", "corpus_export", "constrains"), relations)
 
     def test_zero_isolated_nodes_across_ecosystem(self) -> None:
@@ -266,13 +263,13 @@ class TestCreativeSparkSynthesizer(unittest.TestCase):
         self.assertTrue(any(d in matched_domains for d in ["astrophysics", "economy"]))
 
     def test_conceptual_bridge_shortest_path(self) -> None:
-        # Find bridge from astrophysics to voice
-        steps = self.mesh.find_bridge("astrophysics", "voice")
+        # Find bridge from astrophysics to conlang
+        steps = self.mesh.find_bridge("astrophysics", "conlang")
         self.assertGreaterEqual(len(steps), 2)
         # First step starts from astrophysics
-        self.assertIn("Astrophysics", steps[0]["from_domain"])
-        # Final step reaches voice
-        self.assertIn("Voice", steps[-1]["to_domain"])
+        self.assertIn("astrophysics", steps[0]["from_domain"].lower())
+        # Final step reaches conlang
+        self.assertIn("conlang", steps[-1]["to_domain"].lower())
 
 
 class TestVaultAndManuscriptScanner(unittest.TestCase):
@@ -429,7 +426,7 @@ class TestStudioHubAndZenStudioResonance(unittest.TestCase):
         self.assertIn("resonance", data)
         self.assertIn("resonance_nodes_count", data["metrics"])
         self.assertIn("resonance_edges_count", data["metrics"])
-        self.assertGreaterEqual(data["metrics"]["resonance_nodes_count"], 50)
+        self.assertGreaterEqual(data["metrics"]["resonance_nodes_count"], 47)
         self.assertGreaterEqual(len(data["resonance"]["sparks"]), 1)
 
     def test_studio_hub_html_contains_resonance_tab(self) -> None:

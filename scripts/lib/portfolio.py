@@ -25,11 +25,17 @@ import json
 import logging
 import re
 from pathlib import Path
+from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.scope import add_scope_arguments, parse_scope_args, resolve_manuscript_dir
 except ImportError:
     from _bootstrap import atomic_write
+    try:
+        from scope import add_scope_arguments, parse_scope_args, resolve_manuscript_dir
+    except ImportError:
+        pass
 
 logger = logging.getLogger("arcanum.portfolio")
 
@@ -95,12 +101,22 @@ def analyze_manuscript_project(ms_dir: Path) -> dict:
     }
 
 
-def scan_portfolio(root_dir: Path | None = None) -> dict:
+def scan_portfolio(root_dir: Path | None = None, scope: Any = None) -> dict:
     """Scans all manuscripts in the environment."""
     candidates = []
     if root_dir and root_dir.is_dir():
         candidates.append(root_dir)
-    else:
+    elif scope is not None and getattr(scope, "manuscript", None):
+        try:
+            ms_str = resolve_manuscript_dir(str(scope.manuscript), scope=scope)
+            if ms_str:
+                ms_p = Path(ms_str)
+                if ms_p.is_dir():
+                    candidates.append(ms_p)
+        except Exception:
+            pass
+
+    if not candidates:
         home = Path.home()
         candidates.extend([
             home / "Manuscripts",
@@ -222,10 +238,21 @@ def main():
     parser.add_argument("path", nargs="?", help="Optional root path to scan for manuscripts")
     parser.add_argument("--html", help="Generate HTML portfolio hub to output path")
     parser.add_argument("--json", action="store_true", help="Output JSON results")
+    try:
+        add_scope_arguments(parser, include_manuscript=False, include_world=False, target_pos_arg=False)
+    except NameError:
+        pass
+
     args = parser.parse_args()
 
+    scope = None
+    try:
+        scope = parse_scope_args(args)
+    except NameError:
+        pass
+
     root_p = Path(args.path) if args.path else None
-    report = scan_portfolio(root_p)
+    report = scan_portfolio(root_p, scope=scope)
 
     if args.json:
         print(json.dumps(report, indent=2))
