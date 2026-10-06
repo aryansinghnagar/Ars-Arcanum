@@ -63,19 +63,24 @@ Ars Arcanum world bibles are 100% standard Obsidian vaults:
 
 ---
 
-## 4. Migrating from World Anvil / Campfire / Dabble
+## 4. Vault Archive Restoration & Safety
 
-### Step 1: Export from Web Platforms
-- **World Anvil**: Export your world as a zip of Markdown / JSON files via *Settings $\to$ Export World*.
-- **Campfire Write**: Export your project as `.docx` chapters and Character sheets.
-- **Dabble**: Export project to `.docx`.
-
-### Step 2: Ingest into World Lore Vault
-Copy your Markdown notes or `.docx` exports into `~/Universes/<Universe>/<World>/Characters/`, `Places/`, `Factions/`, etc., and run:
+When restoring archives created by `arcanum backup`:
 ```bash
-arcanum frontmatter normalize ~/Universes/My-Universe/My-World
-arcanum world-doctor My-World
+# Restore vault with fail-closed SHA-256 verification into a new directory
+arcanum restore /path/to/archive.tar.gz /path/to/destination
+
+# Overwrite an existing directory (explicit force required)
+arcanum restore /path/to/archive.tar.gz /path/to/existing-dir --force
+
+# Restore archive without sidecar checksum check (override)
+arcanum restore /path/to/archive.tar.gz /path/to/destination --no-verify
 ```
+
+Restoration safety rules enforced by [`scripts/lib/restore.py`](file:///scripts/lib/restore.py):
+- Destination directories that already contain files cannot be overwritten without `--force`.
+- Accompanying `.sha256` sidecars are checked before extraction; if corrupt or missing, extraction fails closed unless `--no-verify` is specified.
+- Symlinks, device nodes, and path traversals (`..`) are rejected defensively.
 
 ---
 

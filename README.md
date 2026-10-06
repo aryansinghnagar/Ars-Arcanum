@@ -3,11 +3,11 @@
 > **A complete, distraction-free writing system for novelists and speculative worldbuilders.**  
 > 100% offline · zero cloud · no subscriptions · your files, forever.
 
-[![Release: v0.1.0](https://img.shields.io/badge/Release-v0.1.0-blue.svg)](CHANGELOG.md)
-[![Status: Production Stable](https://img.shields.io/badge/Status-Production%20Stable-brightgreen.svg)](#)
-[![CI](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml/badge.svg)](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml)
-[![Tests: 1022](https://img.shields.io/badge/Tests-1020%2F1022%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
-[![Coverage: 86%](https://img.shields.io/badge/Coverage-86%25-brightgreen.svg)](#)
+[![Release: v0.1.0](https://img.shields.io/badge/Release-v0.1.0%20(Beta)-blue.svg)](CHANGELOG.md)
+[![Status: Beta](https://img.shields.io/badge/Status-Beta%20(Active%20Hardening)-yellow.svg)](#)
+[![CI](https://github.com/aryansinghnagar/Ars-Arcanum/actions/workflows/ci.yml/badge.svg)](https://github.com/aryansinghnagar/Ars-Arcanum/actions/workflows/ci.yml)
+[![Tests: 855](https://img.shields.io/badge/Tests-853%2F855%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
+[![Coverage: 81%](https://img.shields.io/badge/Coverage-81%25-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
 
@@ -32,7 +32,7 @@ Everything you write is stored as **plain Markdown** (`.md`) and standard **Word
 | **🎯 Granular Target Scoping** | Run craft engines on exact targets — scenes (`--scene 1-3`), chapters (`-c 1-5`, `ch01..ch05`), books (`-b Book-01`), worlds (`-w`), or lore categories without whole-vault overhead. |
 | **🪐 World Bible** | Obsidian-powered lore vault with pre-configured plugins for characters, maps, timelines, and magic systems. |
 | **✍️ Drafting** | Write in Microsoft Word, LibreOffice, or Google Docs. Changes sync back to Markdown automatically. |
-| **🔮 55+ Craft & Utility Engines** | Dynamic plugin extensibility, astrophysics, hard magic, conlang morphosyntax, deific cosmology, multi-agent editorial council, trade networks, and more — all offline. |
+| **🔮 47 Craft & Core Engines** | Dynamic plugin extensibility, astrophysics, hard magic, conlang morphosyntax, deific cosmology, editorial council, trade networks, and more — all offline. |
 | **📚 1-Click Publishing** | Sub-second print PDF with commercial genre presets (Typst), EPUB (Pandoc), submission DOCX, and offline TTS proofreading. |
 | **🔒 Vault Safety** | Pure-Python Git snapshots, SHA-256 verified backups, and USB replication — your work is never at risk. |
 | **🧠 Semantic Search** | Ask questions across your entire lore library with local TF-IDF + SQLite full-text search. No API key needed. |
@@ -42,13 +42,13 @@ Everything you write is stored as **plain Markdown** (`.md`) and standard **Word
 ## ⚡ 5-Minute Setup
 
 > **Full GUI Suite & Launchers:** Linux Mint 21/22 · Debian 12/13 · Ubuntu 22.04/24.04 · Fedora · Arch · openSUSE  
-> **Core CLI, Studio Hub & 55+ Craft Engines:** Cross-Platform (Linux, macOS, Windows with Python 3.10+)  
+> **Core CLI, Studio Hub & 47 Craft Engines:** Cross-Platform (Linux, macOS, Windows with Python 3.10+)  
 > **CI-verified on:** Ubuntu 24.04, macOS, Windows (GitHub Actions matrix).
 
 **Step 1 — Get the code:**
 ```bash
 cd ~/Downloads
-git clone https://github.com/aryansinghnagar/Scriptorium.git Ars-Arcanum
+git clone https://github.com/aryansinghnagar/Ars-Arcanum.git Ars-Arcanum
 cd Ars-Arcanum
 ```
 

@@ -1,12 +1,12 @@
 # Ars Arcanum — Sovereign Studio Desktop Hub Guide
 
-> `arcanum hub` · **v4.4.0 — Granular Scope & Telemetry Cockpit** · 100% Offline · Zero-pip
+> `arcanum hub` · **v0.1.0 — Granular Scope & Telemetry Cockpit** · 100% Offline · Zero-pip · Hardened REST Security
 
 ---
 
 ## Overview
 
-The **Sovereign Studio Desktop Hub** is a unified telemetry cockpit for your entire Ars Arcanum writing project. It aggregates real-time data from all 55+ craft engines — chapters, lore entities, timeline events, paradox alerts, structural pacing harmony, and the **Granular Scope Cockpit** — into a single responsive offline HTML5 dashboard accessible from your browser.
+The **Sovereign Studio Desktop Hub** is a unified telemetry cockpit for your entire Ars Arcanum writing project. It aggregates real-time data from all 47 craft and simulation engines — chapters, lore entities, timeline events, paradox alerts, structural pacing harmony, and the **Granular Scope Cockpit** — into a single responsive offline HTML5 dashboard accessible from your browser.
 
 The hub features a persistent **Header Scope Bar** with quick targeting presets (`Active Project`, `Whole Book`, `Ch 1-5`, `Act 1`, `Custom...`) and an **Interactive Modal Engine Runner** that lets you execute any craft engine directly from the browser on your selected scope, complete with streaming diagnostic output.
 
@@ -66,7 +66,7 @@ Options:
 Header-mounted scope controller allowing authors to select specific books, chapter ranges (`1-5`, `ch01..ch05`), and scene slices. Provides quick presets (`Active Project`, `Whole Book`, `Ch 1-5`, `Act 1`, `Custom...`) and displays a live telemetry pill badge summarizing active targets.
 
 ### ⚡ Interactive Engine Runner Modal
-Launch any of the 55+ craft engines directly from the browser on the currently active scope. Inspect live streaming stdout/stderr diagnostics without switching to a terminal.
+Launch any registered craft engine directly from the browser on the currently active scope. Inspect live streaming stdout/stderr diagnostics without switching to a terminal.
 
 ### 📖 Chapter Word-Count Telemetry
 Live per-chapter word count bars showing total manuscript progress. Scans all `*.md` files recursively under any `Draft-*/` folder structure.
@@ -82,21 +82,27 @@ Bar chart showing chapter word counts as a pacing curve overlay on a three-act s
 
 ---
 
-## REST API
+## REST API & Security Hardening
 
-The embedded local server exposes a lightweight REST API for programmatic integration:
+The embedded local server exposes a hardened REST API for programmatic integration:
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/` | Full interactive HTML dashboard |
-| `GET` | `/api/hub` | Complete JSON telemetry bundle |
-| `GET` | `/api/scope` | Active session scope configuration and resolved counts |
-| `POST` | `/api/scope` | Update session target scope (`chapter`, `scene`, `book`, `world`, `lore`) |
-| `POST` | `/api/engine/run` | Execute craft engine asynchronously on active scope with captured output |
-| `GET` | `/api/chapters` | Chapter list with word counts |
-| `GET` | `/api/lore` | Lore entity category summary |
-| `GET` | `/api/timeline` | Timeline events and paradox summary |
-| `POST` | `/api/refresh` | Re-scan project directory and return fresh data |
+| Method | Endpoint | Description | Security Controls |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/` | Full interactive HTML dashboard | Strict CSP (`default-src 'none'`) |
+| `GET` | `/api/hub` | Complete JSON telemetry bundle | Read-only |
+| `GET` | `/api/scope` | Active session scope configuration and resolved counts | Read-only |
+| `POST` | `/api/scope` | Update session target scope (`chapter`, `scene`, `book`, `world`, `lore`) | Strict Origin & Host match |
+| `POST` | `/api/engine/run` | Execute craft engine asynchronously on active scope with captured output | Strict Origin match, `ENGINE_ALLOWLIST`, Mutex lock |
+| `GET` | `/api/chapters` | Chapter list with word counts | Read-only |
+| `GET` | `/api/lore` | Lore entity category summary | Read-only |
+| `GET` | `/api/timeline` | Timeline events and paradox summary | Read-only |
+| `POST` | `/api/refresh` | Re-scan project directory and return fresh data | Strict Origin & Host match |
+
+### Security Invariants
+
+1. **Origin Verification (`_validate_origin`)**: State-modifying endpoints (`POST`) require an `Origin` header matching the bound `Host` header (supporting both IPv4 `127.0.0.1` / `localhost` and IPv6 `::1` / `[::1]`). Requests with `null` or mismatched foreign origins return HTTP `403 Forbidden`.
+2. **Engine Allowlist (`ENGINE_ALLOWLIST`)**: `POST /api/engine/run` restricts execution to an explicit set of registered craft engines. Non-allowlisted engine names return HTTP `400 Bad Request`.
+3. **Thread Safety & Mutex**: Engine execution runs under a dedicated `threading.Lock()` to prevent race conditions and concurrent process conflicts.
 
 ### Example API call
 
@@ -105,10 +111,10 @@ The embedded local server exposes a lightweight REST API for programmatic integr
 curl http://127.0.0.1:8749/api/hub | python3 -m json.tool
 
 # Update active session scope to Chapters 1-5
-curl -X POST http://127.0.0.1:8749/api/scope -d '{"chapter": "1-5"}'
+curl -X POST http://127.0.0.1:8749/api/scope -H "Origin: http://127.0.0.1:8749" -d '{"chapter": "1-5"}'
 
 # Execute Pacing engine on the active scope
-curl -X POST http://127.0.0.1:8749/api/engine/run -d '{"engine": "pacing"}'
+curl -X POST http://127.0.0.1:8749/api/engine/run -H "Origin: http://127.0.0.1:8749" -d '{"engine": "pacing"}'
 ```
 
 ---
@@ -147,23 +153,8 @@ Output structure:
   "timeline_events": 24,
   "paradox_count": 0,
   "pacing_harmony": 0.87,
-  "generated_at": "2026-09-21T21:00:00"
+  "generated_at": "2026-10-06T12:00:00"
 }
-```
-
----
-
-## Engine Registration
-
-The Studio Hub is registered in `scripts/lib/registry.py` as `"studio_hub"`:
-
-```python
-"studio_hub": EngineSpec(
-    name="studio_hub",
-    module="scripts.lib.studio_hub",
-    commands=["hub", "dashboard", "gui-web", "studio-hub"],
-    description="Sovereign Studio Desktop Hub & Telemetry Cockpit",
-)
 ```
 
 ---
@@ -174,12 +165,6 @@ The Studio Hub is registered in `scripts/lib/registry.py` as `"studio_hub"`:
 - **Atomic project scan**: All filesystem reads complete before the first browser response; no concurrent filesystem mutations.
 - **CSP-compliant HTML**: All generated HTML passes strict offline Content Security Policy with no inline `<script src>` or `<link rel=stylesheet href>` external references.
 - **Thread safety**: `SovereignStudioHandler.data` and `SovereignStudioHandler.project_dir` are class-level attributes set before the server thread starts; `/api/refresh` re-scans synchronously and atomically replaces the class attribute.
-
----
-
-## Architectural Decision Records
-
-- **ADR-063**: Sovereign Studio Hub & Unified Offline Local Webview Architecture — see [`decisions.md`](../decisions.md).
 
 ---
 
@@ -198,9 +183,3 @@ The Studio Hub is registered in `scripts/lib/registry.py` as `"studio_hub"`:
   *Foundational derivation of the REST architectural style and stateless representation interchange over HTTP.*
 - **World Wide Web Consortium (W3C) (2016)**. *Content Security Policy Level 3*. W3C Recommendation. [W3C CSP Spec](https://www.w3.org/TR/CSP3/).  
   *Normative security standard defining strict sandboxing (`default-src 'none'`) for sovereign offline applications.*
-
-### Beyond the Engine: Advanced Telemetry Frontiers
-- **Server-Sent Events (SSE) Live Telemetry Streaming**: Zero-dependency unidirectional push pipelines delivering real-time word count updates without polling.
-- **Micro-Frontend Architecture for Custom Lore Modules**: Decoupled Web Component plugin architecture allowing author-built custom craft engines to dock into the main hub grid.
-- **Biometric Stress & Typing Velocity Telemetry**: Visualizing authorial typing cadence, pause lengths, and drafting bursts alongside manuscript structure.
-

@@ -132,15 +132,25 @@ property:
 
 ---
 
-## 5. Recommended Reading, References & Media
+## 5. Plugin Supply-Chain Integrity & Cryptographic Manifest
 
-### 5.1 Knowledge Management & Worldbuilding Treatises
+To guarantee air-gapped security and defense against supply-chain tampering, all 10 bundled Obsidian plugins are tracked in a cryptographic SHA-256 manifest:
+
+- **Manifest Location**: [`templates/world-bible/.obsidian/plugins/manifest.json`](file:///templates/world-bible/.obsidian/plugins/manifest.json)
+- Every file (`main.js`, `manifest.json`, `styles.css`) is hashed with SHA-256 digests.
+- Verified as part of the automated regression suite to ensure zero untracked code modifications.
+
+---
+
+## 6. Recommended Reading, References & Media
+
+### 6.1 Knowledge Management & Worldbuilding Treatises
 - **Ahrens, Sönke (2017)**. *How to Take Smart Notes: One Simple Technique to Boost Writing, Learning and Thinking*. CreateSpace. ISBN: 978-1542866507.  
   *The foundational guide to atomic note-taking, non-linear knowledge graphs, and Zettelkasten systems.*
 - **Sanderson, Brandon (2020)**. *Managing Lore and Magic Systems in Long-Term Bibles*. Dragonsteel.  
   *How Brandon coordinates character dossiers and magic rules across decades of writing.*
 
-### 5.2 Video Lectures, Masterclasses & Plugin Tutorials
+### 6.2 Video Lectures, Masterclasses & Plugin Tutorials
 - **Nicole van der Hoeven**: *Obsidian for Writers: The Complete Novel and Worldbuilding Guide*.  
   *Exhaustive video tutorials on Dataview queries, Longform manuscript drafting, and visual graphs.*
 - **Artifexian**: *Fictional Calendars, Planetary Orbits, and Time Tracking for Worldbuilders*.  

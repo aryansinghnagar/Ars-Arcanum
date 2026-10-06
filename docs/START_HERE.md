@@ -9,7 +9,7 @@ Welcome! Ars Arcanum provides a distraction-free, professional writing environme
 ## 🚀 1. Getting Started in 3 Clicks
 
 ### Step 1: Launch the Studio
-Launch the GTK3 Desktop App via `python scripts/arcanum_app.py` or run the CLI dispatcher `arcanum` in your terminal. For the browser-based studio, run `arcanum hub` or `arcanum zen`.
+Launch the GTK3 Desktop App via `python scripts/arcanum_app.py` or run the CLI dispatcher `arcanum` (or `python -m scripts.lib.cli`) in your terminal. For the browser-based studio, run `arcanum hub` or `arcanum zen`.
 
 ### Step 2: First-Flight Onboarding
 When you launch for the first time, the **Onboarding Wizard** appears:
@@ -58,7 +58,8 @@ Access 47 deterministic offline modeling and consistency engines:
 ### Studio 5: 🔒 Snapshots & Safe Backups
 - **📷 Quick Snapshot**: Record a 1-click version milestone in local Git (`Ctrl+S`).
 - **Offline Verified Archive**: Create a standalone `.tar.gz` archive with SHA-256 integrity verification (`Ctrl+B`).
-- **GPG Military-Grade Encryption**: Protect confidential manuscripts with AES-256 passphrase encryption.
+- **GPG Encryption**: Protect confidential manuscripts with AES-256 passphrase encryption.
+- **Safe Restoration**: Non-destructive restore protection refusing to overwrite existing folders without `--force`.
 
 ---
 

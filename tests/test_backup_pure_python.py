@@ -81,6 +81,7 @@ class TestPurePythonBackupRestore(unittest.TestCase):
 
     def test_restore_archive_path_traversal_defense(self):
         import tarfile
+        from lib.restore import compute_file_sha256
         malicious_tar = self.root / "evil.tar.gz"
         with tarfile.open(malicious_tar, "w:gz") as tar:
             data = b"EVIL DATA"
@@ -89,11 +90,50 @@ class TestPurePythonBackupRestore(unittest.TestCase):
             import io
             tar.addfile(ti, io.BytesIO(data))
 
+        # Provide valid sha256 sidecar so it proceeds to member validation
+        (self.root / "evil.tar.gz.sha256").write_text(compute_file_sha256(malicious_tar), encoding="utf-8")
+
         restore_target = self.root / "SafeRestore"
         restore_target.mkdir()
         with self.assertRaises(ValueError) as cm:
-            restore_archive(malicious_tar, target_dir=restore_target)
+            restore_archive(malicious_tar, target_dir=restore_target, force=True)
         self.assertIn("path traversal", str(cm.exception).lower())
+
+    def test_restore_fails_closed_without_sidecar(self):
+        backup_out_dir = self.root / "BackupsNoSha"
+        res_backup = create_backup(self.project_dir, output_dir=backup_out_dir)
+        archive_path = Path(res_backup["archive_path"])
+        sha_file = archive_path.with_name(f"{archive_path.name}.sha256")
+        if sha_file.exists():
+            sha_file.unlink()
+
+        restore_target = self.root / "RestoredNoSha"
+        with self.assertRaises(ValueError) as cm:
+            restore_archive(archive_path, target_dir=restore_target)
+        self.assertIn("missing or unreadable sha-256", str(cm.exception).lower())
+
+        # With require_checksum=False, it should succeed
+        res = restore_archive(archive_path, target_dir=restore_target, require_checksum=False)
+        self.assertEqual(res["status"], "success")
+
+    def test_restore_force_overwrite_protection(self):
+        backup_out_dir = self.root / "BackupsForce"
+        res_backup = create_backup(self.project_dir, output_dir=backup_out_dir)
+        archive_path = Path(res_backup["archive_path"])
+
+        # Create non-empty destination
+        restore_target = self.root / "NonEmptyRestore"
+        restore_target.mkdir()
+        (restore_target / "existing_chapter.md").write_text("Don't overwrite me!", encoding="utf-8")
+
+        # Without force=True, should raise FileExistsError
+        with self.assertRaises(FileExistsError) as cm:
+            restore_archive(archive_path, target_dir=restore_target, force=False)
+        self.assertIn("already contains", str(cm.exception).lower())
+
+        # With force=True, should succeed
+        res = restore_archive(archive_path, target_dir=restore_target, force=True)
+        self.assertEqual(res["status"], "success")
 
     def test_concurrent_lock_safety(self):
         lock1 = ArcanumLock(self.project_dir / ".arcanum.lock", timeout=1.0)

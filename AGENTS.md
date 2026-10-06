@@ -9,7 +9,7 @@
 
 ### Core Operating Principles
 1. **Absolute Creative Sovereignty**: Zero cloud dependencies, zero external network telemetry, and 100% offline privacy for unpublished creative intellectual property.
-2. **Deterministic Rails over Probabilistic Free-Form**: Mandatory validation gates, rigid schemas, atomic POSIX file I/O, and mathematical consistency checks for all lore and manuscript operations.
+2. **Deterministic Rails over Probabilistic Free-Form**: Mandatory validation gates, rigid schemas, atomic POSIX/Windows file I/O, and mathematical consistency checks for all lore and manuscript operations.
 3. **Continuous Verification & Anti-Stall Momentum**: Every milestone ratchets forward repository capabilities across explicit momentum queues (`now`, `next`, `blocked`, `improve`, `recurring`).
 4. **Defense in Depth**: Strict path traversal sanitization, cross-platform file locking, stream-verified archives, and cryptographic GPG backup protection.
 
@@ -20,8 +20,8 @@
 All automated agents, subagents, and human contributors must strictly uphold these non-negotiable architectural contracts:
 
 ### 2.1 File Safety & Storage Invariants
-- **Atomic Writes**: All file modifications must use `atomic_write()` from `scripts/lib/_bootstrap.py` (temporary file $\to$ `flush` $\to$ `fsync` $\to$ `os.replace` $\to$ parent directory `fsync`). Direct unbuffered file overwrites are prohibited.
-- **Cross-Platform File Locking**: Concurrency-sensitive operations (snapshots, backups, migrations) must acquire an `ArcanumLock` (`scripts/lib/lockfile.py`) utilizing `fcntl.flock` on POSIX and `msvcrt.locking` on Windows.
+- **Atomic Writes**: All file modifications must use `atomic_write()` from [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py) (temporary file $\to$ `flush` $\to$ `fsync` $\to$ `os.replace` $\to$ parent directory `fsync`). Direct unbuffered file overwrites are prohibited.
+- **Cross-Platform File Locking**: Concurrency-sensitive operations (snapshots, backups, migrations) must acquire an `ArcanumLock` ([`scripts/lib/lockfile.py`](file:///scripts/lib/lockfile.py)) utilizing `fcntl.flock` on POSIX and `msvcrt.locking` on Windows.
 - **Path Traversal Defense**: All user-supplied volume names, draft identifiers, and book targets must be sanitized via regex token validation `^[A-Za-z0-9_-]+$`. Directory separators (`/`, `\`) and path traversals (`..`) are rejected immediately, alongside Windows reserved device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`).
 - **Zero-Pip Dependency Guarantee**: All core craft engines, validators, parsers, and static site generators must execute exclusively on standard library Python primitives without external `pip` dependencies.
 
@@ -34,7 +34,7 @@ All automated agents, subagents, and human contributors must strictly uphold the
 
 ### 2.3 Granular Scope & Intelligent Context Invariants
 - **Altitude-Aware Context Defaults**: Engines must never perform unconstrained whole-drive or all-vault scans by default. When no explicit target is supplied, engines resolve the active manuscript/world context via `config.json`, current working directory, or single-project discovery.
-- **Granular Slice Resolution**: All narrative, craft, and worldbuilding engines must support targeted execution across universes, worlds, lore categories, series, books, chapter lists/ranges (`1-5`, `1,3,7-10`, `ch01..ch05`), and scene slices (`1-3`, `sc01..sc02`) via `scripts/lib/scope.py` (`EngineScope`, `filter_manuscript_scope`, `filter_world_scope`).
+- **Granular Slice Resolution**: All narrative, craft, and worldbuilding engines must support targeted execution across universes, worlds, lore categories, series, books, chapter lists/ranges (`1-5`, `1,3,7-10`, `ch01..ch05`), and scene slices (`1-3`, `sc01..sc02`) via [`scripts/lib/scope.py`](file:///scripts/lib/scope.py) (`EngineScope`, `filter_manuscript_scope`, `filter_world_scope`).
 
 ---
 
@@ -65,22 +65,24 @@ The codebase separates concerns into three coordinated architectural tiers:
 
 ```
 scripts/
+├── __init__.py                # Package root for pip install / setuptools entry points
 ├── arcanum                    # POSIX unified CLI bootstrap wrapper
 ├── arcanum_app.py             # Desktop GTK3 application entry point
 ├── lib/
 │   ├── _bootstrap.py          # Atomic write, path resolution & common primitives
-│   ├── cli.py                 # Authoritative Python CLI dispatcher (v2.0.0)
+│   ├── cli.py                 # Authoritative Python CLI dispatcher (v0.1.0)
 │   ├── scope.py               # Universal granular target scoping & range parsing engine
 │   ├── ui_gtk3/               # Modular presentation package (<800 lines/file)
 │   ├── ui_adw.py              # Modern Libadwaita interface
 │   ├── registry_base.py       # Core EngineSpec dataclasses, categories & base classes (<200 lines)
 │   ├── registry_specs/        # Domain engine specifications package across 7 domains (<400 lines/file)
 │   ├── registry.py            # Core vs. Craft engine discovery matrix & doc formatting (<600 lines)
-│   ├── studio_hub.py          # Cross-platform browser-based Studio Hub & Scope Cockpit
+│   ├── studio_hub.py          # Hardened browser-based Studio Hub & Scope Cockpit
 │   ├── zen_studio.py          # Standalone offline drafting studio & lore drawer
 │   ├── story_canvas.py        # Visual drag-and-drop story corkboard
 │   ├── timeline_sync.py       # Dual-track narrative vs chronological synchronizer
 │   ├── omnibus.py             # Multi-volume series omnibus compiler
+│   ├── restore.py             # Hardened archive restore engine with non-empty directory defense
 │   ├── corpus_export.py       # Universal structured JSONL/SQLite RAG exporter & vault restore
 │   ├── local_rag.py           # Zero-dependency hybrid TF-IDF & SQLite FTS5 semantic retriever
 │   └── [Craft Engines]        # Astrophysics, climate, genealogy, conlang, causality, magic...
@@ -93,15 +95,18 @@ scripts/
 Before any milestone or phase is marked complete, the following quality gates must pass with 100% compliance:
 
 ```bash
-# 1. Full Python Test Suite Discovery (0 failures permitted)
+# 1. Full Python Test Suite Discovery (855 tests, 0 failures permitted)
 python -m unittest discover tests
 
 # 2. Strict Expanded Ruff Linter Pass (0 violations permitted)
 ruff check .
 
 # 3. Strict Mypy Static Type Checking across all source files
-mypy --explicit-package-bases scripts/lib/*.py tests/*.py
+mypy --explicit-package-bases scripts tests
 
-# 4. Canonical 7-Stage Integration Verification Harness
+# 4. Coverage Threshold Enforcement (fail_under = 80)
+coverage run -m unittest discover tests; coverage report --fail-under=80
+
+# 5. Canonical 7-Stage Integration Verification Harness (POSIX)
 bash scripts/verify.sh
 ```

@@ -1,24 +1,25 @@
 # Ars Arcanum Threat Model & Security Posture (STRIDE-Lite)
 
 **Version:** 0.1.0  
-**Scope:** Core CLI (`arcanum`), Scaffolding Scripts, 47 Deterministic Python Library Engines (`scripts/lib/`), GTK Desktop App, Typesetting Bridges (Typst/Pandoc), and Storage/Backup Subsystems.  
+**Scope:** Core CLI (`arcanum`), Scaffolding Scripts, 47 Deterministic Python Library Engines (`scripts/lib/`), GTK Desktop App, Studio Hub Local HTTP Server (`scripts/lib/studio_hub.py`), Typesetting Bridges (Typst/Pandoc), and Storage/Backup Subsystems.  
 **Target Environment:** Local single-user cross-platform desktop workstations (Linux Mint, Ubuntu, Debian, Arch, Fedora, Windows).
 
 ---
 
 ## 1. System Architecture & Trust Boundaries
 
-Ars Arcanum operates exclusively as a **local-first desktop platform**. It does not expose public network ports, run persistent daemon listeners, or transmit user prose or metadata to cloud backends.
+Ars Arcanum operates exclusively as a **local-first desktop platform**. It does not expose public network ports or transmit user prose or metadata to cloud backends. When launched, the interactive **Studio Hub** (`arcanum hub`) binds exclusively to local loopback (`127.0.0.1` / `localhost` / `[::1]`).
 
 ### Key Trust Boundaries:
 1. **User Working Tree (`~/Universes/`, `~/Manuscripts/`)**: Trusted local filesystem where author prose, notes, and manifests are stored and versioned via local Git.
-2. **Untrusted External Inputs**:
+2. **Local Studio Hub Interface (`http://127.0.0.1:8765`)**: Local HTTP/REST boundary providing interactive visualizations, telemetry inspection, and scoped craft engine execution under strict Host/Origin gating and an authorized engine allowlist.
+3. **Untrusted External Inputs**:
    - Word Documents (`.docx`) imported from beta readers, co-authors, or editors.
    - Restored Backup Archives (`.tar.gz`) from external or shared drives.
    - Markdown notes containing arbitrary user text, YAML frontmatter, and WikiLinks (`[[...]]`).
    - Community Obsidian Plugin configurations (`.obsidian/`).
-3. **Privileged Installer Surface**: `setup_arcanum.sh` (multi-distribution setup script).
-4. **Offline Viewing Sandbox**: Generated static HTML visualization reports and charts opened in local web browsers.
+4. **Privileged Installer Surface**: `setup_arcanum.sh` (multi-distribution setup script).
+5. **Offline Viewing Sandbox**: Generated static HTML visualization reports and charts opened in local web browsers.
 
 ```
 [ External DOCX / Backup Archives / Community Plugins ] (Untrusted)
@@ -28,6 +29,9 @@ Ars Arcanum operates exclusively as a **local-first desktop platform**. It does 
                          │
                          ▼ (Atomic Writes & Local Git)
 [ Local Author Workspaces: ~/Universes, ~/Manuscripts ] (Trusted)
+                         ▲
+                         │ (Loopback HTTP / Scope API / Allowlist Runner)
+[ Studio Hub Local Server: 127.0.0.1 / localhost ]
 ```
 
 ---
@@ -46,9 +50,9 @@ Ars Arcanum operates exclusively as a **local-first desktop platform**. It does 
 * **Threat T2: Silent Prose Loss during DOCX ↔ Markdown Synchronization.**
   - *Risk:* Asymmetrical mtime updates causing newer Markdown prose to be overwritten by older DOCX files.
   - *Mitigation:* Three-way SHA-256 state tracking (`.sync_state.json`). If both Markdown and DOCX diverge independently, the engine refuses in-place overwrite and branches to `<chapter>.conflict_<timestamp>.md`.
-* **Threat T3: Backup Archive Tampering.**
-  - *Risk:* Accidental corruption or byte alteration in `.tar.gz` backups.
-  - *Mitigation:* Every archive generation emits a companion `.sha256` digest sidecar verified before any restoration drill.
+* **Threat T3: Backup Archive Tampering & Silent Overwrites.**
+  - *Risk:* Accidental corruption or byte alteration in `.tar.gz` backups; silent overwriting of working directory chapters on restore.
+  - *Mitigation:* Every archive generation emits a companion `.sha256` digest sidecar verified before any restoration drill. `restore.py` enforces fail-closed SHA-256 validation and refuses to extract into non-empty directories unless `--force` is explicitly specified.
 
 ### 3. Repudiation (R)
 * **Threat R1: Untracked Draft Modifications.**
@@ -74,10 +78,17 @@ Ars Arcanum operates exclusively as a **local-first desktop platform**. It does 
   - *Risk:* User-provided names containing `../` overwriting arbitrary system files.
   - *Mitigation:* Strict regex token validation `^[A-Za-z0-9_-]+$` enforced across all volume names, draft identifiers, and world targets (`_bootstrap.py`).
 
-### 6. Elevation of Privilege (E)
+### 6. Elevation of Privilege & Web Perimeter (E)
 * **Threat E1: Archive Restore Symlink & Hook Injection.**
   - *Risk:* Malicious backup archives extracting symlinks pointing to sensitive system files or placing executable `.git/hooks`.
-  - *Mitigation:* Pure-Python archive extractor (`restore.py`) strictly filters out symlinks, hardlinks, FIFOs, device nodes, and rejects any paths within `.git/hooks` or `.git/config`.
+  - *Mitigation:* Pure-Python archive extractor (`restore.py`) strictly filters out symlinks escaping the destination root, hardlinks, FIFOs, device nodes, and rejects any paths within `.git/hooks` or `.git/config`.
+* **Threat E2: Cross-Origin / DNS Rebinding Attacks on Studio Hub Local Server.**
+  - *Risk:* Malicious website in author's browser sending cross-origin POST requests to `http://127.0.0.1:8765/api/engine/run` to execute arbitrary commands.
+  - *Mitigation:* 
+    - Strict `Host` header validation rejecting DNS rebinding (allowing only `localhost`, `127.0.0.1`, `::1`, `[::1]`).
+    - Strict `Origin` header validation rejecting `Origin: null` and cross-origin domains.
+    - Strict Engine Execution Allowlist in `_execute_scoped_engine`: only registered craft modules in the static allowlist can be triggered; unlisted modules and system operations are rejected.
+    - Global thread execution mutex preventing concurrent command stream interleaving.
 
 ---
 

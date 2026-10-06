@@ -1,0 +1,245 @@
+{
+  "description": "Ars Arcanum Pre-configured Obsidian Community Plugin Suite & Integrity Manifest",
+  "plugins": {
+    "calendarium": {
+      "files": {
+        "data.json": {
+          "sha256": "3cb41234cab889d72bd1ad6b8b2676938bcd23688e838eb8d8d5d6b1d5301f05",
+          "size_bytes": 194
+        },
+        "main.js": {
+          "sha256": "bb91db87f0725631b5276393af58e3796caeeb0ef5a6c702bec4c3890bb20f7d",
+          "size_bytes": 1057130
+        },
+        "manifest.json": {
+          "sha256": "622bea579d400bf63b18fa5770d93912e9215fb7b2b817534bb8b20eb2f84678",
+          "size_bytes": 354
+        },
+        "styles.css": {
+          "sha256": "54c447c17e31750482ab861814f552cafc01855f64380b4d27453b4c1a672a97",
+          "size_bytes": 7416
+        }
+      },
+      "id": "calendarium",
+      "name": "Calendarium",
+      "version": "2.1.0",
+      "author": "Jeremy Valentine"
+    },
+    "dataview": {
+      "files": {
+        "data.json": {
+          "sha256": "ace5e1857ae6ce59a054803c9c94f696aaac7a83b1befe4ed7f9564d57f3b96b",
+          "size_bytes": 393
+        },
+        "main.js": {
+          "sha256": "6bb1cf7010afad830e73575fca0e2bfbd3279c562e3d9d24f2d2f45161eb7d00",
+          "size_bytes": 2377634
+        },
+        "manifest.json": {
+          "sha256": "9235db47112da81b85591c79ecb9ae2574e5e72207056e976472f90616286185",
+          "size_bytes": 357
+        },
+        "styles.css": {
+          "sha256": "3306dd9032e00f989ba7233a37fd255bc4d3f4340cee661762e952f3f6aa1de9",
+          "size_bytes": 2965
+        }
+      },
+      "id": "dataview",
+      "name": "Dataview",
+      "version": "0.5.68",
+      "author": "Michael Brenan <blacksmithgu@gmail.com>"
+    },
+    "longform": {
+      "files": {
+        "data.json": {
+          "sha256": "0752ab1a184194713c081cb1f0549e2820bfa8b01e32ef4476b94382a7dd018f",
+          "size_bytes": 151
+        },
+        "main.js": {
+          "sha256": "d937568a0a522778b1c2968d47288ef5fb18f7c28d02bdccb31415e304daaf3b",
+          "size_bytes": 1239095
+        },
+        "manifest.json": {
+          "sha256": "b6ff0a8e9e5964cfc1a126a10f1df02366a76fdaa09e2b97ca1c98406f0146c2",
+          "size_bytes": 329
+        },
+        "styles.css": {
+          "sha256": "c49db364bb574dccbd55bf1d326b01e1a0580045e72d01bfb08bb6ad94e991f5",
+          "size_bytes": 383
+        }
+      },
+      "id": "longform",
+      "name": "Longform",
+      "version": "2.1.0",
+      "author": "Kevin Barrett"
+    },
+    "metadata-menu": {
+      "files": {
+        "data.json": {
+          "sha256": "345f28bb3446d16f42b9cb46a486e49afa239cbef1468c662680392318557bdd",
+          "size_bytes": 247
+        },
+        "main.js": {
+          "sha256": "a4c37d9f3931a72a8115c34ca226121f8d6f3d1c1d1feaef1179f05113cf3c6d",
+          "size_bytes": 1003040
+        },
+        "manifest.json": {
+          "sha256": "6b0b03b4c5f702beb85524d1fcbd276cf79baf18c63f7224beb8aab942dc4b4a",
+          "size_bytes": 421
+        },
+        "styles.css": {
+          "sha256": "b08f764bb08ae8ea06c1def27f97a2da16b4cc1920bbb618aaae2dcc7cf4f3cf",
+          "size_bytes": 82452
+        }
+      },
+      "id": "metadata-menu",
+      "name": "Metadata Menu",
+      "version": "0.8.12",
+      "author": "mdelobelle"
+    },
+    "novel-word-count": {
+      "files": {
+        "data.json": {
+          "sha256": "bf3de4ff52133be5b96b6bef4c80f07b580700b1795b26bd804a7bf43f9f50dd",
+          "size_bytes": 261
+        },
+        "main.js": {
+          "sha256": "65d5f85af85d0232ba0dd4050f495749e09d8767da609f8943ca5e27ac3a7461",
+          "size_bytes": 84094
+        },
+        "manifest.json": {
+          "sha256": "94bd1961888c8973d9c8240a966033dc97f3e5df2c6e5593f21b2d9df1a4129d",
+          "size_bytes": 359
+        },
+        "styles.css": {
+          "sha256": "378a6d1dfbffd39ab6c155e6a13b99c8d14faa644e32be23db74d9dc95084ab9",
+          "size_bytes": 3461
+        }
+      },
+      "id": "novel-word-count",
+      "name": "Novel word count",
+      "version": "5.0.0",
+      "author": "Isaac Lyman"
+    },
+    "obsidian-git": {
+      "files": {
+        "data.json": {
+          "sha256": "bf584c4c9e3544cbade9cdab4c81bf9ec41fb22139b6f549c3bf6d77e9004e07",
+          "size_bytes": 634
+        },
+        "main.js": {
+          "sha256": "6f198f140be39254c410c21998c1bd86f9a077ad415604356382e5dc5836e1a1",
+          "size_bytes": 732445
+        },
+        "manifest.json": {
+          "sha256": "c9f0d49c2094c4751b97e395015b49761651944c371cba67bbf6a46170f2cb91",
+          "size_bytes": 325
+        },
+        "styles.css": {
+          "sha256": "f5ab93f4d5b4dd1bd1e577864c5c79087f7adfd448ac346e0489e5847ce6922d",
+          "size_bytes": 18303
+        }
+      },
+      "id": "obsidian-git",
+      "name": "Git",
+      "version": "2.40.0",
+      "author": "Vinzent"
+    },
+    "obsidian-style-settings": {
+      "files": {
+        "data.json": {
+          "sha256": "4745351be64e82eca9dd5f92eb8d2709b103b480ae1ae48fb9aefb874c6d0497",
+          "size_bytes": 169
+        },
+        "main.js": {
+          "sha256": "1828abaacdab4c5578b705a625c585b30512f8efad4c7cfc5a18e70cc3557468",
+          "size_bytes": 154561
+        },
+        "manifest.json": {
+          "sha256": "9cffdc20cf2aa1354820e0050b694b0f9b576446e3d5d44a36ae8b0187e5bfb8",
+          "size_bytes": 321
+        },
+        "styles.css": {
+          "sha256": "ee7937d2be50653a89ccb30ae5f0572b23507d5b7f1328d005271a363075bfd8",
+          "size_bytes": 13906
+        }
+      },
+      "id": "obsidian-style-settings",
+      "name": "Style Settings",
+      "version": "1.0.9",
+      "author": "mgmeyers"
+    },
+    "storyline": {
+      "files": {
+        "data.json": {
+          "sha256": "d0825f23edb706a7936150bfdb41903fd92ea60ba27315f212559c290e4d763c",
+          "size_bytes": 206
+        },
+        "main.js": {
+          "sha256": "d504b4894b888096b19f1ebe574abae3006239ca6ef63eb112987fa5d3b67bfa",
+          "size_bytes": 3004704
+        },
+        "manifest.json": {
+          "sha256": "888ee179d71acfeb0bb5378732d3bb63b58dcdebc81cf386c02a94b73860703a",
+          "size_bytes": 450
+        },
+        "styles.css": {
+          "sha256": "aa82f33fa3ff0acda0e64eeaabdd20c18673b642898aab1a48f434b47f0b99d2",
+          "size_bytes": 314613
+        }
+      },
+      "id": "storyline",
+      "name": "StoryLine",
+      "version": "1.10.72",
+      "author": "Jan Sandstr\u00f6m"
+    },
+    "storyteller-suite": {
+      "files": {
+        "data.json": {
+          "sha256": "a397121fa62da8df469b2c26bec1955939a5cdcd01311490f80c9995e1c62c7e",
+          "size_bytes": 133
+        },
+        "main.js": {
+          "sha256": "8aa32041f8cc519f3027b9ebdffd4372dfb625ae5c6d839c7a25c950841f1265",
+          "size_bytes": 3352990
+        },
+        "manifest.json": {
+          "sha256": "24958112c0ed8e2657446af1a7ae9260f7e8baa3e2f48175df9c05f735fa02c9",
+          "size_bytes": 367
+        },
+        "styles.css": {
+          "sha256": "f3b4822ecac64169711890b5269a7c665ab59ec9a49066a496e9dbd913dcb7c5",
+          "size_bytes": 349910
+        }
+      },
+      "id": "storyteller-suite",
+      "name": "Storyteller Suite",
+      "version": "1.8.19",
+      "author": "Maws"
+    },
+    "templater-obsidian": {
+      "files": {
+        "data.json": {
+          "sha256": "658a66f972cb59913dfc008adbcbd320c636d66d3470427cf7a92a700d457b6d",
+          "size_bytes": 216
+        },
+        "main.js": {
+          "sha256": "eb86d9282694ce1f099154c320286fdd89473e60dc2441ee310f3ac331333e94",
+          "size_bytes": 453498
+        },
+        "manifest.json": {
+          "sha256": "b99280d2c4ab2cd22ad010c12faeedf255bcf385d127d973b89f85deb27d23fd",
+          "size_bytes": 756
+        },
+        "styles.css": {
+          "sha256": "67a6dd2d1d6dedca1287c334ca884ec4196433f71ca47388a0bd3eac14cf8b5f",
+          "size_bytes": 4201
+        }
+      },
+      "id": "templater-obsidian",
+      "name": "Templater",
+      "version": "2.25.1",
+      "author": "SilentVoid"
+    }
+  }
+}

@@ -4,7 +4,8 @@ Ars Arcanum Pure-Python Standalone Restore Engine (scripts/lib/restore.py)
 =========================================================================
 Restores world vaults, manuscripts, and universes from standalone .tar.gz
 and GPG-encrypted archives with cryptographic SHA-256 verification,
-path traversal defense, and ArcanumLock safety invariants.
+path traversal defense, fail-closed sidecar verification, and ArcanumLock
+safety invariants.
 
 Zero-dependency standard library implementation providing cross-platform
 reliability across Linux, macOS, and Windows.
@@ -43,10 +44,11 @@ def compute_file_sha256(file_path: Path) -> str:
     return h.hexdigest()
 
 
-def verify_archive_checksum(archive_path: Path) -> tuple[bool, str, str | None]:
+def verify_archive_checksum(archive_path: Path, require_sidecar: bool = True) -> tuple[bool, str, str | None]:
     """
     Checks if a .sha256 sidecar exists and verifies archive integrity.
     Returns (is_valid, actual_sha, expected_sha_or_none).
+    Fails closed if sidecar is missing unless require_sidecar is False.
     """
     actual_sha = compute_file_sha256(archive_path)
     sha_file = archive_path.with_name(f"{archive_path.name}.sha256")
@@ -55,6 +57,8 @@ def verify_archive_checksum(archive_path: Path) -> tuple[bool, str, str | None]:
         sha_file = archive_path.with_suffix(".sha256")
 
     if not sha_file.is_file():
+        if require_sidecar:
+            return False, actual_sha, None
         return True, actual_sha, None
 
     try:
@@ -64,17 +68,37 @@ def verify_archive_checksum(archive_path: Path) -> tuple[bool, str, str | None]:
         return is_valid, actual_sha, expected_sha
     except Exception as e:
         logger.warning("Could not read sha256 sidecar file: %s", e)
+        if require_sidecar:
+            return False, actual_sha, None
         return True, actual_sha, None
 
 
 def is_safe_tar_member(member: tarfile.TarInfo, dest_dir: Path) -> bool:
-    """Guards against path traversal attacks in tar archive members."""
+    """Guards against path traversal, symlink escape, and device node attacks in tar archive members."""
+    # Reject device nodes, FIFOs, and unexpected member types
+    if not (member.isfile() or member.isdir() or member.issym() or member.islnk() or member.type in (tarfile.REGTYPE, tarfile.DIRTYPE)):
+        return False
+
     # Reject absolute paths or paths containing parent directory traversals
     norm = os.path.normpath(member.name)
     if norm.startswith(("..", "/", "\\")):
         return False
     target_path = (dest_dir / norm).resolve()
-    return dest_dir.resolve() in target_path.parents or target_path == dest_dir.resolve()
+    dest_resolved = dest_dir.resolve()
+    if not (dest_resolved in target_path.parents or target_path == dest_resolved):
+        return False
+
+    # For symlinks and hardlinks, ensure link target does not escape destination root
+    if member.issym() or member.islnk():
+        link_target = member.linkname
+        if link_target.startswith(("/", "\\")):
+            return False
+        member_parent = (dest_dir / norm).parent
+        resolved_link = (member_parent / link_target).resolve()
+        if not (dest_resolved in resolved_link.parents or resolved_link == dest_resolved):
+            return False
+
+    return True
 
 
 def restore_backup(
@@ -82,18 +106,25 @@ def restore_backup(
     target_dir: Path | str | None = None,
     passphrase: str | None = None,
     force: bool = False,
+    require_checksum: bool = True,
     timeout: float = 10.0,
 ) -> dict[str, Any]:
     """
     Restores a backup archive safely under ArcanumLock.
+    Guards against silent overwrites unless force=True.
     """
     arc = Path(archive_path).resolve()
     if not arc.is_file():
         raise FileNotFoundError(f"Archive file not found: {arc}")
 
-    # 1. Verify SHA-256 Checksum
-    valid_sha, actual_sha, expected_sha = verify_archive_checksum(arc)
+    # 1. Verify SHA-256 Checksum (fail closed by default)
+    valid_sha, actual_sha, expected_sha = verify_archive_checksum(arc, require_sidecar=require_checksum)
     if not valid_sha:
+        if expected_sha is None:
+            raise ValueError(
+                f"Missing or unreadable SHA-256 sidecar for '{arc.name}'. "
+                "Use --no-verify or require_checksum=False to restore unverified archives."
+            )
         raise ValueError(
             f"Archive checksum mismatch! Expected {expected_sha}, but got {actual_sha}. Archive may be corrupted."
         )
@@ -147,6 +178,14 @@ def restore_backup(
         dest_root = Path(target_dir).resolve() if target_dir else arc.parent.parent
         dest_root.mkdir(parents=True, exist_ok=True)
 
+        # Invariant: Guard against overwriting existing files in destination directory
+        existing_items = [p for p in dest_root.iterdir() if p.name != ".arcanum.lock"]
+        if existing_items and not force:
+            raise FileExistsError(
+                f"Destination directory '{dest_root}' already contains {len(existing_items)} items. "
+                "Specify a new directory or pass --force to allow overwrite."
+            )
+
         extracted_members: list[str] = []
         lock_file = dest_root / ".arcanum.lock"
 
@@ -163,7 +202,7 @@ def restore_backup(
                 if hasattr(tarfile, "data_filter"):
                     tar.extractall(dest_root, members=safe_members, filter="data")
                 else:
-                    tar.extractall(dest_root, members=safe_members)  # noqa: S202
+                    tar.extractall(dest_root, members=safe_members)  # nosec B202 # noqa: S202
 
                 for m in safe_members:
                     extracted_members.append(m.name)
@@ -193,6 +232,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("-d", "--destination", help="Target destination directory for restored project")
     parser.add_argument("--passphrase", help="Symmetric passphrase for encrypted archives")
     parser.add_argument("-f", "--force", action="store_true", help="Overwrite existing files without prompting")
+    parser.add_argument("--no-verify", action="store_true", help="Allow restoration of archives without a .sha256 sidecar")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON status")
 
     args = parser.parse_args(argv)
@@ -202,6 +242,7 @@ def main(argv: list[str] | None = None) -> int:
             target_dir=args.destination,
             passphrase=args.passphrase,
             force=args.force,
+            require_checksum=not args.no_verify,
         )
         if args.json:
             print(json.dumps(res, indent=2))

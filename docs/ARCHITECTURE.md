@@ -9,9 +9,9 @@
 ## Part 1 — Whole-Repo Technical Deep-Dive
 
 ### 1.1 What Ars Arcanum Is
-**Ars Arcanum** (repository: `Scriptorium`) is a sovereign, local-first, 100% offline authoring operating platform and speculative worldbuilding craft studio designed for Linux and cross-platform desktop workstations ([`README.md#L1-L35`](file:///README.md#L1-L35), [`AGENTS.md#L1-L60`](file:///AGENTS.md#L1-L60)). It orchestrates plain Markdown prose, OpenXML (`.docx`) bidirectional synchronization, multi-tier Git repository tracking, 47 modular Python craft and simulation engines, dynamic user plugin extensibility, zero-dependency local semantic retrieval (`vault_search`), bidirectional vault restoration, and publication-grade Typst PDF / EPUB packaging.
+**Ars Arcanum** (repository: `Scriptorium` / `Ars-Arcanum`) is a sovereign, local-first, 100% offline authoring operating platform and speculative worldbuilding craft studio designed for Linux, Windows, and macOS workstations ([`README.md#L1-L35`](file:///README.md#L1-L35), [`AGENTS.md#L1-L60`](file:///AGENTS.md#L1-L60)). It orchestrates plain Markdown prose, OpenXML (`.docx`) bidirectional synchronization, multi-tier Git repository tracking, 47 modular Python craft and simulation engines, dynamic user plugin extensibility, zero-dependency local semantic retrieval (`vault_search`), bidirectional vault restoration with fail-closed integrity validation, and publication-grade Typst PDF / EPUB packaging.
 
-All prose, character dossiers, lore bibles, and timelines are stored in standard plain Markdown (`.md`) and YAML frontmatter manifests on the author's local storage with zero vendor lock-in, zero cloud telemetry, strict `default-src 'none'` Content Security Policies, advisory-first creative freedom mechanics, and POSIX atomic crash safety.
+All prose, character dossiers, lore bibles, and timelines are stored in standard plain Markdown (`.md`) and YAML frontmatter manifests on the author's local storage with zero vendor lock-in, zero cloud telemetry, strict `default-src 'none'` Content Security Policies, advisory-first creative freedom mechanics, and POSIX/Windows atomic crash safety.
 
 ---
 
@@ -19,18 +19,19 @@ All prose, character dossiers, lore bibles, and timelines are stored in standard
 
 | Layer | Technology | Evidence (File & Line) |
 | :--- | :--- | :--- |
+| **Packaging & Build System** | `setuptools>=61.0` with `pyproject.toml` entry points (`arcanum`, `ars-arcanum`) | [`pyproject.toml#L1-L30`](file:///pyproject.toml#L1-L30), [`scripts/__init__.py`](file:///scripts/__init__.py) |
 | **Desktop Application GUI** | Python 3.10+ & PyGObject (`Gtk 3.0`, `GLib`, `Gdk`, `Pango`) | [`scripts/arcanum_app.py#L1-L50`](file:///scripts/arcanum_app.py#L1-L50), [`scripts/lib/ui_gtk3/window.py#L1-L60`](file:///scripts/lib/ui_gtk3/window.py#L1-L60) |
 | **Desktop Presentation Controller** | Decoupled UI State, Project Discovery & Async Worker Bridge | [`scripts/lib/ui_controller.py#L1-L100`](file:///scripts/lib/ui_controller.py#L1-L100) |
 | **CLI Dispatcher & Tooling** | Canonical POSIX Dispatcher + Pure-Python CLI Dispatcher (`_DISPATCH_TABLE`) | [`scripts/arcanum#L1-L50`](file:///scripts/arcanum#L1-L50), [`scripts/lib/cli.py#L1-L100`](file:///scripts/lib/cli.py#L1-L100) |
 | **Granular Target Scoping Subsystem** | Unified Scope Expression Parser, Token Ranges (`1-5`, `ch01..ch05`) & Context Altitude Resolver | [`scripts/lib/scope.py#L1-L120`](file:///scripts/lib/scope.py#L1-L120) |
-| **Dynamic Plugin Architecture & Domain Specifications** | `BaseCraftEngine` Lifecycle Contract, `scripts/lib/registry_base.py`, domain specs package (`scripts/lib/registry_specs/`), and User Plugin Scanner (`~/.config/ars-arcanum/engines/`) | [`scripts/lib/registry.py`](file:///scripts/lib/registry.py), [`scripts/lib/registry_base.py`](file:///scripts/lib/registry_base.py) |
+| **Dynamic Plugin Architecture & Domain Specs** | `BaseCraftEngine` Lifecycle Contract, `scripts/lib/registry_base.py`, domain specs package (`scripts/lib/registry_specs/`), and User Plugin Scanner (`~/.config/ars-arcanum/engines/`) | [`scripts/lib/registry.py`](file:///scripts/lib/registry.py), [`scripts/lib/registry_base.py`](file:///scripts/lib/registry_base.py) |
 | **Atomic File I/O & Bootstrap** | Crash-Safe Atomic Write (`flush` $\to$ `fsync` $\to$ `os.replace` $\to$ parent dir `fsync`) + Windows Reserved Device Name Rejections (`CON`, `PRN`, `AUX`, `NUL`, etc.) | [`scripts/lib/_bootstrap.py#L75-L115`](file:///scripts/lib/_bootstrap.py#L75-L115), [`scripts/lib/fs_utils.py#L1-L80`](file:///scripts/lib/fs_utils.py#L1-L80) |
 | **Cross-Platform File Locking** | POSIX `fcntl.flock` + Windows `msvcrt.locking` Concurrency Locks (with deterministic byte-0 seeking & typed context management) | [`scripts/lib/lockfile.py#L65-L145`](file:///scripts/lib/lockfile.py#L65-L145) |
 | **Universal Resonance Mesh** | Bi-Directional 5-Pillar Knowledge Graph, Causal Cascades & Analogy Synthesis | [`scripts/lib/resonance.py#L1-L100`](file:///scripts/lib/resonance.py#L1-L100) |
 | **Dynamic Intelligent Tips** | Metadata-Rich Contextual Craft Wisdom & Non-Repeating History Differencing | [`scripts/lib/tips.py#L1-L100`](file:///scripts/lib/tips.py#L1-L100) |
 | **Local Semantic Retrieval (Vault Search)**| Zero-Dependency Hybrid TF-IDF & SQLite FTS5 Vector Lore Search Engine | [`scripts/lib/vault_search.py#L1-L100`](file:///scripts/lib/vault_search.py#L1-L100) |
 | **Zen Drafting Studio** | Standalone Typewriter Studio, Sine-Wave Soundscape & In-Situ Lore Drawer | [`scripts/lib/zen_studio.py#L1-L100`](file:///scripts/lib/zen_studio.py#L1-L100) |
-| **Studio Desktop Hub** | Unified Offline Telemetry Cockpit, REST API & Craft Guide Explorer | [`scripts/lib/studio_hub.py#L1-L100`](file:///scripts/lib/studio_hub.py#L1-L100) |
+| **Studio Desktop Hub** | Hardened Local REST Telemetry Cockpit, Origin Guard, Engine Allowlist & Scope Explorer | [`scripts/lib/studio_hub.py#L1-L100`](file:///scripts/lib/studio_hub.py#L1-L100) |
 | **Interactive Story Canvas** | Client-Side Drag-and-Drop Corkboard & Multi-Paradigm Structure Analyzer | [`scripts/lib/story_canvas.py#L1-L100`](file:///scripts/lib/story_canvas.py#L1-L100), [`scripts/lib/structure.py#L1-L100`](file:///scripts/lib/structure.py#L1-L100) |
 | **Deific Cosmology Engine**| Domain Hegemony, Ritual Catalyst Auditing & Theological Heresy Validator | [`scripts/lib/cosmology.py#L1-L100`](file:///scripts/lib/cosmology.py#L1-L100) |
 | **Economic Gravity & Supply Shocks**| Inter-Settlement Trade Routes & Commodity Inflation Cascade Modeler | [`scripts/lib/economy.py#L670-L880`](file:///scripts/lib/economy.py#L670-L880) |
@@ -62,9 +63,9 @@ All prose, character dossiers, lore bibles, and timelines are stored in standard
 ### 1.3 Entry Points
 
 1. **Desktop GUI Application**: [`scripts/arcanum_app.py`](file:///scripts/arcanum_app.py) / [`scripts/lib/ui_gtk3/window.py`](file:///scripts/lib/ui_gtk3/window.py). Provides an integrated authoring dashboard with live word counts, Visual Scene Metadata Inspector, Draft Revisions & Redline Comparator, Craft & Lore Guide, and 47 integrated deterministic engines.
-2. **Authoritative Python CLI Dispatcher**: [`scripts/lib/cli.py`](file:///scripts/lib/cli.py) routing 47+ craft subcommands via declarative `_DISPATCH_TABLE` with strict regex validation, JSON serialization, `arcanum doc` craft documentation lookups, and sub-second dispatch.
-3. **POSIX Unified CLI Bootstrap**: [`scripts/arcanum`](file:///scripts/arcanum) wrapping the Python CLI dispatcher and providing standalone built-in bash subroutines for universe, world, manuscript, snapshot, backup, restore, and export operations.
-4. **Studio Desktop Hub**: [`scripts/lib/studio_hub.py`](file:///scripts/lib/studio_hub.py) (`arcanum hub`, `arcanum dashboard`) providing an offline telemetry cockpit, Craft Guide tab, Scope Bar, and local REST API.
+2. **Authoritative Python CLI Dispatcher**: [`scripts/lib/cli.py`](file:///scripts/lib/cli.py) (callable directly or via `pip install .` CLI entry points `arcanum` and `ars-arcanum`) routing 47+ craft subcommands via declarative `_DISPATCH_TABLE` with strict regex validation, JSON serialization, `arcanum doc` craft documentation lookups, and sub-second dispatch.
+3. **POSIX Unified CLI Bootstrap**: [`scripts/arcanum`](file:///scripts/arcanum) wrapping the Python CLI dispatcher and providing standalone built-in bash subroutines for universe, world, manuscript, snapshot, backup, restore, and export operations on Linux/Unix systems.
+4. **Studio Desktop Hub**: [`scripts/lib/studio_hub.py`](file:///scripts/lib/studio_hub.py) (`arcanum hub`, `arcanum dashboard`) providing an offline telemetry cockpit, Craft Guide tab, Scope Bar, and hardened local REST API with Origin validation, IPv6 support, and engine allowlist execution.
 5. **Zen Drafting Studio**: [`scripts/lib/zen_studio.py`](file:///scripts/lib/zen_studio.py) (`arcanum studio`, `arcanum zen`) generating single-file offline typewriter writing studios with WebAudio soundscapes, in-situ lore drawer, and color themes.
 6. **Story Canvas**: [`scripts/lib/story_canvas.py`](file:///scripts/lib/story_canvas.py) (`arcanum canvas`) providing an interactive visual story corkboard.
 
@@ -74,8 +75,10 @@ All prose, character dossiers, lore bibles, and timelines are stored in standard
 
 | Command | Purpose | Verification Source / Evidence | Trigger / CI Enforcement |
 | :--- | :--- | :--- | :--- |
-| `python -m unittest discover tests` | Full repository Python unit & integration test suite (853 tests) | [`tests/test_*.py`](file:///tests/) | Pre-commit gate & Enforced CI check (`.github/workflows/ci.yml#L80-L85`) |
+| `pip install .` / `pip install -e .` | Standard packaging installation and CLI entrypoint registration | [`pyproject.toml`](file:///pyproject.toml), [`scripts/__init__.py`](file:///scripts/__init__.py) | Verified in local environments & CI packaging smoke test |
+| `python -m unittest discover tests` | Full repository Python unit & integration test suite (855 tests, 0 failures) | [`tests/test_*.py`](file:///tests/) | Pre-commit gate & Enforced CI check (`.github/workflows/ci.yml#L80-L85`) |
 | `python -m unittest tests/test_<engine>.py` | Isolated single engine unit test suite (e.g. `test_cosmology.py`) | [`tests/`](file:///tests/) | Developer rapid feedback loop |
+| `python -m coverage run -m unittest discover tests; python -m coverage report --fail-under=80` | Test code coverage enforcement (80-81% aggregate coverage) | [`pyproject.toml#L35-L45`](file:///pyproject.toml#L35-L45) | CI quality check & release verification gate |
 | `python -m unittest tests/test_version_consistency.py` | Universal release version synchronization test across 6 surfaces | [`tests/test_version_consistency.py`](file:///tests/test_version_consistency.py) | Regression gate across all codebase constants |
 | `python -m unittest tests/test_benchmark_suite.py` | Micro-benchmark latency assertion suite | [`tests/test_benchmark_suite.py`](file:///tests/test_benchmark_suite.py) | Performance regression gate |
 | `python -m unittest tests/test_grand_tour_e2e.py` | Master 21-Stage full-pipeline lifecycle integration test | [`tests/test_grand_tour_e2e.py`](file:///tests/test_grand_tour_e2e.py) | Full-pipeline lifecycle validation |
@@ -83,8 +86,8 @@ All prose, character dossiers, lore bibles, and timelines are stored in standard
 | `arcanum search <query>` | Zero-dependency local TF-IDF & SQLite FTS5 search | [`scripts/lib/vault_search.py`](file:///scripts/lib/vault_search.py) | Lore & manuscript query |
 | `arcanum scope [target]` | Live target scope resolution & chapter/scene/lore inspector | [`scripts/lib/scope.py`](file:///scripts/lib/scope.py) | Diagnostic scope verification |
 | `ruff check .` | Strict Python linter across rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | [`pyproject.toml#L1-L30`](file:///pyproject.toml#L1-L30) | CI required status check (`.github/workflows/ci.yml#L60-L64`) |
-| `mypy --config-file mypy.ini --explicit-package-bases scripts/lib tests` | Strict static type checking across 167 source files | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py`](file:///tests/test_type_safety.py) | CI required status check (`.github/workflows/ci.yml#L65-L69`) |
-| `bash scripts/verify.sh` | Canonical quality and regression test harness | [`scripts/verify.sh#L1-L496`](file:///scripts/verify.sh#L1-L496) | Local master pre-release gate |
+| `mypy --explicit-package-bases scripts tests` | Strict static type checking across 170 source files (0 errors) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py`](file:///tests/test_type_safety.py) | CI required status check (`.github/workflows/ci.yml#L65-L69`) |
+| `bash scripts/verify.sh` | Canonical 7-stage quality and regression test harness (POSIX) | [`scripts/verify.sh#L1-L496`](file:///scripts/verify.sh#L1-L496) | Local master pre-release gate |
 
 ---
 
@@ -92,16 +95,17 @@ All prose, character dossiers, lore bibles, and timelines are stored in standard
 
 | Directory | Purpose |
 | :--- | :--- |
-| `scripts/` | Executable entry points, CLI dispatchers, installation scripts, and verification harnesses. |
+| `scripts/` | Executable entry points, CLI dispatchers, installation scripts, package `__init__.py`, and verification harnesses. |
 | `scripts/lib/` | 47 core simulation engines, scoping primitives, atomic I/O bootstrap, and presentation servers. |
 | `scripts/lib/registry_specs/` | Modular engine specifications partitioned across 7 craft and infrastructure domains. |
 | `scripts/lib/ui_gtk3/` | Modular PyGObject GTK3 desktop interface package (<800 lines/file). |
 | `docs/` | User manuals, domain craft guides, engine logic encyclopedia, roadmap, and codebase documentation. |
 | `docs/codebase/` | Specialized onboarding blueprints, stack analysis, testing patterns, and architectural concerns. |
-| `tests/` | 87 test files (853 tests) covering unit, integration, threat model, and benchmark test suites. |
-| `templates/` | Standardized starter world bibles, demo cosmos (`Eldoria`), and novelWriter project templates. |
+| `docs/guides/` | Procedural guides for backups, distraction control, typography, fonts, and Obsidian plugin integrity. |
+| `tests/` | 87 test files (855 tests) covering unit, integration, threat model, and benchmark test suites. |
+| `templates/` | Standardized starter world bibles, demo cosmos (`Eldoria`), Obsidian plugins with SHA-256 manifest, and novelWriter templates. |
 | `launchers/` | Desktop `.desktop` application launchers and menu shortcuts. |
-| `configs/` | Deterministic plugin definitions, idiom dictionaries, and distraction-blocker rule profiles. |
+| `configs/` | Deterministic plugin definitions, idiom dictionaries, and distraction-blocker rule profiles (`leechblock_arcanum_rules.json`). |
 
 ---
 
@@ -115,12 +119,14 @@ All prose, character dossiers, lore bibles, and timelines are stored in standard
 | **Pandoc Converter** | `>= 2.19.x` (tested on `3.1.x`) | Document AST Conversion | `docs/COMPATIBILITY.md#L9-L16` |
 | **PyGObject Desktop Layer** | `Gtk 3.0` / `Gtk 4.0` / `Libadwaita 1.0` | Linux System Packages (`gir1.2-gtk-3.0`) | `.github/workflows/ci.yml#L35-L39`, `scripts/arcanum_app.py` |
 | **SQLite Database** | Standard Library `sqlite3` with FTS5 module | Local In-Memory & File Persistence | `scripts/lib/vault_search.py#L1-L40` |
+| **Obsidian Plugins** | 10 Vendored Community Plugins with SHA-256 Digest Manifest | Local World Bible Vaults | `templates/world-bible/.obsidian/plugins/manifest.json` |
 
 ---
 
 ### 1.7 EOL / Dead-Dependency Scan
 
 - **Python Standard Library Baseline**: Pure Python 3.10+ stdlib execution ensures zero pip-ecosystem rot, supply-chain vulnerabilities, or abandoned upstream wheels.
+- **Setuptools Standard Build**: Pure declarative `pyproject.toml` with `setuptools>=61.0` and standard `scripts*` package layout ensures clean wheel packaging across modern Python distributions.
 - **Typst Static Binary**: Musl static linking eliminates glibc version mismatches across heterogeneous Linux distributions (Ubuntu, Debian, Fedora, Arch, Mint).
 - **Pandoc & Calibre**: Wrapped with non-blocking graceful fallbacks if binaries are unavailable.
 - **Zero Remote Telemetry**: Strict audit in CI (`.github/workflows/ci.yml#L75-L79`) forbids any remote CDN scripts, unpkg, or cdnjs URLs.
@@ -145,10 +151,10 @@ All prose, character dossiers, lore bibles, and timelines are stored in standard
 
 | Document | Authority & Scope | Key Rules Encoded |
 | :--- | :--- | :--- |
-| [`AGENTS.md`](file:///AGENTS.md) | Supreme Agentic Operating Manifesto | 100% offline sovereignty, atomic POSIX writes, `<800L` file limit, strict verification gates. |
+| [`AGENTS.md`](file:///AGENTS.md) | Supreme Agentic Operating Manifesto | 100% offline sovereignty, atomic POSIX writes, `<800L` file limit, strict verification gates (855 tests, fail_under=80). |
 | [`.github/copilot-instructions.md`](file:///.github/copilot-instructions.md) | Agent & Developer Governance Rules | Exit-code contracts (`0..3`), canonical quality gate sequence, no stacked branches (H7), living docs (H8). |
 | [`tasks.md`](file:///tasks.md) | Active Milestone State & Queue Tracker | Tracks active `now`, `next`, `blocked`, `improve`, and `recurring` queues. |
-| [`docs/THREAT_MODEL.md`](file:///docs/THREAT_MODEL.md) | Security Threat Model & Invariants | Path traversal regex sanitization, Windows device guards, CSP offline confinement, symlink defense. |
+| [`docs/THREAT_MODEL.md`](file:///docs/THREAT_MODEL.md) | Security Threat Model & Invariants | Path traversal regex sanitization, Windows device guards, CSP offline confinement, symlink & sidecar defense. |
 | [`docs/GOVERNANCE.md`](file:///docs/GOVERNANCE.md) | Architecture Decision Records & Standards | Invariant engineering rules, SemVer compliance, release cadences. |
 
 ---
@@ -159,7 +165,8 @@ All prose, character dossiers, lore bibles, and timelines are stored in standard
 2. **Atomic Writes Required**: Never write files directly via `open(path, 'w')`. Always use `atomic_write(filepath, content)` from `_bootstrap.py`.
 3. **Cross-Platform Lockfile Protocol**: Concurrency locks must use `ArcanumLock` which explicitly seeks to byte 0 before acquiring `msvcrt.locking` on Windows and `fcntl.flock` on POSIX.
 4. **Path Sanitization**: All user-supplied volume or target names must be validated against `^[A-Za-z0-9_-]+$` and Windows reserved names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`).
-5. **Headless GTK Testing**: GTK desktop tests require `$DISPLAY` sandboxing or `xvfb-run` in CI environments.
+5. **Restore Safety**: Vault restorations via `restore.py` require `--force` to unpack into non-empty directories and validate SHA-256 sidecar signatures (unless `--no-verify` is provided).
+6. **Headless GTK Testing**: GTK desktop tests require `$DISPLAY` sandboxing or `xvfb-run` in CI environments.
 
 ---
 
@@ -191,7 +198,7 @@ flowchart TD
     subgraph Presentation Tier
         GUI["PyGObject GTK3 Desktop GUI<br/><i>(scripts/lib/ui_gtk3/)</i>"]
         CLI["Python CLI Dispatcher<br/><i>(scripts/lib/cli.py)</i>"]
-        HUB["Studio Hub Cockpit<br/><i>(scripts/lib/studio_hub.py)</i>"]
+        HUB["Hardened Studio Hub Cockpit<br/><i>(scripts/lib/studio_hub.py)</i>"]
         ZEN["Zen Drafting Studio<br/><i>(scripts/lib/zen_studio.py)</i>"]
         CANVAS["Story Canvas Corkboard<br/><i>(scripts/lib/story_canvas.py)</i>"]
     end
@@ -215,6 +222,7 @@ flowchart TD
         BOOT["Atomic File I/O & Path Sanitizer<br/><i>(scripts/lib/_bootstrap.py)</i>"]
         LOCK["Cross-Platform Lockfile<br/><i>(scripts/lib/lockfile.py)</i>"]
         FTS["Hybrid TF-IDF & SQLite FTS5 Search<br/><i>(scripts/lib/vault_search.py)</i>"]
+        RESTORE["Hardened Archive Restore Engine<br/><i>(scripts/lib/restore.py)</i>"]
     end
 
     GUI --> SCOPE
@@ -232,6 +240,7 @@ flowchart TD
     ENGINES --> BOOT
     ENGINES --> LOCK
     ENGINES --> FTS
+    ENGINES --> RESTORE
 ```
 
 #### Level 3: Request & Execution Lifecycle
@@ -268,7 +277,7 @@ sequenceDiagram
 - **Modules**: [`scripts/lib/registry.py`](file:///scripts/lib/registry.py), [`scripts/lib/registry_base.py`](file:///scripts/lib/registry_base.py), [`scripts/lib/registry_specs/`](file:///scripts/lib/registry_specs/).
 - **Architecture**: Decoupled from a monolithic 2,490-line God Object into a high-cohesion registry architecture.
   - `registry_base.py` (<200 lines): Defines `EngineCategory`, `EngineSpec`, and `BaseCraftEngine` abstract base classes.
-  - `registry_specs/` (<400 lines/file): Modular domain engine specifications partitioned across 7 craft and infrastructure domains (`domain_a_science`, `domain_b_worldcraft`, `domain_c_culture`, `domain_d_narrative`, `domain_e_analytics`, `domain_f_system`, `domain_g_publishing`).
+  - `registry_specs/` (<400 lines/file): Modular domain engine specifications partitioned across 7 craft and infrastructure domains (`domain_a_science`, `domain_b_narrative`, `domain_c_society`, `domain_d_editorial`, `domain_e_studios`, `domain_f_retrieval`, `domain_g_publishing`).
   - `registry.py` (511 lines): Dynamic engine discovery, runtime user plugin scanner (`~/.config/ars-arcanum/engines/*.py`), and terminal formatting facade.
 
 ```mermaid
@@ -285,18 +294,20 @@ flowchart LR
   - Resolves target context automatically based on active `config.json` project, current working directory, or explicit `--manuscript`, `--series`, `--book`, `--chapter`, `--scene`, `--world`, `--universe`, `--lore-category`, or `--scope` arguments.
   - Enforces altitude-aware defaults preventing accidental full-vault sweeps when targeting localized chapters.
 
-#### Deep-Dive 3: Universal 5-Pillar Resonance Mesh & Causal Graph Engine
-- **Modules**: [`scripts/lib/resonance.py`](file:///scripts/lib/resonance.py), [`scripts/lib/causality.py`](file:///scripts/lib/causality.py).
-- **Architecture**: Bi-directional graph data structures modeling inter-domain relationships across 5 core pillars (Cosmology/Physics, Magic/Technology, Climate/Ecology, Dynasties/Societies, Narrative/Continuity).
-  - Evaluates multi-hop causal cascades, Novikov closed timelike curves (CTC), and structural isomorphisms.
-  - Detects butterfly effects when worldbuilding assumptions are modified.
+#### Deep-Dive 3: Hardened Studio Hub REST Server & Scope Cockpit
+- **Module**: [`scripts/lib/studio_hub.py`](file:///scripts/lib/studio_hub.py).
+- **Architecture**: Zero-pip embedded HTTP server running on Python's `http.server`.
+  - Enforces strict exact Host matching and Origin header validation (`_validate_origin`) on state-modifying requests (`POST`), rejecting cross-origin and `null` origin attacks.
+  - Supports both IPv4 loopback (`127.0.0.1`, `localhost`) and IPv6 loopback (`::1`, `[::1]`).
+  - Restricts `POST /api/engine/run` to a strict static `ENGINE_ALLOWLIST` of registered craft engines with thread-safe mutex execution (`threading.Lock()`).
+  - Emits telemetry and interactive HTML with strict offline `default-src 'none'` Content Security Policies.
 
-#### Deep-Dive 4: Sovereign Zero-Dependency Local Vector Search & FTS5 Retrieval
-- **Modules**: [`scripts/lib/vault_search.py`](file:///scripts/lib/vault_search.py), [`scripts/lib/local_rag.py`](file:///scripts/lib/local_rag.py), [`scripts/lib/corpus_export.py`](file:///scripts/lib/corpus_export.py).
-- **Architecture**: Zero-pip local semantic retrieval engine.
-  - Inverted index + SQLite FTS5 BM25+ vector simulation.
-  - AST heading-aware chunker parsing Markdown sections and YAML frontmatter into searchable datasets.
-  - Sub-millisecond offline query execution with zero cloud telemetry.
+#### Deep-Dive 4: Hardened Vault Archive & Restore Subsystem
+- **Modules**: [`scripts/lib/backup.py`](file:///scripts/lib/backup.py), [`scripts/lib/restore.py`](file:///scripts/lib/restore.py), [`scripts/lib/lockfile.py`](file:///scripts/lib/lockfile.py).
+- **Architecture**: Pure-Python POSIX/Windows archive lifecycle management.
+  - Generates `.tar.gz` and symmetric GPG encrypted backups accompanied by fail-closed `.sha256` sidecar checksums.
+  - Guarantees non-destructive restores: `restore.py` refuses to overwrite non-empty destination directories unless `--force` is explicitly provided.
+  - Validates sidecar checksums before unpacking archives; verifies archive member paths defensively against directory traversal, symlinks, device nodes, and sensitive `.git/hooks` configurations.
 
 ---
 
@@ -322,6 +333,11 @@ flowchart LR
 - **Decision**: Decompose the registry into `registry_base.py` (<200 lines), a modular `registry_specs/` package (<400 lines/file across 7 domains), and a slim `registry.py` facade (511 lines).
 - **Consequences**: Satisfies the `<800L` contract; enables isolated additions of domain engine specifications without monolithic file churn.
 
+#### ADR 05: Fail-Closed Archive Restore & Destination Safety
+- **Context**: Unpacking archives into existing directories risks silent data loss or tampering if checksum sidecars are ignored or corrupt.
+- **Decision**: `restore.py` enforces fail-closed SHA-256 sidecar verification by default (with `--no-verify` override) and forbids unpacking into non-empty directories unless `--force` is supplied.
+- **Consequences**: Guarantees vault integrity and prevents accidental loss of uncommitted writing drafts.
+
 ---
 
 ### 3.4 Cross-Cutting Concerns Table
@@ -340,7 +356,7 @@ flowchart LR
 ### 3.5 How to Add a New Craft Engine
 
 1. **Implement Engine Logic**: Create `scripts/lib/<engine_name>.py` subclassing `BaseCraftEngine` (or defining standard simulation entry points) using standard library Python.
-2. **Define Engine Specification**: Add an `EngineSpec` entry in the appropriate domain file in `scripts/lib/registry_specs/` (e.g. `domain_a_science.py`, `domain_b_worldcraft.py`).
+2. **Define Engine Specification**: Add an `EngineSpec` entry in the appropriate domain file in `scripts/lib/registry_specs/` (e.g. `domain_a_science.py`, `domain_b_narrative.py`).
 3. **Bind CLI Dispatcher**: Add command routing and argument definitions in `scripts/lib/cli.py`.
 4. **Author Unit Tests**: Create `tests/test_<engine_name>.py` in `tests/` verifying mathematical invariants and error handling. Verify quality gates pass via `python -m unittest discover tests` and `ruff check .`.
 
@@ -350,10 +366,11 @@ flowchart LR
 
 | Architectural Domain | Confidence Rating | Verification Evidence & Justification |
 | :--- | :---: | :--- |
-| **Core Craft Engines (47 Engines)** | **High** | 100% verified via 853 automated tests (`tests/test_*.py`), 0 failures, pure Python stdlib. |
+| **Core Craft Engines (47 Engines)** | **High** | 100% verified via 855 automated tests (`tests/test_*.py`), 0 failures, pure Python stdlib. |
 | **Registry & Domain Specs** | **High** | Decomposed into modular package (`scripts/lib/registry_specs/`), verified in `test_registry.py`. |
 | **Atomic File Safety & Locking** | **High** | Verified in `test_lockfile.py` and `test_path_traversal_defense.py` across Windows and Linux. |
-| **Studio Hub & Zen Studio** | **High** | Verified offline CSP enforcement, local REST endpoints, and WebAudio sine synthesis. |
+| **Studio Hub & Zen Studio** | **High** | Verified offline CSP enforcement, local REST endpoints with Origin validation, and WebAudio sine synthesis. |
+| **Restore & Backup Engine** | **High** | Verified fail-closed SHA-256 sidecars and `--force` non-empty directory guards in `test_backup_pure_python.py`. |
 | **Typst / PDF Typesetting** | **High** | Verified musl static binary execution and AST transformation via Pandoc in CI. |
 | **Distro Package Matrices** | **High** | Automated GitHub Actions CI runs across Ubuntu 22.04/24.04, Debian 12/13, Windows, macOS. |
 
@@ -370,14 +387,15 @@ flowchart LR
 - `scripts/lib/registry_specs/`: Modular domain engine specifications partitioned across 7 domains (<400 lines/file).
 - `scripts/lib/registry.py`: Catalog discovery matrix, dynamic plugin loader, and terminal doc formatting.
 - `scripts/lib/lockfile.py`: Cross-platform concurrency locking abstraction (`fcntl.flock` and `msvcrt.locking`).
+- `scripts/lib/restore.py`: Hardened archive restore engine with non-empty directory defense and sidecar verification.
 - `scripts/lib/resonance.py`: 5-pillar bi-directional knowledge graph and analogy synthesizer.
 - `scripts/lib/vault_search.py`: Zero-dependency hybrid TF-IDF & SQLite FTS5 vector search engine.
-- `scripts/lib/studio_hub.py`: Offline browser-based studio telemetry cockpit and craft explorer.
+- `scripts/lib/studio_hub.py`: Hardened offline browser-based studio telemetry cockpit, Origin validator, and engine allowlist.
 - `scripts/lib/zen_studio.py`: Distraction-free typewriter studio with in-situ lore drawer and ambient soundscape.
 - `scripts/lib/story_canvas.py`: Visual drag-and-drop story corkboard and multi-paradigm structure analyzer.
 - `tests/test_grand_tour_e2e.py`: 21-stage master lifecycle verification test.
 - `tests/test_version_consistency.py`: 6-way release version synchronization gate.
-- `pyproject.toml`: Project metadata, Ruff linter configurations, and coverage thresholds.
+- `pyproject.toml`: Project metadata, setuptools build configuration, Ruff linter configurations, and coverage thresholds.
 - `mypy.ini`: Static type checker configuration for strict type safety.
 - `.github/workflows/ci.yml`: Canonical multi-platform and distro-matrix CI workflow.
 - `AGENTS.md`: Supreme agentic manifesto and non-negotiable engineering contracts.

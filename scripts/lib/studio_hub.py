@@ -2458,6 +2458,9 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
 # -----------------------------------------------------------------------------
 
 
+_engine_exec_lock = threading.Lock()
+
+
 class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
     """Zero-dependency HTTP request handler for local sovereign studio telemetry."""
 
@@ -2468,15 +2471,24 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
     def _validate_host(self) -> bool:
         host_header = self.headers.get("Host", "")
         host_name = host_header.split(":")[0].strip().lower()
-        if host_name in ("localhost", "127.0.0.1", ""):
+        if host_name in ("localhost", "127.0.0.1", "::1", "[::1]", ""):
             return True
         self.send_error(403, "Forbidden: Invalid Host header")
         return False
 
     def _validate_origin(self) -> bool:
-        origin = self.headers.get("Origin", "")
-        if not origin or origin in ("null",) or origin.startswith(("http://localhost", "http://127.0.0.1")):
+        origin = self.headers.get("Origin", "").strip()
+        if not origin:
             return True
+        if origin.lower() == "null":
+            self.send_error(403, "Forbidden: Sandboxed null Origin rejected")
+            return False
+        try:
+            parsed = urllib.parse.urlparse(origin)
+            if parsed.scheme in ("http", "https") and parsed.hostname in ("localhost", "127.0.0.1", "::1", "[::1]"):
+                return True
+        except Exception:
+            pass
         self.send_error(403, "Forbidden: Cross-origin request rejected")
         return False
 
@@ -2516,7 +2528,8 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
                     "book": self.active_scope.book,
                     "chapters": self.active_scope.chapters,
                     "scenes": self.active_scope.scenes,
-                    "raw_filter": self.active_scope.raw_filter,
+                    "raw_filter": self.active_scope.raw_scope,
+                    "raw_scope": self.active_scope.raw_scope,
                 }
             })
         elif path == "/api/lore":
@@ -2710,49 +2723,49 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             steps = mesh.find_bridge(dom_a, dom_b)
             self._send_json(steps)
         elif path == "/api/scope":
-            ch = parse_number_ranges(payload.get("chapters")) if payload.get("chapters") is not None else self.active_scope.chapters
-            sc = parse_number_ranges(payload.get("scenes")) if payload.get("scenes") is not None else self.active_scope.scenes
+            ch = parse_number_ranges(payload.get("chapters")) if payload.get("chapters") is not None else SovereignStudioHandler.active_scope.chapters
+            sc = parse_number_ranges(payload.get("scenes")) if payload.get("scenes") is not None else SovereignStudioHandler.active_scope.scenes
             raw_f = payload.get("filter") or payload.get("raw_filter") or payload.get("raw_scope")
             if raw_f:
                 parsed_sc = parse_unified_scope_string(str(raw_f))
-                self.active_scope = EngineScope.from_dict(parsed_sc)
+                SovereignStudioHandler.active_scope = EngineScope.from_dict(parsed_sc)
             else:
                 bk_val = payload.get("book") or payload.get("books")
-                bks = [str(bk_val)] if bk_val and isinstance(bk_val, str) else (bk_val if isinstance(bk_val, list) else self.active_scope.books)
-                self.active_scope = EngineScope(
-                    universe=payload.get("universe") or self.active_scope.universe,
-                    world=payload.get("world") or self.active_scope.world,
-                    lore_categories=payload.get("lore_categories") or self.active_scope.lore_categories,
-                    series=payload.get("series") or self.active_scope.series,
-                    manuscript=payload.get("manuscript") or self.active_scope.manuscript,
+                bks = [str(bk_val)] if bk_val and isinstance(bk_val, str) else (bk_val if isinstance(bk_val, list) else SovereignStudioHandler.active_scope.books)
+                SovereignStudioHandler.active_scope = EngineScope(
+                    universe=payload.get("universe") or SovereignStudioHandler.active_scope.universe,
+                    world=payload.get("world") or SovereignStudioHandler.active_scope.world,
+                    lore_categories=payload.get("lore_categories") or SovereignStudioHandler.active_scope.lore_categories,
+                    series=payload.get("series") or SovereignStudioHandler.active_scope.series,
+                    manuscript=payload.get("manuscript") or SovereignStudioHandler.active_scope.manuscript,
                     books=bks,
                     chapters=ch,
                     scenes=sc,
-                    raw_scope=str(raw_f or self.active_scope.raw_scope),
+                    raw_scope=str(raw_f or SovereignStudioHandler.active_scope.raw_scope),
                 )
             self._send_json({
                 "status": "success",
-                "scope": self.active_scope.to_dict()
+                "scope": SovereignStudioHandler.active_scope.to_dict()
             })
         elif path == "/api/engine/run":
             eng_id = payload.get("engine", "")
             scope_dict = payload.get("scope", {})
             if scope_dict:
                 bk_val = scope_dict.get("book") or scope_dict.get("books")
-                bks = [str(bk_val)] if bk_val and isinstance(bk_val, str) else (bk_val if isinstance(bk_val, list) else self.active_scope.books)
+                bks = [str(bk_val)] if bk_val and isinstance(bk_val, str) else (bk_val if isinstance(bk_val, list) else SovereignStudioHandler.active_scope.books)
                 engine_scope = EngineScope(
-                    universe=scope_dict.get("universe") or self.active_scope.universe,
-                    world=scope_dict.get("world") or self.active_scope.world,
-                    lore_categories=scope_dict.get("lore_categories") or self.active_scope.lore_categories,
-                    series=scope_dict.get("series") or self.active_scope.series,
-                    manuscript=scope_dict.get("manuscript") or self.active_scope.manuscript,
+                    universe=scope_dict.get("universe") or SovereignStudioHandler.active_scope.universe,
+                    world=scope_dict.get("world") or SovereignStudioHandler.active_scope.world,
+                    lore_categories=scope_dict.get("lore_categories") or SovereignStudioHandler.active_scope.lore_categories,
+                    series=scope_dict.get("series") or SovereignStudioHandler.active_scope.series,
+                    manuscript=scope_dict.get("manuscript") or SovereignStudioHandler.active_scope.manuscript,
                     books=bks,
-                    chapters=parse_number_ranges(scope_dict.get("chapters")) if scope_dict.get("chapters") is not None else self.active_scope.chapters,
-                    scenes=parse_number_ranges(scope_dict.get("scenes")) if scope_dict.get("scenes") is not None else self.active_scope.scenes,
-                    raw_scope=str(scope_dict.get("raw_scope", self.active_scope.raw_scope)),
+                    chapters=parse_number_ranges(scope_dict.get("chapters")) if scope_dict.get("chapters") is not None else SovereignStudioHandler.active_scope.chapters,
+                    scenes=parse_number_ranges(scope_dict.get("scenes")) if scope_dict.get("scenes") is not None else SovereignStudioHandler.active_scope.scenes,
+                    raw_scope=str(scope_dict.get("raw_scope", SovereignStudioHandler.active_scope.raw_scope)),
                 )
             else:
-                engine_scope = self.active_scope
+                engine_scope = SovereignStudioHandler.active_scope
 
             result = self._execute_scoped_engine(eng_id, engine_scope, payload.get("options", {}))
             self._send_json(result)
@@ -2760,11 +2773,109 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(404, "Endpoint not found")
 
     def _execute_scoped_engine(self, engine_name: str, scope: EngineScope, options: dict[str, Any]) -> dict[str, Any]:
-        """Executes a craft engine synchronously with captured output and applied scope."""
+        """Executes an authorized craft engine synchronously with captured output and applied scope under lock."""
         import contextlib
         import io
 
         from lib.cli import dispatch_subcommand
+
+        norm_name = engine_name.lower().strip()
+
+        # Doctrine/advisory engines handled gracefully without module import failure
+        advisory_engines = {
+            "pacing": "PACING",
+            "pace": "PACING",
+            "scene_mechanics": "SCENE_MECHANICS",
+            "scenes": "SCENE_MECHANICS",
+            "tension": "SCENE_MECHANICS",
+            "stylistics": "STYLISTICS",
+            "style": "STYLISTICS",
+            "voice": "VOICE",
+            "senses": "SENSES",
+            "sensory": "SENSES",
+            "council": "COUNCIL",
+        }
+        if norm_name in advisory_engines:
+            doc_target = advisory_engines[norm_name]
+            msg = (
+                f"Ars Arcanum Craft Studio — Reference Doctrine ({doc_target})\n"
+                f"Note: Standalone heuristic '{norm_name}' has transitioned to deterministic "
+                f"metadata and authoritative craft documentation.\n"
+                f"To view the craft guide, run: arcanum doc {norm_name}"
+            )
+            return {
+                "status": "success",
+                "engine": engine_name,
+                "exit_code": 0,
+                "stdout": msg,
+                "stderr": "",
+                "combined_output": msg,
+                "scope_applied": {
+                    "manuscript": scope.manuscript,
+                    "world": scope.world,
+                    "chapters": scope.chapters,
+                    "scenes": scope.scenes,
+                    "book": scope.book,
+                    "series": scope.series,
+                },
+            }
+
+        # Strict Allowlist of craft engines executable via Studio Hub API
+        allowed_engines = {
+            "astrophysics": "lib.astrophysics",
+            "astro": "lib.astrophysics",
+            "magic": "lib.magic_system",
+            "magic_system": "lib.magic_system",
+            "genealogy": "lib.genealogy",
+            "lineage": "lib.genealogy",
+            "conlang": "lib.conlang",
+            "calendar": "lib.calendar",
+            "factions": "lib.factions",
+            "faction": "lib.factions",
+            "economy": "lib.economy",
+            "ecology": "lib.ecology",
+            "climate": "lib.climate",
+            "journey": "lib.journey",
+            "structure": "lib.structure",
+            "plot": "lib.plot_matrix",
+            "plot_matrix": "lib.plot_matrix",
+            "canvas": "lib.story_canvas",
+            "story_canvas": "lib.story_canvas",
+            "timeline": "lib.timeline_sync",
+            "timeline_sync": "lib.timeline_sync",
+            "omnibus": "lib.omnibus",
+            "corpus": "lib.corpus_export",
+            "corpus_export": "lib.corpus_export",
+            "search": "lib.vault_search",
+            "vault_search": "lib.vault_search",
+            "rag": "lib.vault_search",
+            "doctor": "lib.diagnostics",
+            "world_doctor": "lib.world_doctor",
+            "sprint": "lib.writing_sprint",
+            "writing_sprint": "lib.writing_sprint",
+            "revision_heatmap": "lib.revision_heatmap",
+            "typography": "lib.typography_cleaner",
+            "typography_cleaner": "lib.typography_cleaner",
+            "preflight": "lib.preflight",
+            "zen_studio": "lib.zen_studio",
+            "studio": "lib.zen_studio",
+            "scope": "lib.scope",
+            "causality": "lib.causality",
+            "prophecy": "lib.prophecy",
+            "resonance": "lib.resonance",
+            "words": "lib.cache",
+        }
+
+        if norm_name not in allowed_engines:
+            return {
+                "status": "error",
+                "engine": engine_name,
+                "exit_code": 1,
+                "stdout": "",
+                "stderr": f"Error: Engine '{engine_name}' is not in the authorized engine allowlist.",
+                "combined_output": f"Error: Engine '{engine_name}' is not in the authorized engine allowlist.",
+                "scope_applied": {},
+            }
 
         argv: list[str] = []
         if scope.manuscript:
@@ -2780,49 +2891,18 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
         if scope.series:
             argv.extend(["--series", str(scope.series)])
 
-        module_map = {
-            "pacing": "lib.pacing",
-            "pace": "lib.pacing",
-            "scene_mechanics": "lib.scene_mechanics",
-            "scenes": "lib.scene_mechanics",
-            "tension": "lib.scene_mechanics",
-            "stylistics": "lib.stylistics",
-            "style": "lib.stylistics",
-            "voice": "lib.voice",
-            "senses": "lib.senses",
-            "sensory": "lib.senses",
-            "structure": "lib.structure",
-            "plot": "lib.plot_matrix",
-            "plot_matrix": "lib.plot_matrix",
-            "zen_studio": "lib.zen_studio",
-            "studio": "lib.zen_studio",
-            "scope": "lib.scope",
-            "causality": "lib.causality",
-            "prophecy": "lib.prophecy",
-            "astrophysics": "lib.astrophysics",
-            "magic_system": "lib.magic_system",
-            "magic": "lib.magic_system",
-            "genealogy": "lib.genealogy",
-            "conlang": "lib.conlang",
-            "calendar": "lib.calendar",
-            "factions": "lib.factions",
-            "economy": "lib.economy",
-            "ecology": "lib.ecology",
-            "climate": "lib.climate",
-            "journey": "lib.journey",
-        }
-
-        mod_name = module_map.get(engine_name.lower(), f"lib.{engine_name}")
-
+        mod_name = allowed_engines[norm_name]
         buf_out = io.StringIO()
         buf_err = io.StringIO()
         exit_code = 0
-        try:
-            with contextlib.redirect_stdout(buf_out), contextlib.redirect_stderr(buf_err):
-                exit_code = dispatch_subcommand(mod_name, argv)
-        except Exception as ex:
-            buf_err.write(f"\nExecution error: {ex}")
-            exit_code = 1
+
+        with _engine_exec_lock:
+            try:
+                with contextlib.redirect_stdout(buf_out), contextlib.redirect_stderr(buf_err):
+                    exit_code = dispatch_subcommand(mod_name, argv)
+            except Exception as ex:
+                buf_err.write(f"\nExecution error: {ex}")
+                exit_code = 1
 
         out_text = buf_out.getvalue()
         err_text = buf_err.getvalue()

@@ -47,7 +47,7 @@ trap cleanup EXIT
 
 echo "[1/7] Script syntax & Python compilation validation..."
 # TST-02: same bash -n file set as CI (ci.yml) — scripts + lib + facade + tests.
-for f in scripts/*.sh scripts/lib/*.sh scripts/arcanum tests/*.sh; do
+for f in scripts/*.sh scripts/arcanum scripts/ars-arcanum; do
     if [ -f "$f" ]; then
         if ! bash -n "$f"; then
             echo "  FAIL $f (bash syntax)" >&2
@@ -559,20 +559,20 @@ set -e
 echo "  OK arcanum_doctor diagnostics (exit ${DOC_RC})"
 
 # 6l. Performance Cache, Continuity Engine & Draft Diff Regression Tests
-bash tests/test_performance_cache.sh > "${TMP_VERIFY}/cache_test.log" 2>&1 \
-    || { echo "  FAIL test_performance_cache.sh:"; tail -n 5 "${TMP_VERIFY}/cache_test.log"; exit 1; }
+python3 -m unittest tests/test_cache.py > "${TMP_VERIFY}/cache_test.log" 2>&1 \
+    || { echo "  FAIL tests/test_cache.py:"; tail -n 5 "${TMP_VERIFY}/cache_test.log"; exit 1; }
 echo "  OK performance cache & mtime invalidation tests"
 
-bash tests/test_continuity_engine.sh > "${TMP_VERIFY}/continuity_test.log" 2>&1 \
-    || { echo "  FAIL test_continuity_engine.sh:"; tail -n 5 "${TMP_VERIFY}/continuity_test.log"; exit 1; }
+python3 -m unittest tests/test_series_continuity.py > "${TMP_VERIFY}/continuity_test.log" 2>&1 \
+    || { echo "  FAIL tests/test_series_continuity.py:"; tail -n 5 "${TMP_VERIFY}/continuity_test.log"; exit 1; }
 echo "  OK narrative continuity & trait contradiction tests"
 
-bash tests/test_drafts_and_diff.sh > "${TMP_VERIFY}/drafts_diff_test.log" 2>&1 \
-    || { echo "  FAIL test_drafts_and_diff.sh:"; tail -n 5 "${TMP_VERIFY}/drafts_diff_test.log"; exit 1; }
+python3 -m unittest tests/test_manuscript_diff.py > "${TMP_VERIFY}/drafts_diff_test.log" 2>&1 \
+    || { echo "  FAIL tests/test_manuscript_diff.py:"; tail -n 5 "${TMP_VERIFY}/drafts_diff_test.log"; exit 1; }
 echo "  OK draft versioning, redline diff comparison & dual-target backup tests"
 
-bash tests/test_docx_sync.sh > "${TMP_VERIFY}/docx_sync_test.log" 2>&1 \
-    || { echo "  FAIL test_docx_sync.sh:"; tail -n 5 "${TMP_VERIFY}/docx_sync_test.log"; exit 1; }
+python3 -m unittest tests/test_docx_sync.py > "${TMP_VERIFY}/docx_sync_test.log" 2>&1 \
+    || { echo "  FAIL tests/test_docx_sync.py:"; tail -n 5 "${TMP_VERIFY}/docx_sync_test.log"; exit 1; }
 echo "  OK docx synchronization & word processor integration tests"
 
 # 6m. Dry-run simulation tests

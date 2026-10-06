@@ -6,13 +6,12 @@ contract. This guide is deliberately short and practical.
 
 ## Ground rules
 
-- **Target platforms**: Linux Mint 21/22 (XFCE) and Debian 12/13. Everything
-  else must degrade gracefully, not crash.
+- **Target platforms**: Linux (Mint, Ubuntu, Debian, Fedora, Arch), Windows 10/11, and macOS. Everything
+  must degrade gracefully and safely, not crash.
 - **Design invariants** live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and
   [docs/ROADMAP.md](docs/ROADMAP.md) — read both before changing scripts. In
-  particular: NUL-delimited filename handling, transactional directory
-  scaffolding, the exit-code contract below, and "safe handling of arbitrary
-  filenames" are non-negotiable.
+  particular: atomic file writes, cross-platform file locking (`ArcanumLock`), the exit-code contract below, and "safe handling of arbitrary
+  filenames and Windows device names" are non-negotiable.
 - **Architecture history** is recorded as ADRs in
   [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   If your change reverses or extends a recorded decision, add a new ADR rather
@@ -23,7 +22,7 @@ contract. This guide is deliberately short and practical.
 
 ### Exit-code contract (N-01)
 
-Scripts exit `0` on success and non-zero otherwise, with four documented
+Scripts and CLI dispatchers exit `0` on success and non-zero otherwise, with four documented
 meanings. Each script's header comment remains the authoritative per-script
 contract; when you add a script, document its codes there and keep them
 within this table:
@@ -38,40 +37,47 @@ within this table:
 ## Development setup
 
 ```bash
+# Clone the repository
 git clone https://github.com/aryansinghnagar/Ars-Arcanum.git
 cd Ars-Arcanum
-bash scripts/setup_arcanum.sh --dry-run   # inspect what a real install does
+
+# Install package in editable mode
+pip install -e .
+
+# Dry-run Linux desktop setup (optional)
+bash scripts/setup_arcanum.sh --dry-run
 ```
 
-You do not need the full toolchain to iterate: the test suites sandbox
-`HOME` and unset `DISPLAY`, so they run headlessly with just `git`, `pandoc`,
-and `python3` installed.
+You do not need the full desktop toolchain to iterate: the test suites sandbox
+`HOME` and unset `DISPLAY`, so they run headlessly with just standard Python 3.10+ installed.
 
 ## Before you submit — the quality gate
 
-Every change must pass all of these, in this order:
+Every change must pass all of these quality gates:
 
 ```bash
-bash -n scripts/*.sh scripts/lib/*.sh scripts/arcanum scripts/ars-arcanum   # syntax
-bash scripts/verify.sh                                                     # 7-stage harness
-bash tests/test_audit_fixes.sh
-bash tests/test_deep_audit.sh
-bash tests/test_concordance_edge_cases.sh
-bash tests/test_audit_claude_improvements.sh
-bash tests/test_continuity_engine.sh
-bash tests/test_performance_cache.sh
-bash tests/test_drafts_and_diff.sh
-bash tests/test_docx_sync.sh
-python3 -m unittest discover tests
+# 1. Full Python Unit & Integration Test Suite (855 tests, 0 failures allowed)
+python -m unittest discover tests
+
+# 2. Strict Expanded Ruff Linter Pass (0 violations allowed)
+ruff check .
+
+# 3. Strict Mypy Static Type Checking (0 errors)
+mypy --explicit-package-bases scripts tests
+
+# 4. Coverage Threshold Enforcement (fail_under = 80)
+coverage run -m unittest discover tests; coverage report --fail-under=80
+
+# 5. Shell syntax & 7-stage integration verification harness (POSIX)
+bash scripts/verify.sh
 ```
 
-`verify.sh` is the project's core quality gate — it must be able to *fail*
+`verify.sh` is the project's core quality gate on POSIX platforms — it must be able to *fail*
 (it fails closed by design; if you find a stage that cannot fail, that is a
 bug worth reporting). When adding new scripts, wire them into the harness's
 stage 1 and the CI lint lists.
 
-New shell code should pass `shellcheck -S warning`. New Python code should
-pass `python3 -m py_compile`. When crossing the shell/Python boundary, pass
+New shell code should pass `shellcheck -S warning`. When crossing the shell/Python boundary, pass
 data via **stdin or argv** — never interpolate values into `python3 -c`
 source strings.
 
@@ -93,5 +99,5 @@ affected component in parentheses and explain *why* in the body, not just
 
 - Ordinary bugs: GitHub issues with reproduction steps.
 - **Security vulnerabilities**: follow the private-disclosure process in
-  [SECURITY.md](SECURITY.md) — please do not open public issues for
+  [SECURITY.md](SECURITY.md) or [docs/GOVERNANCE.md](docs/GOVERNANCE.md) — please do not open public issues for
   undisclosed vulnerabilities.

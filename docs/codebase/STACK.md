@@ -6,46 +6,49 @@
 
 | Area | Value | Evidence |
 |------|-------|----------|
-| Primary language | Python 3.10+ (Standard Library only for core/craft engines) | `pyproject.toml#L1-L20`, `AGENTS.md#L20-L40` |
-| Runtime + version | CPython 3.10, 3.11, 3.12, 3.13, 3.14 (Verified in CI & local) | `.github/workflows/ci.yml#L10-L40`, `pyproject.toml#L10-L15` |
-| Package manager | Pip / Standard Library (Zero-Pip Dependency Guarantee for core engines) | `AGENTS.md#L30-L45`, `pyproject.toml#L1-L25` |
-| Module/build system | Pure Python modules (`scripts/lib/`), POSIX shell wrapper (`scripts/arcanum`) | `scripts/arcanum#L1-L50`, `scripts/lib/cli.py#L1-L100` |
+| Primary language | Python 3.10+ (Standard Library only for core/craft engines) | [`pyproject.toml#L1-L20`](file:///pyproject.toml#L1-L20), [`AGENTS.md#L20-L40`](file:///AGENTS.md#L20-L40) |
+| Runtime + version | CPython 3.10, 3.11, 3.12, 3.13, 3.14 (Verified in CI & local environments) | [`.github/workflows/ci.yml#L10-L40`](file:///.github/workflows/ci.yml#L10-L40), [`pyproject.toml#L10-L15`](file:///pyproject.toml#L10-L15) |
+| Package manager & build backend | Setuptools (`setuptools>=61.0`) / Standard Library (`pip install .` supported) | [`pyproject.toml#L1-L30`](file:///pyproject.toml#L1-L30), [`AGENTS.md#L20-L45`](file:///AGENTS.md#L20-L45) |
+| Module/build system | Pure Python packages (`scripts`, `scripts/lib/`), POSIX shell wrapper (`scripts/arcanum`) | [`scripts/arcanum#L1-L50`](file:///scripts/arcanum#L1-L50), [`scripts/lib/cli.py#L1-L100`](file:///scripts/lib/cli.py#L1-L100) |
 
 ### 2) Production Frameworks and Dependencies
 
 | Dependency | Version | Role in system | Evidence |
 |------------|---------|----------------|----------|
-| Python Standard Library (`sqlite3`, `math`, `json`, `dataclasses`, `enum`, `pathlib`, `urllib.parse`, `wave`) | 3.10+ | Primary execution runtime, storage, vector search, and simulation engines | `scripts/lib/_bootstrap.py#L1-L50`, `scripts/lib/vault_search.py#L1-L50` |
-| PyGObject (`Gtk 3.0`, `Gdk`, `GLib`, `Pango`) | Pinned system packages | Native Linux desktop GUI presentation layer | `scripts/arcanum_app.py#L1-L50`, `scripts/lib/ui_gtk3/window.py#L1-L60` |
-| Typst | `>= 0.11.0` (musl static binary) | Print-on-demand & PDF rendering engine | `scripts/arcanum#L180-L240`, `docs/TYPOGRAPHY.md` |
-| Pandoc | `>= 2.19.x` (tested on `3.1.x`) | Document AST converter (Markdown $\to$ Typst/DOCX/HTML) | `docs/COMPATIBILITY.md#L9-L16`, `scripts/arcanum#L180-L240` |
-| Calibre | System package (`ebook-convert`) | EPUB3 compilation engine | `scripts/setup_arcanum.sh#L142-L209` |
-| Obsidian | `md.obsidian.Obsidian` (desktop app) | Worldbuilding vault interface (vendored plugins) | `templates/world-bible/.obsidian/community-plugins.json#L1-L15` |
-| novelWriter | `io.gitlab.novelwriter.novelWriter` | Manuscript project management & drafting tool | `templates/manuscript/nwProject.nwx#L1-L15` |
+| Python Standard Library (`sqlite3`, `math`, `json`, `dataclasses`, `enum`, `pathlib`, `urllib.parse`, `wave`) | 3.10+ | Primary execution runtime, storage, vector search, and simulation engines | [`scripts/lib/_bootstrap.py#L1-L50`](file:///scripts/lib/_bootstrap.py#L1-L50), [`scripts/lib/vault_search.py#L1-L50`](file:///scripts/lib/vault_search.py#L1-L50) |
+| PyGObject (`Gtk 3.0`, `Gdk`, `GLib`, `Pango`) | Pinned system packages | Native Linux desktop GUI presentation layer | [`scripts/arcanum_app.py#L1-L50`](file:///scripts/arcanum_app.py#L1-L50), [`scripts/lib/ui_gtk3/window.py#L1-L60`](file:///scripts/lib/ui_gtk3/window.py#L1-L60) |
+| Typst | `>= 0.11.0` (musl static binary) | Print-on-demand & PDF rendering engine | [`scripts/arcanum#L180-L240`](file:///scripts/arcanum#L180-L240), [`docs/TYPOGRAPHY.md`](file:///docs/TYPOGRAPHY.md) |
+| Pandoc | `>= 2.19.x` (tested on `3.1.x`) | Document AST converter (Markdown $\to$ Typst/DOCX/HTML) | [`docs/COMPATIBILITY.md#L9-L16`](file:///docs/COMPATIBILITY.md#L9-L16), [`scripts/arcanum#L180-L240`](file:///scripts/arcanum#L180-L240) |
+| Calibre | System package (`ebook-convert`) | EPUB3 book compilation engine | [`scripts/setup_arcanum.sh#L142-L209`](file:///scripts/setup_arcanum.sh#L142-L209) |
+| Obsidian | `md.obsidian.Obsidian` (desktop app) | Worldbuilding vault interface (10 vendored plugins with SHA-256 manifest) | [`templates/world-bible/.obsidian/plugins/manifest.json`](file:///templates/world-bible/.obsidian/plugins/manifest.json) |
+| novelWriter | `io.gitlab.novelwriter.novelWriter` | Manuscript project management & drafting tool | [`templates/manuscript/nwProject.nwx#L1-L15`](file:///templates/manuscript/nwProject.nwx#L1-L15) |
 
 ### 3) Development Toolchain
 
 | Tool | Purpose | Evidence |
 |------|---------|----------|
-| Ruff | Strict linting across rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | `pyproject.toml#L15-L35`, `.github/workflows/ci.yml#L25-L35` |
-| Mypy | Strict static type checking with `check_untyped_defs = True` (167 source files clean) | `mypy.ini#L1-L25`, `tests/test_type_safety.py#L1-L40` |
-| Unittest | Automated test discovery & regression test execution (853 tests, 100% pass) | `tests/test_*.py`, `.github/workflows/ci.yml#L30-L40` |
-| Coverage | Test coverage enforcement and reporting | `pyproject.toml#L35-L45` |
+| Ruff | Strict linting across rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | [`pyproject.toml#L15-L35`](file:///pyproject.toml#L15-L35), [`.github/workflows/ci.yml#L25-L35`](file:///.github/workflows/ci.yml#L25-L35) |
+| Mypy | Strict static type checking with `check_untyped_defs = True` (170 source files clean) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py#L1-L40`](file:///tests/test_type_safety.py#L1-L40) |
+| Unittest | Automated test discovery & regression test execution (855 tests, 100% pass) | [`tests/test_*.py`](file:///tests/), [`.github/workflows/ci.yml#L30-L40`](file:///.github/workflows/ci.yml#L30-L40) |
+| Coverage | Test coverage enforcement and reporting (`fail_under = 80`) | [`pyproject.toml#L35-L45`](file:///pyproject.toml#L35-L45) |
 
 ### 4) Key Commands
 
 ```bash
-# Full test discovery suite (853 tests)
+# Standard package installation
+pip install -e .
+
+# Full test discovery suite (855 tests)
 python -m unittest discover tests
 
-# Coverage report enforcement
-coverage run -m unittest discover tests; coverage report
+# Coverage report enforcement (80-81% aggregate coverage)
+coverage run -m unittest discover tests; coverage report --fail-under=80
 
 # Strict linter pass (0 violations)
 ruff check .
 
 # Static type checker pass across all source files (0 errors)
-mypy --config-file mypy.ini --explicit-package-bases scripts/lib tests
+mypy --explicit-package-bases scripts tests
 
 # Master verification run (POSIX)
 bash scripts/verify.sh
@@ -59,9 +62,9 @@ bash scripts/verify.sh
 
 ### 6) Evidence
 
-- `pyproject.toml#L1-L45`
-- `mypy.ini#L1-L25`
-- `AGENTS.md#L1-L60`
-- `scripts/lib/_bootstrap.py#L1-L70`
-- `.github/workflows/ci.yml#L1-L60`
-- `tasks.md#L1-L50`
+- [`pyproject.toml#L1-L45`](file:///pyproject.toml#L1-L45)
+- [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25)
+- [`AGENTS.md#L1-L60`](file:///AGENTS.md#L1-L60)
+- [`scripts/lib/_bootstrap.py#L1-L70`](file:///scripts/lib/_bootstrap.py#L1-L70)
+- [`.github/workflows/ci.yml#L1-L60`](file:///.github/workflows/ci.yml#L1-L60)
+- [`tasks.md#L1-L50`](file:///tasks.md#L1-L50)

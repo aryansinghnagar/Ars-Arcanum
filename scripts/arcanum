@@ -110,6 +110,132 @@ USAGE
 }
 
 # ==============================================================================
+# Base Path Invariants & Storage Constants
+# ==============================================================================
+UNIVERSES_BASE="${UNIVERSES_BASE:-${HOME}/Universes}"
+MANUSCRIPTS_BASE="${MANUSCRIPTS_BASE:-${HOME}/Manuscripts}"
+LEGACY_WORLDS_BASE="${LEGACY_WORLDS_BASE:-${HOME}/Worlds}"
+
+# ==============================================================================
+# Core Helper Subroutines
+# ==============================================================================
+
+has_gui() {
+    [ -n "${DISPLAY:-}" ] && command -v zenity &>/dev/null
+}
+
+arcanum_validate_volume_name() {
+    local vname="${1:-}"
+    if [[ ! "${vname}" =~ ^[A-Za-z0-9_-]+$ ]]; then
+        echo "Error: Invalid volume name '${vname}'. Must match ^[A-Za-z0-9_-]+$" >&2
+        return 2
+    fi
+    return 0
+}
+
+sanitize_name() {
+    local input="${1:-}"
+    local fallback="${2:-project}"
+    local sanitized
+    sanitized="$(printf '%s' "${input}" | tr ' ' '_' | tr -cd 'A-Za-z0-9_-' | cut -c1-64)"
+    if [ -z "${sanitized}" ] || [ "${sanitized}" = "." ] || [ "${sanitized}" = ".." ]; then
+        sanitized="${fallback}"
+    fi
+    echo "${sanitized}"
+}
+
+git_commit_safe() {
+    local msg="${1:-Auto-save snapshot}"
+    if command -v git &>/dev/null; then
+        local user_name
+        local user_email
+        user_name="$(git config user.name 2>/dev/null || true)"
+        user_email="$(git config user.email 2>/dev/null || true)"
+        if [ -z "${user_name}" ]; then
+            git config user.name "Ars Arcanum Studio"
+        fi
+        if [ -z "${user_email}" ]; then
+            git config user.email "arcanum@local"
+        fi
+        git commit -m "${msg}" --quiet 2>/dev/null || true
+    fi
+}
+
+resolve_manuscript_dir() {
+    local target="${1:-}"
+    if [ -z "${target}" ]; then
+        echo ""
+        return 0
+    fi
+    if [ -d "${target}" ]; then
+        (cd "${target}" && pwd)
+        return 0
+    fi
+    if [ -d "${MANUSCRIPTS_BASE}/${target}" ]; then
+        (cd "${MANUSCRIPTS_BASE}/${target}" && pwd)
+        return 0
+    fi
+    echo ""
+}
+
+resolve_target_dir() {
+    local target="${1:-}"
+    local universe_filter="${2:-}"
+    if [ -n "${target}" ] && [ -d "${target}" ]; then
+        (cd "${target}" && pwd)
+        return 0
+    fi
+    if [ -n "${target}" ] && [ -d "${MANUSCRIPTS_BASE}/${target}" ]; then
+        (cd "${MANUSCRIPTS_BASE}/${target}" && pwd)
+        return 0
+    fi
+    if [ -n "${target}" ] && [ -d "${UNIVERSES_BASE}/${universe_filter:-Default-Universe}/${target}" ]; then
+        (cd "${UNIVERSES_BASE}/${universe_filter:-Default-Universe}/${target}" && pwd)
+        return 0
+    fi
+    if [ -n "${target}" ] && [ -d "${LEGACY_WORLDS_BASE}/${target}" ]; then
+        (cd "${LEGACY_WORLDS_BASE}/${target}" && pwd)
+        return 0
+    fi
+    if [ -n "${target}" ] && [ -d "${UNIVERSES_BASE}" ]; then
+        local found
+        found="$(find "${UNIVERSES_BASE}" -mindepth 2 -maxdepth 2 -type d -name "${target}" 2>/dev/null | head -n 1)"
+        if [ -n "${found}" ] && [ -d "${found}" ]; then
+            (cd "${found}" && pwd)
+            return 0
+        fi
+    fi
+    echo ""
+}
+
+discover_worlds() {
+    local var_name="${1:-WORLDS}"
+    local -a worlds=()
+    if [ -d "${UNIVERSES_BASE}" ]; then
+        while IFS= read -r -d '' w; do
+            [ -d "${w}" ] && worlds+=("${w}")
+        done < <(find "${UNIVERSES_BASE}" -mindepth 2 -maxdepth 2 -type d ! -name '.*' ! -name '.git' -print0 2>/dev/null)
+    fi
+    if [ -d "${LEGACY_WORLDS_BASE}" ]; then
+        while IFS= read -r -d '' w; do
+            [ -d "${w}" ] && worlds+=("${w}")
+        done < <(find "${LEGACY_WORLDS_BASE}" -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name '.git' -print0 2>/dev/null)
+    fi
+    eval "${var_name}=(\"\${worlds[@]}\")"
+}
+
+discover_manuscripts() {
+    local var_name="${1:-MANUSCRIPTS}"
+    local -a mss=()
+    if [ -d "${MANUSCRIPTS_BASE}" ]; then
+        while IFS= read -r -d '' m; do
+            [ -d "${m}" ] && mss+=("${m}")
+        done < <(find "${MANUSCRIPTS_BASE}" -mindepth 1 -maxdepth 1 -type d ! -name '.*' ! -name '.git' -print0 2>/dev/null)
+    fi
+    eval "${var_name}=(\"\${mss[@]}\")"
+}
+
+# ==============================================================================
 # Built-in Core Operations Subroutines
 # ==============================================================================
 
@@ -841,7 +967,12 @@ cmd_backup() {
         for t in "${all_t[@]}"; do
             [ -d "${t}" ] || continue
             echo "--- Backing up: $(basename "${t}") ---"
-            cmd_backup "${t}" ${dest_cli:+-d "${dest_cli}"} ${no_local:+--no-local} ${encrypted:+--encrypted} ${passphrase:+--passphrase "${passphrase}"}
+            local sub_args=("${t}")
+            [ -n "${dest_cli}" ] && sub_args+=("-d" "${dest_cli}")
+            [ "${no_local}" -eq 1 ] && sub_args+=("--no-local")
+            [ "${encrypted}" -eq 1 ] && sub_args+=("--encrypted")
+            [ -n "${passphrase}" ] && sub_args+=("--passphrase" "${passphrase}")
+            cmd_backup "${sub_args[@]}"
             total_backed=$((total_backed + 1))
         done
         echo "[✓] Completed backup of ${total_backed} projects."

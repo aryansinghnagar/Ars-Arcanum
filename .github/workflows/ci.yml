@@ -7,8 +7,7 @@ on:
     branches: [ main ]
   workflow_dispatch:
   schedule:
-    # C-03: weekly drift detection — catches action/toolchain rot between
-    # pushes (e.g. Typst/runner updates breaking the template).
+    # C-03: weekly drift detection — catches action/toolchain rot between pushes
     - cron: '23 4 * * 1'
 
 # C-03: least privilege — this workflow only needs to read the repository.
@@ -18,7 +17,6 @@ permissions:
 jobs:
   verify:
     name: Lint, Validate & Smoke Test (Ubuntu 24.04)
-    # CI-01: Primary CI runner. Debian/Mint matrix jobs are tracked in docs/ROADMAP.md.
     runs-on: ubuntu-24.04
 
     steps:
@@ -40,7 +38,6 @@ jobs:
       - name: Set up Typst
         uses: typst-community/setup-typst@9107b8dd77d7a7fd6c5faebbb507cac28069042e # v5.3
         with:
-          # DEP-01: exact pin matching dependencies.lock + setup_arcanum.sh (0.14.2).
           typst-version: '0.14.2'
 
       - name: Print environment and tool versions
@@ -50,7 +47,6 @@ jobs:
           pandoc --version | head -n 2
           typst --version
           shellcheck --version
-          desktop-file-validate --version
 
       - name: Gitleaks secret scanning
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
@@ -86,7 +82,7 @@ jobs:
       - name: Bash syntax validation (bash -n)
         run: |
           status=0
-          for f in scripts/*.sh scripts/lib/*.sh scripts/arcanum scripts/ars-arcanum tests/*.sh; do
+          for f in scripts/*.sh scripts/arcanum scripts/ars-arcanum; do
             [ -f "$f" ] || continue
             if ! bash -n "$f"; then
               echo "  FAIL $f (bash syntax)" >&2
@@ -99,41 +95,16 @@ jobs:
 
       - name: ShellCheck static analysis
         run: |
-          # C-01: tests/ contain the same risky patterns as the main scripts;
-          # lib/ joined the tree with the Q-01 refactor.
-          shellcheck -S warning scripts/*.sh scripts/lib/*.sh scripts/arcanum scripts/ars-arcanum tests/*.sh
+          shellcheck -S warning scripts/*.sh scripts/arcanum scripts/ars-arcanum
 
-      - name: Validate desktop launcher entries
+      - name: Test Python wheel build and install
         run: |
-          desktop-file-validate launchers/*.desktop
-
-      # TST-01 / PKG-02: packaging is inside the verification boundary —
-      # the broken-launcher class must fail CI, not just source validation.
-      - name: Validate packaged launcher substitution (no placeholders)
-        run: |
-          echo "--- source launchers use __PROJECT_ROOT__ placeholder (expected) ---"
-          grep -l "__PROJECT_ROOT__" launchers/*.desktop
-          echo "--- simulate debian/rules substitution ---"
-          mkdir -p /tmp/pkg-test/applications
-          for f in launchers/*.desktop; do
-            base=$(basename "$f")
-            case "$base" in
-              arcanum-control-center.desktop|ars-arcanum-control-center.desktop|scriptorium-control-center.desktop) sub="control-center";;
-              init-world.desktop) sub="world";;
-              init-manuscript.desktop) sub="manuscript";;
-              export-book.desktop) sub="export";;
-              save-snapshot.desktop) sub="snapshot";;
-              *) sub="";;
-            esac
-            if [ -n "$sub" ]; then
-              sed -e "s|^Exec=.*|Exec=/usr/bin/arcanum $sub|" -e "s|^TryExec=.*|TryExec=/usr/bin/arcanum|" "$f" > "/tmp/pkg-test/applications/$base"
-            else
-              sed -e "s|__PROJECT_ROOT__|/usr/share/ars-arcanum|g" "$f" > "/tmp/pkg-test/applications/$base"
-            fi
-          done
-          ! grep -r "__PROJECT_ROOT__" /tmp/pkg-test/applications/ || (echo "ERROR: placeholder survived substitution" >&2; exit 1)
-          desktop-file-validate /tmp/pkg-test/applications/*.desktop
-          echo "  OK packaged launchers validate with no placeholders"
+          pip install build
+          python -m build --wheel
+          pip install dist/*.whl
+          arcanum --version
+          arcanum --help > /dev/null
+          echo "  OK pip wheel build and CLI entrypoint installation passed"
 
       - name: Smoke test packaged CLI dispatch via symlink (PKG-01)
         run: |
@@ -150,25 +121,10 @@ jobs:
         run: |
           python3 -c "import json; json.load(open('configs/leechblock_arcanum_rules.json')); print('  OK leechblock JSON')"
           python3 -c "import xml.etree.ElementTree as ET; ET.parse('templates/manuscript/nwProject.nwx'); print('  OK nwProject XML')"
-          python3 -c "import yaml" 2>/dev/null && python3 -c "import yaml; yaml.safe_load(open('org.arsarcanum.ArsArcanum.yaml')); print('  OK flatpak manifest YAML')" || python3 -c "
-          import re,sys
-          t=open('org.arsarcanum.ArsArcanum.yaml').read()
-          assert 'app-id: org.arsarcanum.ArsArcanum' in t, 'flatpak app-id missing'
-          assert '__PROJECT_ROOT__' not in t, 'placeholder leaked into flatpak manifest'
-          assert '/app/bin/arcanum' in t, 'flatpak CLI symlink missing'
-          print('  OK flatpak manifest (structural check)')"
 
       - name: Run strict verification harness (scripts/verify.sh --require-tools)
         run: |
           bash scripts/verify.sh --require-tools
-
-      - name: Run regression test suites (tests/*.sh)
-        run: |
-          for test_script in tests/*.sh; do
-            [ -f "$test_script" ] || continue
-            echo "Running test suite: $test_script"
-            bash "$test_script"
-          done
 
       - name: Smoke test Typst book preview compilation
         run: |

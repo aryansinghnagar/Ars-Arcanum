@@ -12,14 +12,14 @@
    - World Lore Vaults: `~/Universes/<UniverseName>/<WorldName>/` (Pure Obsidian Vault + Git repository).
    - Prose Manuscripts: `~/Manuscripts/<ManuscriptName>/` (`manuscript.yaml` + `Book-*` acts + Git repository).
 3. **Safe Path Handling & Quoting**: All shell scripts must quote variable expansions (`"$VAR"`) and handle whitespace/special characters safely. NUL-delimited streams (`find -print0`) are used for batch processing.
-4. **Transactional Staging**: Directory creation, backup extraction, and file generation must stage in temporary directories (`mktemp -d`) with trap cleanups (`trap cleanup EXIT INT TERM`).
-5. **Fail-Closed Security**: Verification and binary installations must fail closed (`TYPST_OK=0`) when digests or dependencies are unavailable.
+4. **Transactional Staging & Atomic Writes**: Directory creation, backup extraction, and file generation must stage in temporary directories (`mktemp -d`) with trap cleanups (`trap cleanup EXIT INT TERM`) and use `atomic_write()` from [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py).
+5. **Fail-Closed Security**: Verification, restore operations, and binary installations must fail closed when digests or checksums do not match.
 
 ---
 
 ## 2. Exit-Code Contract
 
-All scripts and the CLI facade (`scripts/arcanum`) adhere strictly to this 4-value contract:
+All scripts and the CLI facade (`scripts/arcanum` / `scripts/lib/cli.py`) adhere strictly to this 4-value contract:
 
 | Exit Code | Semantics | Description |
 | :---: | :--- | :--- |
@@ -35,16 +35,19 @@ All scripts and the CLI facade (`scripts/arcanum`) adhere strictly to this 4-val
 Every proposed change MUST pass the full quality gate in this exact order before opening or merging a pull request:
 
 ```bash
-# 1. Full Python Unit & Integration Test Suite (853 tests, 0 failures allowed)
+# 1. Full Python Unit & Integration Test Suite (855 tests, 0 failures allowed)
 python -m unittest discover tests
 
 # 2. Strict Expanded Ruff Linter Pass (0 violations allowed)
 ruff check .
 
-# 3. Strict Mypy Static Type Checking across all source files (167 files clean)
-mypy --config-file mypy.ini --explicit-package-bases scripts/lib tests
+# 3. Strict Mypy Static Type Checking across all source files (170 files clean)
+mypy --explicit-package-bases scripts tests
 
-# 4. Canonical 7-Stage Integration Verification Harness
+# 4. Coverage Threshold Enforcement (fail_under = 80)
+coverage run -m unittest discover tests; coverage report --fail-under=80
+
+# 5. Canonical 7-Stage Integration Verification Harness (POSIX)
 bash scripts/verify.sh
 ```
 

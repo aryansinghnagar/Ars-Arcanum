@@ -6,19 +6,19 @@
 
 | Path | Purpose | Evidence |
 |------|---------|----------|
-| `scripts/` | Main application entry points (`arcanum`, `arcanum_app.py`, `setup_arcanum.sh`, `verify.sh`) | `scripts/arcanum`, `scripts/arcanum_app.py` |
-| `scripts/lib/` | 47 sovereign deterministic domain engines, universal scoping subsystem (`scope.py`), presentation modules, and bootstrap safety utilities | `scripts/lib/registry.py`, `scripts/lib/registry_base.py`, `scripts/lib/scope.py`, `scripts/lib/_bootstrap.py` |
-| `scripts/lib/registry_specs/` | Modular domain engine specifications partitioned across 7 craft and infrastructure domains | `scripts/lib/registry_specs/domain_a_science.py`, `scripts/lib/registry_specs/__init__.py` |
-| `scripts/lib/ui_gtk3/` | Modular PyGObject GTK3 desktop interface package (<800 lines/file) | `scripts/lib/ui_gtk3/window.py` |
-| `docs/` | Comprehensive craft documentation, user guides, master engine encyclopedia, roadmap, and codebase architecture | `docs/README.md`, `docs/ENGINE_LOGIC_ENCYCLOPEDIA.md`, `docs/ROADMAP.md`, `docs/codebase/` |
-| `tests/` | Exhaustive 853-test suite covering unit, integration, scoping, threat model, and benchmark tests | `tests/test_*.py` |
-| `templates/` | Standardized world bibles, demo cosmos (`Eldoria`), novelWriter project templates | `templates/demo-cosmos/`, `templates/world-bible/` |
-| `configs/` | Deterministic plugin definitions, idiom dictionaries, and core settings | `configs/plugin_catalog.json`, `configs/idioms.json` |
+| `scripts/` | Main application entry points (`arcanum`, `arcanum_app.py`, `setup_arcanum.sh`, `verify.sh`) and Python package root (`__init__.py`) | [`scripts/arcanum`](file:///scripts/arcanum), [`scripts/arcanum_app.py`](file:///scripts/arcanum_app.py), [`scripts/__init__.py`](file:///scripts/__init__.py) |
+| `scripts/lib/` | 47 sovereign deterministic domain engines, universal scoping subsystem (`scope.py`), presentation modules, and bootstrap safety utilities | [`scripts/lib/registry.py`](file:///scripts/lib/registry.py), [`scripts/lib/registry_base.py`](file:///scripts/lib/registry_base.py), [`scripts/lib/scope.py`](file:///scripts/lib/scope.py), [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py) |
+| `scripts/lib/registry_specs/` | Modular domain engine specifications partitioned across 7 craft and infrastructure domains | [`scripts/lib/registry_specs/domain_a_science.py`](file:///scripts/lib/registry_specs/domain_a_science.py), [`scripts/lib/registry_specs/__init__.py`](file:///scripts/lib/registry_specs/__init__.py) |
+| `scripts/lib/ui_gtk3/` | Modular PyGObject GTK3 desktop interface package (<800 lines/file) | [`scripts/lib/ui_gtk3/window.py`](file:///scripts/lib/ui_gtk3/window.py) |
+| `docs/` | Comprehensive craft documentation, user guides, master engine encyclopedia, roadmap, and codebase architecture | [`docs/README.md`](file:///docs/README.md), [`docs/ENGINE_LOGIC_ENCYCLOPEDIA.md`](file:///docs/ENGINE_LOGIC_ENCYCLOPEDIA.md), [`docs/ROADMAP.md`](file:///docs/ROADMAP.md), [`docs/codebase/`](file:///docs/codebase/) |
+| `tests/` | Exhaustive 855-test suite covering unit, integration, scoping, threat model, and benchmark tests | [`tests/test_*.py`](file:///tests/) |
+| `templates/` | Standardized world bibles, demo cosmos (`Eldoria`), Obsidian plugins with SHA-256 manifest, and novelWriter project templates | [`templates/demo-cosmos/`](file:///templates/demo-cosmos/), [`templates/world-bible/`](file:///templates/world-bible/) |
+| `configs/` | Deterministic plugin definitions, idiom dictionaries, LeechBlock rules, and core settings | [`configs/plugin_catalog.json`](file:///configs/plugin_catalog.json), [`configs/idioms.json`](file:///configs/idioms.json), [`configs/leechblock_arcanum_rules.json`](file:///configs/leechblock_arcanum_rules.json) |
 
 ### 2) Entry Points
 
 - Main desktop GUI runtime entry: [`scripts/arcanum_app.py`](file:///scripts/arcanum_app.py)
-- Unified CLI runtime dispatcher: [`scripts/lib/cli.py`](file:///scripts/lib/cli.py) / [`scripts/arcanum`](file:///scripts/arcanum)
+- Unified CLI runtime dispatcher: [`scripts/lib/cli.py`](file:///scripts/lib/cli.py) / [`scripts/arcanum`](file:///scripts/arcanum) / registered entry points (`arcanum`, `ars-arcanum`)
 - Studio Hub telemetry dashboard entry: [`scripts/lib/studio_hub.py`](file:///scripts/lib/studio_hub.py) (`arcanum hub`)
 - Zen Drafting Studio entry: [`scripts/lib/zen_studio.py`](file:///scripts/lib/zen_studio.py) (`arcanum zen`)
 - Story Canvas visual corkboard entry: [`scripts/lib/story_canvas.py`](file:///scripts/lib/story_canvas.py) (`arcanum canvas`)
@@ -43,10 +43,10 @@
 
 ### 5) Evidence
 
-- `scripts/lib/registry.py#L1-L60`
-- `scripts/lib/registry_base.py#L1-L60`
-- `scripts/lib/registry_specs/__init__.py#L1-L30`
-- `scripts/lib/_bootstrap.py#L75-L115`
-- `scripts/lib/cli.py#L1-L100`
-- `scripts/arcanum#L1-L80`
-- `scripts/lib/ui_gtk3/window.py#L1-L80`
+- [`scripts/lib/registry.py#L1-L60`](file:///scripts/lib/registry.py#L1-L60)
+- [`scripts/lib/registry_base.py#L1-L60`](file:///scripts/lib/registry_base.py#L1-L60)
+- [`scripts/lib/registry_specs/__init__.py#L1-L30`](file:///scripts/lib/registry_specs/__init__.py#L1-L30)
+- [`scripts/lib/_bootstrap.py#L75-L115`](file:///scripts/lib/_bootstrap.py#L75-L115)
+- [`scripts/lib/cli.py#L1-L100`](file:///scripts/lib/cli.py#L1-L100)
+- [`scripts/arcanum#L1-L80`](file:///scripts/arcanum#L1-L80)
+- [`scripts/lib/ui_gtk3/window.py#L1-L80`](file:///scripts/lib/ui_gtk3/window.py#L1-L80)

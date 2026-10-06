@@ -6,10 +6,10 @@
 
 | Item | Rule | Example | Evidence |
 |------|------|---------|----------|
-| Files | Lowercase snake_case | `astrophysics.py`, `test_resonance.py` | `scripts/lib/`, `tests/` |
-| Functions/methods | Lowercase snake_case with descriptive verbs | `simulate_cascade()`, `get_by_engine()` | `scripts/lib/resonance.py`, `scripts/lib/tips.py` |
-| Types/interfaces/classes | PascalCase | `ResonanceMesh`, `TipDatabase`, `EngineSpec` | `scripts/lib/registry.py`, `scripts/lib/registry_base.py`, `scripts/lib/tips.py` |
-| Constants/Enums | UPPER_SNAKE_CASE | `TipPillar.COSMOLOGY_PHYSICS`, `WINDOWS_RESERVED_NAMES` | `scripts/lib/tips.py`, `scripts/lib/_bootstrap.py` |
+| Files | Lowercase snake_case | `astrophysics.py`, `test_resonance.py` | [`scripts/lib/`](file:///scripts/lib/), [`tests/`](file:///tests/) |
+| Functions/methods | Lowercase snake_case with descriptive verbs | `simulate_cascade()`, `get_by_engine()` | [`scripts/lib/resonance.py`](file:///scripts/lib/resonance.py), [`scripts/lib/tips.py`](file:///scripts/lib/tips.py) |
+| Types/interfaces/classes | PascalCase | `ResonanceMesh`, `TipDatabase`, `EngineSpec` | [`scripts/lib/registry.py`](file:///scripts/lib/registry.py), [`scripts/lib/registry_base.py`](file:///scripts/lib/registry_base.py), [`scripts/lib/tips.py`](file:///scripts/lib/tips.py) |
+| Constants/Enums | UPPER_SNAKE_CASE | `TipPillar.COSMOLOGY_PHYSICS`, `WINDOWS_RESERVED_NAMES` | [`scripts/lib/tips.py`](file:///scripts/lib/tips.py), [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py) |
 
 ### 2) Formatting and Linting
 
@@ -22,7 +22,7 @@
 - Run commands:
   ```bash
   ruff check .
-  mypy --config-file mypy.ini --explicit-package-bases scripts/lib tests
+  mypy --explicit-package-bases scripts tests
   ```
 
 ### 3) Import and Module Conventions
@@ -43,13 +43,13 @@
 
 - Test file naming/location rule: Co-located in `tests/test_<module_name>.py`.
 - Mocking strategy norm: `unittest.mock.patch` with temporary directory isolation via `tempfile.TemporaryDirectory()`.
-- Coverage expectation: 100% engine coverage across all 47 registered engines, 853 automated unit/integration tests with 0 failures permitted.
+- Coverage expectation: 100% engine coverage across all 47 registered engines, 855 automated unit/integration tests with 0 failures permitted.
 
 ### 6) Evidence
 
-- `pyproject.toml#L1-L35`
-- `scripts/lib/registry_base.py#L1-L60`
-- `scripts/lib/registry.py#L1-L60`
-- `scripts/lib/_bootstrap.py#L75-L115`
-- `tests/test_tips.py#L1-L50`
-- `AGENTS.md#L1-L60`
+- [`pyproject.toml#L1-L35`](file:///pyproject.toml#L1-L35)
+- [`scripts/lib/registry_base.py#L1-L60`](file:///scripts/lib/registry_base.py#L1-L60)
+- [`scripts/lib/registry.py#L1-L60`](file:///scripts/lib/registry.py#L1-L60)
+- [`scripts/lib/_bootstrap.py#L75-L115`](file:///scripts/lib/_bootstrap.py#L75-L115)
+- [`tests/test_tips.py#L1-L50`](file:///tests/test_tips.py#L1-L50)
+- [`AGENTS.md#L1-L60`](file:///AGENTS.md#L1-L60)

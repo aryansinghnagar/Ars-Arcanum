@@ -32,7 +32,7 @@ Specifically, the Grand Tour verifies:
 # Run the Grand Tour standalone
 python -m unittest tests/test_grand_tour_e2e.py
 
-# Run as part of the full test discovery suite (853 tests)
+# Run as part of the full test discovery suite (855 tests)
 python -m unittest discover tests
 ```
 
@@ -144,12 +144,12 @@ Synthesizes cross-volume character rosters into Markdown tables and interactive 
 ## Verification Pipeline
 
 ```bash
-# Run the complete test suite (853 tests)
+# Run the complete test suite (855 tests)
 python -m unittest discover tests
 
 # Verify zero lint errors
 ruff check .
 
 # Verify type safety
-mypy --config-file mypy.ini --explicit-package-bases scripts/lib tests
+mypy --explicit-package-bases scripts tests
 ```

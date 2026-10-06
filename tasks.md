@@ -1,14 +1,18 @@
 # Ars Arcanum (Scriptorium) — Momentum Queues & Milestone Roadmap
-> Sovereign Authoring Operating System | Release v0.1.0
+> Sovereign Authoring Operating System | Release v0.1.0 (Beta)
 
 ---
 
 ### `now`
-- **Active Focus**: Core Hardening & Architectural Modularization across sovereign craft engines.
-- [x] Enforce cross-platform Windows reserved device name validation (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`) across path validation endpoints.
-- [x] Modularize `scripts/lib/registry.py` God Object into `registry_base.py` and `registry_specs/` package (<800 lines/file rule).
-- [x] Harden `ArcanumLock` on Windows with deterministic seek-to-0 before `msvcrt.locking` and debug diagnostics.
-- [x] Complete 100% verification across test suite (853 tests, 0 failures), Ruff linter (0 errors), and Mypy static analysis (156 source files clean).
+- **Active Focus**: Multi-Lens Software Audit Remediations & Production Hardening.
+- [x] Restore missing Bash launcher helper subroutines (`resolve_target_dir`, `discover_worlds`, `discover_manuscripts`, `sanitize_name`, `git_commit_safe`) and base path invariants in `scripts/arcanum`.
+- [x] Configure standard setuptools packaging (`[build-system]`, package discovery, and `scripts/__init__.py`) enabling clean `pip install .` and entry point execution.
+- [x] Clean and synchronize `.github/workflows/ci.yml` (remove dead paths, add wheel install smoke test, add Bandit SAST `# nosec` annotations).
+- [x] Secure Studio Hub local HTTP API (strict exact Origin validation, loopback IPv6 support, authorized engine execution allowlist, and thread execution mutex).
+- [x] Harden `restore.py` with `force=False` non-empty destination overwrite protection and fail-closed SHA-256 sidecar validation.
+- [x] Generate Obsidian community plugin SHA-256 integrity manifest (`templates/world-bible/.obsidian/plugins/manifest.json`).
+- [x] Align README status (Beta), test count (855 total, 853 passing), coverage threshold (81%), and repository URLs.
+- [x] Pass 100% verification across test suite (855 tests, 0 failures), Ruff linter (0 errors), and Mypy static type checking.
 
 ### `next`
 - Introduce cached Data Access Layer (`data_access.py`) to eliminate redundant vault `rglob` disk traversals.

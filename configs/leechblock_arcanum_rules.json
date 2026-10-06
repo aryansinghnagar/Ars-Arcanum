@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "description": "Ars Arcanum Sovereign Author Focus & Distraction Shield Rules",
+  "blockSets": [
+    {
+      "name": "Deep Writing Focus",
+      "sites": "*.twitter.com\n*.x.com\n*.reddit.com\n*.facebook.com\n*.instagram.com\n*.youtube.com\n*.tiktok.com",
+      "times": "0000-2359",
+      "days": "Sun,Mon,Tue,Wed,Thu,Fri,Sat",
+      "active": true
+    }
+  ]
+}
