@@ -35,8 +35,10 @@
 | `scripts/lib/registry_specs/` | Pure static domain engine specifications across 7 domains (<400 lines each) | Runtime state, CLI query methods |
 | `scripts/lib/tips_catalog/` | Pure static craft tips across 6 craft domains (<60 lines each) | Runtime querying, CLI dispatch |
 | `scripts/lib/registry.py` | Authoritative 47-engine discovery matrix, dynamic plugin scanner, and doc formatting (<600 lines) | Monolithic 2400+ line static dictionaries |
+| `scripts/lib/resonance.py`, `resonance_data.py`, `resonance_template.py` | Universal resonance mesh, 5-pillar knowledge graph, causal cascades, metaphorical bridges, and offline visualizer (<650 lines/file) | Direct unbuffered disk writes, network calls |
+| `scripts/lib/economy.py`, `economy_data.py`, `economy_template.py`, `economy_trade.py` | Macroeconomic validator, Fisher equation simulation, commodity baskets, trade centrality, and offline flow maps (<780 lines/file) | Direct unbuffered disk writes |
 | `scripts/lib/ui_gtk3/` | Presentation widgets, event handlers, and GTK rendering loops | Direct file system mutation (must delegate to controllers/engines) |
-| Craft Simulation Engines (`astrophysics`, `climate`, `conlang`, `resonance`, `vault_search`, etc.) | Pure Python mathematical simulations, deterministic models, advisory options | GTK/GUI imports, cloud network dependencies, unseeded PRNG |
+| Craft Simulation Engines (`astrophysics`, `climate`, `conlang`, `causality`, `vault_search`, etc.) | Pure Python mathematical simulations, deterministic models, advisory options | GTK/GUI imports, cloud network dependencies, unseeded PRNG |
 
 ### 4) Naming and Organization Rules
 
@@ -49,6 +51,11 @@
 - [`scripts/lib/registry.py#L1-L60`](file:///scripts/lib/registry.py#L1-L60)
 - [`scripts/lib/registry_base.py#L1-L60`](file:///scripts/lib/registry_base.py#L1-L60)
 - [`scripts/lib/registry_specs/__init__.py#L1-L30`](file:///scripts/lib/registry_specs/__init__.py#L1-L30)
+- [`scripts/lib/data_access.py#L1-L60`](file:///scripts/lib/data_access.py#L1-L60)
+- [`scripts/lib/resonance.py#L1-L60`](file:///scripts/lib/resonance.py#L1-L60)
+- [`scripts/lib/resonance_data.py#L1-L60`](file:///scripts/lib/resonance_data.py#L1-L60)
+- [`scripts/lib/economy.py#L1-L60`](file:///scripts/lib/economy.py#L1-L60)
+- [`scripts/lib/economy_trade.py#L1-L60`](file:///scripts/lib/economy_trade.py#L1-L60)
 - [`scripts/lib/_bootstrap.py#L75-L115`](file:///scripts/lib/_bootstrap.py#L75-L115)
 - [`scripts/lib/cli.py#L1-L100`](file:///scripts/lib/cli.py#L1-L100)
 - [`scripts/arcanum#L1-L80`](file:///scripts/arcanum#L1-L80)

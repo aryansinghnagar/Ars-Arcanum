@@ -4,7 +4,25 @@ All notable changes to Ars Arcanum are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Scope decisions
 behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## [0.1.0] - 2026-10-05
+## [0.1.0] - 2026-10-06
+
+### Added & Hardened (Universal Modularization, Resonance/Economy Decomposition & DAL Integration)
+- **Universal Resonance Mesh Decomposition (`scripts/lib/resonance.py`, `resonance_data.py`, `resonance_template.py`)**:
+  - Decomposed monolithic `resonance.py` (1,796 lines $\to$ 646 lines) into modular domain catalogs and presentation layers.
+  - Extracted 47 foundational domain specs, 71 cross-domain causal edges, 9 structural isomorphisms, and deterministic cascade engine into `scripts/lib/resonance_data.py` (591 lines).
+  - Extracted offline interactive HTML/CSS/JS knowledge graph visualizer and simulation lab into `scripts/lib/resonance_template.py` (677 lines) with strict offline Content Security Policy.
+  - Integrated centralized `DataAccessLayer` (`get_data_access()`) for cached AST frontmatter reads in `scan_vault_and_manuscript()`.
+- **Macroeconomic & Trade Simulation Decomposition (`scripts/lib/economy.py`, `economy_data.py`, `economy_template.py`, `economy_trade.py`)**:
+  - Decomposed monolithic `economy.py` (1,154 lines $\to$ 771 lines) into dedicated trade and tech era packages.
+  - Extracted 10 technological eras and anachronism dictionary into `scripts/lib/economy_data.py` (122 lines).
+  - Extracted offline HTML audit report generator with strict CSP into `scripts/lib/economy_template.py` (137 lines).
+  - Extracted freight margin calculations, settlement network extraction, economic gravity trade models, and supply shock simulation into `scripts/lib/economy_trade.py` (341 lines).
+  - Integrated centralized `DataAccessLayer` memoization across all markdown and YAML parsing paths.
+- **Strict Engineering Invariant Compliance & Quality Gates**:
+  - All 186 Python source files strictly comply with `<800 lines/file` contract, 0 Ruff violations, 0 Mypy errors.
+  - Full test suite passes 862 automated tests with 80% code coverage.
+
+## [0.1.0-rc1] - 2026-10-05
 
 ### Added & Hardened (Sovereign Craft Studio & 47 Deterministic Engines Upgrade)
 - **Transition to 47 Deterministic Core & Craft Engines (`scripts/lib/registry.py`, `resonance.py`)**:

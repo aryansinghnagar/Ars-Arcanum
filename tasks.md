@@ -16,8 +16,10 @@
 - [x] Upgrade CLI dispatcher (`cli.py`) with dynamic registry plugin discovery and fuzzy error resolution.
 - [x] Modularize oversized `tips.py` (3,324 $\to$ 442 lines) into `scripts/lib/tips_catalog/` domain modules, satisfying `<800 lines/file` contract.
 - [x] Extract Studio Hub presentation template into `scripts/lib/studio_hub_template.py`, reducing `studio_hub.py` by over 2,100 lines.
-- [x] Align README status (Beta), test count (862 total, 860 passing, 2 skipped on Windows), coverage threshold (81%), and repository URLs.
-- [x] Pass 100% verification across test suite (862 tests, 0 failures), Ruff linter (0 errors), and Mypy static type checking (181 source files clean).
+- [x] Modularize `resonance.py` (1,796 $\to$ 646 lines) into `resonance_data.py` (591 lines) and `resonance_template.py` (677 lines), and integrate DAL caching.
+- [x] Modularize `economy.py` (1,154 $\to$ 771 lines) into `economy_data.py` (122 lines), `economy_template.py` (137 lines), and `economy_trade.py` (341 lines), and integrate DAL caching.
+- [x] Align README status (Beta), test count (862 total, 860 passing, 2 skipped on Windows), coverage threshold (80%), and repository URLs.
+- [x] Pass 100% verification across test suite (862 tests, 0 failures), Ruff linter (0 errors), and Mypy static type checking (186 source files clean).
 
 ### `next`
 - Deepen craft encyclopedia references across narrative craft, worldbuilding models, and linguistics.
@@ -27,7 +29,7 @@
 - None.
 
 ### `improve`
-- Modularize remaining oversized engine modules (`scope.py`, `economy.py`, `astrophysics.py`) to strictly satisfy `<800 lines/file`.
+- Modularize remaining oversized engine modules (`scope.py`, `astrophysics.py`, `journey.py`, `tactical_sim.py`) to strictly satisfy `<800 lines/file`.
 - Split monolithic 21-stage Grand Tour E2E test into isolated, parameterized test stages for faster failure localization.
 - Expand golden dataset coverage across novel pacing and character arc schemas.
 - Optimize SQLite FTS5 BM25+ indexing performance for multi-million word fantasy corpora.

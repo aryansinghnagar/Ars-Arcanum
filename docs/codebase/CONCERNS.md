@@ -14,8 +14,8 @@
 | Debt item | Why it exists | Where | Risk if ignored | Status / Mitigation |
 |-----------|---------------|-------|-----------------|---------------------|
 | Dual CLI dispatchers (Bash vs Python) | Legacy bash facade maintains historical wrappers | [`scripts/arcanum`](file:///scripts/arcanum), [`scripts/lib/cli.py`](file:///scripts/lib/cli.py) | Maintenance divergence across platforms | Pure-Python CLI dispatcher (`cli.py`) handles all core engine executions with packaging entry points |
-| Large static dictionaries in Python source | Embedded metadata in executable code | [`scripts/lib/registry.py`](file:///scripts/lib/registry.py) | Monolithic God Object violating `<800L` contract | **Resolved**: Decomposed into `scripts/lib/registry_base.py` and `scripts/lib/registry_specs/`, reducing `registry.py` to 511 lines |
-| Oversized engine modules (`studio_hub.py`, `scope.py`, `economy.py`, `astrophysics.py`) | Rich single-file implementation | `scripts/lib/*.py` | Maintenance friction | Tracked in `ROADMAP.md#improve` for incremental modularization |
+| Large static dictionaries in Python source | Embedded metadata in executable code | [`scripts/lib/registry.py`](file:///scripts/lib/registry.py) | Monolithic God Object violating `<800L` contract | **Resolved**: Decomposed into `scripts/lib/registry_base.py` and `scripts/lib/registry_specs/`, reducing `registry.py` to 434 lines |
+| Oversized engine modules (`resonance.py`, `economy.py`, `tips.py`, `studio_hub.py`) | Rich single-file implementation | `scripts/lib/*.py` | Maintenance friction | **Resolved**: Modularized `tips.py` into `tips_catalog/`, `studio_hub.py` via `studio_hub_template.py`, `resonance.py` into `resonance_data.py` & `resonance_template.py`, and `economy.py` into `economy_data.py`, `economy_template.py` & `economy_trade.py`. Remaining: `scope.py`, `astrophysics.py` |
 | GTK3 accessibility baseline | Historical UI focused on visual aesthetics | `scripts/lib/ui_gtk3/` | Screen-reader inaccessibility | Add mnemonic accelerators and ATK accessible names |
 
 ### 3) Security Concerns
@@ -35,7 +35,7 @@
 | Concern | Evidence | Current symptom | Scaling risk | Suggested improvement |
 |---------|----------|-----------------|-------------|-----------------------|
 | Multi-volume corpus indexing time | [`scripts/lib/corpus_export.py`](file:///scripts/lib/corpus_export.py) | Full corpus AST scan on 500k-word multi-book series | Slower CLI response without cache | Mtime-based `.arcanum_cache.json` acceleration index (implemented in `cache.py`) |
-| Redundant filesystem scans across engines | Multiple craft engines calling `Path.rglob()` | Multiple full-vault walks when running batch reports | Slower execution on 1M+ word vaults | Tracked in `ROADMAP.md#next` to introduce a cached Data Access Layer (`data_access.py`) |
+| Redundant filesystem scans across engines | Multiple craft engines calling `Path.rglob()` | Multiple full-vault walks when running batch reports | Slower execution on 1M+ word vaults | **Resolved**: Thread-safe cached Data Access Layer (`data_access.py`) integrated with memoized AST/frontmatter reader and automatic mtime invalidation |
 
 ### 5) Fragile/High-Churn Areas
 
@@ -48,7 +48,7 @@
 
 1. [ASK USER] Would you like additional structural isomorphism presets added to `STRUCTURAL_ISOMORPHISMS` in `scripts/lib/resonance.py` for specialized fiction subgenres (e.g. Grimdark Blood Magic, Biopunk Genetic Editing, Cyberpunk Currency Networks)?
 2. [ASK USER] Should we add an option in `arcanum tip` to output tips formatted as Obsidian Daily Notes markdown callouts?
-3. [ASK USER] Would you like the remaining oversized engines (`studio_hub.py`, `scope.py`, `economy.py`, `astrophysics.py`) modularized in the next iteration using the same domain-package pattern as `registry_specs`?
+3. [ASK USER] Would you like the remaining oversized engines (`scope.py`, `astrophysics.py`) modularized in the next iteration using the same domain-package pattern?
 
 ### 7) Evidence
 

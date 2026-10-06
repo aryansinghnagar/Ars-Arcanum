@@ -7,6 +7,24 @@
 
 The **Ars Arcanum Universal Resonance & Knowledge Mesh Engine** (`scripts/lib/resonance.py`) is a deterministic synthesis, graph-theoretic cross-domain bridge, and causal cascade engine designed to weave all 50+ domain modules of *Ars Arcanum* into an interconnected, non-contradictory worldbuilding ecosystem.
 
+### Modular Tri-Module Architecture
+
+To maintain high cohesion, testability, and strict adherence to the `<800 lines/file` engineering contract, the engine is decomposed into three coordinated modules:
+
+1. **Dispatcher & Auditor Facade ([`scripts/lib/resonance.py`](file:///scripts/lib/resonance.py))**:
+   - Handles CLI command routing (`arcanum resonance`, `arcanum cascade`, `arcanum spark`, `arcanum bridge`).
+   - Implements structural isomorphism evaluators, cross-domain coherence audits (`audit_cross_domain_coherence`), and the public API interface.
+   - Integrates the thread-safe, memoized `DataAccessLayer` (`get_data_access()`) for instant cached vault and frontmatter loading.
+
+2. **Graph Catalog & Causal Engine ([`scripts/lib/resonance_data.py`](file:///scripts/lib/resonance_data.py))**:
+   - Encapsulates the 5-pillar domain taxonomy and 74 cross-domain relational edge definitions.
+   - Implements graph adjacency building, BFS shortest-path search (`find_metaphorical_bridge`), and the mathematical causal cascade simulation engine (`simulate_cascade`).
+   - Parses domain-specific entities from local Markdown and YAML manifests via `data_access.py` and `parse_yaml_frontmatter()`.
+
+3. **Offline HTML Visualizer ([`scripts/lib/resonance_template.py`](file:///scripts/lib/resonance_template.py))**:
+   - Generates standalone, interactive HTML/SVG Knowledge Mesh graphs.
+   - Enforces strict offline Content Security Policies (`default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;`) with zero remote network calls.
+
 Authors and speculative worldbuilders frequently encounter cognitive silos:
 1. **Cosmological $\leftrightarrow$ Societal Decoupling**: Modifying planetary axial tilt or stellar classification (`astrophysics`, `climate`) without propagating the downstream effects into agrarian calendars, macroeconomic trade cycles (`economy`), religious feast days, and military campaigning seasons (`tactical_sim`).
 2. **Linguistic $\leftrightarrow$ Metaphysical Isolation**: Conlang phonetic shifts and naming conventions (`conlang`) evolving independently from metaphysical casting runes (`magic_system`).

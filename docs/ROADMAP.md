@@ -30,11 +30,13 @@ flowchart LR
     - Hardened Studio Hub REST server with exact Host/Origin checks (supporting IPv6 `::1`), allowlisted engine execution, and mutex locking.
     - Hardened `restore.py` with non-empty directory overwrite guards (`--force`) and fail-closed SHA-256 sidecar verification (`--no-verify`).
   - [x] **Data Access Layer & Dynamic Dispatch**:
-    - Centralized file reading, frontmatter parsing, chapter discovery, and lore querying into thread-safe cached `data_access.py` with automatic `mtime` cache invalidation; integrated across `studio_hub.py`, `series_continuity.py`, `story_canvas.py`, and `structure.py`.
+    - Centralized file reading, frontmatter parsing, chapter discovery, and lore querying into thread-safe cached `data_access.py` with automatic `mtime` cache invalidation; integrated across `resonance.py`, `economy.py`, `studio_hub.py`, `series_continuity.py`, `story_canvas.py`, and `structure.py`.
     - Upgraded CLI dispatcher (`cli.py`) with dynamic user plugin resolution from `registry.py`.
     - Modularized `scripts/lib/tips.py` from 3,324 lines down to 442 lines across `scripts/lib/tips_catalog/` (<60 lines/file).
     - Extracted Studio Hub presentation template into `scripts/lib/studio_hub_template.py`, reducing `studio_hub.py` by over 2,100 lines.
-  - [x] **Verification Gate**: Passed 100% verification across test suite (862 tests, 0 failures, 2 skipped on Windows), Ruff strict linting (0 errors), Mypy static typing (181 source files clean), and Coverage threshold (`fail_under = 80`).
+    - Modularized `scripts/lib/resonance.py` from 1,796 lines down to 573 lines via `resonance_data.py` (552 lines) and `resonance_template.py` (639 lines).
+    - Modularized `scripts/lib/economy.py` from 1,154 lines down to 671 lines via `economy_data.py` (107 lines), `economy_template.py` (126 lines), and `economy_trade.py` (298 lines).
+  - [x] **Verification Gate**: Passed 100% verification across test suite (862 tests, 0 failures, 2 skipped on Windows), Ruff strict linting (0 errors), Mypy static typing (186 source files clean), and Coverage threshold (`fail_under = 80`).
 
 ### `next` (Ready Backlog)
 - **Interactive Visualizations**:
@@ -45,7 +47,7 @@ flowchart LR
 
 ### `improve` (Refactoring & Evals)
 - **Engine Size Optimization**:
-  - Modularize remaining oversized modules (`scope.py`, `economy.py`, `astrophysics.py`) to conform with the `<800 lines/file` engineering contract.
+  - Modularize remaining oversized modules (`scope.py`, `astrophysics.py`) to conform with the `<800 lines/file` engineering contract.
 - **Testing Architecture**:
   - Decompose monolithic 21-stage E2E tests into isolated, parameterized test stages for faster failure localization.
   - Expand golden physics and astrodynamics datasets to anchor more simulation parameters.

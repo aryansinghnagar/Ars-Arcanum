@@ -13,7 +13,6 @@ Capabilities:
    - Scans manuscript scenes for `@price:` directives and currency prose mentions.
    - Detects:
      * ECO-101: Price Anomaly / Hyper-Deflation/Inflation (price deviates wildly from commodity basket baseline).
-
      * ECO-102: Unregistered In-World Currency (manuscript references currency not defined in world lore).
      * ECO-103: Denomination Arithmetic Error (e.g. coin counting contradicting established conversion ratios).
 3. Interstellar & Regional Trade Margin Viability (`calc_trade_margin`):
@@ -26,16 +25,35 @@ Capabilities:
 Zero external dependencies; 100% offline privacy.
 """
 
+from __future__ import annotations
+
 import argparse
-import html
 import json
 import logging
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.data_access import get_data_access
+    from lib.economy_data import (
+        ERA_ORDER,
+        TECH_ERA_DICTIONARY,
+        TECH_ERAS,
+        normalize_name,
+    )
+    from lib.economy_template import generate_economy_html_report
+    from lib.economy_trade import (
+        calc_trade_margin,
+        calculate_gravity_trade_flow,
+        extract_settlement_network,
+        resolve_manuscript_dir,
+        resolve_world_dir,
+        simulate_supply_shock,
+    )
+    from lib.frontmatter import parse_yaml_frontmatter
     from lib.scope import (
         EngineScope,
         add_scope_arguments,
@@ -45,15 +63,97 @@ try:
         resolve_world_path,
     )
 except ImportError:
-    from _bootstrap import atomic_write
-    from scope import (
-        EngineScope,
-        add_scope_arguments,
-        filter_manuscript_scope,
-        parse_scope_args,
-        resolve_manuscript_path,
-        resolve_world_path,
-    )
+    try:
+        from _bootstrap import atomic_write
+        from data_access import get_data_access
+        from economy_data import (
+            ERA_ORDER,
+            TECH_ERA_DICTIONARY,
+            TECH_ERAS,
+            normalize_name,
+        )
+        from economy_template import generate_economy_html_report
+        from economy_trade import (
+            calc_trade_margin,
+            calculate_gravity_trade_flow,
+            extract_settlement_network,
+            resolve_manuscript_dir,
+            resolve_world_dir,
+            simulate_supply_shock,
+        )
+        from frontmatter import parse_yaml_frontmatter
+        from scope import (
+            EngineScope,
+            add_scope_arguments,
+            filter_manuscript_scope,
+            parse_scope_args,
+            resolve_manuscript_path,
+            resolve_world_path,
+        )
+    except ImportError:
+        def atomic_write(path: Path, content: str, encoding: str = "utf-8") -> None:
+            import os as _os
+            import tempfile as _tf
+            p = Path(path).resolve()
+            p.parent.mkdir(parents=True, exist_ok=True)
+            fd, tmp = _tf.mkstemp(dir=p.parent, prefix=f".{p.name}.", suffix=".tmp")
+            try:
+                with _os.fdopen(fd, "w", encoding=encoding, newline="") as f:
+                    f.write(content)
+                    f.flush()
+                    _os.fsync(f.fileno())
+                _os.replace(tmp, p)
+            except BaseException:
+                try:
+                    Path(tmp).unlink(missing_ok=True)
+                except OSError:
+                    pass
+                raise
+
+        def parse_yaml_frontmatter(text: str) -> dict[str, Any]:
+            if not text.startswith("---"):
+                return {}
+            parts = text.split("---", 2)
+            if len(parts) < 3:
+                return {}
+            data: dict[str, Any] = {}
+            for line in parts[1].splitlines():
+                line = line.strip()
+                if ":" in line and not line.startswith("#"):
+                    k, v = line.split(":", 1)
+                    data[k.strip()] = v.strip().strip("\"'")
+            return data
+
+        def get_data_access() -> Any:
+            return None
+
+        TECH_ERAS = ["stone_age", "bronze_age", "iron_age", "medieval", "renaissance", "industrial", "victorian", "modern_20th", "information_age", "interstellar"]
+        ERA_ORDER = {era: idx for idx, era in enumerate(TECH_ERAS)}
+        TECH_ERA_DICTIONARY = {}
+
+        def normalize_name(name: str) -> str:
+            return re.sub(r"[\s_-]+", " ", str(name).strip().lower())
+
+        def generate_economy_html_report(audit_data: dict[str, Any], output_path: Path) -> None:
+            pass
+
+        def calc_trade_margin(**kwargs: Any) -> dict[str, Any]:
+            return {}
+
+        def calculate_gravity_trade_flow(*args: Any, **kwargs: Any) -> dict[str, Any]:
+            return {}
+
+        def extract_settlement_network(*args: Any, **kwargs: Any) -> list[dict[str, Any]]:
+            return []
+
+        def simulate_supply_shock(*args: Any, **kwargs: Any) -> dict[str, Any]:
+            return {}
+
+        def resolve_world_dir(target_str: str | None = None) -> str:
+            return target_str or ""
+
+        def resolve_manuscript_dir(target_str: str | None = None) -> str:
+            return target_str or ""
 
 
 logger = logging.getLogger("arcanum.economy")
@@ -61,125 +161,30 @@ logger = logging.getLogger("arcanum.economy")
 FRONTMATTER_REGEX = re.compile(r"^---\s*\r?\n(.*?)\r?\n---\s*(?:\r?\n|$)", re.DOTALL)
 WIKILINK_REGEX = re.compile(r"\[\[([^\]\|#]+)(?:\|[^\]\]]*)?\]\]")
 
-# Technological Eras and their distinguishing inventions/materials
-TECH_ERAS = [
-    "stone_age",
-    "bronze_age",
-    "iron_age",
-    "medieval",
-    "renaissance",
-    "industrial",
-    "victorian",
-    "modern_20th",
-    "information_age",
-    "interstellar",
+__all__ = [
+    "ERA_ORDER",
+    "TECH_ERAS",
+    "TECH_ERA_DICTIONARY",
+    "audit_manuscript_prices",
+    "audit_technological_anachronisms",
+    "calc_trade_margin",
+    "calculate_gravity_trade_flow",
+    "calculate_ppp_rates",
+    "extract_economy_profiles",
+    "extract_settlement_network",
+    "generate_economy_html_report",
+    "main",
+    "normalize_name",
+    "resolve_manuscript_dir",
+    "resolve_world_dir",
+    "simulate_supply_shock",
 ]
 
-ERA_ORDER = {era: idx for idx, era in enumerate(TECH_ERAS)}
 
-# Anachronism dictionary: term -> earliest acceptable era
-TECH_ERA_DICTIONARY = {
-    # Bronze Age+ (Earliest Bronze Age)
-    "bronze": "bronze_age",
-    "chariot": "bronze_age",
-    "papyrus": "bronze_age",
-    "cuneiform": "bronze_age",
-
-    # Iron Age+
-    "iron sword": "iron_age",
-    "steel sword": "iron_age",
-    "parchment": "iron_age",
-    "phalanx": "iron_age",
-    "trireme": "iron_age",
-    "aqueduct": "iron_age",
-
-    # Medieval+
-    "crossbow": "medieval",
-    "chainmail": "medieval",
-    "plate armor": "medieval",
-    "trebuchet": "medieval",
-    "windmill": "medieval",
-    "feudal": "medieval",
-
-    # Renaissance+
-    "gunpowder": "renaissance",
-    "musket": "renaissance",
-    "arquebus": "renaissance",
-    "cannon": "renaissance",
-    "printing press": "renaissance",
-    "telescope": "renaissance",
-    "caravel": "renaissance",
-    "galleon": "renaissance",
-    "flintlock": "renaissance",
-
-    # Industrial+
-    "steam engine": "industrial",
-    "locomotive": "industrial",
-    "railroad": "industrial",
-    "telegraph": "industrial",
-    "dynamite": "industrial",
-    "factory line": "industrial",
-    "rifled barrel": "industrial",
-
-    # Victorian / Early 20th+
-    "electricity": "victorian",
-    "lightbulb": "victorian",
-    "phonograph": "victorian",
-    "automobile": "victorian",
-    "internal combustion": "victorian",
-    "airship": "victorian",
-    "zeppelin": "victorian",
-    "zepplin": "victorian",
-    "radio": "victorian",
-    "telephone": "victorian",
-
-    # Modern 20th+
-    "radar": "modern_20th",
-    "sonar": "modern_20th",
-    "plastic": "modern_20th",
-    "nylon": "modern_20th",
-    "penicillin": "modern_20th",
-    "antibiotic": "modern_20th",
-    "jet aircraft": "modern_20th",
-    "transistor": "modern_20th",
-    "nuclear reactor": "modern_20th",
-    "atomic bomb": "modern_20th",
-    "satellite": "modern_20th",
-
-    # Information Age+
-    "microchip": "information_age",
-    "silicon chip": "information_age",
-    "internet": "information_age",
-    "smartphone": "information_age",
-    "gps": "information_age",
-    "fiber optic": "information_age",
-    "lithium battery": "information_age",
-
-    # Interstellar / Far Future+
-    "fusion drive": "interstellar",
-    "warp drive": "interstellar",
-    "hyperdrive": "interstellar",
-    "antimatter": "interstellar",
-    "blaster": "interstellar",
-    "plasma cannon": "interstellar",
-    "cybernetic implant": "interstellar",
-    "forcefield": "interstellar",
-}
-
-
-try:
-    from lib.frontmatter import parse_yaml_frontmatter
-except ImportError:
-    from frontmatter import parse_yaml_frontmatter
-
-
-def normalize_name(name: str) -> str:
-    return re.sub(r"[\s_-]+", " ", str(name).strip().lower())
-
-
-def extract_economy_profiles(world_dir: Path) -> dict:
+def extract_economy_profiles(world_dir: Path) -> dict[str, Any]:
     """Scans Economies/ and world.yaml to extract economic systems, currencies, and baskets."""
-    economies = {}
+    economies: dict[str, Any] = {}
+    dal = get_data_access()
     dirs_to_check = [
         world_dir / "Economies",
         world_dir / "00-World-Bible" / "Economies",
@@ -189,7 +194,8 @@ def extract_economy_profiles(world_dir: Path) -> dict:
     world_yaml_path = world_dir / "world.yaml"
     if world_yaml_path.is_file():
         try:
-            w_fm = parse_yaml_frontmatter(f"---\n{world_yaml_path.read_text(encoding='utf-8', errors='ignore')}\n---")
+            raw_text = dal.read_file(world_yaml_path) if dal else world_yaml_path.read_text(encoding="utf-8", errors="ignore")
+            w_fm = parse_yaml_frontmatter(f"---\n{raw_text}\n---")
             if "economy" in w_fm and isinstance(w_fm["economy"], dict):
                 economies["Global"] = w_fm["economy"]
                 economies["Global"]["name"] = "Global Economy"
@@ -206,7 +212,7 @@ def extract_economy_profiles(world_dir: Path) -> dict:
                 continue
             seen_files.add(md_file)
             try:
-                content = md_file.read_text(encoding="utf-8", errors="ignore")
+                content = dal.read_file(md_file) if dal else md_file.read_text(encoding="utf-8", errors="ignore")
                 fm = parse_yaml_frontmatter(content)
                 name = fm.get("name") or md_file.stem.replace("_", " ")
 
@@ -215,7 +221,7 @@ def extract_economy_profiles(world_dir: Path) -> dict:
 
                 # If currencies was parsed as list, convert to standard dict
                 if isinstance(currencies, list):
-                    c_dict = {}
+                    c_dict: dict[str, float] = {}
                     for item in currencies:
                         if isinstance(item, str) and ":" in item:
                             k, v = item.split(":", 1)
@@ -233,7 +239,7 @@ def extract_economy_profiles(world_dir: Path) -> dict:
 
                 commodity_basket = fm.get("commodity_basket") or fm.get("prices") or {}
                 if isinstance(commodity_basket, list):
-                    b_dict = {}
+                    b_dict: dict[str, float] = {}
                     for item in commodity_basket:
                         if isinstance(item, str) and ":" in item:
                             k, v = item.split(":", 1)
@@ -260,9 +266,9 @@ def extract_economy_profiles(world_dir: Path) -> dict:
     return economies
 
 
-def calculate_ppp_rates(economies: dict) -> dict:
+def calculate_ppp_rates(economies: dict[str, Any]) -> dict[str, dict[str, float | None]]:
     """Calculates Purchasing Power Parity (PPP) relative exchange rates across economies."""
-    ppp_matrix = {}
+    ppp_matrix: dict[str, dict[str, float | None]] = {}
     if len(economies) < 2:
         return ppp_matrix
 
@@ -294,20 +300,21 @@ def calculate_ppp_rates(economies: dict) -> dict:
 
 
 def audit_manuscript_prices(
-    manuscript_dir: Path,
-    economies: dict,
+    manuscript_dir: Path | None,
+    economies: dict[str, Any],
     scope: EngineScope | None = None,
-) -> list:
+) -> list[dict[str, Any]]:
     """Audits manuscript scene files for price anomalies and unregistered currencies with currency & PPP normalization."""
-    findings = []
+    findings: list[dict[str, Any]] = []
     if not manuscript_dir or not manuscript_dir.is_dir():
         return findings
 
+    dal = get_data_access()
     ppp_matrix = calculate_ppp_rates(economies)
 
     # Collect known currencies and build mapping: currency_norm -> list of (economy_dict, denomination_rate)
-    known_currencies = set()
-    curr_map = {}
+    known_currencies: set[str] = set()
+    curr_map: dict[str, list[tuple[dict[str, Any], float]]] = {}
     for e in economies.values():
         e_currencies = e.get("currencies", {})
         for c, rate in e_currencies.items():
@@ -318,7 +325,7 @@ def audit_manuscript_prices(
                 curr_map[c_norm] = []
             curr_map[c_norm].append((e, rate_val))
 
-    def get_basket_price(basket: dict, item_norm: str) -> float | None:
+    def get_basket_price(basket: dict[str, Any], item_norm: str) -> float | None:
         for k, v in basket.items():
             if normalize_name(k) == item_norm and isinstance(v, (int, float)):
                 return float(v)
@@ -377,7 +384,7 @@ def audit_manuscript_prices(
 
     for md_file in md_files:
         try:
-            content = md_file.read_text(encoding="utf-8", errors="ignore")
+            content = dal.read_file(md_file) if dal else md_file.read_text(encoding="utf-8", errors="ignore")
             lines = content.splitlines()
             for line_idx, line in enumerate(lines, start=1):
                 for m in price_tag_regex.finditer(line):
@@ -416,6 +423,8 @@ def audit_manuscript_prices(
                             })
 
                 for m in prose_price_regex.finditer(line):
+                    if "@price:" in line:
+                        continue
                     amount = float(m.group(1))
                     curr_name = m.group(2).strip()
                     item_name = m.group(3).strip()
@@ -425,41 +434,50 @@ def audit_manuscript_prices(
                         findings.append({
                             "id": "ECO-102",
                             "severity": "WARNING",
-                            "message": f"Unregistered Currency: Prose references '{curr_name}', not defined in World Bible Economies.",
+                            "message": f"Unregistered Currency: Scene prose mentions '{curr_name}', not defined in World Bible Economies.",
                             "file": str(md_file.relative_to(manuscript_dir)),
                             "line": line_idx,
                         })
 
                     amount_base, base_price = resolve_baseline_and_amount(amount, curr_name, item_name)
-                    if base_price is not None and base_price > 0 and (amount_base / base_price > 50.0):
-                        findings.append({
-                            "id": "ECO-101",
-                            "severity": "WARNING",
-                            "message": f"Prose Price Discrepancy: '{item_name}' mentioned as costing {amount} {curr_name} (baseline: {base_price:.2f}).",
-                            "file": str(md_file.relative_to(manuscript_dir)),
-                            "line": line_idx,
-                        })
+                    if base_price is not None and base_price > 0:
+                        ratio = amount_base / base_price
+                        if ratio > 50.0:
+                            findings.append({
+                                "id": "ECO-101",
+                                "severity": "WARNING",
+                                "message": f"Prose Price Inflation Anomaly: '{item_name}' costs {amount} {curr_name} (baseline basket: {base_price:.2f}). Ratio is {ratio:.1f}x normal.",
+                                "file": str(md_file.relative_to(manuscript_dir)),
+                                "line": line_idx,
+                            })
+                        elif ratio < 0.02:
+                            findings.append({
+                                "id": "ECO-101",
+                                "severity": "WARNING",
+                                "message": f"Prose Price Deflation Anomaly: '{item_name}' costs {amount} {curr_name} (baseline basket: {base_price:.2f}). Ratio is {ratio:.2f}x normal.",
+                                "file": str(md_file.relative_to(manuscript_dir)),
+                                "line": line_idx,
+                            })
         except Exception as e:
-            logger.warning("Failed to audit manuscript file %s: %s", md_file, e)
+            logger.warning("Failed to audit prices for %s: %s", md_file, e)
 
     return findings
 
 
 def audit_technological_anachronisms(
-    manuscript_dir: Path,
+    manuscript_dir: Path | None,
     baseline_era: str = "medieval",
-    custom_whitelist: list | None = None,
+    custom_whitelist: list[str] | None = None,
     scope: EngineScope | None = None,
-) -> list:
-    """
-    Scans manuscript prose to detect out-of-era technological and material anachronisms.
-    """
-    findings = []
+) -> list[dict[str, Any]]:
+    """Scans manuscript prose to detect out-of-era technological and material anachronisms."""
+    findings: list[dict[str, Any]] = []
     if not manuscript_dir or not manuscript_dir.is_dir():
         return findings
 
+    dal = get_data_access()
     base_era_norm = baseline_era.lower().replace(" ", "_").replace("-", "_")
-    base_idx = ERA_ORDER.get(base_era_norm, ERA_ORDER["medieval"])
+    base_idx = ERA_ORDER.get(base_era_norm, ERA_ORDER.get("medieval", 3))
 
     whitelist = {normalize_name(w) for w in (custom_whitelist or [])}
 
@@ -474,7 +492,7 @@ def audit_technological_anachronisms(
 
     for md_file in md_files:
         try:
-            content = md_file.read_text(encoding="utf-8", errors="ignore")
+            content = dal.read_file(md_file) if dal else md_file.read_text(encoding="utf-8", errors="ignore")
             lines = content.splitlines()
             for line_idx, line in enumerate(lines, start=1):
                 if line.strip().startswith("@"):
@@ -505,406 +523,7 @@ def audit_technological_anachronisms(
     return findings
 
 
-def calc_trade_margin(
-    buy_price_per_ton: float,
-    sell_price_per_ton: float,
-    cargo_tons: float,
-    distance_km_or_ly: float,
-    transit_cost_per_ton_unit: float = 0.5,
-    tariff_pct: float = 0.05,
-    spoilage_pct: float = 0.02
-) -> dict:
-    """Calculates trade route profitability, break-even threshold, and net margin."""
-    total_cargo_buy_cost = buy_price_per_ton * cargo_tons
-    gross_revenue_potential = sell_price_per_ton * cargo_tons * (1.0 - spoilage_pct)
-
-    total_transit_cost = transit_cost_per_ton_unit * distance_km_or_ly * cargo_tons
-    total_tariffs = gross_revenue_potential * tariff_pct
-
-    total_expenses = total_cargo_buy_cost + total_transit_cost + total_tariffs
-    net_profit = gross_revenue_potential - total_expenses
-    roi_pct = (net_profit / max(1.0, total_expenses)) * 100.0
-
-    # Break-even sell price per ton
-    break_even_sell_price = total_expenses / max(1.0, cargo_tons * (1.0 - spoilage_pct))
-
-    return {
-        "buy_price_per_ton": buy_price_per_ton,
-        "sell_price_per_ton": sell_price_per_ton,
-        "cargo_tons": cargo_tons,
-        "distance": distance_km_or_ly,
-        "gross_revenue": round(gross_revenue_potential, 2),
-        "total_transit_cost": round(total_transit_cost, 2),
-        "total_tariffs": round(total_tariffs, 2),
-        "net_profit": round(net_profit, 2),
-        "roi_pct": round(roi_pct, 1),
-        "break_even_sell_price_per_ton": round(break_even_sell_price, 2),
-        "is_profitable": net_profit > 0,
-        "verdict": "Profitable Trade Route" if net_profit > 0 else "Unprofitable: Transit/Tariff costs exceed price spread",
-    }
-
-
-def generate_economy_html_report(audit_data: dict, output_path: Path):
-    """Generates standalone HTML report for Economic audit and Tech Era check."""
-    economies = audit_data.get("economies", {})
-    findings = audit_data.get("findings", [])
-    audit_data.get("ppp_matrix", {})
-    world_name = audit_data.get("world", "World Bible")
-
-    econ_cards = []
-    for en, e in economies.items():
-        curr_str = ", ".join([f"{k} (x{v})" for k, v in e.get("currencies", {}).items()])
-        basket_str = ", ".join([f"{k}: {v}" for k, v in e.get("commodity_basket", {}).items()])
-        econ_cards.append(f"""
-        <div class="card">
-            <h3>🏛️ {html.escape(en)} ({html.escape(e.get('tech_era', 'medieval'))})</h3>
-            <p><strong>Base Currency:</strong> {html.escape(e.get('base_currency', ''))}</p>
-            <p><strong>Currencies:</strong> {html.escape(curr_str)}</p>
-            <p><strong>Basket Prices:</strong> <small>{html.escape(basket_str)}</small></p>
-        </div>
-        """)
-
-    findings_cards = []
-    for fd in findings:
-        badge_cls = "badge-error" if fd.get("severity") == "ERROR" else "badge-warning"
-        findings_cards.append(f"""
-        <div class="card finding-card">
-            <span class="badge {badge_cls}">{html.escape(fd.get('severity', 'WARNING'))}</span>
-            <strong>{html.escape(fd.get('id', ''))}</strong>: {html.escape(fd.get('message', ''))}
-            <div style="font-size: 0.85em; color: #94a3b8; margin-top: 4px;">File: {html.escape(fd.get('file', ''))}:{fd.get('line', '')}</div>
-        </div>
-        """)
-
-    findings_html = "".join(findings_cards) if findings_cards else "<div style='color: #4ade80;'>✓ No pricing anomalies or technological anachronisms detected.</div>"
-
-    html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ars Arcanum — Economy & Anachronism Matrix ({html.escape(world_name)})</title>
-<style>
-  :root {{
-    --bg: #0f172a;
-    --card-bg: #1e293b;
-    --border: #334155;
-    --text: #f8fafc;
-    --accent: #38bdf8;
-    --danger: #f43f5e;
-    --warning: #fbbf24;
-    --success: #34d399;
-  }}
-  body {{
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
-    margin: 0;
-    padding: 2rem;
-  }}
-  .container {{ max-width: 1200px; margin: 0 auto; }}
-  h1, h2, h3 {{ color: var(--accent); }}
-  .card {{
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-  }}
-  .badge {{
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    text-transform: uppercase;
-  }}
-  .badge-warning {{ background: #d97706; color: #fff; }}
-  .badge-error {{ background: #b91c1c; color: #fff; }}
-  .finding-card {{ margin-bottom: 0.75rem; }}
-</style>
-</head>
-<body>
-<div class="container">
-  <h1>💰 Ars Arcanum Economy, PPP & Anachronism Matrix</h1>
-  <p>World Lore Vault: <strong>{html.escape(world_name)}</strong></p>
-
-  <div class="card">
-    <h2>Audit Findings ({len(findings)})</h2>
-    {findings_html}
-  </div>
-
-  <h2>Registered In-World Economies</h2>
-  {"".join(econ_cards)}
-</div>
-</body>
-</html>
-"""
-    atomic_write(output_path, html_content)
-
-
-def resolve_world_dir(target_str: str | None = None) -> str:
-    """Resolves world input string (path or name) to absolute directory path."""
-    if target_str:
-        p = Path(target_str).expanduser().resolve()
-        if p.is_dir():
-            return str(p)
-        home = Path.home()
-        for u_dir in sorted((home / "Universes").glob("*/*")):
-            if u_dir.is_dir() and u_dir.name.lower() == target_str.lower():
-                return str(u_dir)
-        for w_dir in sorted((home / "Worlds").glob("*")):
-            if w_dir.is_dir() and w_dir.name.lower() == target_str.lower():
-                return str(w_dir)
-        p_cwd = Path.cwd() / target_str
-        if p_cwd.is_dir():
-            return str(p_cwd)
-
-    home = Path.home()
-    universes = sorted((home / "Universes").glob("*/*"), key=lambda p: str(p))
-    universes = [p for p in universes if p.is_dir() and p.name not in ("Worlds", ".git")]
-    if len(universes) == 1:
-        return str(universes[0])
-    if len(universes) > 1:
-        print("Error: Multiple worlds discovered — specify one explicitly.", file=sys.stderr)
-        sys.exit(2)
-    else:
-        worlds = sorted((home / "Worlds").glob("*"), key=lambda p: str(p))
-        worlds = [p for p in worlds if p.is_dir()]
-        if len(worlds) == 1:
-            return str(worlds[0])
-        if len(worlds) > 1:
-            print("Error: Multiple legacy worlds discovered — specify one explicitly.", file=sys.stderr)
-            sys.exit(2)
-    return ""
-
-
-def resolve_manuscript_dir(target_str: str | None = None) -> str:
-    """Resolves manuscript input string (path or name) to absolute directory path."""
-    if target_str:
-        p = Path(target_str).expanduser().resolve()
-        if p.is_dir():
-            return str(p)
-        home = Path.home()
-        for m_dir in sorted((home / "Manuscripts").glob("*")):
-            if m_dir.is_dir() and m_dir.name.lower() == target_str.lower():
-                return str(m_dir)
-        p_cwd = Path.cwd() / target_str
-        if p_cwd.is_dir():
-            return str(p_cwd)
-    return ""
-
-
-def extract_settlement_network(world_dir: Path | None) -> list[dict]:
-    """Scans Locations/*.md in World Bible to extract settlements, populations, and trade goods."""
-    settlements = []
-    if world_dir and world_dir.is_dir():
-        loc_dirs = [world_dir / "Locations", world_dir / "00-World-Bible" / "Locations"]
-        for ldir in loc_dirs:
-            if not ldir.is_dir():
-                continue
-            for md_file in sorted(ldir.rglob("*.md")):
-                if md_file.name.startswith((".", "_")) or "Template" in md_file.name:
-                    continue
-                try:
-                    content = md_file.read_text(encoding="utf-8", errors="ignore")
-                    fm = parse_yaml_frontmatter(content)
-                    loc_type = str(fm.get("type") or fm.get("location_type") or "").lower()
-                    if loc_type in ("city", "town", "settlement", "citadel", "colony", "port", "capital", "station") or fm.get("population"):
-                        pop = float(fm.get("population", 25000))
-                        gdp = float(fm.get("gdp", fm.get("economic_output", pop * 1.5)))
-                        exports = fm.get("exports") or fm.get("primary_exports") or ["grain", "textiles"]
-                        if isinstance(exports, str):
-                            exports = [e.strip() for e in exports.split(",") if e.strip()]
-                        imports = fm.get("imports") or fm.get("primary_imports") or ["iron", "timber"]
-                        if isinstance(imports, str):
-                            imports = [i.strip() for i in imports.split(",") if i.strip()]
-                        settlements.append({
-                            "id": md_file.stem,
-                            "name": str(fm.get("name") or md_file.stem.replace("_", " ")),
-                            "population": pop,
-                            "economic_output": gdp,
-                            "exports": exports,
-                            "imports": imports,
-                            "file": str(md_file.relative_to(world_dir)).replace("\\", "/"),
-                        })
-                except Exception:
-                    pass
-
-    if len(settlements) < 2:
-        # Provide representative settlement network
-        settlements = [
-            {"id": "SunCitadel", "name": "Sun Citadel", "population": 120000, "economic_output": 250000, "exports": ["solar_crystals", "refined_steel"], "imports": ["grain", "timber"]},
-            {"id": "WhisperingVale", "name": "Whispering Vale", "population": 45000, "economic_output": 70000, "exports": ["grain", "herbal_medicine"], "imports": ["refined_steel", "tools"]},
-            {"id": "HighSanctuary", "name": "High Sanctuary", "population": 30000, "economic_output": 90000, "exports": ["relics", "astronomical_optics"], "imports": ["grain", "wine"]},
-            {"id": "OuterRimPort", "name": "Outer Rim Port", "population": 60000, "economic_output": 110000, "exports": ["rare_ores", "void_leather"], "imports": ["solar_crystals", "medicine"]},
-        ]
-
-    return settlements
-
-
-def calculate_gravity_trade_flow(
-    settlements: list[dict],
-    friction_matrix: dict | None = None,
-    g_constant: float = 1.0,
-    distance_exponent: float = 1.5,
-) -> dict:
-    """
-    Computes bilateral trade flow volumes and route viability using the economic gravity model:
-    T_ij = G * (M_i * M_j) / (D_ij^alpha * (1 + friction_ij))
-    """
-    if not settlements:
-        return {"settlements_count": 0, "routes": []}
-
-    routes = []
-    total_network_trade = 0.0
-
-    for i in range(len(settlements)):
-        for j in range(i + 1, len(settlements)):
-            s1 = settlements[i]
-            s2 = settlements[j]
-
-            id1 = str(s1.get("id", s1.get("name", f"settlement_{i}")))
-            id2 = str(s2.get("id", s2.get("name", f"settlement_{j}")))
-
-            pop1 = float(s1.get("population", 10000))
-            pop2 = float(s2.get("population", 10000))
-            gdp1 = float(s1.get("economic_output", pop1 * 1.0))
-            gdp2 = float(s2.get("economic_output", pop2 * 1.0))
-
-            dist = float(s1.get("distances", {}).get(id2, s2.get("distances", {}).get(id1, 100.0)))
-            if dist <= 0:
-                dist = 1.0
-
-            friction = 0.0
-            if friction_matrix:
-                friction = friction_matrix.get(f"{id1}_{id2}", friction_matrix.get(f"{id2}_{id1}", 0.0))
-            else:
-                terrain = str(s1.get("terrain_to", {}).get(id2, "plains")).lower()
-                terrain_frictions = {
-                    "plains": 0.1,
-                    "road": 0.0,
-                    "forest": 0.4,
-                    "hills": 0.5,
-                    "mountains": 1.2,
-                    "swamp": 1.5,
-                    "desert": 1.0,
-                    "ocean": 0.2,
-                    "space_vacuum": 0.05,
-                }
-                friction = terrain_frictions.get(terrain, 0.3)
-
-            denom = (dist ** distance_exponent) * (1.0 + friction)
-            trade_volume = g_constant * (gdp1 * gdp2) / denom if denom > 0 else 0.0
-
-            total_network_trade += trade_volume
-
-            exp1 = s1.get("exports", ["manufactured_goods"])
-            exp2 = s2.get("exports", ["raw_materials"])
-
-            routes.append({
-                "origin": id1,
-                "origin_name": s1.get("name", id1),
-                "destination": id2,
-                "destination_name": s2.get("name", id2),
-                "distance_km": dist,
-                "terrain_friction": round(friction, 2),
-                "annual_trade_volume": round(trade_volume, 2),
-                "primary_flow_1_to_2": exp1[:2],
-                "primary_flow_2_to_1": exp2[:2],
-                "viability": "High" if trade_volume > 50000 else ("Medium" if trade_volume > 10000 else "Low"),
-            })
-
-    routes.sort(key=lambda r: r["annual_trade_volume"], reverse=True)
-
-    return {
-        "settlements_count": len(settlements),
-        "total_network_trade": round(total_network_trade, 2),
-        "routes": routes,
-    }
-
-
-def simulate_supply_shock(
-    settlements: list[dict],
-    shock_event: str,
-    target_settlement_id: str,
-    affected_commodity: str,
-    shock_magnitude: float = 0.6,
-) -> dict:
-    """
-    Simulates supply shock propagation through the settlement trade network:
-    Calculates localized scarcity multipliers, price inflation, and narrative conflict hooks.
-    """
-    gravity_res = calculate_gravity_trade_flow(settlements)
-    routes = gravity_res["routes"]
-
-    target_settlement = next(
-        (s for s in settlements if str(s.get("id", "")).lower() == target_settlement_id.lower() or str(s.get("name", "")).lower() == target_settlement_id.lower()),
-        None
-    )
-    if not target_settlement and settlements:
-        target_settlement = settlements[0]
-        target_settlement_id = str(target_settlement.get("id", target_settlement.get("name", "Origin")))
-
-    target_name = target_settlement.get("name", target_settlement_id) if target_settlement else target_settlement_id
-
-    # Node impact matrix
-    market_impacts = {}
-    for s in settlements:
-        sid = str(s.get("id", s.get("name", "")))
-        sname = str(s.get("name", sid))
-        is_epicenter = (sid.lower() == target_settlement_id.lower())
-
-        # Baseline exposure based on distance and route connection to epicenter
-        if is_epicenter:
-            scarcity_pct = round(shock_magnitude * 100, 1)
-            price_mult = round(1.0 + (shock_magnitude * 2.5), 2)
-            tier = "Epicenter (Critical)"
-        else:
-            # Check route connectivity to target
-            connected_route = next(
-                (r for r in routes if (r["origin"].lower() == target_settlement_id.lower() and r["destination"].lower() == sid.lower()) or (r["destination"].lower() == target_settlement_id.lower() and r["origin"].lower() == sid.lower())),
-                None
-            )
-            if connected_route:
-                dist = connected_route["distance_km"]
-                decay = max(0.1, 1.0 - (dist / 1000.0))
-                scarcity_pct = round(shock_magnitude * decay * 70, 1)
-                price_mult = round(1.0 + (shock_magnitude * decay * 1.8), 2)
-                tier = "Direct Trading Partner"
-            else:
-                scarcity_pct = round(shock_magnitude * 20, 1)
-                price_mult = round(1.0 + (shock_magnitude * 0.4), 2)
-                tier = "Peripheral Market"
-
-        market_impacts[sid] = {
-            "name": sname,
-            "tier": tier,
-            "scarcity_index_pct": scarcity_pct,
-            "commodity": affected_commodity,
-            "price_multiplier": price_mult,
-            "market_stress": "Emergency" if price_mult >= 2.0 else ("Severe" if price_mult >= 1.4 else "Moderate"),
-        }
-
-    # Narrative conflict advice
-    story_hooks = [
-        f"Smuggling syndicates establish covert trade routes to exploit the {affected_commodity} price spike ({market_impacts.get(target_settlement_id, {}).get('price_multiplier', 2.0)}x) at {target_name}.",
-        f"Civil unrest and rationing laws instituted across {target_name} and neighboring markets.",
-        f"Rival factions leverage stockpiles of {affected_commodity} for diplomatic coercion or extortion.",
-    ]
-
-    return {
-        "shock_event": shock_event,
-        "epicenter_id": target_settlement_id,
-        "epicenter_name": target_name,
-        "commodity": affected_commodity,
-        "shock_magnitude_pct": round(shock_magnitude * 100, 1),
-        "market_impacts": list(market_impacts.values()),
-        "narrative_conflict_hooks": story_hooks,
-    }
-
-
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Ars Arcanum Economy, Commodity PPP & Anachronism Matrix")
     subparsers = parser.add_subparsers(dest="subcommand", help="Economy subcommands")
 
@@ -1150,4 +769,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

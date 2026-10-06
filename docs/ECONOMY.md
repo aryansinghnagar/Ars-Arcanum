@@ -7,6 +7,27 @@
 
 The **Ars Arcanum Economy Engine** (`scripts/lib/economy.py`) is an offline macroeconomic validator, currency debasement tracker, and trade route graph centrality analyzer engineered for fantasy worldbuilders, historical novelists, and game systems designers.
 
+### Modular 4-Module Architecture
+
+To maintain clear separation of concerns, high testability, and strict compliance with the `<800 lines/file` engineering limit, the macroeconomic engine is partitioned into four specialized modules:
+
+1. **Macroeconomic Validator & CLI Dispatcher ([`scripts/lib/economy.py`](file:///scripts/lib/economy.py))**:
+   - Manages CLI routing (`arcanum economy`, `arcanum trade`, `arcanum currency`).
+   - Implements Fisher Equation simulations ($M \cdot V = P \cdot Y$), peasant surplus constraints, and Gresham's Law coin debasement auditing.
+   - Integrates the thread-safe, cached `DataAccessLayer` (`get_data_access()`) for parsing regional YAML manifests and Markdown lore documents.
+
+2. **Economic Data Structures & Schemas ([`scripts/lib/economy_data.py`](file:///scripts/lib/economy_data.py))**:
+   - Defines strongly-typed dataclasses: `EconomicRegion`, `MonetarySystem`, `MarketCommodity`, and `TradeChokePoint`.
+   - Provides default historical commodity baskets (food necessities, metals, textiles, luxuries) and baseline elasticity coefficients.
+
+3. **Offline Report Visualizer ([`scripts/lib/economy_template.py`](file:///scripts/lib/economy_template.py))**:
+   - Renders standalone HTML/SVG macroeconomic flow maps and inflation dossiers.
+   - Enforces strict offline Content Security Policies (`default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;`).
+
+4. **Spatial Trade & Network Centrality ([`scripts/lib/economy_trade.py`](file:///scripts/lib/economy_trade.py))**:
+   - Computes graph-theoretic centrality metrics (degree, betweenness, and closeness) across continental trade route networks.
+   - Implements the Gravity Model of Bilateral Trade ($F_{ij} = G \cdot \frac{M_i M_j}{D_{ij}^2}$) and automated commercial toll choke point detection.
+
 Economic systems provide the structural engine for war, political stability, and civilization growth. Fictional worldbuilding frequently suffers from economic incoherence:
 1. **The Dragon Hoard Liquidation Fallacy**: Protagonists dumping millions of gold coins into a small agrarian village without triggering catastrophic hyperinflation or the collapse of local currency purchasing power.
 2. **Gresham's Law Inversion**: Depicting debased lead-copper coins circulating at parity with pure gold sovereigns without merchant counterfeiting resistance or bullion hoarding.

@@ -15,6 +15,8 @@ python -m unittest discover tests
 # Run specific engine test suite
 python -m unittest tests.test_scope
 python -m unittest tests.test_registry
+python -m unittest tests.test_resonance
+python -m unittest tests.test_economy
 python -m unittest tests.test_data_access
 python -m unittest tests.test_lockfile
 python -m unittest tests.test_path_traversal_defense
@@ -26,7 +28,7 @@ python -m unittest tests.test_backup_pure_python
 # Run coverage report with threshold enforcement
 coverage run -m unittest discover tests; coverage report --fail-under=80
 
-# Run type safety verification (181 source files clean)
+# Run type safety verification (186 source files clean)
 mypy --explicit-package-bases scripts tests
 ```
 
@@ -62,6 +64,8 @@ mypy --explicit-package-bases scripts tests
 
 - [`tests/test_data_access.py#L1-L60`](file:///tests/test_data_access.py#L1-L60)
 - [`tests/test_registry.py#L1-L100`](file:///tests/test_registry.py#L1-L100)
+- [`tests/test_resonance.py#L1-L100`](file:///tests/test_resonance.py#L1-L100)
+- [`tests/test_economy.py#L1-L100`](file:///tests/test_economy.py#L1-L100)
 - [`tests/test_lockfile.py#L1-L100`](file:///tests/test_lockfile.py#L1-L100)
 - [`tests/test_path_traversal_defense.py#L1-L95`](file:///tests/test_path_traversal_defense.py#L1-L95)
 - [`tests/test_backup_pure_python.py#L1-L100`](file:///tests/test_backup_pure_python.py#L1-L100)

@@ -78,9 +78,16 @@ scripts/
 │   ├── registry_specs/        # Domain engine specifications package across 7 domains (<400 lines/file)
 │   ├── registry.py            # Core vs. Craft engine discovery matrix & doc formatting (<600 lines)
 │   ├── data_access.py         # Centralized cached vault reader & frontmatter AST layer
-│   ├── studio_hub.py          # Hardened browser-based Studio Hub & Scope Cockpit
-│   ├── studio_hub_template.py # Presentation HTML/CSS/JS template for Studio Hub
-│   ├── tips.py                # Craft tip retrieval & query engine (<450 lines)
+│   ├── studio_hub.py          # Hardened browser-based Studio Hub & Scope Cockpit (<550 lines)
+│   ├── studio_hub_template.py # Presentation HTML/CSS/JS template for Studio Hub (<60 lines)
+│   ├── resonance.py           # Universal resonance mesh dispatcher & coherence auditor (<650 lines)
+│   ├── resonance_data.py      # Resonance node/edge catalog & cascade impact engine (<600 lines)
+│   ├── resonance_template.py  # Presentation HTML/CSS/JS template for resonance graph (<680 lines)
+│   ├── economy.py             # Macroeconomic PPP validator & tech anachronism auditor (<780 lines)
+│   ├── economy_data.py        # Tech era dictionaries & normalization primitives (<130 lines)
+│   ├── economy_template.py    # Offline HTML report generator for economic audits (<140 lines)
+│   ├── economy_trade.py       # Trade route freight margins & settlement gravity simulation (<350 lines)
+│   ├── tips.py                # Craft tip retrieval & query engine (<350 lines)
 │   ├── tips_catalog/          # Modularized tip catalog across 6 craft domains (<60 lines/file)
 │   ├── zen_studio.py          # Standalone offline drafting studio & lore drawer
 │   ├── story_canvas.py        # Visual drag-and-drop story corkboard
@@ -89,7 +96,7 @@ scripts/
 │   ├── restore.py             # Hardened archive restore engine with non-empty directory defense
 │   ├── corpus_export.py       # Universal structured JSONL/SQLite RAG exporter & vault restore
 │   ├── local_rag.py           # Zero-dependency hybrid TF-IDF & SQLite FTS5 semantic retriever
-│   └── [Craft Engines]        # Astrophysics, climate, genealogy, conlang, causality, magic...
+│   └── [Craft Engines]        # Astrophysics, climate, genealogy, conlang, causality, magic... (<800 lines/file)
 ```
 
 ---
