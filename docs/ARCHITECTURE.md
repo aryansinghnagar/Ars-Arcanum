@@ -2,7 +2,7 @@
 
 > **The Definitive, Audited Architecture Reference & System Blueprint for Ars Arcanum (Scriptorium)**  
 > *A Sovereign, 100% Offline, Privacy-First Operating System & Craft Studio for Speculative Fiction Authors*  
-> **Current Version**: `5.0.0` | **Quality Grade**: `A+` (GPA 4.0/4.0 Sovereign Operating System)
+> **Current Version**: `0.1.0` | **Quality Grade**: `A+` (GPA 4.0/4.0 Sovereign Operating System)
 
 ---
 

@@ -50,7 +50,7 @@ except ImportError:
 
 logger = logging.getLogger("arcanum.studio_hub")
 
-HUB_VERSION = "5.0.0"
+HUB_VERSION = "0.1.0"
 FRONTMATTER_REGEX = re.compile(r"^---\s*\r?\n(.*?)\r?\n---\s*(?:\r?\n|$)", re.DOTALL)
 
 

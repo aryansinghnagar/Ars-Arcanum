@@ -1,6 +1,6 @@
 # Ars Arcanum — The Grand Tour: 21-Stage Sovereign Lifecycle Verification
 
-> `tests/test_grand_tour_e2e.py` · **v5.0.0 — The Sovereign Craft Studio & Reference Encyclopedia** · Full-Pipeline Integration Harness
+> `tests/test_grand_tour_e2e.py` · **v0.1.0 — The Sovereign Craft Studio & Reference Encyclopedia** · Full-Pipeline Integration Harness
 
 ---
 

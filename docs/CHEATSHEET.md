@@ -1,5 +1,5 @@
 # Ars Arcanum / Scriptorium — Author's Quick Reference Cheatsheet
-> **100% Offline, Sovereign Writing & Speculative Worldbuilding Studio** | Version 5.0.0
+> **100% Offline, Sovereign Writing & Speculative Worldbuilding Studio** | Version 0.1.0
 
 ---
 

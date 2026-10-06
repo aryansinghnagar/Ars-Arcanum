@@ -20,7 +20,7 @@ if hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
-VERSION = "5.0.0"
+VERSION = "0.1.0"
 
 # Add scripts directory to path
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent

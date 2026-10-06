@@ -1,5 +1,5 @@
 # Ars Arcanum (Scriptorium) — Agentic Operating Manifesto & Engineering Contracts
-> **Sovereign Authoring Operating System (GPA 4.0/4.0 — Grade A+)** | Release v5.0.0
+> **Sovereign Authoring Operating System (GPA 4.0/4.0 — Grade A+)** | Release v0.1.0
 
 ---
 

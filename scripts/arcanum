@@ -21,7 +21,7 @@ if [ ! -f "${PROJECT_ROOT}/scripts/verify.sh" ] && [ -f "${SCRIPT_DIR}/verify.sh
     fi
 fi
 
-VERSION="5.0.0"
+VERSION="0.1.0"
 
 usage() {
     cat << USAGE

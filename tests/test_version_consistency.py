@@ -62,8 +62,8 @@ class TestVersionConsistency(unittest.TestCase):
         self.assertIsNotNone(hub_match, "Could not find HUB_VERSION in studio_hub.py")
         hub_version = hub_match.group(1)
 
-        # Assert all versions match exactly 5.0.0
-        expected_version = "5.0.0"
+        # Assert all versions match exactly 0.1.0
+        expected_version = "0.1.0"
         for label, ver in [
             ("Bash arcanum", bash_version),
             ("Python CLI", py_version),

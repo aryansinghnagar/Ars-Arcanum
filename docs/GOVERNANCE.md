@@ -1,7 +1,7 @@
 # Ars Arcanum — Open-Source Governance Charter & Project Operating Model
 
 > **Project Mandate**: Maintain a 100% sovereign, offline, privacy-first speculative fiction authoring platform that remains open, free from telemetry, and permanently available to authors worldwide.
-> **Current Version**: `5.0.0` | **License**: MIT
+> **Current Version**: `0.1.0` | **License**: MIT
 
 ---
 

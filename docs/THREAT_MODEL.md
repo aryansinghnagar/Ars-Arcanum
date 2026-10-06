@@ -1,6 +1,6 @@
 # Ars Arcanum Threat Model & Security Posture (STRIDE-Lite)
 
-**Version:** 5.0.0  
+**Version:** 0.1.0  
 **Scope:** Core CLI (`arcanum`), Scaffolding Scripts, 47 Deterministic Python Library Engines (`scripts/lib/`), GTK Desktop App, Typesetting Bridges (Typst/Pandoc), and Storage/Backup Subsystems.  
 **Target Environment:** Local single-user cross-platform desktop workstations (Linux Mint, Ubuntu, Debian, Arch, Fedora, Windows).
 

@@ -1,7 +1,7 @@
 # Ars Arcanum Migration Guide
 
 > **The Definitive Guide to Migrating Manuscripts, Lore Bibles, and Worldbuilding Data into Ars Arcanum**  
-> *100% Offline, Open Standards, Zero Vendor Lock-in* | **Release Version:** `v5.0.0`
+> *100% Offline, Open Standards, Zero Vendor Lock-in* | **Release Version:** `v0.1.0`
 
 This guide provides step-by-step instructions for importing your existing manuscripts, lore vaults, and worldbuilding notes from proprietary writing suites (Scrivener, World Anvil, Campfire, Dabble, Microsoft Word, Google Docs) into Ars Arcanum's sovereign, plain Markdown architecture.
 

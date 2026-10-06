@@ -1,6 +1,6 @@
 # Ars Arcanum / Scriptorium — Author's Quick Start Guide
 > **The Sovereign, 100% Offline Writing & Worldbuilding Studio for Fiction Authors.**
-> **Release Version:** `v5.0.0` | **License:** MIT | **Privacy:** 100% Offline, Zero Telemetry
+> **Release Version:** `v0.1.0` | **License:** MIT | **Privacy:** 100% Offline, Zero Telemetry
 
 Welcome! Ars Arcanum provides a distraction-free, professional writing environment that puts you in complete control of your creative work. All notes, chapters, and lore dossiers remain in standard plain Markdown (`.md`) and YAML frontmatter manifests on your own computer—free from subscription fees, cloud lock-in, or telemetry.
 

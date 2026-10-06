@@ -1,5 +1,5 @@
 # Ars Arcanum (Scriptorium) — Momentum Queues & Milestone Roadmap
-> Sovereign Authoring Operating System | Release v5.0.0
+> Sovereign Authoring Operating System | Release v0.1.0
 
 ---
 

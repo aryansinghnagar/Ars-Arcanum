@@ -1,5 +1,5 @@
 # Ars Arcanum (Scriptorium) — Sovereign Roadmap & Momentum Queues
-> **Version 5.0.0** | Tracking Continuous Evolution Across Sovereign Craft Disciplines
+> **Version 0.1.0** | Tracking Continuous Evolution Across Sovereign Craft Disciplines
 
 ---
 
@@ -21,7 +21,7 @@ flowchart LR
 ## 2. Active Momentum State
 
 ### `now` (Active Focus)
-- **v5.0.0 Core Hardening & Modular Architecture**:
+- **v0.1.0 Core Hardening & Modular Architecture**:
   - [x] **Modular Registry Architecture**: Successfully decomposed `scripts/lib/registry.py` from 2,490 lines to 511 lines via `registry_base.py` and 7 domain specification modules in `scripts/lib/registry_specs/` (<800 lines/file contract satisfied).
   - [x] **Security & Concurrency**:
     - Enforced cross-platform Windows reserved device name rejections (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`) across path validation endpoints in `_bootstrap.py` and `scope.py`.
@@ -59,7 +59,7 @@ flowchart LR
 
 | Milestone | Target Horizon | Focus Area | Key Deliverables |
 |:---|:---:|:---|:---|
-| **v5.0.x** | Current | Stability & Security | Windows device defenses, lockfile hardening, roadmap instantiations. |
-| **v5.1.0** | Next Sprint | Modular Registry | Decoupled engine specs, `<800L` compliance, dynamic CLI routing. |
-| **v5.2.0** | Future | Data Access Layer | Cached vault repository pattern, frontmatter schema validation. |
-| **v6.0.0** | Long-Term | Sovereign Studio Suite | Fully unified offline visual canvas, real-time causality graph rendering. |
+| **v0.1.x** | Current | Stability & Security | Windows device defenses, lockfile hardening, roadmap instantiations. |
+| **v0.2.0** | Next Sprint | Modular Registry | Decoupled engine specs, `<800L` compliance, dynamic CLI routing. |
+| **v0.3.0** | Future | Data Access Layer | Cached vault repository pattern, frontmatter schema validation. |
+| **v1.0.0** | Long-Term | Sovereign Studio Suite | Fully unified offline visual canvas, real-time causality graph rendering. |

@@ -164,7 +164,7 @@ class TestGrandTourE2E(unittest.TestCase):
         cosmos_dir = self.root / "Aethelgard-Cosmos"
         cosmos_dir.mkdir(parents=True, exist_ok=True)
         (cosmos_dir / "universe.yaml").write_text(
-            "name: Aethelgard Cosmos\nversion: '5.0.0'\nauthor: Master Loreweaver\n",
+            "name: Aethelgard Cosmos\nversion: '0.1.0'\nauthor: Master Loreweaver\n",
             encoding="utf-8",
         )
 
@@ -385,7 +385,7 @@ class TestGrandTourE2E(unittest.TestCase):
         # STAGE 13: Sovereign Studio Desktop Hub Static Telemetry Compilation
         # ---------------------------------------------------------------------
         hub_data = collect_studio_hub_data(cosmos_dir)
-        self.assertEqual(hub_data["version"], "5.0.0")
+        self.assertEqual(hub_data["version"], "0.1.0")
         self.assertEqual(hub_data["metrics"]["total_chapters"], 2)
         self.assertTrue(hub_data["metrics"]["total_lore_entities"] >= 4)
 

@@ -3,7 +3,7 @@
 > **A complete, distraction-free writing system for novelists and speculative worldbuilders.**  
 > 100% offline · zero cloud · no subscriptions · your files, forever.
 
-[![Release: v5.0.0](https://img.shields.io/badge/Release-v5.0.0-blue.svg)](CHANGELOG.md)
+[![Release: v0.1.0](https://img.shields.io/badge/Release-v0.1.0-blue.svg)](CHANGELOG.md)
 [![Status: Production Stable](https://img.shields.io/badge/Status-Production%20Stable-brightgreen.svg)](#)
 [![CI](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml/badge.svg)](https://github.com/aryansinghnagar/Scriptorium/actions/workflows/ci.yml)
 [![Tests: 1022](https://img.shields.io/badge/Tests-1020%2F1022%20Passing%2C%202%20Skipped-brightgreen.svg)](#)

@@ -4,7 +4,7 @@ All notable changes to Ars Arcanum are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Scope decisions
 behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## [5.0.0] - 2026-10-05
+## [0.1.0] - 2026-10-05
 
 ### Added & Hardened (Sovereign Craft Studio & 47 Deterministic Engines Upgrade)
 - **Transition to 47 Deterministic Core & Craft Engines (`scripts/lib/registry.py`, `resonance.py`)**:
@@ -26,7 +26,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Purged legacy packaging manifests and packaging scripts in favor of clean, offline zero-pip standard library architecture.
   - 100% test suite pass rate with full cross-platform compatibility and zero dependencies.
 
-## [4.4.0] - 2026-10-05
+## [0.0.19] - 2026-10-05
 
 ### Added & Hardened (Granular Target Scoping, Intelligent Altitude & Studio Hub Cockpit)
 - **Granular Target Scoping Subsystem & Intelligent Altitude Resolution (`scripts/lib/scope.py`, ADR-119)**:
@@ -49,7 +49,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Expanded test suite to **1,022 automated unit and integration tests** (1,020 passing, 2 skipped, 0 failures) across 175 source files.
   - Maintained 0 Ruff linter violations and clean Mypy static typing across all modules.
 
-## [4.3.0] - 2026-10-03
+## [0.0.18] - 2026-10-03
 
 ### Added & Hardened (Dynamic Plugin Extensibility, Speculative Intelligence & Studio v2 — Phase 25)
 - **Dynamic Plugin Extensibility & BaseCraftEngine Contract (`scripts/lib/registry.py`)**:
@@ -84,7 +84,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Added automated micro-benchmark assertions for AST parsing ($<250\text{ms}$), RAG retrieval ($<40\text{ms}$), and CLI dispatch ($<35\text{ms}$).
   - Elevated test suite to **997 tests** (995 passing, 2 skipped, 0 failures, 0 errors) across 183 source files with clean Mypy static typing and 0 Ruff violations.
 
-## [4.2.1] - 2026-10-01
+## [0.0.17] - 2026-10-01
 
 ### Added & Hardened (Sovereign Pure-Python Modernization, Multi-Scale Audit Remediation & Invariant Verification)
 - **Pure-Python Cross-Platform Lifecycle Engines (`scripts/lib/backup.py`, `restore.py`, `snapshot.py`, `ARCH-01`)**:
@@ -162,7 +162,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Standardized version `4.2.1` across all 10 project surfaces and aligned Flatpak license to `MIT`.
   - WCAG 2.1 AA color contrast compliance verified across all themes.
 
-## [4.1.0] - 2026-09-26
+## [0.0.16] - 2026-09-26
 
 ### Added (The Sovereign Cohesive Ecosystem & Creative Freedom Architecture — Phase 21)
 - **Universal Engine Documentation & Discovery (`arcanum doc <engine>`)**:
@@ -179,7 +179,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **Quality & Test Elevation**:
   - Added unit test coverage in `tests/test_registry.py` and `tests/test_cli_dispatch.py`, elevating total passing tests to **687 tests** (0 failures, 2 skipped, 0 Ruff violations, clean Mypy typing).
 
-## [4.0.0] - 2026-09-26
+## [0.0.15] - 2026-09-26
 
 ### Removed (Architectural Trimming & Decommissioning)
 - **Pruned 8 Obsolete/Niche Engines**: Removed `fine_tuning.py`, `cipher.py`, `editorial_council.py`, `barcode.py`, `archive_freeze.py`, `tts_reader.py`, `media_overlay.py`, and `plugins.py`/`plugin_market.py` along with their corresponding unit tests, eliminating dead code and maintenance overhead.
@@ -212,7 +212,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **Custom Character Attributes & Cross-Volume Evolution** (`scripts/lib/series_continuity.py`, `arcanum continuity`):
   - Arbitrary user-defined character attribute tracking and cross-volume progression.
 
-## [3.7.0] - 2026-09-25
+## [0.0.14] - 2026-09-25
 
 ### Added (The Sovereign Local Intelligence, Editorial Intelligence & Narrative Distribution Architecture — Phase 19)
 - **Interactive Branching Narrative Graph & Choice Engine** (`scripts/lib/branching_graph.py`, `arcanum branch`):
@@ -244,7 +244,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Master Grand Tour E2E harness extended to 21 stages validating all intelligence, editorial, and distribution workflows.
   - Architectural Decision Records logged from ADR-103 to ADR-110.
 
-## [3.6.0] - 2026-09-24
+## [0.0.13] - 2026-09-24
 
 ### Added (The Authoring Studios, Publishing Toolchains & Creative Scaffolding Expansion — Phase 18)
 - **Back-Matter Concordance & Dramatis Personae Indexer** (`scripts/lib/concordance.py`, `arcanum concordance`):
@@ -276,7 +276,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Master Grand Tour E2E harness extended to 20 stages validating all authoring, studio, and publishing workflows.
   - Architectural Decision Records logged from ADR-095 to ADR-102.
 
-## [3.5.0] - 2026-09-24
+## [0.0.12] - 2026-09-24
 
 ### Added (The Worldbuilding Sciences & Narrative Mechanics Expansion — Phase 17)
 - **Focus Ambient & Binaural Soundscape Generator** (`scripts/lib/ambient.py`, `arcanum ambient`):
@@ -316,7 +316,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **19-Stage Grand Tour Master Integration Lifecycle Harness** (`tests/test_grand_tour_e2e.py`):
   - Extended end-to-end integration test with Stage 19 validating all 8 new science, soundscape, combat, and narrative mechanics engines.
 
-## [3.4.0] - 2026-09-22
+## [0.0.11] - 2026-09-22
 
 ### Added (The Sovereign Story Craft & Editorial Mastery — Phase 16)
 - **In-World Macroeconomics & Anachronism Matrix** (`scripts/lib/economy.py`, `arcanum economy`):
@@ -355,7 +355,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **Architecture Decision Records**:
   - Recorded `ADR-080` through `ADR-086` in `decisions.md`.
 
-## [3.3.0] - 2026-09-22
+## [0.0.10] - 2026-09-22
 
 ### Added (The Sovereign Worldbuilding Codex & Arcane Mastery — Phase 15)
 - **Static World Wiki & Offline Codex Exporter** (`scripts/lib/codex_export.py`, `arcanum codex`):
@@ -395,7 +395,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **Architectural Decision Records**:
   - Recorded ADR-073 through ADR-079 in `decisions.md`.
 
-## [3.2.0] - 2026-09-22
+## [0.0.9] - 2026-09-22
 
 ### Added (The Sovereign Crown & Flathub Upstream Hardening — Phase 14)
 - **Flathub Upstream Packaging Validation Suite** (`flatpak/flathub_submission_validate.py`):
@@ -416,7 +416,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **Architectural Decision Records**:
   - Recorded ADR-070 (Flathub Submission Validator), ADR-071 (Cosmos Archive Freeze), and ADR-072 (Multi-Volume Dramatis Personae) in `decisions.md`.
 
-## [3.1.0] - 2026-09-22
+## [0.0.8] - 2026-09-22
 
 ### Added (The Sovereign Craft Deepening — Phase 13)
 - **Sovereign Writing Sprint & Session Analytics** (`arcanum sprint`):
@@ -441,7 +441,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - **Architectural Decision Records**:
   - Recorded ADR-065 through ADR-069 in `decisions.md`.
 
-## [3.0.0] - 2026-09-21
+## [0.0.7] - 2026-09-21
 
 ### Added (Sovereign Studio Desktop Hub, Grand Tour Lifecycle Verification & Offline Flatpak Runtime — Phase 12)
 - **Sovereign Studio Desktop Hub** (`arcanum hub`):
@@ -460,7 +460,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Updated `docs/CHEATSHEET.md` with `arcanum hub` quick reference.
 - **Version Elevation**: Full v2.2.0 → v3.0.0 (`scripts/lib/cli.py`, `scripts/arcanum`, `debian/changelog`, `CHANGELOG.md`, `flatpak/org.arsarcanum.ArsArcanum.metainfo.xml`).
 
-## [2.2.0] - 2026-09-21
+## [0.0.6] - 2026-09-21
 
 ### Added (Sovereign Local AI Fine-Tuning Studio, Interactive Branching Fiction Graph & Choice Engine — Phase 11)
 - **Local AI Fine-Tuning Dataset Synthesizer**:
@@ -475,7 +475,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Published author guides in `docs/FINE_TUNING.md` and `docs/BRANCHING_GRAPH.md`.
   - Recorded `ADR-061: Sovereign Local LLM Fine-Tuning & Dataset Synthesis Architecture` and `ADR-062: Interactive Branching Narrative DAG & Multi-Engine Exporter` in `decisions.md`.
 
-## [2.1.0] - 2026-09-21
+## [0.0.5] - 2026-09-21
 
 ### Added (Sovereign Local Semantic Retrieval Engine, Speculative Plugin Marketplace & Intelligence — Phase 10)
 - **Sovereign Local Semantic Retrieval (RAG) & Lore Engine**:
@@ -489,7 +489,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Published author guides in `docs/LOCAL_RAG.md` and `docs/PLUGIN_MARKET.md`.
   - Recorded `ADR-059: Sovereign Zero-Dependency Local Semantic Retrieval Engine` and `ADR-060: Speculative Plugin Marketplace & Signed Catalog Architecture` in `decisions.md`.
 
-## [2.0.0] - 2026-09-21
+## [0.0.4] - 2026-09-21
 
 ### Added (Sovereign Autonomous Editorial Council, Zen Drafting Studio & Agentic Project OS — Phase 9)
 - **Multi-Perspective Autonomous Editorial Council**:
@@ -501,7 +501,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Published comprehensive `AGENTS.md` specifying deterministic agent contracts, atomic write guarantees, tool hooks, memory schemas, and self-improving verification pipelines.
   - Published full author guides in `docs/EDITORIAL_COUNCIL.md` and `docs/ZEN_STUDIO.md`.
 
-## [1.9.0] - 2026-09-21
+## [0.0.3] - 2026-09-21
 
 ### Added (Flathub Upstream, EPUB 3 Media Overlays & Universal Corpus Exporter — Phase 8)
 - **Flathub Upstream AppStream Compliance**:
@@ -515,7 +515,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Added multi-format export pipeline: JSON Lines (`documents.jsonl`, `chunks.jsonl`, `entities.jsonl`), relational SQLite 3 database (`corpus.db`) with FTS5 full-text search, and master Markdown summary digest (`_corpus_summary.md`).
   - Added comprehensive documentation in `docs/CORPUS_EXPORT.md`.
 
-## [1.6.1] - 2026-09-21
+## [0.0.2] - 2026-09-21
 
 ### Fixed & Hardened (Production-Readiness Audit Remediation — Phases 0–7)
 - **CI / CD Supply Chain & Workflow Hardening**:
@@ -547,7 +547,7 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Hardened user CLI symlink management in `scripts/setup_arcanum.sh` and `scripts/uninstall_arcanum.sh`.
   - Expanded test coverage to 281 passing unit tests across 23 test suites.
 
-## [1.6.0] - 2026-09-20
+## [0.0.1] - 2026-09-20
 
 ### Added (Authorial Craft, Plot Matrix, Publishing Pre-Flight, Cartography & Audio Suites — M22–M28)
 - **Milestone M22: Editorial Craft & Prose Stylistics (`scripts/lib/stylistics.py`, `scripts/lib/voice.py`, `scripts/lib/typography_cleaner.py`)**:
