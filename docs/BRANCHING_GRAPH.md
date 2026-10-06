@@ -1,13 +1,13 @@
-# Interactive Branching Narrative Graph & Choice Engine (`docs/BRANCHING_GRAPH.md`)
-> **Domain E: Narrative Dynamics, Pacing, Structure & Branching** | **CLI Commands:** `arcanum branch` / `arcanum choice` | **Module:** `scripts/lib/branching_graph.py`
+# Author Craft Masterclass: Interactive Branching Narratives & State Machine Plotting (`docs/BRANCHING_GRAPH.md`)
+> **Domain E: Narrative Dynamics, Pacing, Structure & Branching** | **Category:** Author Craft & Narrative Doctrine | **Status:** Theoretical Framework & Writing Rubric
 
 ---
 
 ## 1. Overview & Theoretical Rationale
 
-The **Ars Arcanum Branching Narrative Graph Engine** (`scripts/lib/branching_graph.py`) is an offline graph-theoretic validation, state-machine simulation, and multi-format export compiler engineered for authors of interactive fiction (IF), choose-your-own-adventure gamebooks, non-linear novels, RPG narrative trees, and transmedia story worlds.
+Writing interactive, multi-threaded fiction, gamebooks, and non-linear narrative arcs introduces severe combinatorial challenges that do not exist in linear prose. Without rigorous graph topology and state management, non-linear narratives inevitably succumb to **Combinatorial State Explosion**, **Unintended Graph Traps**, and **Orphaned Dead Ends**.
 
-Writing interactive and multi-threaded fiction introduces severe combinatorial challenges that do not exist in linear prose. Without rigorous graph topology and state management, non-linear narratives inevitably succumb to **Combinatorial State Explosion**, **Unintended Graph Traps**, and **Orphaned Dead Ends**.
+This doctrine provides graph-theoretic design principles, state-machine architectures, and authorial self-editing rubrics for structuring interactive fiction (IF), choose-your-own-adventure gamebooks, non-linear novels, and transmedia story worlds.
 
 ```mermaid
 flowchart TD
@@ -25,16 +25,14 @@ flowchart TD
         Delayed["Delayed Consequences (Action at t₀ ➔ Payoff at tₖ)"]
     end
 
-    subgraph CompilerLayer["Zero-Pip Multi-Format Exporter"]
-        Validate["Topological Validator (Cycles, Orphans, Dead-Ends)"]
-        Twine["Twine 2 (Harlowe/SugarCube HTML)"]
-        Ink["Inkle Ink Script (.ink)"]
-        HTML5["Standalone Air-Gapped Gamebook (.html)"]
-        Mermaid["Obsidian & SVG Visual Maps"]
+    subgraph DesignRubric["Graph Quality & Authorial Rubric"]
+        Validate["Topological Self-Audit (Cycles, Orphans, Dead-Ends)"]
+        Agency["Player/Reader Meaningful Agency Balancing"]
+        Deliverable["Structured Interactive Manuscript Nodes"]
     end
 
     GraphTopologies & StateEngine --> Validate
-    Validate --> CompilerLayer
+    Validate --> DesignRubric
 ```
 
 ---
@@ -49,7 +47,7 @@ Aarseth distinguishes between:
 - **Scriptons**: The unique sequence of textons encountered by a specific reader during a particular traversal.
 - **Traversal Function**: The mathematical and ludic mechanism (links, conditional state checks, dice rolls) that maps textons to scriptons.
 
-The Branching Narrative Engine treats every scene file as a texton node within a topological traversal network.
+Every interactive scene file serves as a texton node within a topological traversal network.
 
 ### 2.2 The Combinatorial Explosion Dilemma
 In a naive binary branching tree where every passage offers two distinct choices ($b = 2$):
@@ -107,7 +105,7 @@ flowchart LR
 ```
 
 ### 3.1 Graph Topology & Degree Invariants
-An interactive manuscript is modeled as an edge-attributed directed multigraph $G = (V, E, \Sigma, \Gamma)$:
+An interactive manuscript can be modeled as an edge-attributed directed multigraph $G = (V, E, \Sigma, \Gamma)$:
 - $V = \{v_1, v_2, \dots, v_n\}$: Set of narrative passage nodes.
 - $E \subseteq V \times V$: Set of directed choice edges.
 - $\Sigma$: Set of state variable transformations ($\Delta S$).
@@ -152,45 +150,20 @@ $$D_{\text{min}} = \min_{v_t \in V_{\text{term}}} \text{dist}(v_0, v_t), \qquad 
 
 - **Pacing Balance Ratio**: $\frac{D_{\text{min}}}{D_{\text{max}}} \ge 0.60$. If a reader can reach the ending in 3 choices while another path requires 30 choices, the narrative suffers from severe experiential disparity.
 
-### 3.5 Boolean Reachability Matrix ($R$)
-For an adjacency matrix $A$ where $A_{ij} = 1$ if $(v_i, v_j) \in E$:
-
-$$R = \bigvee_{k=0}^{|V|-1} A^k$$
-
-$R_{0j} = 1$ indicates that passage $j$ is reachable from the story opening.
-
 ---
 
-## 4. Ars Arcanum Engine & CLI Architecture
+## 4. Author Self-Editing Rubric & Graph Integrity Matrix
 
 ```mermaid
 flowchart LR
-    Source["Markdown Passages (.md)"] --> GraphParser["Graph & Directive Parser"]
-    GraphParser --> Validator["Invariant & State Guard Linter"]
-    
-    Validator --> TwineOut["Twine 2 HTML Engine"]
-    Validator --> InkOut["Inkle Ink Script (.ink)"]
-    Validator --> WebBook["Offline Standalone HTML5 Gamebook"]
-    Validator --> DotSVG["Mermaid / SVG Topology Map"]
+    Nodes["Narrative Scene Nodes"] --> TopologyAudit["Pass 1: Topological Reachability & Dead-End Audit"]
+    TopologyAudit --> StateAudit["Pass 2: State Guard & Dependency Verification"]
+    StateAudit --> AgencyAudit["Pass 3: Pacing & Choice Divergence Balancing"]
+    AgencyAudit --> Rubric["Apply Structural Rules (BRN-101..108)"]
+    Rubric --> MasterGraph["Robust Non-Linear Narrative"]
 ```
 
-### 4.1 CLI Command Reference
-
-```powershell
-# Validate all branching logic, state requisites, and dead-ends
-arcanum branch Manuscript/
-
-# Export the entire branching manuscript to Twine 2 HTML (SugarCube format)
-arcanum choice Manuscript/ --export twine --out dist/gamebook.html
-
-# Compile into an Inkle Ink script for game engine integration
-arcanum choice Manuscript/ --export ink --out dist/story.ink
-
-# Generate an offline SVG / Mermaid structural graph of all choices
-arcanum branch Manuscript/ --visualize --out reports/story_graph.svg
-```
-
-### 4.2 Diagnostic Codes Matrix
+### 4.1 Diagnostic Self-Editing Codes Matrix
 
 | Code | Severity | Description | Remediating Action |
 |---|---|---|---|

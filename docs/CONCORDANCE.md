@@ -1,20 +1,19 @@
-# Speculative Lexicon Concordance, Corpus Linguistics & Back-Matter Generator (`docs/CONCORDANCE.md`)
-> **Domain A: World Architecture, Lore & Cosmology** | **CLI Command:** `arcanum concordance` | **Module:** `scripts/lib/concordance.py`
+# Author Craft Masterclass: Speculative Lexicography, Nomenclature & Back-Matter Design (`docs/CONCORDANCE.md`)
+> **Domain A: World Architecture, Lore & Cosmology** | **Category:** Author Craft & Narrative Doctrine | **Status:** Theoretical Framework & Writing Rubric
 
 ---
 
 ## 1. Overview & Architectural Mission
 
-The **Ars Arcanum Concordance Engine** (`scripts/lib/concordance.py`) is an offline corpus linguistics analyzer, speculative terminology auditor, and publication-grade back-matter compiler engineered for authors of epic fantasy series, science fiction sagas, and complex multi-volume universes.
-
 In massive speculative fiction projects (spanning 200,000 to 1,000,000+ words), worldbuilding terminology is prone to severe lexical degradation:
+
 1. **The "Call a Rabbit a Smeerp" Syndrome**: Inventing unnecessary neologisms for mundane objects without thematic justification, fatiguing the reader.
 2. **Orphaned Lore & Hapax Legomena**: Introducing complex named entities, spells, or artifacts in Chapter 3 that are never mentioned or resolved again in the entire series.
 3. **Phonotactic Inconsistency & Apostrophe Glut**: Creating alien or fantasy names with random apostrophes and clashing phonology (*"K'zhl'tark"* next to *"Bob"*), shattering cultural linguistic coherence.
 4. **Semantic Drift & Alias Fragmentation**: Referring to the same entity by multiple conflicting names (*"The Sun-Blade"*, *"Dawn-Cleaver"*, *"The Blade of Light"*) across volumes without unified tracking.
 5. **Back-Matter Compilation Nightmare**: Manually assembling hundreds of character entries, faction descriptions, and glossary terms for end-of-book appendices.
 
-The Concordance Engine cross-references all structured lore dossiers in the sovereign `World/` tree against the full manuscript corpus, verifying term frequencies, computing TF-IDF relevance, tracking hapax legomena, and generating publication-ready Markdown back-matter.
+This masterclass establishes principles of speculative lexicography, terminology governance, and back-matter indexing to maintain reader trust and linguistic immersion across expansive universes.
 
 ```mermaid
 flowchart TD
@@ -27,14 +26,14 @@ flowchart TD
         Conlang["Languages/ (Lexicon, Etymology)"]
     end
 
-    subgraph CorpusEngine["2. Corpus Linguistics Engine"]
-        Manuscript["Manuscript Chapter Corpus"] --> KWIC["KWIC (Key Word In Context) Scanner"]
-        Manuscript --> Zipf["Zipf's Law & Hapax Legomena Tracker"]
-        Manuscript --> TFIDF["TF-IDF Term Extraction"]
-        WorldDossiers & KWIC --> EntityCross["Entity Cross-Reference Indexer"]
+    subgraph CorpusLinguistics["2. Corpus Linguistics Audit"]
+        Manuscript["Manuscript Chapter Corpus"] --> KWIC["KWIC (Key Word In Context) Tracking"]
+        Manuscript --> Zipf["Zipf's Law & Hapax Legomena Tracking"]
+        Manuscript --> TFIDF["TF-IDF Thematic Term Isolation"]
+        WorldDossiers & KWIC --> EntityCross["Entity Cross-Reference Consistency"]
     end
 
-    subgraph BackMatterExport["3. Publication Back-Matter Compilers"]
+    subgraph BackMatterExport["3. Back-Matter Curation"]
         EntityCross --> DramatisExport["Dramatis Personae Appendix"]
         EntityCross --> GlossaryExport["Universal Speculative Glossary"]
         EntityCross --> TimelineExport["Chronological World Concordance"]
@@ -53,10 +52,10 @@ In his 1931 essay *"A Secret Vice: On Language and Art"*, J.R.R. Tolkien establi
 When naming characters, factions, and thaumaturgical artifacts, the author must avoid arbitrary phonemic collisions. A northern mountain tribe should not possess Hellenic suffixes (*-opoulos*) while their immediate neighbors possess Anglo-Saxon toponyms (*-bury*, *-wick*) unless justified by historical colonization or language contact.
 
 ### 2.2 Corpus Linguistics & Statistical Lexicology
-The Concordance Engine leverages classical corpus linguistics principles formalized by John Sinclair (*Corpus, Concordance, Collocation*, 1991):
+Classical corpus linguistics principles formalized by John Sinclair (*Corpus, Concordance, Collocation*, 1991) provide powerful lenses for self-editing:
 
 - **Collocation**: The habitual co-occurrence of words (e.g., in a sci-fi manuscript, tracking how often *"antimatter"* collocates with *"containment failure"* vs. *"warp injector"*).
-- **Key Word In Context (KWIC)**: Displaying every instance of a search term flanked by its immediate left and right sentential context to audit semantic drift.
+- **Key Word In Context (KWIC)**: Auditing every instance of a search term flanked by its immediate left and right sentential context to detect semantic drift.
 - **Hapax Legomenon ($\text{Hapax}$)**: A word that occurs only once within an entire corpus. In speculative fiction, hapax terms frequently represent either typos (e.g., *"Theron"* misspelled as *"Theorn"*) or forgotten, abandoned worldbuilding concepts that require either expansion or pruning.
 
 ### 2.3 The Terminology Governance Hierarchy
@@ -97,7 +96,7 @@ Where:
 - $s \approx 1.0$: The Zipfian exponent for natural human language.
 - $N$: Total token count of the manuscript.
 
-The Concordance Engine flags **Lexical Skews**: if an author's invented conlang words or specialized sci-fi terms exhibit $s > 1.8$, the text suffers from obsessive term-repetition; if conlang terms are overwhelmingly hapax ($s < 0.4$), the worldbuilding is unanchored.
+Authors should watch for **Lexical Skews**: if invented conlang words or specialized sci-fi terms exhibit $s > 1.8$, the text suffers from obsessive term-repetition; if conlang terms are overwhelmingly hapax ($s < 0.4$), the worldbuilding is unanchored.
 
 ### 3.2 Term Frequency-Inverse Document Frequency (TF-IDF)
 To extract distinctive worldbuilding terms unique to specific chapters or factions:
@@ -123,7 +122,7 @@ $$H_{\text{ratio}} = \frac{V_1}{V} = \frac{|\{w \in V \mid f(w) = 1\}|}{|V|}$$
 
 ## 4. Lore Directory Structure & Frontmatter Schema
 
-All world dossiers live inside the sovereign `World/` tree:
+World dossiers are organized inside the sovereign `World/` tree:
 
 ```
 World/
@@ -161,32 +160,17 @@ Forged during the Second Solar Eclipse by the master smiths of Elyria...
 
 ---
 
-## 5. Ars Arcanum Engine & CLI Architecture
+## 5. Author Self-Editing Rubric & Terminology Audit Matrix
 
 ```mermaid
 flowchart LR
-    WorldDir["World/ Bible Files (.md)"] --> Parser["Entity Frontmatter Parser"]
-    ManuscriptDir["Manuscript/ Text (.md)"] --> CorpusScanner["Full-Corpus KWIC Scanner"]
-    
-    Parser & CorpusScanner --> ConcordanceCore["Concordance Index Engine"]
-    ConcordanceCore --> LintEngine["Hapax & Drift Auditor"]
-    ConcordanceCore --> MarkdownGen["Back-Matter Markdown Compiler"]
+    LoreFiles["World/ Lore Dossiers"] --> Matcher["Cross-Reference with Manuscript"]
+    ManuscriptText["Manuscript Prose Corpus"] --> Matcher
+    Matcher --> Audit["Self-Editing Rules (CON-101..107)"]
+    Audit --> Appendices["Curate Dramatis Personae & Glossary"]
 ```
 
-### 5.1 CLI Command Reference
-
-```powershell
-# Generate full back-matter concordance and cross-reference index
-arcanum concordance World/ Manuscript/
-
-# Output compiled Dramatis Personae and Glossary to a publication-ready markdown file
-arcanum concordance World/ Manuscript/ --out Manuscript/Back_Matter/Concordance.md
-
-# Audit world lore for hapax legomena, orphan entities, and unindexed aliases
-arcanum concordance World/ Manuscript/ --audit
-```
-
-### 5.2 Diagnostic Codes Matrix
+### 5.1 Diagnostic Self-Editing Codes Matrix
 
 | Code | Severity | Description | Remediating Action |
 |---|---|---|---|
@@ -202,7 +186,7 @@ arcanum concordance World/ Manuscript/ --audit
 
 ## 6. Practical Authorial Worksheets & Worked Masterclass Examples
 
-### 6.1 Sample Generated Back-Matter Concordance Output
+### 6.1 Sample Back-Matter Concordance & Glossary Output
 
 ```markdown
 # Concordance & Universe Index

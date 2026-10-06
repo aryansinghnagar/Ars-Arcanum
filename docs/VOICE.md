@@ -1,13 +1,13 @@
-# Character Voice Profiler & Idiolect Fingerprint Architecture (`docs/VOICE.md`)
-> **Domain B: Linguistics, Conlang, Idioms & Stylistics** | **CLI Commands:** `arcanum voice` / `arcanum dialogue` | **Module:** `scripts/lib/voice.py`
+# Author Craft Masterclass: Character Voice Profiling, Idiolects & Sociolects (`docs/VOICE.md`)
+> **Domain B: Linguistics, Conlang, Idioms & Stylistics** | **Category:** Author Craft & Narrative Doctrine | **Status:** Theoretical Framework & Writing Rubric
 
 ---
 
 ## 1. Overview & Theoretical Rationale
 
-The **Ars Arcanum Voice Engine** (`scripts/lib/voice.py`) is an offline computational stylometry, sociolinguistic profiler, and dialogue fingerprinting suite engineered for speculative fiction novelists, dramatists, and narrative architects.
-
 In ensemble storytelling, distinct character voices are the primary conduit through which personality, social hierarchy, psychological trauma, cultural origin, and intellectual posture are conveyed to the reader. When every character in a cast shares the author's subconscious linguistic habits, sentence lengths, and vocabulary distribution, the manuscript suffers from **Voice Bleed (Character Homogeneity)**—shattering immersion and collapsing dramatic tension into a single flat monologue.
+
+This doctrine provides a systematic framework combining sociolinguistics, psycholinguistics, and stylometric principles to help authors craft, profile, and differentiate character voices across long-form speculative fiction manuscripts.
 
 ```mermaid
 flowchart TD
@@ -17,17 +17,17 @@ flowchart TD
         Sociolect["Socioeconomic Registers & Pragmatic Politeness"]
     end
 
-    subgraph Stylometry["2. Computational Stylometry & Math"]
+    subgraph Stylometry["2. Stylometric Foundations & Math"]
         TTR["Type-Token Ratio & Yule's Characteristic K"]
         MUL["Mean Utterance Length (MUL) & Cadence Dispersion (σ_MUL)"]
         Formality["Heylighen-Dewaele Formality Metric (F)"]
         Cosine["6D Idiolect Cosine Similarity Matrix S(A, B)"]
     end
 
-    subgraph PracticalCraft["3. Practical Craft & Engine Tools"]
-        BleedCheck["Voice Bleed Detection (S ≥ 0.92)"]
+    subgraph PracticalCraft["3. Practical Craft & Editing Rubrics"]
+        BleedCheck["Voice Bleed Detection & Triage"]
         VoiceBible["Idiolect Specification & YAML Voice Bible"]
-        SVGCards["Interactive Standalone SVG Voice Fingerprint Cards"]
+        EditorialRubric["Self-Editing Checklist & Tag Management"]
     end
 
     Psycholinguistics --> Stylometry --> PracticalCraft
@@ -96,14 +96,14 @@ $$\text{TTR} = \frac{V}{N}, \qquad \text{Guiraud's Root Index } R = \frac{V}{\sq
 - **Low TTR ($< 0.40$)**: Grunt soldier, uneducated laborer, or stoic guardian.
 
 ### 3.2 Yule's Characteristic $K$ (Length-Invariant Lexical Richness)
-Because standard TTR decreases as sample size $N$ increases, the engine computes **Yule's Characteristic $K$**, which is mathematically independent of text length:
+Because standard TTR decreases as sample size $N$ increases, authors can measure **Yule's Characteristic $K$**, which is mathematically independent of text length:
 
 $$K = 10^4 \cdot \frac{\sum_{m=1}^{\infty} m^2 \cdot V(m, N) - N}{N^2}$$
 
 Where $V(m, N)$ is the number of word types occurring exactly $m$ times in the corpus of $N$ tokens.
 
-- High $K$ ($> 140$): Highly repetitive, formulaic, or obsessively focused speaker.
-- Low $K$ ($< 60$): Rich, varied, expansive vocabulary with low repetition.
+- **High $K$ ($> 140$)**: Highly repetitive, formulaic, or obsessively focused speaker.
+- **Low $K$ ($< 60$)**: Rich, varied, expansive vocabulary with low repetition.
 
 ### 3.3 Utterance Length Cadence & Dispersion
 Let character $c$ produce $M$ spoken dialogue utterances with word lengths $U = [u_1, u_2, \dots, u_M]$:
@@ -118,10 +118,10 @@ $$F = \min\left(100.0, \, \max\left(0.0, \, 50.0 + 2.5 \cdot (\bar{L}_{\text{wor
 Where $\bar{L}_{\text{word}}$ is the mean word length in characters, and $\text{ContractionRate} = \frac{N_{\text{contractions}}}{N_{\text{words}}} \times 100$.
 
 ### 3.5 Pairwise Idiolect Cosine Similarity Matrix ($S$)
-Every character's speech is projected into a normalized $6\text{D}$ feature vector:
+Every character's speech can be modeled as a normalized $6\text{D}$ feature vector:
 $$\vec{V}_c = \left[ \text{TTR}_c, \, \mu_{U, c}, \, \sigma_{U, c}, \, F_c, \, \text{ContractionRate}_c, \, \text{RhetoricRatio}_c \right]$$
 
-The voice bleed similarity between Character $A$ and Character $B$:
+The voice similarity between Character $A$ and Character $B$:
 
 $$S(A, B) = \cos(\theta) = \frac{\vec{V}_A \cdot \vec{V}_B}{\|\vec{V}_A\| \|\vec{V}_B\|} = \frac{\sum_{k=1}^6 V_{A, k} V_{B, k}}{\sqrt{\sum_{k=1}^6 V_{A, k}^2} \sqrt{\sum_{k=1}^6 V_{B, k}^2}}$$
 
@@ -131,37 +131,27 @@ $$S(A, B) = \cos(\theta) = \frac{\vec{V}_A \cdot \vec{V}_B}{\|\vec{V}_A\| \|\vec
 
 ---
 
-## 4. Ars Arcanum Engine & CLI Architecture
+## 4. Author Self-Editing Rubric & Voice Differentiation Framework
 
 ```mermaid
 flowchart LR
-    Prose["Manuscript Chapters (.md)"] --> Extractor["Dialogue Extraction & Attribution Parser"]
-    Extractor --> Corpora["Character Corpora: {C_Valeria, C_Inquisitor, C_Malik}"]
-    Corpora --> StylometryEngine["Stylometric Vectorizer (TTR, MUL, F, K)"]
-    StylometryEngine --> Matrix["Cosine Similarity Matrix S(A, B)"]
-    Matrix --> Linter["Voice Bleed & Cliché Tag Linter"]
-    Linter --> VisualCards["Interactive Standalone SVG Voice Fingerprints"]
+    Prose["Manuscript Dialogue Pass"] --> Extraction["Attribution & Line Isolation"]
+    Extraction --> Analysis["Idiolect Profiling (MUL, TTR, Formality)"]
+    Analysis --> Evaluation["Pairwise Separation Audit"]
+    Evaluation --> Rubric["Apply Self-Editing Rules (VOI-101..106)"]
+    Rubric --> Polished["Polyphonic Ensemble Dialogue"]
 ```
 
-### 4.1 CLI Command Reference
+### 4.1 Authorial Self-Editing Checklist
 
-```powershell
-# Profile all character voices across the manuscript
-arcanum voice Manuscript/
+1. **The Cover-the-Tags Test**: Read a dialogue sequence with all character names and speaker tags covered. Can you immediately identify who is speaking every line purely by word choice, rhythm, and attitude?
+2. **Contraction Audit**: Ensure aristocrats, ancient beings, and formal non-native speakers do not slip into casual contractions (*don't, won't, it's*), and street characters do not speak in uncontracted Latinate periods.
+3. **Dialogue Tag Discipline**: Audit all dialogue tags. Strip adverbs (*"she said angrily"* $\to$ physical beat) and eliminate melodramatic said-bookisms (*queried, opined, spat, ejaculated* $\to$ *"said"* or action beat).
+4. **Metaphor Reservoir Check**: Check that characters use metaphors grounded in their trade and origin (a sailor speaks of tides and fathoms; an alchemist speaks of precipitates and reagents).
 
-# Compare two specific characters for voice bleed
-arcanum voice Manuscript/ --compare "Valeria" "Inquisitor Vane"
+### 4.2 Diagnostic Self-Editing Matrix
 
-# Generate interactive SVG voice fingerprint cards
-arcanum voice Manuscript/ --html reports/voice_fingerprints.html
-
-# Audit dialogue mechanics and said-bookism density
-arcanum dialogue Manuscript/
-```
-
-### 4.2 Diagnostic Codes Matrix
-
-| Code | Severity | Description | Remediating Action |
+| Rule Code | Severity | Description | Remediating Action |
 |---|---|---|---|
 | `VOI-101` | **CRITICAL** | Voice Bleed Detected ($S(A, B) \ge 0.92$) | Differentiate sentence lengths, contraction rates, and metaphor vocabularies between the two characters. |
 | `VOI-102` | **HIGH** | Register Inconsistency (Aristocrat using street slang, or rogue speaking Latinate periods) | Realign dialogue with the character's defined sociolect in the Voice Bible. |
@@ -182,7 +172,7 @@ arcanum dialogue Manuscript/
 > "The security blast doors are already malfunctioning and will not hold," shouted Jax nervously.  
 > "What is our plan to survive this terrible catastrophe?" queried Valeria passionately.
 
-**Engine Diagnostics:**
+**Editorial Diagnostics:**
 - Pairwise Cosine Similarity: $S(\text{Valeria}, \text{Marcus}) = 0.96$, $S(\text{Valeria}, \text{Jax}) = 0.95$ (**SEVERE VOICE BLEED — VOI-101**).
 - Universal medium sentence length ($10 - 12\text{ words}$). Zero contraction variation. Terrible said-bookisms (*opined, queried*).
 
@@ -202,6 +192,8 @@ arcanum dialogue Manuscript/
 ---
 
 ### 5.2 Character Voice Bible Specification (YAML Schema)
+
+Authors can define per-character voice profiles in frontmatter or lore notebooks using this schema:
 
 ```yaml
 ---

@@ -1,46 +1,24 @@
-# Earth Idiom, Eponym & Immersion-Breaking Linter (`docs/IDIOMS.md`)
-> **Domain B: Linguistics, Conlang, Idioms & Stylistics** | **CLI:** `arcanum idioms` / `arcanum de-earth`
+# Author Craft Masterclass: Speculative Idioms, Metaphorical Coherence & World Flavor (`docs/IDIOMS.md`)
+> **Domain B: Linguistics, Conlang, Idioms & Stylistics** | **Category:** Author Craft & Narrative Doctrine | **Status:** Theoretical Framework & Writing Rubric
 
 ---
 
 ## 1. Overview & Theoretical Rationale
 
-The **Ars Arcanum Idiom Linter** (`scripts/lib/idioms.py`) is an offline automated prose scanner, linguistic etymology verifier, and immersion-breaking idiom detector engineered for secondary-world fantasy authors, science fiction writers, and worldbuilders.
-
 When crafting immersive secondary worlds (such as Tolkien's Arda, Sanderson's Roshar, or Herbert's Arrakis), accidental inclusion of Earth-specific idioms, historical namesakes (eponyms), and terrestrial biological metaphors shatters reader immersion and breaks secondary belief:
+
 1. **Historical Eponyms (`IDM-101`)**: Describing a fantasy battle as a *"Pyrrhic victory"* when King Pyrrhus of Epirus never existed in the secondary world, or calling harsh laws *"Draconian"* when Athenian lawgiver Draco was never born.
 2. **Earth-Specific Mythological & Scriptural Idioms (`IDM-102`)**: Characters in a polytheistic world using phrases like *"playing devil's advocate"*, *"crossing the Rubicon"*, *"opening Pandora's box"*, or acting as a *"Good Samaritan"*.
 3. **Terrestrial Biological Clichés (`IDM-103`)**: Metaphors referring to Earth animals that do not exist in the world's ecosystem (e.g. *"canary in a coal mine"* on a world without canaries, or *"elephant in the room"* in a polar empire).
 
+```mermaid
+flowchart TD
+    Prose["Manuscript Prose Draft"] --> Filter["Filter Frontmatter & Dialogue"]
+    Filter --> Audit["Etymological & Idiom Audit Pass"]
+    Audit --> Categories["Classify Violations: Eponyms, Myths, Fauna Clichés"]
+    Categories --> TriFold["Tri-Fold Resolution Framework"]
+    TriFold --> CleanProse["Pristine Secondary-World Prose & Grounded Metaphors"]
 ```
-+-------------------------------------------------------------------------------+
-|                      ARS ARCANUM IDIOM LINTER PIPELINE                        |
-|                                                                               |
-|  +--------------------+     Token & Multi-Gram Scanner +-------------------+  |
-|  | Manuscript Prose   | -----------------------------> | Sliding Multi-Gram|  |
-|  | Chapters (*.md)    |                                | Windows (1 to 4)  |  |
-|  +--------------------+                                +-------------------+  |
-|            |                                                    |             |
-|            v                                                    v             |
-|  [Syntax & Mask Filter]                               [Curated Etymology DB]  |
-|  (Strip frontmatter, code, annotations)               (Eponyms, Myths, Fauna) |
-|            |                                                    |             |
-|            +----------------------------------------------------+             |
-|                                     |                                         |
-|                                     v                                         |
-|                   +-----------------------------------+                       |
-|                   |  Etymological Match Scoring       |                       |
-|                   |  Contextual Replacement Synthesizer|                      |
-|                   |  Interactive HTML5 Immersion Map  |                       |
-|                   +-----------------------------------+                       |
-|                                     |                                         |
-|                                     v                                         |
-|                     [Pristine Secondary-World Prose]                          |
-|                     [Zero Earth-Contamination Guarantee]                      |
-+-------------------------------------------------------------------------------+
-```
-
-The Idiom Linter scans manuscript prose, isolates immersion-breaking phrases, explains their real-world historical origins, and provides evocative secondary-world replacement suggestions.
 
 ---
 
@@ -70,11 +48,11 @@ $$\rho_{\text{idiom}} = \frac{N_{\text{idiom}}}{W_c} \times 1,000 \text{ words}$
 
 ---
 
-## 3. Immersion Categories & Diagnostic Codes
+## 3. Immersion Categories & Editorial Diagnostic Codes
 
 ```mermaid
 mindmap
-  root((Earth Idiom Linter))
+  root((Idiom & Metaphor Audit))
     IDM-101: Historical Eponyms
       Pyrrhic victory
       Draconian laws
@@ -118,7 +96,7 @@ mindmap
 
 ## 4. Custom Configuration & Whitelist Schema (`configs/idioms.json`)
 
-Authors can override built-in rules, add world-specific idioms, or whitelist allowed terminology:
+Authors can document world-specific idioms, forbidden expressions, and whitelisted terms in `configs/idioms.json`:
 
 ```json
 {
@@ -149,48 +127,17 @@ Authors can override built-in rules, add world-specific idioms, or whitelist all
 
 ---
 
-## 5. CLI Execution & Option Reference
-
-```bash
-# 1. Scan active manuscript for immersion-breaking idioms
-arcanum idioms Manuscripts/Book-01/
-
-# 2. Whitelist specific terms for an Earth-portal or historical fantasy setting
-arcanum idioms Manuscripts/Book-01/ --whitelist "sandwich" "diesel" "spartan"
-
-# 3. Use custom project idioms dictionary
-arcanum idioms Manuscripts/Book-01/ --config configs/custom_idioms.json
-
-# 4. Export standalone interactive HTML visual report
-arcanum idioms Manuscripts/Book-01/ --html dist/idioms_audit.html
-
-# 5. Output machine-readable JSON results for automated CI/CD linting
-arcanum idioms Manuscripts/Book-01/ --json
-```
-
-### Parameter Reference Table
-
-| Flag / Option | Short | Type | Default | Description |
-|---|---|---|---|---|
-| `manuscript_dir` | (Positional) | `Path` | `.` | Directory containing manuscript markdown chapters. |
-| `--config` | `-c` | `Path` | `configs/idioms.json` | Path to custom idioms dictionary. |
-| `--whitelist` | `-w` | `list[str]`| `[]` | List of words/phrases to ignore for this run. |
-| `--html` | `-o` | `Path` | `None` | Exports standalone HTML inspection report. |
-| `--json` | `-j` | `bool` | `False` | Emits structured JSON findings to stdout. |
-
----
-
-## 6. Tri-Fold Creative Advisory Resolutions
+## 5. Tri-Fold Creative Advisory Resolutions
 
 ```mermaid
 flowchart TD
-    Alert["Idiom Alert: IDM-101 (Found 'Pyrrhic victory' in Chapter 7 battle aftermath)"] --> PathA["Path A: Hard Realism / In-World Translation"]
+    Alert["Idiom Alert: IDM-101 (Found 'Pyrrhic victory' in Chapter 7 battle aftermath)"] --> PathA["Path A: Hard Realism / Clean Descriptive Translation"]
     Alert --> PathB["Path B: Speculative / Diegetic World Eponym"]
-    Alert --> PathC["Path C: Authorial Sovereignty"]
+    Alert --> PathC["Path C: Authorial Sovereignty / Setting Exception"]
     
     PathA --> SolA["Replace with 'A ruinous victory that felt like defeat'."]
     PathB --> SolB["Coin in-world eponym: 'A Kaelen victory' (referencing a tragic general)."]
-    PathC --> SolC["Add 'pyrrhic' to whitelist if setting is alternate-Earth historical."]
+    PathC --> SolC["Whitelist term if setting is alternate-Earth historical or portal fantasy."]
 ```
 
 ### Scenario: Earth Eponym Flagged in High-Fantasy Battle Scene
@@ -199,7 +146,15 @@ flowchart TD
 - **Path B (Diegetic Worldbuilding Eponym)**:
   - Invent an in-world eponym rooted in the setting's history: *"A Vaelen triumph"* (referencing Lord Vaelen, who won his crown only to watch his entire dynasty burn).
 - **Path C (Authorial Sovereignty / Portal Fantasy)**:
-  - If the story is an Isekai, portal fantasy, or alternate-history Earth novel where characters originate from Earth, whitelist the idiom with `--whitelist pyrrhic`.
+  - If the story is an Isekai, portal fantasy, or alternate-history Earth novel where characters originate from Earth, explicitly whitelist the idiom.
+
+---
+
+## 6. Authorial Self-Editing Checklist
+
+1. **Fauna Sweep**: Do your characters reference animals (*horses, rats, lions, canaries, dogs*) that do not exist in the world's ecology? Replace with endemic species (*chulls, ryshadium, thala-hounds*).
+2. **Religious/Theological Idioms**: Do characters swear by *"God"*, *"Heaven"*, or *"Hell"* in a setting with a polytheistic pantheon, ancestor worship, or cosmic animism? Ensure oaths reflect the active cosmological entities.
+3. **Tech and Era Clichés**: Are modern mechanical metaphors (*"running out of steam"*, *"sparking an idea"*, *"on the same wavelength"*) slipping into a Bronze Age or medieval fantasy?
 
 ---
 

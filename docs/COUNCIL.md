@@ -1,15 +1,14 @@
-# Multi-Perspective Editorial Council & Diagnostic Dossier (`docs/COUNCIL.md`)
-> **Domain C: Characters, Society, Conlangs & Magic** | **CLI Commands:** `arcanum council` / `arcanum dossier` | **Module:** `scripts/lib/council.py`
+# Author Craft Masterclass: The Multi-Perspective Editorial Council & Revision Framework (`docs/COUNCIL.md`)
+> **Domain C: Characters, Society, Conlangs & Magic** | **Category:** Author Craft & Narrative Doctrine | **Status:** Theoretical Framework & Writing Rubric
 
 ---
 
 ## 1. Overview & Theoretical Rationale
 
-The **Ars Arcanum Editorial Council Engine** (`scripts/lib/council.py`) is an offline multi-agent dialectical synthesis harness and automated developmental editing suite designed for speculative fiction authors, series editors, and publishing houses.
+Human editing is prone to cognitive tunnel vision. An author focusing on line-level prose cadence will frequently overlook a catastrophic plot hole or magic-system thermodynamic violation in the same chapter; conversely, an author engrossed in macro act pacing will miss that every character in an ensemble scene has identical sentence lengths and said-bookism dialogue tags.
 
-Human editing is prone to cognitive tunnel vision. An editor focusing on line-level prose cadence will frequently overlook a catastrophic plot hole or magic-system thermodynamic violation in the same chapter; conversely, a structural editor engrossed in macro act pacing will miss that every character in an ensemble scene has identical sentence lengths and said-bookism dialogue tags.
+The **Multi-Perspective Editorial Council** is an offline dialectical self-editing framework designed to eliminate authorial blind spots by evaluating manuscripts through **four specialized, dialectically opposing critical lenses**:
 
-The Editorial Council Engine eliminates editorial blind spots by evaluating manuscripts through **four specialized, dialectically opposing critical lenses**:
 1. **The Architect (Plot Doctor & Structuralist)**: Analyzes Swain MRU causality, dramatic polarity shifts ($\Delta \Pi$), beat-sheet alignment, and tension splines.
 2. **The Skeptic (Lore Auditor & Worldbuilding Doctor)**: Enforces magic system thermodynamic conservation, timeline synchronization, deific portfolio conflicts, and geographic plausibility.
 3. **The Stylist (Sensory & Prose Artist)**: Audits Gary Provost sentence rhythm ($\sigma$), 8-channel Shannon sensory entropy ($H_{\text{sensory}}$), defamiliarization, and filter-word density.
@@ -31,10 +30,10 @@ flowchart TD
         Producer["4. The Producer (Voice & Engagement)"]
     end
 
-    subgraph SynthesisEngine["Deterministic Synthesis Engine"]
+    subgraph SynthesisEngine["Deterministic Synthesis Framework"]
         ScoreCalc["Composite Weighted Health Score (Grade A+ to F)"]
         Reconcile["Conflict Resolution & Trade-Off Matrix"]
-        HTMLDossier["Interactive Standalone Offline HTML Dossier"]
+        Polish["Comprehensive Manuscript Polish"]
     end
 
     EditorialPipeline --> CouncilPersonas --> SynthesisEngine
@@ -60,8 +59,8 @@ Professional book publishing separates editing into four distinct, non-overlappi
  │ Pass 3: Line &    │ Sentence cadence (Provost σ), 8-channel senses,     │
  │ Stylistics        │ idiolect separation, filter verbs, rhetorical figures│
  ├───────────────────┼─────────────────────────────────────────────────────┤
- │ Pass 4: Copy &    │ Acoustic prosody (SSML), sibilance/plosive clashes, │
- │ Proofreading      │ typos, punctuation mechanics, layout formatting     │
+ │ Pass 4: Copy &    │ Acoustic prosody, sibilance/plosive clashes, typos, │
+ │ Proofreading      │ punctuation mechanics, layout formatting            │
  └───────────────────┴─────────────────────────────────────────────────────┘
 ```
 
@@ -71,7 +70,7 @@ The four council personas are intentionally designed to exist in productive crea
 - **The Architect vs. The Stylist**: The Architect demands high narrative velocity ($V = \frac{\Delta \mathcal{E}}{\Delta W}$) and rapid disaster escalation; The Stylist demands scene dilation, contemplative sensory grounding, and poetic defamiliarization.
 - **The Skeptic vs. The Producer**: The Skeptic demands rigorous thermodynamic consistency and realistic travel timelines; The Producer demands fast emotional payoffs and immediate character conflict, warning against academic worldbuilding over-explanation.
 
-The Editorial Council synthesizes these opposing demands through an objective **Trade-Off Reconciliation Matrix**.
+Authors synthesize these opposing demands through an objective **Trade-Off Reconciliation Matrix**.
 
 ---
 
@@ -96,7 +95,7 @@ $$\omega_{\text{plot}} = 0.30, \quad \omega_{\text{lore}} = 0.25, \quad \omega_{
 $$\sum_{k=1}^4 \omega_k = 1.0$$
 
 ### 3.2 Minimum Competency Threshold & Catastrophic Penalty
-A manuscript cannot compensate for a fatal structural defect (such as an unresolved dead-end or severe character voice bleed) simply by having beautiful sensory prose. The engine applies a **Catastrophic Domain Penalty**:
+A manuscript cannot compensate for a fatal structural defect (such as an unresolved dead-end or severe character voice bleed) simply by having beautiful sensory prose. Apply a **Catastrophic Domain Penalty**:
 
 $$S_{\text{final}}(c) = \begin{cases} 
 \mathcal{S}_{\text{chapter}}(c) & \text{if } \min_k S_k(c) \ge 60.0 \\
@@ -149,39 +148,18 @@ $$S_{\text{final}}(c) = \begin{cases}
 
 ---
 
-## 5. Ars Arcanum Engine & CLI Architecture
+## 5. Authorial Self-Editing Rubric & Persona Triage Matrix
 
 ```mermaid
 flowchart LR
-    MD["Chapter Markdown Files (.md)"] --> CouncilDispatcher["Council Dispatcher Engine"]
-    
-    CouncilDispatcher --> PDoctor["Plot Doctor Engine"]
-    CouncilDispatcher --> LAuditor["Lore Auditor Engine"]
-    CouncilDispatcher --> VCoach["Voice Coach Engine"]
-    CouncilDispatcher --> SStylist["Sensory Stylist Engine"]
-    
-    PDoctor & LAuditor & VCoach & SStylist --> Synthesizer["Dossier Synthesizer & Grade Calculator"]
-    Synthesizer --> HTMLReport["Standalone Air-Gapped HTML Dossier"]
-    Synthesizer --> JSONStream["Machine-Readable CI/CD JSON"]
+    Draft["Raw Chapter Scene Draft"] --> Pass1["Pass 1: Architect Audit (MRUs, Polarity, Pacing)"]
+    Pass1 --> Pass2["Pass 2: Skeptic Audit (Lore, Magic Costs, Timelines)"]
+    Pass2 --> Pass3["Pass 3: Stylist & Voice Audit (Senses, Cadence, Idiolects)"]
+    Pass3 --> Pass4["Pass 4: Producer Polish (Hooks, Stakes, Cognitive Flow)"]
+    Pass4 --> Master["Release-Ready Chapter"]
 ```
 
-### 5.1 CLI Command Reference
-
-```powershell
-# Run full 4-agent editorial council across all manuscript chapters
-arcanum council Manuscript/
-
-# Generate comprehensive standalone HTML editorial dossier
-arcanum council Manuscript/ --html reports/editorial_dossier.html
-
-# Audit a single chapter with detailed persona breakdown
-arcanum dossier Manuscript/Act_2/Chapter_14.md
-
-# Focus council audit strictly on voice and sensory dimensions
-arcanum council Manuscript/ --focus voice,sensory
-```
-
-### 5.2 Diagnostic Codes Matrix
+### 5.1 Diagnostic Self-Editing Codes Matrix
 
 | Code | Severity | Persona | Description | Remediating Action |
 |---|---|---|---|---|

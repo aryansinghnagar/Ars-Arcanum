@@ -1,42 +1,26 @@
-# Book Typography, Golden Section Geometry & Micro-Typographic Polish (`docs/TYPOGRAPHY.md`)
-> **Domain B: Linguistics, Conlang, Idioms & Stylistics** | **CLI:** `arcanum typography` / `arcanum typo-clean`
+# Author Craft Masterclass: Book Typography, Page Geometry & Typesetting Standards (`docs/TYPOGRAPHY.md`)
+> **Domain B: Linguistics, Conlang, Idioms & Stylistics** | **Category:** Author Craft & Narrative Doctrine | **Status:** Theoretical Framework & Writing Rubric
 
 ---
 
 ## 1. Overview & Theoretical Rationale
 
-The **Ars Arcanum Typography Engine** (`scripts/lib/typography_cleaner.py`) is an offline micro-typography transformer, smart quote converter, em/en-dash normalizer, and page geometry layout validator engineered for novelists, typographers, and sovereign publishers.
-
 Drafting across multiple text editors, operating systems, and note-taking applications inevitably introduces subtle typographic artifacts that degrade visual hierarchy and reader immersion:
+
 1. **Typewriter Punctuation**: Straight ASCII double (`"`) and single (`'`) quotation marks, which lack optical directionality.
 2. **Ambiguous Hyphens**: Raw double-hyphens (`--`) or minus signs used indiscriminately for em-dashes (`—`) in dialogue interruptions, and hyphens used instead of en-dashes (`–`) in chronological and numerical ranges.
 3. **Disjointed Ellipses**: Three raw period characters (`...`) that space unevenly and cause improper line breaks across margin boundaries instead of the dedicated Unicode horizontal ellipsis (`…`).
 4. **Disrupted Page Block Geometry**: Imbalanced text measures (lines too long or too short), poor leading ratios, and irregular margins that cause eye fatigue.
 
-```
-+-------------------------------------------------------------------------------+
-|                      ARS ARCANUM TYPOGRAPHY PIPELINE                          |
-|                                                                               |
-|  +--------------------+      Syntax-Masked AST        +--------------------+  |
-|  | Markdown Source    | ----------------------------> | Protected Delimiter|  |
-|  | (YAML & Codeblocks)|                               | & Prose Isolator   |  |
-|  +--------------------+                               +--------------------+  |
-|            |                                                    |             |
-|            v                                                    v             |
-|  [Directional Quotes]                                [Bringhurst Metric Check]|
-|  [Em/En-Dash Split]                                  [Measure: 45-75 chars]   |
-|  [Non-Breaking Spaces]                               [Van de Graaf Canon Grid]|
-|            |                                                    |             |
-|            +----------------------------------------------------+             |
-|                                     |                                         |
-|                                     v                                         |
-|                     [Atomic In-Place File Writer]                             |
-|                     [Deterministic .bak Backups]                              |
-|                     [Publishing-Grade Typography]                             |
-+-------------------------------------------------------------------------------+
+```mermaid
+flowchart TD
+    Raw["Manuscript Source"] --> Mask["Phase 1: Syntax & Frontmatter Protection"]
+    Mask --> Transform["Phase 2: Micro-Typographic Refinement (Quotes, Dashes, Ellipses)"]
+    Transform --> Geometry["Phase 3: Page Geometry & Measure Audit (45-75 chars/line)"]
+    Geometry --> Output["Publication-Grade Typesetting (Typst, Print, Digital)"]
 ```
 
-The Typography Engine applies the classical principles of Robert Bringhurst's *The Elements of Typographic Style*, Jan Tschichold's *The Form of the Book*, and Jost Hochuli's *Detail in Typography*, executing deterministic Unicode microtypography while protecting Markdown code blocks and YAML frontmatter.
+This doctrine outlines classical typographic principles drawn from Robert Bringhurst's *The Elements of Typographic Style*, Jan Tschichold's *The Form of the Book*, and Jost Hochuli's *Detail in Typography*, providing rules for clean authorial manuscripts and publication-ready page layouts.
 
 ---
 
@@ -63,7 +47,7 @@ A page ratio of $1 : 1.618$ (or the classical Renaissance ratio $2 : 3$) balance
 |  |    |        |               |      |        |    |  |
 |  |    +--------+               |      +--------+    |  |
 |  |    (Bottom: 4u)             |      (Bottom: 4u)  |  |
-|  +-----------------------------+--------------------+  |
+|  | +-----------------------------+--------------------+  |
 +--------------------------------------------------------+
 ```
 
@@ -104,82 +88,40 @@ For body text at $11\text{pt}$, standard literary leading is $14.5\text{pt} - 16
 
 ---
 
-## 4. Syntax-Protection Architecture
+## 4. Syntax Protection in Markdown & Typesetting
 
-To prevent corrupting machine-readable metadata and code blocks, the transformation pipeline utilizes a three-phase masking strategy:
+When refining prose, authors should ensure that markup syntax is protected:
+- **YAML Frontmatter**: Keep delimiters (`---`) and scalar strings intact.
+- **Fenced Code Blocks**: Preserve triple backticks and programming syntax.
+- **Inline Code & Math**: Keep LaTeX formulas (`$...$`) and backtick literals uncurled.
+
+---
+
+## 5. Author Self-Editing Rubric & Typographic Standards Matrix
 
 ```mermaid
 flowchart TD
-    Raw["Raw Markdown Input"] --> MaskPass["Phase 1: Mask Protected Delimiters"]
-    MaskPass --> Guard1["Guard YAML Frontmatter (^---\n[\s\S]*?\n---$)"]
-    MaskPass --> Guard2["Guard Fenced Code Blocks (```[\s\S]*?```)"]
-    MaskPass --> Guard3["Guard Inline Code (`[^`]+`) & HTML Tags (<[^>]+>)"]
+    Alert["Typography Check: Ambiguous Double-Hyphen"] --> PathA["Path A: Standard Em-Dash (US / Chicago)"]
+    Alert --> PathB["Path B: Spaced En-Dash (UK / Oxford)"]
+    Alert --> PathC["Path C: Authorial Intent / Custom Poetry"]
     
-    Guard1 & Guard2 & Guard3 --> ProseEngine["Phase 2: Apply Unicode Microtypography to Prose"]
-    ProseEngine --> UnmaskPass["Phase 3: Unmask Protected Blocks & Verify AST"]
-    UnmaskPass --> Output["Publication-Grade Markdown"]
+    PathA --> SolA["Use unspaced em-dash: 'formed—or so they claimed'"]
+    PathB --> SolB["Use spaced en-dash: 'formed – or so they claimed'"]
+    PathC --> SolC["Preserve idiosyncratic spacing if deliberate."]
 ```
+
+### 5.1 Authorial Typographic Checklist
+
+1. **Straight Quotes Elimination**: Ensure all double and single quotes are converted to proper typographic curly quotation marks.
+2. **Apostrophe Direction**: Check leading elisions (*’twas*, *’90s*, *rock ’n’ roll*) to confirm they curl to the right ($\text{U+2019}$), not left.
+3. **Dash Disambiguation**: Use en-dashes for numerical and date ranges (`pp. 45–52`, `1812–1814`) and em-dashes for parenthetical interjections or dialogue cutoffs.
+4. **Ellipsis Glyphs**: Replace raw triple periods with single Unicode horizontal ellipsis characters (`…`) to avoid margin splitting.
 
 ---
 
-## 5. CLI Execution & Option Reference
+## 6. Recommended Reading, References & Media
 
-```bash
-# 1. Preview typographic corrections with unified colored diff (dry-run)
-arcanum typography Manuscripts/Book-01/Chapter_01.md
-
-# 2. Apply corrections in-place across all manuscript chapters with automatic .bak backup
-arcanum typography Manuscripts/Book-01/ --in-place
-
-# 3. Apply corrections in-place without generating .bak backup files
-arcanum typography Manuscripts/Book-01/ -i --no-backup
-
-# 4. Enforce strict Bringhurst measure checking (flags lines > 80 chars)
-arcanum typography Manuscripts/Book-01/ --check-measure
-
-# 5. Output full replacement statistics as JSON
-arcanum typography Manuscripts/Book-01/ --json
-```
-
-### CLI Parameter Reference Table
-
-| Flag / Option | Short | Type | Default | Description |
-|---|---|---|---|---|
-| `targets` | (Positional) | `Path...` | *Required* | File(s) or directory to analyze and transform. |
-| `--in-place` | `-i` | `bool` | `False` | Modifies source files directly on disk. |
-| `--no-backup` | `-n` | `bool` | `False` | Suppresses creation of `.bak` backup files. |
-| `--check-measure` | `-m` | `bool` | `False` | Analyzes paragraph measure and line length. |
-| `--diff` | `-d` | `bool` | `True` | Emits colored terminal diff of changes. |
-| `--json` | `-j` | `bool` | `False` | Outputs structured JSON statistics. |
-
----
-
-## 6. Tri-Fold Creative Advisory Resolutions
-
-```mermaid
-flowchart TD
-    Alert["Typography Alert: AMBIGUOUS_DASH ('The pre-1914 alliance was formed--or so they claimed.')"] --> PathA["Path A: Hard Realism / Typographic Standard"]
-    Alert --> PathB["Path B: Speculative / Diegetic Trope"]
-    Alert --> PathC["Path C: Authorial Sovereignty"]
-    
-    PathA --> SolA["Convert to 'pre–1914' (en-dash) and 'formed—or' (em-dash)."]
-    PathB --> SolB["Use spaced en-dashes (' formed – or ') per British publishing style."]
-    PathC --> SolC["Preserve custom dash syntax with inline @nocheck comment."]
-```
-
-### Scenario: Disambiguating Compound Dashes
-- **Path A (Hard Realism / Chicago & Bringhurst Standard)**:
-  - Numerical ranges receive en-dashes (`1914–1918`); narrative interruptions and parenthetical clauses receive unspaced em-dashes (`formed—or so they claimed`).
-- **Path B (British / Commonwealth Publishing Style)**:
-  - Parenthetical clauses utilize spaced en-dashes (`formed – or so they claimed`), which is the dominant convention in UK publishing (Penguin, Oxford University Press).
-- **Path C (Authorial Sovereignty)**:
-  - If the author deliberately employs idiosyncratic dash styling (e.g., Emily Dickinson-style spaced dashes), pass `--style=spaced-en` or disable dash replacement.
-
----
-
-## 7. Recommended Reading, References & Media
-
-### 7.1 Foundational Typographical Treatises & Classics
+### 6.1 Foundational Typographical Treatises & Classics
 - **Bringhurst, Robert (2012)**. *The Elements of Typographic Style* (Version 4.0). Hartley & Marks Publishers. ISBN: 978-0881792126.  
   *The undisputed masterpiece of modern typographic philosophy, proportion, rhythm, punctuation, and type anatomy.*
 - **Tschichold, Jan (1991)**. *The Form of the Book: Essays on the Morality of Good Design*. Hartley & Marks. ISBN: 978-0881790344.  
@@ -191,13 +133,13 @@ flowchart TD
 - **Lupton, Ellen (2014)**. *Thinking with Type: A Critical Guide for Designers, Writers, Editors, & Students* (2nd Edition). Princeton Architectural Press. ISBN: 978-1568989693.  
   *Modern handbook covering visual grids, typographic hierarchy, and digital typesetting.*
 
-### 7.2 Technical Standards & Unicode Specifications
+### 6.2 Technical Standards & Unicode Specifications
 - **Unicode Consortium (2024)**. *The Unicode Standard, Version 15.1 – Chapter 6: Writing Systems and Punctuation*. [unicode.org](https://www.unicode.org/versions/Unicode15.1.0/).  
   *Authoritative definitions of directional quotes, dashes, ellipses, and space characters.*
 - **The University of Chicago Press (2017)**. *The Chicago Manual of Style* (17th / 18th Edition). University of Chicago Press.  
   *The industry benchmark for hyphenation, dash conventions, quotation nesting, and punctuation order.*
 
-### 7.3 Video Lectures, Masterclasses & Typographic Media
+### 6.3 Video Lectures, Masterclasses & Typographic Media
 - **TDC (Type Directors Club) Masterclasses**: *The Geometry of the Book: From Gutenberg to Modern Type Layout*.  
   *Visual lectures on page proportions, grids, and the Golden Section.*
 - **Ellen Lupton (Maryland Institute College of Art)**: *Typographic Hierarchy and Reading Mechanics*.  
@@ -205,7 +147,7 @@ flowchart TD
 - **Brandon Sanderson's BYU Creative Writing Lectures**: *Typesetting and Manuscript Formatting for Professional Submission*.  
   *Industry standards for novel manuscript preparation.*
 
-### 7.4 Landmark Speculative Case Studies
+### 6.4 Landmark Speculative Case Studies
 - **Danielewski, Mark Z.**: *House of Leaves* (2000). Pantheon Books.  
   *The ultimate extreme of ergodic typography, using spatial layout, colored fonts, and architectural page structures.*
 - **Pratchett, Terry**: *Discworld Series* (The Voice of DEATH).  

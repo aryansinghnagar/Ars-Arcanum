@@ -1,11 +1,9 @@
-# Prose Stylistics, Rhetorical Schemes & Computational Linters (`docs/STYLISTICS.md`)
-> **Domain B: Linguistics, Conlang, Idioms & Stylistics** | **CLI Commands:** `arcanum stylistics` / `arcanum prose-lint` | **Module:** `scripts/lib/stylistics.py`
+# Author Craft Masterclass: Prose Stylistics, Rhetorical Schemes & Line Editing (`docs/STYLISTICS.md`)
+> **Craft Discipline: Stylistics, Rhetorical Schemes, Line Editing & Cognitive Readability**
 
 ---
 
 ## 1. Overview & Theoretical Rationale
-
-The **Ars Arcanum Stylistics Engine** (`scripts/lib/stylistics.py`) is an offline computational prose linter, rhetorical figure auditor, sliding-window word echo detector, and cognitive readability analyzer engineered for speculative fiction novelists and structural line editors.
 
 Masterclass prose is neither transparently invisible nor needlessly baroque; it is **sculpted for maximum cognitive and sensory resonance**. In unrefined first drafts, subconscious linguistic crutches inevitably dilute narrative authority:
 1. **Passive Voice Bloat & Weak Verbs**: Reliance on forms of *"to be"* and passive verb constructions that strip characters of physical agency.
@@ -22,19 +20,18 @@ flowchart TD
         Ostranenie["Viktor Shklovsky: Ostranenie (Defamiliarization)"]
     end
 
-    subgraph ComputationalStylometry["2. Computational Linters & Math"]
+    subgraph ComputationalStylometry["2. Cognitive Readability & Metrics"]
         Readability["Cognitive Readability: FRE, FKGL, Gunning Fog, CLI"]
-        EchoKernel["Exponential Distance Echo Decay Kernel"]
+        EchoKernel["Lexical Echo Distance & Repetition Tracking"]
         StylisticDensity["Stylistic Density Index (SDI)"]
     end
 
-    subgraph EnginePipelines["3. Engine Pipelines & Diagnostics"]
-        LinterCLI["CLI: arcanum stylistics / prose-lint"]
-        Diagnostics["Diagnostic Flags: STY-101 to STY-109"]
-        SVGReport["Offline Standalone HTML & SVG Stylistic Report"]
+    subgraph CraftOutput["3. Masterclass Execution"]
+        LineEditing["Authorial Line Editing & Polish"]
+        Resonance["Visceral, Cadenced & Defamiliarized Prose"]
     end
 
-    ClassicalRhetoric --> ComputationalStylometry --> EnginePipelines
+    ClassicalRhetoric --> ComputationalStylometry --> CraftOutput
 ```
 
 ---
@@ -79,7 +76,7 @@ Eliminating cognitive filter verbs (*heard, saw, felt, noticed, wondered, watche
 
 ---
 
-## 3. Computational Stylometry & Mathematical Formulations
+## 3. Cognitive Readability & Stylometric Formulations
 
 ```mermaid
 xychart-beta
@@ -104,7 +101,7 @@ $$\text{Fog} = 0.4 \left[ \left(\frac{W}{S}\right) + 100 \left(\frac{W_{\text{co
 #### 4. Coleman-Liau Index (CLI):
 $$\text{CLI} = 0.0588 \left(\frac{C}{W} \times 100\right) - 0.296 \left(\frac{S}{W} \times 100\right) - 15.8$$
 
-### 3.2 Lexical Echo Detection via Exponential Decay Kernel
+### 3.2 Lexical Echo Detection via Distance Decay
 For a root word stem $w$ occurring at token indices $i$ and $j$ ($i < j$):
 
 $$\Delta_{\text{distance}} = j - i \quad [\text{words}]$$
@@ -128,45 +125,20 @@ $$\text{SDI} = \frac{N_{\text{schemes}} + N_{\text{tropes}}}{W_{\text{total}} / 
 
 ---
 
-## 4. Ars Arcanum Engine & CLI Architecture
+## 4. Author Self-Editing Rubric & Line-Editing Checklist
 
-```mermaid
-flowchart LR
-    MD["Chapter Markdown File"] --> Stemmer["Morphological Stemmer & Clause Parser"]
-    Stemmer --> FilterLinter["Filter-Verb & Passive Voice Scanner"]
-    Stemmer --> EchoLinter["Sliding-Window Echo Kernel"]
-    Stemmer --> TagLinter["Said-Bookism & Adverb Checker"]
-    Stemmer --> ReadabilityCalc["Readability Metric Engine"]
-    
-    FilterLinter & EchoLinter & TagLinter & ReadabilityCalc --> Report["Stylistic Diagnostic Dossier"]
-```
+When revising a drafted manuscript for style and prose mechanics, audit your work against this checklist:
 
-### 4.1 CLI Command Reference
-
-```powershell
-# Run comprehensive stylistics and prose lint on manuscript
-arcanum stylistics Manuscript/
-
-# Quick linter focusing on filter verbs, passive voice, and said-bookisms
-arcanum prose-lint Manuscript/Act_1/Chapter_02.md
-
-# Generate interactive HTML report with highlighted echo clusters
-arcanum stylistics Manuscript/ --html reports/stylistics_audit.html
-```
-
-### 4.2 Diagnostic Codes Matrix
-
-| Code | Severity | Description | Remediating Action |
-|---|---|---|---|
-| `STY-101` | **HIGH** | Cognitive Filter-Verb Density ($> 12$ per 1000 words) | Remove *saw, heard, felt, realized*; state the sensory reality directly. |
-| `STY-102` | **HIGH** | Lexical Echo Spike ($\mathcal{E}(w) > 3.5$ within 50 words) | Replace duplicate distinctive word with a precise synonym or rephrase sentence structure. |
-| `STY-103` | **MEDIUM** | Passive Voice Overuse ($> 8\%$ of total clauses) | Recast clauses with active agent subjects (*"The lock was broken by Valeria"* $\to$ *"Valeria shattered the lock"*). |
-| `STY-104` | **LOW** | Melodramatic Said-Bookism (*"hissed, groaned, opined"*) | Replace with neutral tag (*"said"*) or evocative physical action beat. |
-| `STY-105` | **MEDIUM** | Dialogue Tag Adverb Cliché (*"said angrily, whispered quietly"*) | Delete adverb; ensure tone is conveyed via dialogue vocabulary and physical beats. |
-| `STY-106` | **LOW** | Readability Grade Drift ($\text{FKGL} > 14.0$ in action sequence) | Break long periodic sentences into staccato declaratives during kinetic sequences. |
-| `STY-107` | **MEDIUM** | Weak Verb Cluster (*was, were, have, had* $> 40\%$ of all verbs) | Substitute static state verbs with dynamic, sensory action verbs. |
-| `STY-108` | **LOW** | Cliché Sensory Shorthand (*"white as a sheet, crystal clear, cold as ice"*) | Apply Shklovskian defamiliarization to craft original, universe-authentic metaphors. |
-| `STY-109` | **LOW** | Polysyndeton / Asyndeton Misalignment | Use Asyndeton to accelerate physical action; reserve Polysyndeton for overwhelming cumulative weight. |
+| Stylistic Diagnostic | Flaw & Symptom | Self-Editing Remediating Action |
+|---|---|---|
+| **Cognitive Filter Verbs** | Excessive occurrences of *saw, heard, felt, realized, noticed, wondered* ($> 12$ per 1000 words). | Delete the filter; describe the sensory phenomenon directly as objective narrative reality. |
+| **Lexical Echoes** | Distinctive, unusual nouns or verbs repeated within a tight 50-word span. | Replace the duplicate term with an accurate synonym, or restructure the sentence to eliminate the repetition. |
+| **Passive Voice Bloat** | Sentences where the grammatical subject is acted upon rather than acting ($> 8\%$ of clauses). | Recast into active voice with clear agent subjects (*"The gate was breached by the orcs"* $\to$ *"The orcs breached the gate"*). |
+| **Said-Bookisms** | Melodramatic dialogue attribution tags (*"hissed, groaned, opined, ejaculated"*). | Replace with the transparent tag *"said"*, or replace the tag entirely with a physical action beat. |
+| **Dialogue Tag Adverbs** | Modifying dialogue tags with redundant adverbs (*"said angrily, whispered quietly"*). | Delete the adverb; convey emotional subtext through character word choice, punctuation, and physical gestures. |
+| **Weak Verb Clusters** | Sentences dominated by forms of *to be* and static state verbs (*was, were, have, had* $> 40\%$). | Substitute static verbs with sensory, kinetic action verbs. |
+| **Cliché Sensory Shorthand** | Trite, automated figurative expressions (*"white as a sheet, crystal clear, cold as ice"*). | Apply Shklovskian defamiliarization to craft original metaphors grounded in your world's lore. |
+| **Rhetorical Cadence Mismatch** | Using sluggish polysyndeton during high-velocity action scenes or choppy asyndeton during contemplative moments. | Match sentence syntax to scene pacing: asyndeton accelerates kinetics; polysyndeton builds solemn, cumulative weight. |
 
 ---
 
@@ -177,11 +149,11 @@ arcanum stylistics Manuscript/ --html reports/stylistics_audit.html
 #### Flawed Amateur Draft (Filter Verbs, Passive Voice, Echoes, Said-Bookisms):
 > Valeria could see the huge obsidian fortress looming in the darkness. She felt a cold shiver run down her spine as the dark wind blew across the mountain pass. The heavy iron gates were slowly being opened by the guards. "We must make our approach right now," whispered Valeria urgently. She noticed that the guards carried huge blades that glinted in the dark moonlight.
 
-**Engine Diagnostics:**
-- Filter verbs: *"could see", "felt", "noticed"* (**STY-101**).
-- Severe Lexical Echoes: *"darkness / dark / dark"*, *"huge / huge"* within 55 words (**STY-102**).
-- Passive voice: *"were slowly being opened by the guards"* (**STY-103**).
-- Said-bookism + adverb: *"whispered Valeria urgently"* (**STY-105**).
+**Flaws Identified:**
+- Filter verbs: *"could see", "felt", "noticed"*.
+- Severe Lexical Echoes: *"darkness / dark / dark"*, *"huge / huge"* within 55 words.
+- Passive voice: *"were slowly being opened by the guards"*.
+- Said-bookism + adverb: *"whispered Valeria urgently"*.
 
 #### Masterclass Revision (Defamiliarization, Active Agency, Chiasmus, Sensory Verbs):
 > The obsidian fortress pierced the frozen sky, a black tooth rooted in basalt. Sleet bit Valeria’s cheek; ice coated the links of her mail. Below the battlements, the iron gates ground open, spewing torchlight across the snow.  

@@ -523,17 +523,17 @@ Or install the individual tool via your package manager (see `docs/guides/SOFTWA
 - `arcanum save [target] -m "Finished Act 1"` (or `arcanum snapshot`) — record a Git version
 - `arcanum publish [manuscript] [--format book|submission|all]` (or `arcanum export`) — compile PDF, EPUB, DOCX
 - `arcanum words [manuscript]` (or `arcanum count`, `arcanum report`, `arcanum words --pov`) — view live word counts & POV balance
-- `arcanum concordance <world> --manuscript <ms>` — generate Dramatis Personae & Glossary
+- `arcanum omnibus [manuscript]` — compile multi-volume series omnibus
 - `arcanum check` (or `arcanum doctor`) — run system & toolchain diagnostics
 - `arcanum continuity -w <world> -m <ms>` — check narrative trait consistency
 - `arcanum cache <scan|wordcounts|clear> [path]` — manage fast performance index
 - `arcanum backup <target>` / `arcanum restore <archive>` — disaster-recovery backups
 - `arcanum config <backup-dest|docx-preset|docx-presets|docx-config>` — manage settings
 - `arcanum calc <transit|time-dilation|orbit|comms|habitability>` — relativistic spaceflight, orbital mechanics & astrophysics
-- `arcanum magic-check -w <world> -m <ms>` / `arcanum magic-report` — validate hard magic system rules & constraints (MAG-101..104)
+- `arcanum magic check -w <world> -m <ms>` / `arcanum magic report` — validate hard magic system rules & constraints (MAG-101..104)
 - `arcanum genealogy -w <world> [-f mermaid|html|json]` / `arcanum lineage` — dynastic family trees, DAG succession & paradox detection
 - `arcanum conlang <generate|mutate|lexicon>` — conlang phonotactics word generation, sound-law mutations & lexicon exporter
-- `arcanum pace <manuscript>` / `arcanum tension` — narrative pacing metrics, dialogue ratios & tension arc visualization
+- `arcanum structure <manuscript>` — narrative structure, 9-paradigm beat sheets & act balance
 - `arcanum journey -t <terrain> -d <km> -p <party> -m <mode>` — overland and naval expedition speed, rations & day-by-day itineraries
 - `arcanum calendar -w <world> [-d <day>]` — custom planetary calendars, multi-moon synodic phases, eclipses & syzygies
 
@@ -693,27 +693,23 @@ arcanum conlang lexicon -w Scadrial --lang "Archaic Valen" -f markdown
 
 ---
 
-### Wave 5: Narrative Pacing, POV Balance & Tension Arc Analytics
+### Wave 5: Narrative Pacing, POV Balance & Tension Arc Doctrine
 
-The pacing and tension engine (`scripts/lib/pacing.py` / `arcanum pace`, `arcanum tension`, `arcanum words --pov`) analyzes draft prose structure to ensure compelling narrative momentum and balanced character focus.
+Maintaining compelling narrative momentum and balanced character focus requires conscious calibration of prose rhythm, dialogue-to-exposition ratios, and POV distribution. For in-depth theoretical formulations, mathematical models, and self-editing rubrics, consult the [Author Craft Masterclass: Narrative Pacing & Tension](PACING.md).
 
-#### Key Metrics:
-- **Prose Mode Distribution**: Accurately classifies sentences into Dialogue, Action, and Exposition using punctuation density and syntactic cues.
-- **Rhythm & Sentence Length Variance**: Measures sentence length distribution, standard deviation, and identifies monotonous paragraph pacing.
-- **POV Screen-Time Balance & Starvation Alerts**: Quantifies word count and chapter allocation per POV character; triggers starvation warnings if a key POV character goes unmentioned for > 3 consecutive chapters.
-- **Tension Arc Modeling (0–100)**: Evaluates scene stakes using conflict vocabulary, action pacing, and dialogue urgency.
-- **Embedded SVG Visualizer**: Generates self-contained HTML reports featuring SVG tension and pacing curves across the entire novel.
+#### Key Metrics & Craft Principles:
+- **Prose Mode Distribution**: Balance sentence composition across Dialogue, Action, and Exposition depending on scene urgency.
+- **Rhythm & Sentence Length Variance**: Gary Provost dynamic variance ($\sigma \ge 6.5\text{ words}$) avoiding monotonous paragraph pacing.
+- **POV Screen-Time Balance & Starvation Alerts**: Quantify word count and chapter allocation per POV character (`arcanum words --pov`) to ensure major viewpoint characters never vanish mid-book.
+- **Tension Arc Modulation**: Modulate dramatic tension, stakes, and scene turning points using the structural milestone tracker (`arcanum structure`).
 
-#### Example Usage:
+#### Practical Craft & Diagnostics:
 ```bash
-# Analyze scene pacing and dialogue/action ratios across manuscript
-arcanum pace Solaris-Rising
-
-# Generate interactive tension arc graph
-arcanum tension Solaris-Rising -o tension_arc.html
-
-# View POV character word count distribution
+# View POV character word count distribution and screen time
 arcanum words Solaris-Rising --pov
+
+# Audit structural beat distribution and act harmony
+arcanum structure Solaris-Rising
 ```
 
 ---
@@ -902,36 +898,16 @@ arcanum ecology Solaris-Prime
 
 ---
 
-### Wave 11: Earth-Eponym Scanner, Idiom De-Immersion & 6D Sensory Palette
+### Wave 11: Speculative Idioms, Earth De-Immersion & 8-Channel Sensory Palette
 
-The immersion and sensory palette suite (`scripts/lib/idioms.py`, `scripts/lib/senses.py` / `arcanum audit idioms`, `arcanum audit senses`) identifies Earth-bound idioms that shatter reader immersion and balances sensory engagement across draft prose.
+Preserving deep reader immersion in secondary worlds requires active auditing against terrestrial clichés, historical eponyms, and unbalanced sensory descriptions. For complete craft treatises, diagnostic matrices, and author worksheets, see:
+- [**Author Craft Masterclass: Speculative Idioms & Metaphors**](IDIOMS.md)
+- [**Author Craft Masterclass: 8-Channel Sensory Immersion**](SENSES.md)
 
-#### Earth Eponym & Immersion Scanner:
-Scans draft manuscripts against a curated database of Earth eponyms, mythology, and geographic metaphors:
-- **`IDM-101`**: Earth Eponyms (e.g. *cardigan*, *silhouette*, *boycott*, *guillotine*, *diesel*, *bowler hat*, *galvanize*, *sandwich*, *pasteurize*).
-- **`IDM-102`**: Earth Mythological / Biblical Idioms (e.g. *Achilles' heel*, *Trojan horse*, *Pandora's box*, *Spartan*, *Draconian*, *Pyrrhic victory*, *babel*, *Good Samaritan*).
-- **`IDM-103`**: Earth Clichés / Earth Fauna-Flora (e.g. *let the cat out of the bag*, *barking up the wrong tree*, *red herring*, *crocodile tears*).
-
-#### 6-Dimensional Sensory Palette:
-Analyzes sensory immersion across 6 distinct sensory modalities:
-1. 👁️ **Visual** (Color, illumination, shape, silhouette)
-2. 👂 **Auditory** (Volume, pitch, acoustics, timbre)
-3. 👃 **Olfactory** (Aromas, scents, rot, ozone, incense)
-4. 👅 **Gustatory** (Sweet, bitter, salty, metallic, sour)
-5. ✋ **Tactile / Thermal** (Texture, temperature, pressure, dampness)
-6. 🤸 **Kinesthetic / Vestibular** (Balance, vertigo, acceleration, tension)
-
-- **`SNS-101`**: White Room Syndrome (Scenes lacking physical sensory grounding).
-- **`SNS-102`**: Sensory Monotony (Over-reliance on pure visual description with zero auditory/tactile/olfactory anchoring).
-
-#### Example Usage:
-```bash
-# Audit draft manuscript for immersion-breaking Earth eponyms
-arcanum audit idioms Solaris-Rising
-
-# Analyze 6D sensory distribution and detect White Room scenes
-arcanum audit senses Solaris-Rising
-```
+#### Key Immersion & Sensory Principles:
+- **Earth Eponym Decontamination (`IDM-101`)**: Avoid terrestrial eponyms (*Pyrrhic, Draconian, Machiavellian, boycott*) that shatter secondary-world belief.
+- **Ecological Metaphor Grounding (`IDM-103`)**: Ensure animal idioms (*canaries, horses, lions*) align strictly with the world's established bestiary.
+- **8-Channel Somatosensory Grounding (`SNS-101`–`SNS-106`)**: Defeat White Room syndrome by infusing scenes with non-visual sensory modalities: *Auditory, Olfactory, Gustatory, Tactile/Thermal, Kinesthetic/Vestibular, and Chronoception*.
 
 ---
 
@@ -970,45 +946,27 @@ arcanum prophecy Solaris-Prime Solaris-Rising
 
 ## 10. Authorial Craft, Editorial Linters, Plotting & Publishing Tools
 
-Ars Arcanum includes a full suite of editorial linters, visual plotting matrix engines, publication pre-flight compliance checkers, interactive offline cartography, and multi-POV narrative subway maps.
+Ars Arcanum combines deep authorial craft doctrines with automated plotting matrices, publication pre-flight compliance checkers, interactive offline cartography, and multi-POV narrative subway maps.
 
 ---
 
 ### ✍️ Editorial Craft & Prose Stylistics
 
-#### 1. Dialogue Attribution & Mechanics Linter (`scripts/lib/stylistics.py`)
-Identifies common dialogue flaws before human editorial review:
-- **`DIA-101` (Said-Bookisms)**: Overly dramatic dialogue tags (*"he ejaculated"*, *"she chortled"*, *"he barked"*).
-- **`DIA-102` (Floating Dialogue)**: Consecutive dialogue lines without physical action beats or attributions.
-- **`DIA-103` (Adverb Overload)**: Weak dialogue tags modified by adverbs (*"she said furiously"*, *"he whispered softly"*).
+For comprehensive self-editing rubrics and line-editing strategies, consult the [Author Craft Masterclass: Prose Stylistics](STYLISTICS.md), [Character Voice Profiling](VOICE.md), and [Editorial Council Framework](COUNCIL.md).
 
-```bash
-# Audit dialogue mechanics across a manuscript
-arcanum audit dialogue Solaris-Rising
-```
+#### 1. Line Editing & Rhetorical Figures
+Identify common dialogue flaws and passive construction before publication:
+- **Said-Bookism Discipline (`STY-105`)**: Replace overwritten dialogue tags (*"he ejaculated"*, *"she opines"*) with physical action beats or invisible tags (*"said"*).
+- **Filter-Verb Elimination (`STY-102`)**: Eliminate sensory filters (*"she saw"*, *"he heard"*, *"she felt"*) to maximize visceral proximity.
+- **Rhetorical Figures**: Incorporate classical schemes (anaphora, epistrophe, chiasmus, polysyndeton) to elevate climatic passages.
 
-#### 2. Word Echo & Proximity Repetition Scanner (`scripts/lib/stylistics.py`)
-Scans sliding paragraph windows (1–10 paragraphs) for duplicate non-trivial root words to prevent subconscious vocabulary repetition.
+#### 2. Character Voice Lexical Profiling
+Ensure every member of an ensemble cast speaks from a distinct socio-ideological background:
+- **Heteroglossia & Sociolects**: Calibrate Mean Utterance Length (MUL), Type-Token Ratio (TTR), and contraction density per character profile.
+- **Voice Bleed Triage (`VOI-101`)**: Audit dialogue with tags covered to guarantee characters sound distinct without relying on name tags.
 
-```bash
-# Scan for words repeated within 3 paragraphs
-arcanum audit echoes Solaris-Rising --window 3
-```
-
-#### 3. Character Voice Lexical Profiler (`scripts/lib/voice.py`)
-Extracts dialogue by character tag (`@char:`) and computes distinct lexical metrics:
-- Flesch-Kincaid & Coleman-Liau reading grade levels
-- Average sentence length & syllable complexity
-- Exclamation & question mark density
-- Unique vocabulary frequency & voice homogenization alerts (`VOI-101` / `VOI-102`)
-
-```bash
-# Analyze character voice distinctiveness
-arcanum audit voice Solaris-Rising
-```
-
-#### 4. Smart Typography & Punctuation Normalizer (`scripts/lib/typography_cleaner.py`)
-Batch normalizes straight quotes (`"` $\to$ `“`/`”`), double hyphens (`--` $\to$ `—`), ellipses (`...` $\to$ `…`), and inserts locale-aware non-breaking spaces before punctuation.
+#### 3. Smart Typography & Punctuation Normalizer (`scripts/lib/typography_cleaner.py`)
+Batch normalizes straight quotes (`"` $\to$ `“`/`”`), double hyphens (`--` $\to$ `—`), ellipses (`...` $\to$ `…`), and inserts locale-aware non-breaking spaces before punctuation. See [Book Typography & Geometry](TYPOGRAPHY.md).
 
 ```bash
 # Preview typographic changes safely
@@ -1039,13 +997,8 @@ Validates whether manuscript plot points align with classic storytelling milesto
 arcanum audit structure Solaris-Rising --template save-the-cat
 ```
 
-#### 3. Scene Mechanics & MRU Analyzer (`scripts/lib/scene_mechanics.py`)
-Validates Dwight Swain / Jack Bickham Motivation-Reaction Units (Goal $\to$ Conflict $\to$ Disaster and Reaction $\to$ Dilemma $\to$ Decision).
-
-```bash
-# Audit scene turning points and character goal momentum
-arcanum audit scenes Solaris-Rising
-```
+#### 3. Scene Mechanics & Motivation-Reaction Units
+Ensure every dramatic beat obeys cause-and-effect psychology. See [Author Craft Masterclass: Scene Mechanics & MRUs](SCENE_MECHANICS.md) for Dwight Swain / Jack Bickham Motivation-Reaction Units (Goal $\to$ Conflict $\to$ Disaster and Reaction $\to$ Dilemma $\to$ Decision).
 
 #### 4. Procedural Ambient Focus Audio (`scripts/lib/ambient.py`)
 Generates distraction-free sound environments (Rain, Crackling Hearth, Library Hum, Cosmic Drone, Clockwork) with HTML5 WebAudio synthesis or offline WAV generation.
@@ -1153,13 +1106,8 @@ Scans all manuscripts and universes, providing wordcount velocity, stage breakdo
 arcanum portfolio
 ```
 
-#### 3. Multi-POV Narrative Thread Subway Map (`scripts/lib/branching_graph.py`)
-Visualizes narrative storyline branches, character viewpoint splits, convergence milestones, and timeline concurrency as an interactive subway map.
-
-```bash
-# Render multi-POV narrative thread subway map
-arcanum branch Solaris-Rising --subway
-```
+#### 3. Interactive Branching & Narrative Mapping
+For interactive non-linear narratives, choose-your-own-adventure gamebooks, and state-machine plotting, consult the [Author Craft Masterclass: Interactive Branching Graph](BRANCHING_GRAPH.md). For visual story card arrangement and 11+ paradigm swimlanes, use the Story Canvas (`scripts/lib/story_canvas.py` / `arcanum canvas`).
 
 ---
 
@@ -1173,16 +1121,16 @@ You can specify chapters and scenes using intuitive shorthand lists and range no
 
 | Scope Filter | Flag / Shorthand | Example Command | Description |
 | :--- | :--- | :--- | :--- |
-| **Chapter Ranges** | `-c`, `--chapter`, `--ch` | `arcanum pace -c 1-5` | Runs pacing analysis on Chapters 1 through 5 |
-| **Chapter Lists** | `-c` | `arcanum voice -c 1,3,7-10` | Runs voice profiling on Chapters 1, 3, and 7 through 10 |
-| **Padded Shorthands** | `-c` | `arcanum stylistics -c ch01..ch05` | Supports standard padded chapter prefixes |
-| **Scene Ranges** | `--scene`, `--scenes`, `--sc` | `arcanum scene --scene 1-3` | Audits Motivation-Reaction Units in Scenes 1 through 3 |
-| **Combined Target** | `-c` and `--scene` | `arcanum senses -c 1-2 --scene 1` | Audits Scene 1 across Chapters 1 and 2 |
-| **Book / Volume** | `-b`, `--book`, `--volume` | `arcanum senses -b Book-01` | Restricts analysis to a specific volume |
+| **Chapter Ranges** | `-c`, `--chapter`, `--ch` | `arcanum structure -c 1-5` | Runs structural beat analysis on Chapters 1 through 5 |
+| **Chapter Lists** | `-c` | `arcanum characters -c 1,3,7-10` | Inspects character presence across Chapters 1, 3, and 7 through 10 |
+| **Padded Shorthands** | `-c` | `arcanum continuity -c ch01..ch05` | Supports standard padded chapter prefixes |
+| **Scene Ranges** | `--scene`, `--scenes`, `--sc` | `arcanum structure --scene 1-3` | Scopes analysis to Scenes 1 through 3 |
+| **Combined Target** | `-c` and `--scene` | `arcanum continuity -c 1-2 --scene 1` | Audits Scene 1 across Chapters 1 and 2 |
+| **Book / Volume** | `-b`, `--book`, `--volume` | `arcanum structure -b Book-01` | Restricts analysis to a specific volume |
 | **World Vault** | `-w`, `--world` | `arcanum magic check -w Eldoria` | Scopes lore verification to a single World Bible |
 | **Lore Categories** | `--lore-category` | `arcanum rag "rune" --lore-category MagicSystems,Artifacts` | Queries specific lore subfolders |
-| **Unified Scope** | `--scope` | `arcanum pace --scope "world:Eldoria:lore:Characters"` | Passes a single structured scope string |
-| **Whole-Vault Scan**| `--all` | `arcanum pace --all` | Bypasses active project defaults and audits full vault |
+| **Unified Scope** | `--scope` | `arcanum structure --scope "world:Eldoria:lore:Characters"` | Passes a single structured scope string |
+| **Whole-Vault Scan**| `--all` | `arcanum structure --all` | Bypasses active project defaults and audits full vault |
 
 ### 11.2 Context Altitude & Smart Defaults
 

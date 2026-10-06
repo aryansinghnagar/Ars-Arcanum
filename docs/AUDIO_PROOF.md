@@ -1,19 +1,18 @@
-# Audio Prosody, Acoustic Proofreading & Neural TTS Engine (`docs/AUDIO_PROOF.md`)
-> **Domain D: Stylistics, Sensory Immersion & Manuscript Polish** | **CLI Commands:** `arcanum audio-proof` / `arcanum tts-proof` | **Module:** `scripts/lib/audio_proof.py`
+# Author Craft Masterclass: Acoustic Proofreading, Prose Prosody & Ear-Tuning (`docs/AUDIO_PROOF.md`)
+> **Domain D: Stylistics, Sensory Immersion & Manuscript Polish** | **Category:** Author Craft & Narrative Doctrine | **Status:** Theoretical Framework & Writing Rubric
 
 ---
 
 ## 1. Overview & Theoretical Rationale
 
-The **Ars Arcanum Audio Proofing Engine** (`scripts/lib/audio_proof.py`) is an offline acoustic prosody analyzer, phonetic collision detector, W3C SSML markup synthesizer, and local neural text-to-speech (TTS) proofreading harness engineered for speculative fiction authors, dramatists, and professional audiobook narrators.
-
 Reading one's own manuscript silently on a visual monitor induces severe cognitive habituation:
+
 1. **Visual Autocorrect Bias**: The author's brain reconstructs what it *intended* to write rather than the physical characters on the screen, effortlessly skipping missing prepositions, duplicate words (*"the the"*), and garbled syntax.
 2. **Homophone & Punctuation Blindness**: Eyes glide past grammatical homophone slips (*their/there*, *its/it's*, *lead/led*) and unclosed quotation marks.
 3. **Phonetic Friction & Tongue-Twisters**: Sentences that look acceptable visually can be unpronounceable aloud due to sibilance clustering, harsh plosive clashes, and awkward consonant clusters.
 4. **Breathless Sentence Architecture**: Paragraphs constructed without natural breath pauses exhaust voice actors and disrupt the sub-vocalizing reader's cognitive flow.
 
-The Audio Proofing Engine exposes these blind spots by synthesizing the text into an auditory feedback loop using 100% sovereign, local neural TTS pipelines (such as Piper TTS or eSpeak NG) while auditing phonological metrics.
+Acoustic proofreading and prosodic ear-tuning expose these blind spots by converting the text into an auditory feedback loop—either through out-loud oral read-throughs, audio recording playback, or local text-to-speech rendering.
 
 ```mermaid
 flowchart TD
@@ -27,16 +26,16 @@ flowchart TD
     subgraph MathematicalAcoustics["2. Mathematical & Durational Formulations"]
         Duration["Duration Metric: Word Rate + Micro-Pause Weighting"]
         CollisionIndex["Phonetic Collision Index (Φ_collision)"]
-        SSMLGen["W3C SSML 1.0 XML Tree Synthesis (<break>, <prosody>)"]
+        SSMLGen["W3C SSML 1.0 XML Tree Structure (<break>, <prosody>)"]
     end
 
-    subgraph OfflineHarness["3. Sovereign Offline Engine & Audio CLI"]
-        LocalTTS["Local Neural TTS Dispatcher (Piper TTS / eSpeak NG)"]
-        LinterCLI["CLI: arcanum audio-proof / tts-proof"]
-        AudioDossier["Interactive Standalone HTML Audio Proofing Dossier"]
+    subgraph EarTuningRubric["3. Authorial Ear-Tuning & Self-Editing"]
+        ReadAloud["The Out-Loud Read-Through Protocol"]
+        AudioLinter["Acoustic Self-Editing Checklist (AUD-101..108)"]
+        AudiobookReadiness["Audiobook Performance & Cadence Tuning"]
     end
 
-    AcousticTheory --> MathematicalAcoustics --> OfflineHarness
+    AcousticTheory --> MathematicalAcoustics --> EarTuningRubric
 ```
 
 ---
@@ -46,7 +45,7 @@ flowchart TD
 ### 2.1 The Auditory Feedback Loop in Editorial Cognition
 Silent reading relies on **sub-vocalization**—the internal vocalization of written words by the larynx and auditory cortex. When an author edits visually, cognitive familiarity causes the brain to bypass phonological decoding. 
 
-By converting the text into an objective, external acoustic signal (auditory playback via TTS or oral read-through), the brain processes the prose through the primary and secondary auditory cortices. Rhythm hitches, clunky clashing consonants, awkward meter, and repetitive grammatical patterns become instantly, glaringly obvious.
+By converting the text into an objective, external acoustic signal (auditory playback or deliberate oral read-through), the brain processes the prose through the primary and secondary auditory cortices. Rhythm hitches, clunky clashing consonants, awkward meter, and repetitive grammatical patterns become instantly, glaringly obvious.
 
 ### 2.2 Articulatory Phonetics & Acoustic Collision Types
 
@@ -130,7 +129,7 @@ $$\text{Narration Ergonomics Health} \iff \beta < 2.0\%$$
 
 ## 4. W3C SSML 1.0 Synthesis Specification
 
-The engine automatically transpiles raw markdown into structured W3C SSML (Speech Synthesis Markup Language) 1.0 documents:
+Authors preparing synthetic drafts or audiobook production notes can structure dialogue using W3C SSML (Speech Synthesis Markup Language) 1.0 documents:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -153,48 +152,29 @@ The engine automatically transpiles raw markdown into structured W3C SSML (Speec
 
 ---
 
-## 5. Ars Arcanum Engine & CLI Architecture
+## 5. Authorial Ear-Tuning Rubric & Acoustic Audit Matrix
 
 ```mermaid
 flowchart LR
-    MD["Chapter Markdown (.md)"] --> Parser["Phonological & Clause Tokenizer"]
-    Parser --> CollisionCalc["Phonetic Collision & Sibilance Auditor"]
-    Parser --> DurationCalc["Duration & Micro-Pause Accumulator"]
-    Parser --> SSMLGen["W3C SSML Transpiler"]
-    
-    SSMLGen --> TTSDispatcher["Offline Neural TTS (Piper / eSpeak)"]
-    TTSDispatcher --> WAV["Audio Output (.wav / .mp3)"]
-    CollisionCalc & DurationCalc --> HTMLDossier["Interactive HTML Audio Dossier"]
+    Prose["Manuscript Chapter Draft"] --> OralRead["Pass 1: Aloud Read-Through"]
+    OralRead --> FrictionAudit["Pass 2: Sibilance & Plosive Collision Audit"]
+    FrictionAudit --> BreathAudit["Pass 3: Breath-Group Calibration"]
+    BreathAudit --> Rubric["Apply Acoustic Rules (AUD-101..108)"]
+    Rubric --> EuphonicProse["Euphonic, Breathable, Narration-Ready Prose"]
 ```
 
-### 5.1 CLI Command Reference
-
-```powershell
-# Analyze acoustic prosody, duration, and phonetic collisions across manuscript
-arcanum audio-proof Manuscript/
-
-# Generate W3C SSML file for a specific chapter
-arcanum audio-proof Manuscript/Act_1/Chapter_01.md --ssml dist/ch01.ssml
-
-# Synthesize full chapter audio using local offline Piper TTS
-arcanum tts-proof Manuscript/Act_1/Chapter_01.md --engine piper --voice en_US-lessac-medium --out audio/ch01.wav
-
-# Generate interactive HTML audio proofing dossier with inline collision highlights
-arcanum audio-proof Manuscript/ --html reports/audio_proofing.html
-```
-
-### 5.2 Diagnostic Codes Matrix
+### 5.1 Diagnostic Self-Editing Codes Matrix
 
 | Code | Severity | Description | Remediating Action |
 |---|---|---|---|
 | `AUD-101` | **HIGH** | Harsh Sibilance Cluster ($> 4$ sibilants in a 6-word window) | Replace sibilant words (*"she silently slipped past six soldiers"*) with non-sibilant synonyms. |
-| `AUD-102` | **HIGH** | Plosive Collision Burst ($> 3$ heavy stops clashing across word bounds) | Soften harsh consonants (*"dark pack kept"*) to prevent microphone popping. |
+| `AUD-102` | **HIGH** | Plosive Collision Burst ($> 3$ heavy stops clashing across word bounds) | Soften harsh consonants (*"dark pack kept"*) to prevent acoustic popping. |
 | `AUD-103` | **CRITICAL** | Breathless Sentence ($\ge 35\text{ words}$ without punctuation pause) | Insert em-dash, semicolon, or split into two distinct sentences. |
 | `AUD-104` | **MEDIUM** | Accidental Word Duplicate (*"the the"*, *"in in"*) | Delete the accidental duplicate token. |
-| `AUD-105` | **HIGH** | Unclosed Dialogue Quotation (Speech tag missing closing quote) | Close the quotation delimiter to preserve TTS voice register. |
+| `AUD-105` | **HIGH** | Unclosed Dialogue Quotation (Speech tag missing closing quote) | Close the quotation delimiter to preserve voice register. |
 | `AUD-106` | **LOW** | Metric Monotony (Rigidly repeating exact 4-beat trochaic lines) | Vary prose rhythm by interspersing iambic declaratives with sweeping periods. |
 | `AUD-107` | **MEDIUM** | Tongue-Twister Triplet (Identical consonant onsets/codas in succession) | Rephrase adjacent words (*"six thick synthetic shields"* $\to$ *"six heavy composite barriers"*). |
-| `AUD-108` | **LOW** | Extreme Audio Duration Disparity ($> 3.0\times$ difference across adjacent chapters) | Rebalance chapter lengths for audiobook listening consistency. |
+| `AUD-108` | **LOW** | Extreme Audio Duration Disparity ($> 3.0\times$ difference across adjacent chapters) | Rebalance chapter lengths for listening consistency. |
 
 ---
 
@@ -206,7 +186,7 @@ arcanum audio-proof Manuscript/ --html reports/audio_proofing.html
 > She silently slipped past six sleeping sentries sitting beside the dark deep trench without stopping to catch her breath while the black duck quacked softly beside the stone steps.
 
 **Acoustic Diagnostics:**
-- `AUD-101 (Sibilance Spike)`: *"She silently slipped past six sleeping sentries sitting"* (9 sibilants in 8 words — severe microphone distortion).
+- `AUD-101 (Sibilance Spike)`: *"She silently slipped past six sleeping sentries sitting"* (9 sibilants in 8 words — severe acoustic hiss).
 - `AUD-102 (Plosive Clash)`: *"black duck quacked"* (/k/ + /d/ + /k/ + /kw/ + /kt/).
 - `AUD-103 (Breathless Sentence)`: 27 words with zero punctuation pauses.
 

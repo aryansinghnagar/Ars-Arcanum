@@ -1,11 +1,9 @@
-# Ars Arcanum Scene Mechanics, MRU Theory & Dramatic Polarity Engine (`docs/SCENE_MECHANICS.md`)
-> **Domain E: Narrative Dynamics, Pacing, Structure & Branching** | **CLI Command:** `arcanum scene` | **Module:** `scripts/lib/scene_mechanics.py`
+# Author Craft Masterclass: Scene Mechanics, MRU Dynamics & Dramatic Polarity (`docs/SCENE_MECHANICS.md`)
+> **Craft Discipline: Narrative Dynamics, Motivation-Reaction Units (MRU) & Dramatic Polarity**
 
 ---
 
 ## 1. Overview & Theoretical Rationale
-
-The **Ars Arcanum Scene Mechanics Engine** (`scripts/lib/scene_mechanics.py`) is an offline computational craft auditor and dramaturgy validator engineered for speculative fiction novelists, playwrights, and narrative architects. 
 
 While macro-structural frameworks (e.g., the Three-Act Paradigm, the Hero's Journey, or Save the Cat!) dictate the distribution of milestone beats across a 100,000-word manuscript, the emotional reality of a novel is won or lost at the micro-structural level: the individual **Scene** and **Sequel**, structured down to the biological mechanics of the **Motivation-Reaction Unit (MRU)**.
 
@@ -144,44 +142,20 @@ $$\text{Valid Dramatic Unit} \iff |\Delta \Pi| \ge 1.0 \quad \text{or} \quad \te
 
 ---
 
-## 4. Ars Arcanum Engine & CLI Architecture
+## 4. Author Self-Editing Rubric & Diagnostic Checklist
 
-```mermaid
-flowchart LR
-    File["Chapter Markdown File"] --> Parser["Regex Clause & Sentence Parser"]
-    Parser --> Classifier["classify_sentence_mru()"]
-    Classifier --> FlawDetector["Inversion & Missing Beat Linter"]
-    
-    FlawDetector --> JSON["Raw JSON Stream"]
-    FlawDetector --> HTML["Standalone Interactive HTML Report"]
-    FlawDetector --> SVG["SVG Phase Distribution Waveform"]
-```
+When revising individual scenes, evaluate your prose against this dramaturgical checklist:
 
-### 4.1 CLI Command Reference
-
-```powershell
-# Scan an entire manuscript directory for scene/sequel balance and MRU inversions
-arcanum scene Manuscript/
-
-# Analyze a single chapter with standalone interactive HTML report
-arcanum scene Manuscript/Act_2/Chapter_14.md --html reports/ch14_scene.html
-
-# Emit machine-readable JSON for CI/CD lint pipelines
-arcanum scene Manuscript/ --json > reports/scene_audit.json
-```
-
-### 4.2 Diagnostic Codes Matrix
-
-| Code | Severity | Description | Remediating Action |
-|---|---|---|---|
-| `SCN-101` | **HIGH** | Inverted MRU: Cognitive Thought preceding Visceral Reflex | Place somatic response (pulse, breath, flinch) immediately following stimulus before interior monologue. |
-| `SCN-102` | **HIGH** | Inverted MRU: Action/Dialogue preceding Visceral Reflex | Insert involuntary somatic response before character acts or speaks in reaction to a sudden stimulus. |
-| `SCN-103` | **MEDIUM** | Missing Goal Beat in Proactive Scene | Clarify the POV character's concrete, immediate objective in the opening 15% of the scene. |
-| `SCN-104` | **MEDIUM** | Missing Disaster / Complication at Scene Termination | Replace flat or unresolved ending with a decisive *"No, and..."* or *"Yes, but..."* disaster. |
-| `SCN-105` | **MEDIUM** | Sequel Lacks Concrete Decision Pivot | Ensure the sequel concludes with a clear, active decision that directly ignites the next scene's goal. |
-| `SCN-106` | **LOW** | Static Polarity Flatline ($\Delta \Pi < 0.2$) | Introduce a value reversal (e.g., trust to suspicion, triumph to catastrophe) across the scene. |
-| `SCN-107` | **LOW** | Low Scene Energy ($E_{\text{scene}} < 0.50$) | Prune static exposition paragraphs; convert internal reflections into active dialogue or physical conflict. |
-| `SCN-108` | **HIGH** | White Room Action Burst (Action without sensory grounding) | Ground kinetic beats with acoustic, tactile, and proprioceptive details. |
+| Diagnostic Check | Flaw & Symptom | Self-Editing Remediating Action |
+|---|---|---|
+| **Inverted MRU: Thought before Reflex** | Cognitive analysis (*"He realized..."*) placed before somatic reaction (*"His heart pounded..."*). | Relocate visceral reflex (pulse, breath, flinch) immediately following external stimulus before internal thoughts. |
+| **Inverted MRU: Action before Reflex** | Physical movement or retort occurs before visceral reaction to a sudden shocking stimulus. | Insert involuntary somatic response before character acts or speaks in reaction to a crisis. |
+| **Missing Goal Beat** | Character enters proactive scene drifting aimlessly with no urgent, concrete objective. | Establish the POV character's concrete, measurable goal within the opening 15% of the scene. |
+| **Missing Disaster / Weak Resolution** | Scene terminates in a tidy *"Yes"* with zero unresolved complications or consequences. | Replace flat ending with an escalating *"No, and..."* disaster or a pyrrhic *"Yes, but..."* dilemma. |
+| **Sequel Lacks Decision Pivot** | Reactive sequel ends in passive despair without resolving into a new course of action. | Ensure the character works through the dilemma to a committed decision that launches the next scene's goal. |
+| **Static Polarity Flatline** | Emotional valence and stakes remain identical from scene start to scene end ($\Delta \Pi \approx 0$). | Inject a dramatic reversal (trust to betrayal, safety to ambush) that permanently shifts the character's status. |
+| **Low Scene Energy** | Heavy blocks of backstory and contemplative internal analysis paralyze the dramatic pacing ($E_{\text{scene}} < 0.50$). | Convert interior monologue into active dialogue conflict or kinetic obstacles. |
+| **White Room Syndrome** | Rapid physical action unfolding without sensory or spatial grounding. | Anchor kinetic beats with concrete tactile, acoustic, and thermal environmental details. |
 
 ---
 
@@ -192,10 +166,10 @@ arcanum scene Manuscript/ --json > reports/scene_audit.json
 #### Flawed Amateur Draft (Inverted MRUs, Flat Polarity, Missing Disaster):
 > Julian stood in the subterranean vault. He wondered if the ancient iron door could withstand the dragon's breath, realizing that his wards were failing rapidly. His heart hammered in his chest and cold sweat broke across his brow as the dragon slammed against the barrier. The stone shattered. "We have to run now!" he screamed to Lyra. He grabbed his spellbook and stepped through the exit tunnel safely.
 
-**Flaws Identified by Engine:**
-- `SCN-101 (Inverted MRU)`: Cognitive realization (*"He wondered... realizing that his wards were failing"*) occurs before the somatic reaction (*"His heart hammered... cold sweat broke"*).
-- `SCN-102 (Inverted MRU)`: Visceral reaction occurs after the character has already thought through the problem.
-- `SCN-104 (Missing Disaster)`: The character simply steps through the exit safely (flat *"Yes"* resolution, zero stakes escalation).
+**Flaws Identified:**
+- *Inverted MRU*: Cognitive realization (*"He wondered... realizing that his wards were failing"*) occurs before the somatic reaction (*"His heart hammered... cold sweat broke"*).
+- *Missing Visceral Sequence*: Visceral reaction occurs after the character has already thought through the problem.
+- *Missing Disaster*: The character simply steps through the exit safely (flat *"Yes"* resolution, zero stakes escalation).
 
 #### Masterclass Revision (Rigorous MRU Ordering, Polarity Inversion $+ \to -$):
 > A concussive detonation slammed against the vault doors. *(Stimulus)*  
@@ -208,7 +182,7 @@ arcanum scene Manuscript/ --json > reports/scene_audit.json
 
 ---
 
-### 5.2 The Scene & Sequel Authorial Blueprint (YAML Schema)
+### 5.2 The Scene & Sequel Authorial Blueprint (YAML Schema for Scene Planning)
 
 ```yaml
 ---

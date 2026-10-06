@@ -101,34 +101,54 @@ Double-click **"Ars Arcanum Control Center"** on your Desktop and follow the wel
 
 ---
 
-## 🔮 Featured Craft Engines (22 Highlighted / 53+ Total)
+## 🔮 Featured Craft Engines (22 Highlighted / 47 Active)
 
-All engines run 100% offline using Python's standard library — no pip, no API keys, no internet. The full engine catalog (53 registered engines across 5 domain pillars) is accessible via `arcanum doc` or the Studio Hub Craft Guide tab.
+All engines run 100% offline using Python's standard library — no pip, no API keys, no internet. The full engine catalog (47 registered engines across 5 domain pillars) is accessible via `arcanum doc` or the Studio Hub Craft Guide tab.
 
 | # | Engine | Key Commands | What It Does |
 |---|---------|-------------|--------------|
-| 1 | **Universal Craft Docs** | `arcanum doc <engine>` | In-CLI guide for all 50+ engines with storytelling applications |
+| 1 | **Universal Craft Docs** | `arcanum doc <engine>` | In-CLI guide for all 47 engines with storytelling applications |
 | 2 | **Resonance Mesh** | `arcanum resonance [world]` | Cross-domain knowledge graph — finds thematic synergies between any two engines |
 | 3 | **Astrophysics** | `arcanum calc transit`, `arcanum calc orbit` | Relativistic spaceflight, planetary systems, $1g$ Brachistochrone trajectories |
 | 4 | **Hard Magic** | `arcanum magic check` | Sanderson-style rule contradiction and axiom consistency detector |
 | 5 | **Genealogy** | `arcanum genealogy <House>` | Family tree DAG with disputed claims and Mermaid export |
 | 6 | **Conlang** | `arcanum conlang generate <Lang>` | Syllable word generator with phoneme frequency and sound-law shifts |
-| 7 | **Narrative Pacing** | `arcanum pace [ms]`, `arcanum tension [ms]` | Dialogue/action ratios, POV balance, interactive HTML tension curve |
+| 7 | **Narrative Structure** | `arcanum structure [ms]` | 9-paradigm structural harmony, beat sheets, and act distribution |
 | 8 | **Journeys & Calendars** | `arcanum calc journey`, `arcanum calendar` | 14 terrain types, 8 travel modes, multi-era custom date systems |
 | 9 | **Faction Matrix** | `arcanum faction [world]`, `arcanum calc battle` | Alliance/rivalry chord diagrams and Lanchester battle formulas |
 | 10 | **Economy & PPP** | `arcanum economy [world]` | Multi-currency commodity baskets and tech-anachronism linter |
 | 11 | **Causal DAGs** | `arcanum causality [world]` | Multi-paradigm time-travel validator (Novikov, butterfly, multiverse) |
 | 12 | **Climate & Ecology** | `arcanum calc climate`, `arcanum ecology` | Hadley/Ferrel cells, orographic rain shadows, trophic webs |
-| 13 | **Sensory Palette** | `arcanum audit senses [ms]` | 6D balance scanner: Visual, Auditory, Olfactory, Gustatory, Tactile, Kinesthetic |
+| 13 | **Continuity Auditor** | `arcanum continuity [ms]` | Intra-volume character physical traits, inventory, and injury tracking |
 | 14 | **Prophecy Matrix** | `arcanum prophecy [world]` | Clause lifecycle tracker — audits fulfillment and contradictions |
-| 15 | **Prose Stylistics** | `arcanum audit dialogue [ms]` | Said-bookism linter, word echo scanner, smart typography normalizer |
-| 16 | **Voice Profiler** | `arcanum audit voice [ms]` | Lexical fingerprint per character — sentence complexity and Flesch-Kincaid grade |
+| 15 | **Dramatis Personae** | `arcanum characters [world]` | Character psychology, Want vs. Need triads, and cast rosters |
+| 16 | **Cartography** | `arcanum map [world]` | Offline vector map viewer with distance measurement and route planning |
 | 17 | **Visual Story Canvas** | `arcanum canvas [ms]` | Drag-and-drop corkboard mapped onto 11+ story paradigms |
 | 18 | **Timeline Sync** | `arcanum timeline [ms]` | Narrative vs. in-world astronomical timestamp alignment |
-| 19 | **Multi-POV Threads** | `arcanum branch [ms]` | Character storyline subway map with convergence tracker |
+| 19 | **Writing Sprints** | `arcanum sprint [ms]` | Dedicated drafting sprint timer with words-per-minute velocity analytics |
 | 20 | **Series Omnibus** | `arcanum omnibus [ms]` | Multi-volume compiler with merged Dramatis Personae |
 | 21 | **Local Semantic RAG** | `arcanum rag <query>` | Hybrid TF-IDF + SQLite FTS5 lore search — no API needed |
 | 22 | **Craft Wisdom Tips** | `arcanum tip [engine]` | Ambient craft hints across CLI footers, Studio Hub, and Zen Studio |
+
+---
+
+## 📖 Author Craft Masterclasses
+
+Deep, standalone narrative doctrines, psycholinguistic frameworks, and self-editing rubrics for speculative novelists:
+
+| Masterclass Guide | Focus & Core Doctrine | Self-Editing Code Series |
+|:--|:--|:--|
+| [**Narrative Pacing & Tension**](docs/PACING.md) | Gary Provost rhythm waveforms, Flesch-Kincaid grade modulation, and POV balance | `PAC-101` – `PAC-107` |
+| [**Scene Mechanics & MRUs**](docs/SCENE_MECHANICS.md) | Dwight Swain Motivation-Reaction Units, Goal-Conflict-Disaster, and polarity shifts | `SCN-101` – `SCN-108` |
+| [**8-Channel Senses**](docs/SENSES.md) | Defeating White Room syndrome via somatosensory, vestibular, and thermal grounding | `SNS-101` – `SNS-106` |
+| [**Prose Stylistics & Rhetoric**](docs/STYLISTICS.md) | Classical rhetorical schemes, sentence energy, and filter-word elimination | `STY-101` – `STY-109` |
+| [**Character Voice & Idiolects**](docs/VOICE.md) | Mikhail Bakhtin heteroglossia, John Gardner psychic distance, and voice bleed triage | `VOI-101` – `VOI-106` |
+| [**Speculative Idioms & Metaphors**](docs/IDIOMS.md) | Tolkien translation convention, Earth-eponym decontamination, and diegetic metaphors | `IDM-101` – `IDM-103` |
+| [**Editorial Council Framework**](docs/COUNCIL.md) | Multi-perspective 4-pass developmental editing (Architect, Skeptic, Stylist, Producer) | `COU-101` – `COU-108` |
+| [**Speculative Lexicography**](docs/CONCORDANCE.md) | Glossopoeia, nomenclature governance, Zipf's law distribution, and back-matter design | `CON-101` – `CON-107` |
+| [**Acoustic Proofreading**](docs/AUDIO_PROOF.md) | Sub-vocalization mechanics, phonetic collision friction, and audiobook breath pacing | `AUD-101` – `AUD-108` |
+| [**Interactive Branching Graph**](docs/BRANCHING_GRAPH.md) | Ergodic literature, foldback branch-and-bottleneck architectures, and state machines | `BRN-101` – `BRN-108` |
+| [**Book Typography & Geometry**](docs/TYPOGRAPHY.md) | Bringhurst typesetting, Van de Graaf page geometry, measure/leading, and curly quotes | Typographic Rules |
 
 ---
 
@@ -148,26 +168,25 @@ arcanum docx sync [ms]                    # Sync DOCX ↔ Markdown (preserves al
 arcanum studio [ms] -c 1-5                # Launch Zen Studio scoped to Chapters 1 through 5
 
 # Auditing & craft
-arcanum pace [ms] -c 1-5                  # Pacing & tension on specific chapter range
-arcanum audit dialogue [ms] --scene 1-2   # Dialogue mechanics on specific scene numbers
-arcanum audit voice [ms] -c ch01..ch04    # Character voice profiler on chapters 1-4
-arcanum senses [ms] -b Book-01            # 6D sensory immersion on Book 1
-arcanum magic check -w Eldoria            # Magic system consistency on specific world lore
-arcanum continuity -w Eldoria -m MyNovel  # Multi-volume character & lore continuity audit
+arcanum structure [ms] -c 1-5             # Pacing & structural harmony on chapter range
+arcanum continuity [ms] --scene 1-2       # Narrative trait & state continuity on scenes
+arcanum magic check -w Eldoria            # Magic system consistency on world lore
+arcanum timeline [ms] -b Book-01          # Dual-track timeline synchronization on Book 1
+arcanum characters -w Eldoria             # Character dossier & psychology inspector
 arcanum scope [target] -c 1-3 --scene 1   # Live scope resolution & diagnostic inspector
 
 # Publishing
-arcanum publish [ms] --format all        # PDF + EPUB + DOCX in one command
-arcanum concordance <world> --manuscript <ms>  # Auto-generate back matter
+arcanum publish [ms] --format all         # PDF + EPUB + DOCX in one command
+arcanum omnibus [ms]                      # Compile multi-volume series omnibus
 
 # Safety & backups
-arcanum save -m "Chapter 12 done"        # Git milestone snapshot
-arcanum backup <project>                 # Verified .tar.gz + SHA-256 archive
-arcanum backup-dest set /media/usb/      # Configure external USB backup target
+arcanum save -m "Chapter 12 done"         # Git milestone snapshot
+arcanum backup <project>                  # Verified .tar.gz + SHA-256 archive
+arcanum backup-dest set /media/usb/       # Configure external USB backup target
 
 # Health
-arcanum check                            # System diagnostics
-bash scripts/verify.sh                   # Full 7-stage verification harness
+arcanum check                             # System diagnostics
+bash scripts/verify.sh                    # Full 7-stage verification harness
 ```
 
 ---

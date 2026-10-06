@@ -1,11 +1,9 @@
-# 8-Channel Sensory Palette, Perceptual Immersion & Shannon Entropy (`docs/SENSES.md`)
-> **Domain B: Linguistics, Conlang, Idioms & Stylistics** | **CLI Commands:** `arcanum senses` / `arcanum sensory` | **Module:** `scripts/lib/senses.py`
+# Author Craft Masterclass: 8-Channel Sensory Immersion & Visceral Grounding (`docs/SENSES.md`)
+> **Craft Discipline: Sensory Immersion, Somatic Perception & Multi-Modal Worldbuilding**
 
 ---
 
 ## 1. Overview & Theoretical Rationale
-
-The **Ars Arcanum Sensory Palette Engine** (`scripts/lib/senses.py`) is an offline cognitive perception profiler, sensory monoculture auditor, and embodied immersion analyzer engineered for speculative fiction novelists and creative prose stylists.
 
 Human consciousness does not experience reality as a silent, two-dimensional movie screen. Perceptual presence is an integrated, multi-sensory hallucination constructed by the brain from eight distinct neurological channels. Yet, in unrefined manuscripts, authors overwhelmingly suffer from **Visual Monoculture (or "White Room Syndrome")**: prose that relies $90\%+$ on sight verbs and light adjectives (*"she saw"*, *"he looked"*, *"it was dark red"*) while completely neglecting acoustic reverberation, volatile scents, thermal gradients, tactile friction, and visceral gut reflexes.
 
@@ -30,10 +28,10 @@ flowchart TD
         C8["Thermoceptive / Temporal (Heat, Drag)"]
     end
 
-    subgraph InformationTheory["3. Mathematical Entropy & Auditing"]
+    subgraph InformationTheory["3. Mathematical Entropy & Balance"]
         Shannon["Shannon Sensory Entropy: H_sensory = -∑ pᵢ log₂(pᵢ)"]
         Vividness["Perceptual Immersion Index: V_immersion ∈ [0, 100%]"]
-        WhiteRoom["White Room Detector (SNS-101) & Skew Linter (SNS-102)"]
+        WhiteRoom["White Room Prevention & Sensory Grounding"]
     end
 
     SomatosensoryNeuro --> SensoryChannels --> InformationTheory
@@ -44,7 +42,7 @@ flowchart TD
 ## 2. Theoretical Foundations of Somatic Perception & Sensory Immersion
 
 ### 2.1 Somatosensory Neuroscience & Mirror Neurons
-Cognitive neuroimaging (e.g., studies by V.S. Ramachandran and Antonio Damasio) demonstrates that reading sensory-rich words activates the corresponding motor and sensory cortices of the human brain:
+Cognitive neuroimaging demonstrates that reading sensory-rich words activates the corresponding motor and sensory cortices of the human brain:
 - Reading the word *"cinnamon"* activates the olfactory cortex.
 - Reading *"she grasped the rough granite"* activates the primary somatosensory cortex ($S_1$) and motor cortex ($M_1$).
 - Abstract prose (*"she felt uncomfortable"*) activates only the language-processing Wernicke and Broca areas.
@@ -65,6 +63,7 @@ By engaging non-visual sensory channels, the author converts reading from an abs
  │ 6. Vestibular     │ Gravitational balance, vertigo, g-force, inertia    │
  │ 7. Interoceptive  │ Visceral heartbeat, lung constriction, nausea, pain │
  │ 8. Thermoceptive  │ Heat radiation, frost bite, fever, ambient chill    │
+ │ 9. Proprioceptive │ Body limb position, weight distribution, spatial orientation │
  └───────────────────┴─────────────────────────────────────────────────────┘
 ```
 
@@ -92,12 +91,12 @@ xychart-beta
 ```
 
 ### 3.1 Shannon Sensory Entropy ($H_{\text{sensory}}$)
-To measure the multi-sensory diversity of a scene and detect visual monoculture, the engine computes the Shannon Entropy across the 8 perceptual channels:
+To measure the multi-sensory diversity of a scene and detect visual monoculture, consider the Shannon Entropy across the 8 perceptual channels:
 
 $$p_i = \frac{C_i}{\sum_{k=1}^8 C_k}, \qquad H_{\text{sensory}} = -\sum_{i=1}^8 p_i \log_2(p_i) \quad [\text{bits}]$$
 
 Where:
-- $C_i$: Frequency count of matched sensory descriptors for channel $i$.
+- $C_i$: Frequency count of sensory descriptors for channel $i$.
 - For an 8-channel uniform distribution ($p_i = \frac{1}{8} = 0.125$):
   $$H_{\text{max}} = \log_2(8) = 3.0 \text{ bits}$$
 
@@ -134,42 +133,17 @@ $$K_{\text{nv}} = \frac{\sum_{i \ne \text{visual}} C_i}{C_{\text{visual}} + 1.0}
 
 ---
 
-## 5. Ars Arcanum Engine & CLI Architecture
+## 5. Author Self-Editing Rubric & Diagnostic Checklist
 
-```mermaid
-flowchart LR
-    ProseMD["Scene Markdown (.md)"] --> LexiconMatcher["8-Channel Sensory Lexicon Parser"]
-    LexiconMatcher --> Vector["Channel Counts C = [C₁, C₂, ..., C₈]"]
-    Vector --> ShannonCalc["Shannon Entropy & Immersion Index Calculator"]
-    Vector --> WhiteRoomLinter["White Room & Monoculture Detector"]
-    
-    ShannonCalc & WhiteRoomLinter --> SVGRadar["Interactive Standalone SVG Radar Chart"]
-    ShannonCalc & WhiteRoomLinter --> HTMLReport["Sensory Diagnostic Dossier"]
-```
+When revising a chapter for sensory depth, test your scene against this checklist:
 
-### 5.1 CLI Command Reference
-
-```powershell
-# Analyze sensory channel balance and Shannon entropy across manuscript
-arcanum senses Manuscript/
-
-# Audit a single scene for White Room Syndrome with standalone SVG radar chart
-arcanum sensory Manuscript/Act_2/Chapter_11.md --radar reports/ch11_radar.svg
-
-# Generate full sensory immersion HTML dashboard
-arcanum senses Manuscript/ --html reports/sensory_immersion.html
-```
-
-### 5.2 Diagnostic Codes Matrix
-
-| Code | Severity | Description | Remediating Action |
-|---|---|---|---|
-| `SNS-101` | **CRITICAL** | White Room Syndrome (Scene $> 300\text{ words}$ with $\sum_{i \ne \text{vis}} C_i < 2$) | Ground scene in at least 3 non-visual sensory modalities (sound, texture, temperature). |
-| `SNS-102` | **HIGH** | Sensory Monoculture ($p_{\text{visual}} \ge 0.88$) | Replace visual descriptions with auditory, olfactory, or tactile textures. |
-| `SNS-103` | **MEDIUM** | Low Sensory Entropy ($H_{\text{sensory}} < 1.20\text{ bits}$) | Diversify sensory channels; incorporate vestibular balance and interoceptive reflexes. |
-| `SNS-104` | **LOW** | Gustatory / Olfactory Absence in Food or Combat Scene | Add distinctive scent notes or chemical taste sensations to trigger limbic memory. |
-| `SNS-105` | **MEDIUM** | Kinetic Combat Without Proprioception/Interoception | Inject physical exhaustion, bruised ribs, adrenaline crash, or balance shifts. |
-| `SNS-106` | **LOW** | Synesthetic Mismatch / Cliché Sensory Blending | Ensure synesthetic metaphors maintain universe-authentic physical logic. |
+| Sensory Diagnostic | Flaw & Symptom | Self-Editing Remediating Action |
+|---|---|---|
+| **White Room Syndrome** | Characters talking in an ungrounded void; scene exceeds 300 words with zero tactile, acoustic, or olfactory cues. | Ground scene opening immediately in at least 3 non-visual modalities (e.g. cold wind, floor vibration, smell of damp wood). |
+| **Visual Monoculture** | $> 85\%$ of all descriptive tokens are sight verbs and color adjectives. | Replace visual descriptions with sound reverberations, air pressure, or physical texture against clothing/skin. |
+| **Low Sensory Entropy** | Descriptive palette restricted to 1 or 2 repetitive senses (e.g. only sight and generic sound). | Incorporate interoceptive reflexes (heart rate, gut tension) and vestibular balance shifts during kinetic moments. |
+| **Sterile Combat Scene** | Action reads like a choreographed script without somatic fatigue or bodily consequence. | Inject heavy breath intake, stinging sweat in eyes, metallic tang of adrenaline, and bruising impacts. |
+| **Cliché Sensory Pairing** | Conventional stock descriptions (e.g. "blood was red", "grass was green", "the fire was hot"). | Defamiliarize through specific tactile micro-textures or worldbuilding-specific olfactory resonances. |
 
 ---
 
@@ -180,9 +154,9 @@ arcanum senses Manuscript/ --html reports/sensory_immersion.html
 #### Flawed Amateur Draft (Visual Monoculture / White Room Syndrome):
 > Valeria entered the secret alchemy laboratory. The room was dark and lit by glowing green lanterns on the stone walls. She saw large glass beakers filled with red liquids on the wooden tables. In the center of the room was an old metal cauldron. An ancient grimoire lay on the desk with strange symbols drawn on the parchment. It looked very dangerous.
 
-**Engine Diagnostics:**
+**Diagnostics:**
 - Visual Channel: $100\%$ (*dark, glowing, green, stone, saw, large, glass, red, wooden, old, metal, strange, looked*).
-- Non-Visual Channels: $0\%$ (**SNS-101: WHITE ROOM SYNDROME DETECTED**).
+- Non-Visual Channels: $0\%$ (**Severe White Room Syndrome**).
 - Shannon Sensory Entropy: $H_{\text{sensory}} = 0.0\text{ bits}$ ($V_{\text{immersion}} = 0\%$).
 
 #### Masterclass Revision (8-Channel Immersion, High Shannon Entropy):
@@ -192,13 +166,13 @@ arcanum senses Manuscript/ --html reports/sensory_immersion.html
 > Glass retorts hummed with internal steam, vibrating against the wet slate flagstones. *(Auditory)*  
 > As she stepped toward the central vat, the uneven floor pitched underfoot; her stomach lurched in sudden vertigo as the air pressure spiked, making her eardrums pop. *(Vestibular + Interoceptive)*
 
-**Engine Improvements:**
+**Improvements:**
 - 8-Channel Distribution: $V = 22\%, A = 14\%, O = 14\%, G = 14\%, T = 14\%, P = 11\%, \Theta = 11\%$.
-- Shannon Sensory Entropy: $H_{\text{sensory}} = 2.78\text{ bits}$ ($V_{\text{immersion}} = 92.7\%$) (**MASTERCLASS SENSORY HARMONY**).
+- Shannon Sensory Entropy: $H_{\text{sensory}} = 2.78\text{ bits}$ ($V_{\text{immersion}} = 92.7\%$) (**Virtuosic Multi-Modal Harmony**).
 
 ---
 
-### 6.2 Scene Sensory Palette Blueprint (YAML Schema)
+### 6.2 Scene Sensory Palette Blueprint (YAML Schema for Worldbuilding Notes)
 
 ```yaml
 ---

@@ -1,11 +1,9 @@
-# Ars Arcanum Narrative Pacing, Prose Rhythm & Tension Arc Architecture (`docs/PACING.md`)
-> **Domain E: Narrative Dynamics, Pacing, Structure & Branching** | **CLI Commands:** `arcanum pacing` / `arcanum rhythm` | **Module:** `scripts/lib/pacing.py`
+# Author Craft Masterclass: Narrative Pacing, Prose Rhythm & Tension Modulation (`docs/PACING.md`)
+> **Craft Discipline: Narrative Dynamics, Pacing, Prose Cadence & Dramatic Waveforms**
 
 ---
 
 ## 1. Overview & Theoretical Rationale
-
-The **Ars Arcanum Pacing Engine** (`scripts/lib/pacing.py`) is an offline mathematical, stylostatistical, and cognitive rhythm analyzer engineered for speculative fiction authors, dramatists, and narrative designers.
 
 Pacing is the temporal velocity at which a story moves through dramatic information, cognitive tension, and prose cadence. A 120,000-word novel can feel sluggish and bloated or electric and propulsive depending not merely on what events occur, but on the micro-level **syntactic waveforms**, the **syllabic compression ratios**, and the macro-level **dialogue-to-exposition density**.
 
@@ -28,8 +26,8 @@ flowchart TD
         Cliffhanger["Zeigarnik Effect & Chapter Cliffhanger Cadence"]
     end
 
-    MicroAcoustic & Mesotextual & MacroCognitive --> Engine["Ars Arcanum Pacing Engine"]
-    Engine --> SVG["Interactive Standalone SVG Rhythm & Velocity Visualizer"]
+    MicroAcoustic & Mesotextual & MacroCognitive --> Craft["Authorial Pacing & Tension Mastery"]
+    Craft --> Manuscript["Propulsive, Emotionally Resonant Prose"]
 ```
 
 ---
@@ -113,15 +111,8 @@ $$\mu_L = \frac{1}{N} \sum_{i=1}^N L_i, \qquad \sigma_L = \sqrt{\frac{1}{N} \sum
 
 $$\text{Rhythm Health Index } \mathcal{R} = \min\left(100.0, \, \frac{\sigma_L}{\sigma_{\text{target}}} \times 100.0\right) \quad (\sigma_{\text{target}} \approx 7.5\text{ words})$$
 
-### 3.3 Fourier Cadence Spectral Density ($F(k)$)
-To detect artificial, mechanical cadence loops (e.g., rigidly alternating between 6-word and 20-word sentences), the engine computes the Discrete Fourier Transform (DFT) of the sentence length series:
-
-$$F(k) = \sum_{n=0}^{N-1} L_n \cdot e^{-i \frac{2\pi}{N} k n}, \quad k = 0, 1, \dots, N-1$$
-
-Dominance of specific non-zero frequencies indicates unnatural rhythmic pulsing, whereas a balanced pink-noise spectral distribution characterizes natural, masterclass prose music.
-
-### 3.4 Quad-Mode Prose Distribution Vector ($\vec{Q}$)
-Every sentence is categorized into one of four fundamental narrative modes:
+### 3.3 Quad-Mode Prose Distribution Vector ($\vec{Q}$)
+Every sentence in a drafted scene falls into one of four fundamental narrative modes:
 $$\vec{Q} = \left[ \frac{W_{\text{Dialogue}}}{W_{\text{total}}}, \, \frac{W_{\text{Action}}}{W_{\text{total}}}, \, \frac{W_{\text{Monologue}}}{W_{\text{total}}}, \, \frac{W_{\text{Exposition}}}{W_{\text{total}}} \right]$$
 
 $$\sum Q_i = 1.0$$
@@ -135,42 +126,18 @@ $$\sum Q_i = 1.0$$
 
 ---
 
-## 4. Ars Arcanum Engine & CLI Architecture
+## 4. Author Self-Editing Rubric & Diagnostic Checklist
 
-```mermaid
-flowchart LR
-    ChapterMD["Chapter Markdown"] --> Parser["Regex Sentence & Clause Parser"]
-    Parser --> ProvostEngine["Provost Waveform & σ Calculator"]
-    Parser --> QuadEngine["Quad-Mode Classifier"]
-    Parser --> CliffEngine["Zeigarnik Cliffhanger Auditor"]
-    
-    ProvostEngine & QuadEngine & CliffEngine --> Report["Pacing Diagnostics & SVG Visualizer"]
-```
+When revising a manuscript for pacing, evaluate your draft against this diagnostic rubric:
 
-### 4.1 CLI Command Reference
-
-```powershell
-# Run pacing and rhythm audit on full manuscript
-arcanum pacing Manuscript/
-
-# Inspect sentence length waveform and Provost variance for a specific chapter
-arcanum rhythm Manuscript/Act_1/Chapter_03.md
-
-# Generate interactive SVG tension waveform and quad-mode distribution report
-arcanum pacing Manuscript/ --html reports/pacing_dashboard.html
-```
-
-### 4.2 Diagnostic Codes Matrix
-
-| Code | Severity | Description | Remediating Action |
-|---|---|---|---|
-| `PAC-101` | **HIGH** | Monotonous Syntactic Cadence ($\sigma_L \le 3.2$) | Vary sentence lengths: combine short declaratives with compound-complex periods; inject 1-3 word staccato lines. |
-| `PAC-102` | **HIGH** | Exposition Drag / Lore Dump ($W_{\text{exposition}} > 450\text{ words}$ uninterrupted) | Break exposition blocks with character dialogue, immediate physical action, or sensory reactions. |
-| `PAC-103` | **MEDIUM** | Flatline Narrative Velocity ($V < 0.8$) | Introduce an active obstacle, reveal a hidden motive, or advance the ticking clock. |
-| `PAC-104` | **MEDIUM** | Missing Zeigarnik Hook at Chapter Close | End the chapter on an unresolved physical crisis, shocking disclosure, or irrevocable dilemma. |
-| `PAC-105` | **LOW** | Low Dialogue-to-Exposition Ratio ($R_{\text{de}} < 0.25$) in High-Stakes Scene | Dramatize internal revelations through verbal confrontation or interrogation. |
-| `PAC-106` | **MEDIUM** | POV Starvation (Protagonist missing for $> 4\text{ chapters}$) | Rebalance chapter rotation; interleave brief POV interludes or reorder subplot sequence. |
-| `PAC-107` | **LOW** | Syllabic Sluggishness in Action Beat ($> 28\%$ polysyllabic words) | Replace Latinate terms (*extinguish, terminate, accelerate*) with Anglo-Saxon verbs (*snuff, kill, sprint*). |
+| Pacing Diagnostic | Symptom & Cause | Self-Editing Remediating Action |
+|---|---|---|
+| **Monotonous Cadence** | Sentences hover at similar lengths ($\sigma_L \le 3.2$), causing auditory trance. | Deliberately vary sentence lengths: shatter compound clauses into 1–4 word staccato lines; build toward 25+ word cumulative rhythmic periods. |
+| **Exposition Drag** | $> 450$ words of uninterrupted background lore or technical worldbuilding. | Weave lore into live dialogue, immediate tactile obstacles, or visceral sensory reactions during high-stakes actions. |
+| **Flatline Velocity** | Long scene spans where no new dramatic information or character choices emerge ($V < 0.8$). | Introduce an active impediment, reveal a concealed motivation, or ratchet the ticking clock. |
+| **Missing Zeigarnik Hook** | Chapter ends neatly with characters going to sleep or resting with no open loops. | Conclude on an unresolved sensory shock, an ambiguous discovery, or an irreversible tactical ultimatum. |
+| **Stilted Stakes in Dialogue** | High-conflict confrontation rendered mostly in dry third-person exposition ($R_{\text{de}} < 0.25$). | Shift the conflict into sharp, subtext-laden spoken dialogue with conflicting conversational agendas. |
+| **Syllabic Sluggishness** | Action scene bogged down with heavy Latinate vocabulary ($> 28\%$ polysyllabic terms). | Replace abstract Latinate phrasing (*extinguish, terminate, accelerate*) with punchy Anglo-Saxon verbs (*snuff, strike, bolt*). |
 
 ---
 
@@ -181,8 +148,8 @@ arcanum pacing Manuscript/ --html reports/pacing_dashboard.html
 #### Flawed Amateur Draft (Monotonous Cadence, Syllabic Drag, Low Velocity):
 > Kaelen walked toward the subterranean command center. The steel doors were exceedingly impenetrable and heavily reinforced. He examined the complex biometric console with great trepidation. The electronic display requested his authorization code immediately. He remembered the numerical sequence from his briefing. He typed the digits into the terminal carefully. The green light illuminated above the door frame. He walked inside the room to confront the enemy.
 
-**Stylostatistical Diagnostics:**
-- Word count: 68 words | 8 sentences | $\mu = 8.5\text{ words}$ | $\sigma = 1.6\text{ words}$ (**SEVERE MONOTONY — PAC-101**).
+**Diagnostics:**
+- Word count: 68 words | 8 sentences | $\mu = 8.5\text{ words}$ | $\sigma = 1.6\text{ words}$ (**Severe Monotony**).
 - Syllabic profile: High polysyllabic density (*subterranean, impenetrable, trepidation, authorization, illuminated*).
 - Dramatic velocity: Flatline ($V \approx 0.0$).
 
@@ -195,14 +162,14 @@ arcanum pacing Manuscript/ --html reports/pacing_dashboard.html
 > Down the steel corridor, boot-spikes scraped the grated floor; the Praetorian kill-squad was thirty seconds out, weapons charged, zero margin left for prayer. *(23 words)*  
 > Kaelen drew his blade. *(4 words)*
 
-**Stylostatistical Improvements:**
+**Improvements:**
 - Word count: 79 words | 7 sentences | Sentence lengths: $[4, 10, 32, 4, 2, 23, 4]$.
-- Mean $\mu = 11.3\text{ words}$ | Standard Deviation $\sigma = 10.9\text{ words}$ (**VIRTUOSIC PROVOST CADENCE**).
+- Mean $\mu = 11.3\text{ words}$ | Standard Deviation $\sigma = 10.9\text{ words}$ (**Virtuosic Provost Cadence**).
 - Monosyllabic Anglo-Saxon bursts mixed with expansive sensory periods.
 
 ---
 
-### 5.2 Chapter Pacing & Tension Blueprint (YAML Schema)
+### 5.2 Chapter Pacing & Tension Blueprint (YAML Schema for Scene Planning)
 
 ```yaml
 ---
