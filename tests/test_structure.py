@@ -273,6 +273,33 @@ class TestStructureEngine(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertIn("Character Arc", mock_out.getvalue())
 
+    def test_author_tagged_beats_mapping_and_drift(self):
+        """Verify frontmatter beat tags and inline @beat: directives are parsed and assigned properly."""
+        words_chunk = "Word " * 100
+        # 10 chapters: Chapter 5 is at 50%
+        for i in range(1, 11):
+            (self.target_dir / f"{i:02d}_Ch.md").write_text(f"# Chapter {i}\n\n{words_chunk}\n", encoding="utf-8")
+
+        # Tag Inciting Incident late in Chapter 6 (60% instead of standard 12%)
+        (self.target_dir / "06_Ch.md").write_text(f"---\nbeat: Inciting Incident\n---\n# Chapter 6\n\n{words_chunk}\n", encoding="utf-8")
+
+        # Tag Midpoint with inline directive in Chapter 5
+        (self.target_dir / "05_Ch.md").write_text(f"@beat: Midpoint\n# Chapter 5\n\n{words_chunk}\n", encoding="utf-8")
+
+        report = scan_manuscript_structure(self.target_dir, paradigm_key="three_act")
+        beats_by_name = {b["beat_name"]: b for b in report["beats"]}
+
+        self.assertIn("Inciting Incident", beats_by_name)
+        inciting = beats_by_name["Inciting Incident"]
+        self.assertTrue(inciting["is_author_tagged"])
+        self.assertEqual(inciting["assigned_chapter"], 6)
+        self.assertFalse(inciting["is_in_window"])  # Marked as drifted because 60% > 16% window
+
+        self.assertIn("Midpoint", beats_by_name)
+        mid = beats_by_name["Midpoint"]
+        self.assertTrue(mid["is_author_tagged"])
+        self.assertEqual(mid["assigned_chapter"], 5)
+        self.assertTrue(mid["is_in_window"])
 
 
 if __name__ == "__main__":

@@ -185,6 +185,42 @@ It was a dark and tempestuous night.
         self.assertEqual(fm_none, {})
         self.assertEqual(body_none, no_fm)
 
+    def test_parse_nested_dictionaries_and_block_scalars(self):
+        content = """---
+name: Eldoria Prime
+astrophysics:
+  mass_solar: 1.25
+  radius_km: 7200.5
+  atmosphere:
+    pressure_atm: 1.05
+    habitable: true
+currencies:
+  - name: Sovereign
+    rate: 1.0
+  - name: Shilling
+    rate: 0.1
+synopsis: |
+  Line 1 of synopsis.
+  Line 2 of synopsis.
+---
+# Body content
+"""
+        fm, body = extract_frontmatter_and_body(content)
+        self.assertEqual(fm["name"], "Eldoria Prime")
+        self.assertIsInstance(fm["astrophysics"], dict)
+        self.assertEqual(fm["astrophysics"]["mass_solar"], 1.25)
+        self.assertEqual(fm["astrophysics"]["radius_km"], 7200.5)
+        self.assertIs(fm["astrophysics"]["atmosphere"]["habitable"], True)
+        self.assertEqual(fm["astrophysics"]["atmosphere"]["pressure_atm"], 1.05)
+        self.assertIsInstance(fm["currencies"], list)
+        self.assertEqual(len(fm["currencies"]), 2)
+        self.assertEqual(fm["currencies"][0]["name"], "Sovereign")
+        self.assertEqual(fm["currencies"][0]["rate"], 1.0)
+        self.assertEqual(fm["currencies"][1]["name"], "Shilling")
+        self.assertEqual(fm["currencies"][1]["rate"], 0.1)
+        self.assertEqual(fm["synopsis"], "Line 1 of synopsis.\nLine 2 of synopsis.")
+        self.assertIn("# Body content", body)
+
 
 if __name__ == "__main__":
     unittest.main()

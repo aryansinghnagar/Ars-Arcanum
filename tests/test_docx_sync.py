@@ -28,6 +28,7 @@ from lib.docx_sync import (
     build_manuscript_docx,
     convert_docx_to_markdown,
     escape_xml,
+    extract_docx_comments,
     get_file_sha256,
     main,
     open_in_word_processor,
@@ -421,6 +422,70 @@ Updated prose from word editor.
                 with self.assertRaises(SystemExit) as cm:
                     main()
                 self.assertEqual(cm.exception.code, 0)
+
+    def test_convert_docx_track_changes_deleted_text_excluded(self):
+        """Verify that text within <w:del> (Track Changes deletion) is not resurrected into Markdown."""
+        doc_xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p>
+      <w:r><w:t>The hero survived </w:t></w:r>
+      <w:del w:id="1" w:author="Editor">
+        <w:r><w:delText>the fatal blast</w:delText></w:r>
+      </w:del>
+      <w:ins w:id="2" w:author="Editor">
+        <w:r><w:t>the ambush unscathed.</w:t></w:r>
+      </w:ins>
+    </w:p>
+  </w:body>
+</w:document>"""
+        sample_docx = self.root / "track_changes.docx"
+        with zipfile.ZipFile(sample_docx, "w") as zf:
+            zf.writestr("word/document.xml", doc_xml)
+
+        md = convert_docx_to_markdown(sample_docx)
+        self.assertIn("The hero survived the ambush unscathed.", md)
+        self.assertNotIn("fatal blast", md)
+
+    def test_extract_docx_comments_and_sidecar_sync(self):
+        """Verify comments.xml extraction and sidecar .comments.json writing in sync."""
+        comments_xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:comments xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:comment w:id="1" w:author="Beta Reader" w:date="2026-10-07T12:00:00Z">
+    <w:p><w:r><w:t>Pacing feels a bit slow here.</w:t></w:r></w:p>
+  </w:comment>
+</w:comments>"""
+        doc_xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p><w:r><w:t>Chapter one text.</w:t></w:r></w:p>
+  </w:body>
+</w:document>"""
+        commented_docx = self.root / "commented.docx"
+        with zipfile.ZipFile(commented_docx, "w") as zf:
+            zf.writestr("word/document.xml", doc_xml)
+            zf.writestr("word/comments.xml", comments_xml)
+
+        comments = extract_docx_comments(commented_docx)
+        self.assertEqual(len(comments), 1)
+        self.assertEqual(comments[0]["author"], "Beta Reader")
+        self.assertEqual(comments[0]["text"], "Pacing feels a bit slow here.")
+
+        # Test sync creates .comments.json sidecar
+        ms_dir = self.root / "SyncCommentsNovel"
+        draft_dir = ms_dir / "Book-01" / "Draft-01" / "01_Act_I"
+        draft_dir.mkdir(parents=True, exist_ok=True)
+        (ms_dir / "manuscript.yaml").write_text("title: \"Commented Novel\"\n", encoding="utf-8")
+        target_docx = draft_dir / "01_Chapter_01.docx"
+        with zipfile.ZipFile(target_docx, "w") as zf:
+            zf.writestr("word/document.xml", doc_xml)
+            zf.writestr("word/comments.xml", comments_xml)
+
+        res = sync_manuscript_docx(ms_dir, draft_name="Draft-01")
+        self.assertIn("01_Chapter_01.md", res["docx_to_md"][0])
+        sidecar_file = draft_dir / "01_Chapter_01.comments.json"
+        self.assertTrue(sidecar_file.is_file())
+        self.assertIn("Beta Reader", sidecar_file.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

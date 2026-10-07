@@ -6,6 +6,30 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## [0.1.0] - 2026-10-07
 
+### Added & Hardened (Multi-Lens Architectural Remediations & Sovereign Modernization)
+- **Recursive Pure-Python YAML AST Parser (`scripts/lib/frontmatter.py`)**:
+  - Engineered zero-pip recursive YAML parser handling arbitrary dictionary nesting, lists of mapping objects (`items:\n  - key: val`), inline arrays, and multi-line block scalars (`|`, `>`).
+  - Added typed scalar coercion for booleans, integers, floats, and strings without `PyYAML` dependency.
+- **Thread-Safe LRU Caching & Programmatic Eviction (`scripts/lib/data_access.py`)**:
+  - Implemented `OrderedDict` LRU cache bounded at 500 entries to prevent memory unbounded growth across massive multi-gigabyte vaults.
+  - Added explicit `dal.evict(path)` cache invalidation hook for save/write operations.
+- **WordprocessingML Track Changes Exclusion & Comment Sidecar Sync (`scripts/lib/docx_sync.py`)**:
+  - Isolated `<w:del>` nodes during OpenXML paragraph parsing to eliminate zombie deleted text resurrection on Markdown re-import.
+  - Added `extract_docx_comments()` parsing `word/comments.xml` and emitted structured `.comments.json` sidecars in `sync_manuscript_docx()`.
+- **Author-Tagged Dramatic Beat Drift Detection (`scripts/lib/structure.py`)**:
+  - Added support for frontmatter `beat:` declarations and inline `@beat:` directives.
+  - Aligned author-tagged beats against paradigm target windows and calculated $L_1$ structural drift penalties.
+- **Natural Language Disambiguation & Pattern Hardening**:
+  - Added `TEMPORAL_PREPOSITION_EXCLUSIONS` and word-bounded currency matching in `scripts/lib/economy.py` to eliminate false positives on temporal phrases ("coins for a moment").
+  - Added sentence-initial transition and adverb exclusions to `PRONOUN_EXCLUSIONS` in `scripts/lib/series_continuity.py`.
+  - Added flexible regex header matching for custom Obsidian notes in `scripts/lib/magic_system.py`.
+- **Studio Hub Atomic Persistence REST API (`scripts/lib/studio_hub.py`)**:
+  - Implemented `POST /api/chapter/save` endpoint with strict Origin validation, path containment verification, `.md` extension enforcement, atomic file replacement, and DAL cache eviction.
+  - Refactored `do_POST` handler into discrete sub-dispatchers to eliminate `C901` cyclomatic complexity.
+- **Test Suite & Verification Metrics**:
+  - Expanded automated test discovery to **879 tests** (877 passing, 2 skipped on Windows, 0 failures) across 204 source files.
+  - Maintained 0 Ruff linter violations, 0 Mypy errors, and $\ge 80\%$ statement coverage.
+
 ### Added & Hardened (Universal Modularization, CI Modernization & Comprehensive Documentation)
 - **Core Engine Modularization (<800 lines/file Invariant)**:
   - Modularized `scope.py` into `scripts/lib/scope_models.py`, `scope_parser.py`, and `scope_resolver.py`.
@@ -26,7 +50,6 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Modernized `.github/workflows/ci.yml` across Ubuntu, macOS, and Windows with Python 3.10, 3.11, 3.12, and 3.13 matrix.
   - Enforced strict static typecheck (`mypy --config-file mypy.ini --explicit-package-bases scripts tests`), Bandit SAST, and `--fail-under=80` coverage gate.
   - Updated `scripts/verify.sh` with full CLI entrypoint smoke testing across all 47 engines and newly added commands (`resonance`, `scope`, `tip`, `studio`, `hub`, `doc`).
-  - Reached 868 automated unit & integration tests (0 failures), 203 source files clean under Mypy, and 80%+ code coverage.
 - **Universal Resonance Mesh Decomposition (`scripts/lib/resonance.py`, `resonance_data.py`, `resonance_template.py`)**:
   - Decomposed monolithic `resonance.py` (1,796 lines $\to$ 646 lines) into modular domain catalogs and presentation layers.
   - Extracted 47 foundational domain specs, 71 cross-domain causal edges, 9 structural isomorphisms, and deterministic cascade engine into `scripts/lib/resonance_data.py` (591 lines).

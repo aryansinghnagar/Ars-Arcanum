@@ -9,6 +9,7 @@ Shared bootstrap module providing:
 4. Common CLI execution helpers.
 """
 
+import re
 import sys
 from pathlib import Path
 
@@ -114,12 +115,50 @@ def sanitize_identifier(name: str, fallback: str = "item") -> str:
     return safe
 
 
+# 5. Canonical Prose Word Counter (ANA-01)
+_FRONTMATTER_PATTERN = re.compile(r"^---\s*\r?\n(.*?)\r?\n---\s*(?:\r?\n|$)", re.DOTALL)
+_FENCED_CODE_PATTERN = re.compile(r"```[\s\S]*?```", re.DOTALL)
+_HTML_COMMENT_PATTERN = re.compile(r"<!--[\s\S]*?-->", re.DOTALL)
+_NW_TAG_LINE_PATTERN = re.compile(r"^@[A-Za-z0-9_-]+:", re.MULTILINE)
+_WORD_PATTERN = re.compile(r"\b\w+\b", re.UNICODE)
+
+
+def count_prose_words(text: str) -> int:
+    """
+    Canonical, Unicode-aware prose word counter across all Ars Arcanum engines.
+    Strips YAML frontmatter headers, fenced code blocks, HTML comments,
+    Typst comment lines (%), and NovelCrafter scene directives (@tag:).
+    """
+    if not text:
+        return 0
+    clean = _FRONTMATTER_PATTERN.sub("", text)
+    clean = _FENCED_CODE_PATTERN.sub("", clean)
+    clean = _HTML_COMMENT_PATTERN.sub("", clean)
+    lines = []
+    for ln in clean.splitlines():
+        s = ln.strip()
+        if not s:
+            continue
+        if s.startswith("@") and _NW_TAG_LINE_PATTERN.match(s):
+            continue
+        if s.startswith("%"):
+            continue
+        lines.append(ln)
+    return len(_WORD_PATTERN.findall("\n".join(lines)))
+
+
+# Canonical alias
+count_words = count_prose_words
+
+
 __all__ = [
     "LIB_DIR",
     "PROJECT_ROOT",
     "SCRIPTS_DIR",
     "WINDOWS_RESERVED_NAMES",
     "atomic_write",
+    "count_prose_words",
+    "count_words",
     "sanitize_identifier",
     "validate_volume_name",
 ]

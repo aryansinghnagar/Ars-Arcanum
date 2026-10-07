@@ -156,6 +156,25 @@ He also paid with 50 Galactico credits for wine.
         ids = [f["id"] for f in findings]
         self.assertIn("ECO-102", ids)
 
+    def test_audit_temporal_preposition_exclusion(self):
+        """Verify temporal prepositional idioms like 'coins for a moment' do not trigger false anomalies."""
+        (self.world_dir / "Economies" / "Imperial.md").write_text("""---
+name: "Imperial Economy"
+base_currency: "Gold Crown"
+currencies:
+  - "Gold Crown: 1.0"
+---
+""", encoding="utf-8")
+
+        (self.ms_dir / "Book-01" / "01_Act_I" / "01_Chapter.md").write_text("""# Chapter 1
+He stared at the 5 gold coins for a moment before turning away.
+She counted 10 silver coins for an hour in the quiet tower.
+""", encoding="utf-8")
+
+        econs = extract_economy_profiles(self.world_dir)
+        findings = audit_manuscript_prices(self.ms_dir, econs)
+        self.assertEqual(len(findings), 0)
+
     def test_audit_technological_anachronisms(self):
         (self.ms_dir / "Book-01" / "01_Act_I" / "01_Scene.md").write_text("""# Scene
 The knight polished his plate armor and checked the radar screen before wrapping his food in plastic.

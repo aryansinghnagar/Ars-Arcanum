@@ -39,7 +39,7 @@
 
 | Command | Purpose | Verification Evidence | CI Enforcement Status |
 |---|---|---|---|
-| `python -m unittest discover tests` | Run complete unit and regression test suite (871 tests) | [`tests/test_*.py`](file:///tests/) | **Enforced in CI** ([`.github/workflows/ci.yml#L36`](file:///.github/workflows/ci.yml#L36)) |
+| `python -m unittest discover tests` | Run complete unit and regression test suite (879 tests) | [`tests/test_*.py`](file:///tests/) | **Enforced in CI** ([`.github/workflows/ci.yml#L36`](file:///.github/workflows/ci.yml#L36)) |
 | `ruff check .` | Strict linting across 9 rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | [`pyproject.toml#L15-L35`](file:///pyproject.toml#L15-L35) | **Enforced in CI** ([`.github/workflows/ci.yml#L33`](file:///.github/workflows/ci.yml#L33)) |
 | `mypy --explicit-package-bases scripts tests` | Static type checking with `check_untyped_defs = True` (204 source files) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25) | **Enforced in CI** ([`.github/workflows/ci.yml#L34`](file:///.github/workflows/ci.yml#L34)) |
 | `coverage run -m unittest discover tests; coverage report --fail-under=80` | Measure and enforce aggregate test coverage threshold ($\ge 80\%$) | [`pyproject.toml#L35-L45`](file:///pyproject.toml#L35-L45) | **Enforced in CI** ([`.github/workflows/ci.yml#L38`](file:///.github/workflows/ci.yml#L38)) |
@@ -79,7 +79,7 @@
 │       ├── economy.py         # Macroeconomic PPP validator & tech anachronism auditor
 │       └── [Craft Engines]    # Astrophysics, climate, genealogy, conlang, causality, magic...
 ├── templates/                 # Scaffolding templates for World Bibles, manuscripts, and universes
-└── tests/                     # Comprehensive unittest suite across all 47 engines (871 tests)
+└── tests/                     # Comprehensive unittest suite across all 47 engines (879 tests)
 ```
 
 ---
@@ -202,9 +202,10 @@ flowchart LR
 * **Capabilities**: Parses integer lists and ranges (`1-5`, `1,3,7-10`, `ch01..ch05`), scene slices (`1-3`, `sc01..sc02`), universe names, worlds, and lore categories.
 * **Context Invariants**: Resolves defaults from active manuscript/world configuration, working directory, or single-project discovery.
 
-#### 2. Centralized Data Access Layer ([`scripts/lib/data_access.py`](file:///scripts/lib/data_access.py))
-* **Responsibility**: Eliminates redundant disk reads and YAML AST parsing.
-* **Mechanisms**: Thread-safe caching keyed on filesystem modification time (`mtime`) and file size; automatic cache invalidation when files mutate.
+#### 2. Centralized Data Access Layer & Pure-Python YAML AST ([`scripts/lib/data_access.py`](file:///scripts/lib/data_access.py), [`scripts/lib/frontmatter.py`](file:///scripts/lib/frontmatter.py))
+* **Responsibility**: Eliminates redundant disk reads and YAML AST parsing via thread-safe memoization.
+* **Mechanisms**: Thread-safe `OrderedDict` LRU caching (500-file capacity) keyed on filesystem modification time (`mtime`) and file size; automatic cache invalidation when files mutate and explicit programmatic `.evict(path)` invalidation.
+* **Recursive AST Parser**: Fully standard-library recursive YAML parser in `frontmatter.py` supporting nested mappings, object lists, block scalars, and typed scalar coercion without `PyYAML`.
 
 #### 3. Universal Resonance & Synergy Mesh ([`scripts/lib/resonance.py`](file:///scripts/lib/resonance.py), [`scripts/lib/resonance_data.py`](file:///scripts/lib/resonance_data.py))
 * **Responsibility**: Maps and audits causal, economic, and thematic cross-domain graph bridges across 5 master pillars (*Narrative, Science, Social, Mythic, Material*).
@@ -212,7 +213,12 @@ flowchart LR
 
 #### 4. Two-Way Word Synchronization & In-Situ Comment Anchors ([`scripts/lib/docx_sync.py`](file:///scripts/lib/docx_sync.py), [`scripts/lib/docx_builder.py`](file:///scripts/lib/docx_builder.py))
 * **Responsibility**: Synchronizes Microsoft Word `.docx` manuscripts with plain Markdown files.
+* **Track Changes & Comments**: Excludes `<w:del>` tracked deletions to prevent resurrecting deleted prose on import; extracts `<w:comment>` margin comments into companion `.comments.json` sidecars during manuscript synchronization.
 * **Preservation Guarantees**: Differentiates top-level YAML frontmatter from mid-document `@scene:`, `@pov:`, and `%` comments, keeping metadata anchored to the exact prose paragraphs during bidirectional roundtrips.
+
+#### 5. Studio Hub & Restful Atomic Persistence ([`scripts/lib/studio_hub.py`](file:///scripts/lib/studio_hub.py))
+* **Responsibility**: Browser-based telemetry cockpit, scope selector, engine runner, and chapter drafting hub.
+* **Atomic Save API**: Exposes `POST /api/chapter/save` validating path traversal invariants, verifying `.md` file extensions, executing atomic replacement on disk, and evicting cached AST entries in the Data Access Layer.
 
 ---
 
@@ -231,11 +237,12 @@ flowchart LR
 
 ### 3.4 Key Footnotes & Local File Citations
 
-1. [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py): Establishes atomic write primitives, POSIX/Windows directory resolution, and path sanitization.
-2. [`scripts/lib/data_access.py`](file:///scripts/lib/data_access.py): Establishes thread-safe cached AST access and frontmatter querying.
-3. [`scripts/lib/scope.py`](file:///scripts/lib/scope.py): Establishes universal granular scope models and range parsing algorithms.
-4. [`scripts/lib/lockfile.py`](file:///scripts/lib/lockfile.py): Establishes cross-platform flock/msvcrt file locking.
-5. [`scripts/lib/cli.py`](file:///scripts/lib/cli.py): Establishes authoritative command-line entrypoint and plugin dispatch.
-6. [`scripts/lib/registry.py`](file:///scripts/lib/registry.py): Establishes engine discovery, dynamic plugin loading, and advisory documentation formatting.
-7. [`tests/test_aria_accessibility.py`](file:///tests/test_aria_accessibility.py): Establishes automated ARIA accessibility and assistive technology compliance.
-8. [`scripts/setup_arcanum.ps1`](file:///scripts/setup_arcanum.ps1): Establishes 1-click Windows installation, workspace provisioning, and desktop launcher generation.
+1. [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py): Establishes atomic write primitives, POSIX/Windows directory resolution, Unicode word boundary counting, and path sanitization.
+2. [`scripts/lib/data_access.py`](file:///scripts/lib/data_access.py): Establishes thread-safe LRU cached AST access, frontmatter querying, and explicit cache eviction hooks.
+3. [`scripts/lib/frontmatter.py`](file:///scripts/lib/frontmatter.py): Establishes zero-pip recursive YAML frontmatter parsing and structured metadata extraction.
+4. [`scripts/lib/scope.py`](file:///scripts/lib/scope.py): Establishes universal granular scope models and range parsing algorithms.
+5. [`scripts/lib/lockfile.py`](file:///scripts/lib/lockfile.py): Establishes cross-platform flock/msvcrt file locking.
+6. [`scripts/lib/cli.py`](file:///scripts/lib/cli.py): Establishes authoritative command-line entrypoint and plugin dispatch.
+7. [`scripts/lib/registry.py`](file:///scripts/lib/registry.py): Establishes engine discovery, dynamic plugin loading, and advisory documentation formatting.
+8. [`tests/test_aria_accessibility.py`](file:///tests/test_aria_accessibility.py): Establishes automated ARIA accessibility and assistive technology compliance.
+9. [`scripts/setup_arcanum.ps1`](file:///scripts/setup_arcanum.ps1): Establishes 1-click Windows installation, workspace provisioning, and desktop launcher generation.

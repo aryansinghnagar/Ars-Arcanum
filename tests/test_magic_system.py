@@ -372,6 +372,25 @@ magic_tier: 1
                     main()
                 self.assertEqual(cm.exception.code, 2)
 
+    def test_customized_heading_names_extraction(self) -> None:
+        """Verify that customized section headers (e.g. '## Costs & Limitations', '## Schools of Magic') are parsed."""
+        (self.world_dir / "Magic-Technology" / "Custom_System.md").write_text("""---
+name: "Custom Sorcery"
+classification: "Hard Magic"
+---
+# Custom Sorcery
+## Costs & Limitations
+- Cannot resurrect the dead under any circumstance.
+## Schools of Magic
+- **Hydromancy**: Shaping pure water.
+""", encoding="utf-8")
+
+        profiles = extract_magic_profiles(self.world_dir)
+        self.assertIn("Custom Sorcery", profiles)
+        data = profiles["Custom Sorcery"]
+        self.assertIn("Hydromancy", data["disciplines"])
+        self.assertTrue(any("cannot resurrect" in lim.lower() for lim in data["hard_limitations"]))
+
 
 if __name__ == "__main__":
     unittest.main()

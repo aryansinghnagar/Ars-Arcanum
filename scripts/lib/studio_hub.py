@@ -228,38 +228,7 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             payload = {}
 
         if path == "/api/query":
-            # Scored relevance entity & lore search (API mode)
-            query = str(payload.get("query", "")).strip().lower()
-            q_terms = [t for t in re.split(r"\W+", query) if len(t) >= 2]
-            scored_matches = []
-            for e in self.data.get("lore_entities", []):
-                e_name = str(e.get("name", "")).lower()
-                e_summary = str(e.get("summary", "")).lower()
-                e_tags = [str(t).lower() for t in e.get("tags", [])]
-                score = 0.0
-                if query and query in e_name:
-                    score += 20.0
-                if query and query in e_summary:
-                    score += 5.0
-                for term in q_terms:
-                    if term in e_name:
-                        score += 8.0
-                    if any(term in tag for tag in e_tags):
-                        score += 4.0
-                    if term in e_summary:
-                        score += 2.0
-                if score > 0 or (not q_terms and query in e_name):
-                    entry = dict(e)
-                    entry["relevance_score"] = round(score, 2)
-                    scored_matches.append(entry)
-
-            scored_matches.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
-            self._send_json({
-                "query": query,
-                "search_mode": "relevance_scored",
-                "total_matches": len(scored_matches),
-                "results": scored_matches,
-            })
+            self._handle_query(payload)
         elif path == "/api/tips/toggle":
             new_val = toggle_tips()
             self._send_json({"status": "success", "enabled": new_val})
@@ -269,153 +238,245 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             set_tips_enabled(val)
             self._send_json({"status": "success", "enabled": val})
         elif path == "/api/council":
-            # Real-time multi-agent heuristic editorial council evaluation
-            text = str(payload.get("text", "")).strip()
-            words = text.split() if text else []
-            word_count = len(words)
-            sentences = [s.strip() for s in re.split(r"[.!?]+", text) if s.strip()]
-            sentence_lens = [len(s.split()) for s in sentences] if sentences else []
-
-            # 1. Line Editor Critique
-            if not text:
-                line_critique = "Empty passage. Enter text to run stylistic cadence analysis."
-            else:
-                avg_len = sum(sentence_lens) / len(sentence_lens) if sentence_lens else 0
-                run_ons = sum(1 for slen in sentence_lens if slen > 35)
-                passive_matches = len(re.findall(r"\b(?:was|were|is|are|been|being)\s+[a-z]+ed\b", text, re.IGNORECASE))
-                critique_notes = [f"Average sentence length: {avg_len:.1f} words across {len(sentences)} sentences."]
-                if run_ons > 0:
-                    critique_notes.append(f"Flagged {run_ons} potentially unwieldy sentence(s) (>35 words).")
-                if passive_matches > 0:
-                    critique_notes.append(f"Detected {passive_matches} passive voice construction(s).")
-                if len(sentence_lens) > 3:
-                    variance = sum((slen - avg_len) ** 2 for slen in sentence_lens) / len(sentence_lens)
-                    if variance < 4.0:
-                        critique_notes.append("Cadence alert: Sentence lengths are highly uniform; vary rhythm for dramatic tension.")
-                line_critique = " ".join(critique_notes)
-
-            # 2. Lore Arbiter Critique
-            lore_entities = self.data.get("lore_entities", [])
-            found_entities = []
-            text_lower = text.lower()
-            for ent in lore_entities:
-                ename = str(ent.get("name", ""))
-                if ename and ename.lower() in text_lower:
-                    found_entities.append(ename)
-            if found_entities:
-                lore_critique = f"Lore integrity verified: Identified {len(found_entities)} registered canon entities: {', '.join(found_entities[:5])}."
-            else:
-                lore_critique = "No registered World Bible entities detected in this excerpt."
-
-            # 3. Story Architect Critique
-            dialogue_quotes = len(re.findall(r'["“][^"”]+["”]', text))
-            dialogue_words = sum(len(q.split()) for q in re.findall(r'["“]([^"”]+)["”]', text))
-            dialogue_ratio = (dialogue_words / max(1, word_count)) * 100
-            if word_count == 0:
-                arch_critique = "No narrative draft supplied."
-            elif dialogue_ratio > 60:
-                arch_critique = f"Dialogue-heavy scene ({dialogue_ratio:.0f}% dialogue across {dialogue_quotes} turns). Ensure sensory anchoring and physical blocking."
-            elif dialogue_ratio < 10 and word_count > 100:
-                arch_critique = f"Exposition-dense passage ({dialogue_ratio:.0f}% dialogue). Consider interspersing character interaction or internal monologue."
-            else:
-                arch_critique = f"Balanced narrative structure ({dialogue_ratio:.0f}% dialogue, {word_count} total words)."
-
-            # 4. Continuity Steward Critique
-            date_matches = re.findall(r"\b(?:\d{4}-\d{2}-\d{2}|Act\s+[IVXLCDM\d]+|Chapter\s+\d+|Year\s+\d+)\b", text, re.IGNORECASE)
-            tag_matches = re.findall(r"@(chrono|state|choice|price|prophecy):", text)
-            steward_notes = []
-            if date_matches:
-                steward_notes.append(f"Temporal anchors detected: {', '.join(set(date_matches))}.")
-            if tag_matches:
-                steward_notes.append(f"Inline semantic metadata tags: {', '.join(set(tag_matches))}.")
-            if not steward_notes:
-                steward_notes.append("No explicit chronology tags or temporal markers in passage.")
-            continuity_critique = " ".join(steward_notes)
-
-            self._send_json({
-                "status": "success",
-                "word_count": word_count,
-                "sentence_count": len(sentences),
-                "critique": {
-                    "line_editor": line_critique,
-                    "lore_arbiter": lore_critique,
-                    "story_architect": arch_critique,
-                    "continuity_steward": continuity_critique,
-                },
-            })
+            self._handle_council(payload)
         elif path == "/api/branch":
-            # Branching narrative validation
             text = payload.get("text", "")
             choices = re.findall(r"@choice:\s*\[([^\]]+)\]\s*->\s*(\S+)", text)
             self._send_json({"total_choices": len(choices), "choices": choices})
-        elif path == "/api/resonance/cascade":
+        elif path.startswith("/api/resonance/"):
+            self._handle_resonance(path, payload)
+        elif path == "/api/scope":
+            self._handle_scope(payload)
+        elif path == "/api/engine/run":
+            self._handle_engine_run(payload)
+        elif path == "/api/chapter/save":
+            self._handle_chapter_save(payload)
+        else:
+            self.send_error(404, "Endpoint not found")
+
+    def _handle_query(self, payload: dict[str, Any]) -> None:
+        query = str(payload.get("query", "")).strip().lower()
+        q_terms = [t for t in re.split(r"\W+", query) if len(t) >= 2]
+        scored_matches = []
+        for e in self.data.get("lore_entities", []):
+            e_name = str(e.get("name", "")).lower()
+            e_summary = str(e.get("summary", "")).lower()
+            e_tags = [str(t).lower() for t in e.get("tags", [])]
+            score = 0.0
+            if query and query in e_name:
+                score += 20.0
+            if query and query in e_summary:
+                score += 5.0
+            for term in q_terms:
+                if term in e_name:
+                    score += 8.0
+                if any(term in tag for tag in e_tags):
+                    score += 4.0
+                if term in e_summary:
+                    score += 2.0
+            if score > 0 or (not q_terms and query in e_name):
+                entry = dict(e)
+                entry["relevance_score"] = round(score, 2)
+                scored_matches.append(entry)
+
+        scored_matches.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
+        self._send_json({
+            "query": query,
+            "search_mode": "relevance_scored",
+            "total_matches": len(scored_matches),
+            "results": scored_matches,
+        })
+
+    def _handle_council(self, payload: dict[str, Any]) -> None:
+        text = str(payload.get("text", "")).strip()
+        words = text.split() if text else []
+        word_count = len(words)
+        sentences = [s.strip() for s in re.split(r"[.!?]+", text) if s.strip()]
+        sentence_lens = [len(s.split()) for s in sentences] if sentences else []
+
+        # 1. Line Editor Critique
+        if not text:
+            line_critique = "Empty passage. Enter text to run stylistic cadence analysis."
+        else:
+            avg_len = sum(sentence_lens) / len(sentence_lens) if sentence_lens else 0
+            run_ons = sum(1 for slen in sentence_lens if slen > 35)
+            passive_matches = len(re.findall(r"\b(?:was|were|is|are|been|being)\s+[a-z]+ed\b", text, re.IGNORECASE))
+            critique_notes = [f"Average sentence length: {avg_len:.1f} words across {len(sentences)} sentences."]
+            if run_ons > 0:
+                critique_notes.append(f"Flagged {run_ons} potentially unwieldy sentence(s) (>35 words).")
+            if passive_matches > 0:
+                critique_notes.append(f"Detected {passive_matches} passive voice construction(s).")
+            if len(sentence_lens) > 3:
+                variance = sum((slen - avg_len) ** 2 for slen in sentence_lens) / len(sentence_lens)
+                if variance < 4.0:
+                    critique_notes.append("Cadence alert: Sentence lengths are highly uniform; vary rhythm for dramatic tension.")
+            line_critique = " ".join(critique_notes)
+
+        # 2. Lore Arbiter Critique
+        lore_entities = self.data.get("lore_entities", [])
+        found_entities = []
+        text_lower = text.lower()
+        for ent in lore_entities:
+            ename = str(ent.get("name", ""))
+            if ename and ename.lower() in text_lower:
+                found_entities.append(ename)
+        lore_critique = f"Lore integrity verified: Identified {len(found_entities)} registered canon entities: {', '.join(found_entities[:5])}." if found_entities else "No registered World Bible entities detected in this excerpt."
+
+        # 3. Story Architect Critique
+        dialogue_quotes = len(re.findall(r'["“][^"”]+["”]', text))
+        dialogue_words = sum(len(q.split()) for q in re.findall(r'["“]([^"”]+)["”]', text))
+        dialogue_ratio = (dialogue_words / max(1, word_count)) * 100
+        if word_count == 0:
+            arch_critique = "No narrative draft supplied."
+        elif dialogue_ratio > 60:
+            arch_critique = f"Dialogue-heavy scene ({dialogue_ratio:.0f}% dialogue across {dialogue_quotes} turns). Ensure sensory anchoring and physical blocking."
+        elif dialogue_ratio < 10 and word_count > 100:
+            arch_critique = f"Exposition-dense passage ({dialogue_ratio:.0f}% dialogue). Consider interspersing character interaction or internal monologue."
+        else:
+            arch_critique = f"Balanced narrative structure ({dialogue_ratio:.0f}% dialogue, {word_count} total words)."
+
+        # 4. Continuity Steward Critique
+        date_matches = re.findall(r"\b(?:\d{4}-\d{2}-\d{2}|Act\s+[IVXLCDM\d]+|Chapter\s+\d+|Year\s+\d+)\b", text, re.IGNORECASE)
+        tag_matches = re.findall(r"@(chrono|state|choice|price|prophecy):", text)
+        steward_notes = []
+        if date_matches:
+            steward_notes.append(f"Temporal anchors detected: {', '.join(set(date_matches))}.")
+        if tag_matches:
+            steward_notes.append(f"Inline semantic metadata tags: {', '.join(set(tag_matches))}.")
+        if not steward_notes:
+            steward_notes.append("No explicit chronology tags or temporal markers in passage.")
+        continuity_critique = " ".join(steward_notes)
+
+        self._send_json({
+            "status": "success",
+            "word_count": word_count,
+            "sentence_count": len(sentences),
+            "critique": {
+                "line_editor": line_critique,
+                "lore_arbiter": lore_critique,
+                "story_architect": arch_critique,
+                "continuity_steward": continuity_critique,
+            },
+        })
+
+    def _handle_resonance(self, path: str, payload: dict[str, Any]) -> None:
+        mesh = ResonanceMesh(self.project_dir)
+        if path == "/api/resonance/cascade":
             node = payload.get("node", "astrophysics")
             param = payload.get("param", "axial_tilt")
             val = payload.get("val", 38.5)
-            mesh = ResonanceMesh(self.project_dir)
             report = mesh.simulate_cascade(origin_node_id=node, param_key=param, new_value=val)
             self._send_json(report.to_dict())
         elif path == "/api/resonance/spark":
             domains = payload.get("domains", [])
             count = payload.get("count", 3)
-            mesh = ResonanceMesh(self.project_dir)
             sparks = mesh.generate_sparks(domains=domains, count=count)
             self._send_json([s.to_dict() for s in sparks])
         elif path == "/api/resonance/bridge":
             dom_a = payload.get("domain_a", "astrophysics")
             dom_b = payload.get("domain_b", "voice")
-            mesh = ResonanceMesh(self.project_dir)
             steps = mesh.find_bridge(dom_a, dom_b)
             self._send_json(steps)
-        elif path == "/api/scope":
-            ch = parse_number_ranges(payload.get("chapters")) if payload.get("chapters") is not None else SovereignStudioHandler.active_scope.chapters
-            sc = parse_number_ranges(payload.get("scenes")) if payload.get("scenes") is not None else SovereignStudioHandler.active_scope.scenes
-            raw_f = payload.get("filter") or payload.get("raw_filter") or payload.get("raw_scope")
-            if raw_f:
-                parsed_sc = parse_unified_scope_string(str(raw_f))
-                SovereignStudioHandler.active_scope = EngineScope.from_dict(parsed_sc)
-            else:
-                bk_val = payload.get("book") or payload.get("books")
-                bks = [str(bk_val)] if bk_val and isinstance(bk_val, str) else (bk_val if isinstance(bk_val, list) else SovereignStudioHandler.active_scope.books)
-                SovereignStudioHandler.active_scope = EngineScope(
-                    universe=payload.get("universe") or SovereignStudioHandler.active_scope.universe,
-                    world=payload.get("world") or SovereignStudioHandler.active_scope.world,
-                    lore_categories=payload.get("lore_categories") or SovereignStudioHandler.active_scope.lore_categories,
-                    series=payload.get("series") or SovereignStudioHandler.active_scope.series,
-                    manuscript=payload.get("manuscript") or SovereignStudioHandler.active_scope.manuscript,
-                    books=bks,
-                    chapters=ch,
-                    scenes=sc,
-                    raw_scope=str(raw_f or SovereignStudioHandler.active_scope.raw_scope),
-                )
-            self._send_json({
-                "status": "success",
-                "scope": SovereignStudioHandler.active_scope.to_dict()
-            })
-        elif path == "/api/engine/run":
-            eng_id = payload.get("engine", "")
-            scope_dict = payload.get("scope", {})
-            if scope_dict:
-                bk_val = scope_dict.get("book") or scope_dict.get("books")
-                bks = [str(bk_val)] if bk_val and isinstance(bk_val, str) else (bk_val if isinstance(bk_val, list) else SovereignStudioHandler.active_scope.books)
-                engine_scope = EngineScope(
-                    universe=scope_dict.get("universe") or SovereignStudioHandler.active_scope.universe,
-                    world=scope_dict.get("world") or SovereignStudioHandler.active_scope.world,
-                    lore_categories=scope_dict.get("lore_categories") or SovereignStudioHandler.active_scope.lore_categories,
-                    series=scope_dict.get("series") or SovereignStudioHandler.active_scope.series,
-                    manuscript=scope_dict.get("manuscript") or SovereignStudioHandler.active_scope.manuscript,
-                    books=bks,
-                    chapters=parse_number_ranges(scope_dict.get("chapters")) if scope_dict.get("chapters") is not None else SovereignStudioHandler.active_scope.chapters,
-                    scenes=parse_number_ranges(scope_dict.get("scenes")) if scope_dict.get("scenes") is not None else SovereignStudioHandler.active_scope.scenes,
-                    raw_scope=str(scope_dict.get("raw_scope", SovereignStudioHandler.active_scope.raw_scope)),
-                )
-            else:
-                engine_scope = SovereignStudioHandler.active_scope
-
-            result = self._execute_scoped_engine(eng_id, engine_scope, payload.get("options", {}))
-            self._send_json(result)
         else:
             self.send_error(404, "Endpoint not found")
+
+    def _handle_scope(self, payload: dict[str, Any]) -> None:
+        ch = parse_number_ranges(payload.get("chapters")) if payload.get("chapters") is not None else SovereignStudioHandler.active_scope.chapters
+        sc = parse_number_ranges(payload.get("scenes")) if payload.get("scenes") is not None else SovereignStudioHandler.active_scope.scenes
+        raw_f = payload.get("filter") or payload.get("raw_filter") or payload.get("raw_scope")
+        if raw_f:
+            parsed_sc = parse_unified_scope_string(str(raw_f))
+            SovereignStudioHandler.active_scope = EngineScope.from_dict(parsed_sc)
+        else:
+            bk_val = payload.get("book") or payload.get("books")
+            bks = [str(bk_val)] if bk_val and isinstance(bk_val, str) else (bk_val if isinstance(bk_val, list) else SovereignStudioHandler.active_scope.books)
+            SovereignStudioHandler.active_scope = EngineScope(
+                universe=payload.get("universe") or SovereignStudioHandler.active_scope.universe,
+                world=payload.get("world") or SovereignStudioHandler.active_scope.world,
+                lore_categories=payload.get("lore_categories") or SovereignStudioHandler.active_scope.lore_categories,
+                series=payload.get("series") or SovereignStudioHandler.active_scope.series,
+                manuscript=payload.get("manuscript") or SovereignStudioHandler.active_scope.manuscript,
+                books=bks,
+                chapters=ch,
+                scenes=sc,
+                raw_scope=str(raw_f or SovereignStudioHandler.active_scope.raw_scope),
+            )
+        self._send_json({
+            "status": "success",
+            "scope": SovereignStudioHandler.active_scope.to_dict()
+        })
+
+    def _handle_engine_run(self, payload: dict[str, Any]) -> None:
+        eng_id = payload.get("engine", "")
+        scope_dict = payload.get("scope", {})
+        if scope_dict:
+            bk_val = scope_dict.get("book") or scope_dict.get("books")
+            bks = [str(bk_val)] if bk_val and isinstance(bk_val, str) else (bk_val if isinstance(bk_val, list) else SovereignStudioHandler.active_scope.books)
+            engine_scope = EngineScope(
+                universe=scope_dict.get("universe") or SovereignStudioHandler.active_scope.universe,
+                world=scope_dict.get("world") or SovereignStudioHandler.active_scope.world,
+                lore_categories=scope_dict.get("lore_categories") or SovereignStudioHandler.active_scope.lore_categories,
+                series=scope_dict.get("series") or SovereignStudioHandler.active_scope.series,
+                manuscript=scope_dict.get("manuscript") or SovereignStudioHandler.active_scope.manuscript,
+                books=bks,
+                chapters=parse_number_ranges(scope_dict.get("chapters")) if scope_dict.get("chapters") is not None else SovereignStudioHandler.active_scope.chapters,
+                scenes=parse_number_ranges(scope_dict.get("scenes")) if scope_dict.get("scenes") is not None else SovereignStudioHandler.active_scope.scenes,
+                raw_scope=str(scope_dict.get("raw_scope", SovereignStudioHandler.active_scope.raw_scope)),
+            )
+        else:
+            engine_scope = SovereignStudioHandler.active_scope
+
+        result = self._execute_scoped_engine(eng_id, engine_scope, payload.get("options", {}))
+        self._send_json(result)
+
+    def _handle_chapter_save(self, payload: dict[str, Any]) -> None:
+        file_rel = payload.get("file") or payload.get("path") or payload.get("filename")
+        content = payload.get("content")
+        if not file_rel or content is None:
+            self.send_error(400, "Bad Request: Missing 'file' or 'content' in payload")
+            return
+
+        # Path traversal sanitization
+        file_str = str(file_rel).replace("\\", "/")
+        if ".." in file_str or file_str.startswith(("/", "\\")):
+            self.send_error(400, "Bad Request: Path traversal rejected")
+            return
+
+        target_path = (self.project_dir / file_str).resolve()
+        # Ensure target_path is within project_dir
+        try:
+            target_path.relative_to(self.project_dir.resolve())
+        except ValueError:
+            self.send_error(403, "Forbidden: Target path outside project directory")
+            return
+
+        if not target_path.name.endswith(".md"):
+            self.send_error(400, "Bad Request: Only markdown (.md) chapter files can be saved")
+            return
+
+        try:
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write(target_path, str(content))
+
+            # Evict from DataAccessLayer LRU cache if active
+            try:
+                from lib.data_access import get_data_access
+                dal = get_data_access()
+                if dal:
+                    dal.cache.evict(target_path)
+            except Exception:
+                pass
+
+            words = len(re.findall(r"\b\w+\b", str(content)))
+            self._send_json({
+                "status": "success",
+                "path": str(target_path.relative_to(self.project_dir)).replace("\\", "/"),
+                "words": words,
+                "saved_at": time.time(),
+            })
+        except Exception as e:
+            logger.error("Failed to save chapter %s: %s", target_path, e)
+            self.send_error(500, f"Internal Server Error: {e}")
 
     def _execute_scoped_engine(self, engine_name: str, scope: EngineScope, options: dict[str, Any]) -> dict[str, Any]:
         """Executes an authorized craft engine synchronously with captured output and applied scope under lock."""

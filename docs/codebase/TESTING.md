@@ -9,7 +9,7 @@
 - Commands:
 
 ```bash
-# Run all automated unit and integration tests (871 tests)
+# Run all automated unit and integration tests (879 tests)
 python -m unittest discover tests
 
 # Run specific engine test suite
@@ -18,6 +18,10 @@ python -m unittest tests.test_registry
 python -m unittest tests.test_resonance
 python -m unittest tests.test_economy
 python -m unittest tests.test_data_access
+python -m unittest tests.test_frontmatter
+python -m unittest tests.test_docx_sync
+python -m unittest tests.test_structure
+python -m unittest tests.test_studio_hub
 python -m unittest tests.test_lockfile
 python -m unittest tests.test_path_traversal_defense
 python -m unittest tests.test_aria_accessibility
@@ -43,8 +47,8 @@ mypy --explicit-package-bases scripts tests
 
 | Scope | Covered? | Typical target | Notes |
 |---|---|---|---|
-| Unit | Yes | All 47 domain engines, data access layer, lifecycle modules, and helper libraries | 100% engine coverage, pure standard library |
-| Integration | Yes | CLI dispatcher, Studio Hub REST API, Zen Studio exports, Pure-Python Backups & Restores | Verifies end-to-end data pipelines |
+| Unit | Yes | All 47 domain engines, data access layer, recursive YAML parser, and helper libraries | 100% engine coverage, pure standard library |
+| Integration | Yes | CLI dispatcher, Studio Hub REST API (chapter save), Zen Studio exports, Pure-Python Backups & Restores | Verifies end-to-end data pipelines |
 | E2E | Yes | Grand Tour master lifecycle ([`tests/test_grand_tour_e2e.py`](file:///tests/test_grand_tour_e2e.py)) | Tests full authoring lifecycle across all deterministic domains |
 | Accessibility & ARIA | Yes | [`tests/test_aria_accessibility.py`](file:///tests/test_aria_accessibility.py), [`tests/test_wcag_contrast.py`](file:///tests/test_wcag_contrast.py) | Asserts semantic ARIA landmarks, tab panels, modals, and WCAG AA contrast |
 | Ecosystem Cohesion | Yes | CLI dispatch, alias routing, zero isolated mesh nodes ([`tests/test_ecosystem_cohesion.py`](file:///tests/test_ecosystem_cohesion.py)) | Verifies seamless multi-engine interplay |
@@ -59,12 +63,16 @@ mypy --explicit-package-bases scripts tests
 ### 5) Coverage and Quality Signals
 
 - Coverage tool + threshold: 80% aggregate coverage enforced in `pyproject.toml` (`fail_under = 80`); 0 test failures or errors permitted.
-- Current reported coverage: 871 tests collected (869 passed, 2 skipped on Windows, 0 failures) with 80%+ aggregate coverage in $\approx 40$ seconds.
+- Current reported coverage: 879 tests collected (877 passed, 2 skipped on Windows, 0 failures) with 80%+ aggregate coverage in $\approx 40$ seconds.
 - Known gaps/flaky areas: None. All tests are 100% deterministic and offline.
 
 ### 6) Evidence
 
 - [`tests/test_data_access.py#L1-L60`](file:///tests/test_data_access.py#L1-L60)
+- [`tests/test_frontmatter.py#L1-L80`](file:///tests/test_frontmatter.py#L1-L80)
+- [`tests/test_docx_sync.py#L1-L100`](file:///tests/test_docx_sync.py#L1-L100)
+- [`tests/test_structure.py#L1-L100`](file:///tests/test_structure.py#L1-L100)
+- [`tests/test_studio_hub.py#L1-L80`](file:///tests/test_studio_hub.py#L1-L80)
 - [`tests/test_registry.py#L1-L100`](file:///tests/test_registry.py#L1-L100)
 - [`tests/test_resonance.py#L1-L100`](file:///tests/test_resonance.py#L1-L100)
 - [`tests/test_economy.py#L1-L100`](file:///tests/test_economy.py#L1-L100)

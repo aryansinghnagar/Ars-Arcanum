@@ -22,6 +22,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
@@ -134,8 +135,83 @@ __all__ = [
 
 
 
+def _extract_active_runs_from_element(elem: ET.Element, ns: dict[str, str]) -> list[tuple[str, bool, bool]]:
+    """
+    Recursively extracts active (non-deleted) text runs from XML element.
+    Returns list of (text, is_bold, is_italic).
+    Explicitly ignores <w:del> (Track Changes deleted content) to prevent zombie text revival.
+    """
+    w_tag = f"{{{ns['w']}}}"
+    runs: list[tuple[str, bool, bool]] = []
+
+    for child in elem:
+        tag = child.tag
+        if tag == f"{w_tag}del":
+            # Skip Track Changes deleted text branch completely
+            continue
+        if tag == f"{w_tag}r":
+            # Regular run
+            rPr = child.find(f"{w_tag}rPr")
+            is_bold = rPr is not None and rPr.find(f"{w_tag}b") is not None
+            is_italic = rPr is not None and rPr.find(f"{w_tag}i") is not None
+            t_elem = child.find(f"{w_tag}t")
+            if t_elem is not None and t_elem.text:
+                runs.append((t_elem.text, bool(is_bold), bool(is_italic)))
+        elif tag in (f"{w_tag}ins", f"{w_tag}hyperlink", f"{w_tag}smartTag", f"{w_tag}sdt", f"{w_tag}sdtContent"):
+            # Active container elements - recurse into children
+            runs.extend(_extract_active_runs_from_element(child, ns))
+
+    return runs
+
+
+def extract_docx_comments(docx_path: Path) -> list[dict[str, Any]]:
+    """Extracts editorial comments from word/comments.xml in DOCX zip archive."""
+    if not docx_path.is_file():
+        return []
+    comments = []
+    try:
+        with zipfile.ZipFile(docx_path, "r") as zf:
+            if "word/comments.xml" not in zf.namelist():
+                return []
+            with zf.open("word/comments.xml") as f:
+                comments_xml_bytes = f.read(MAX_DOCX_UNCOMPRESSED_BYTES + 1)
+            if len(comments_xml_bytes) > MAX_DOCX_UNCOMPRESSED_BYTES:
+                return []
+
+            for sample in (
+                comments_xml_bytes.decode("utf-8", errors="ignore").lower(),
+                comments_xml_bytes.decode("utf-16le", errors="ignore").lower(),
+                comments_xml_bytes.decode("utf-16be", errors="ignore").lower(),
+            ):
+                if "<!entity" in sample or "<!doctype" in sample:
+                    return []
+
+            root = ET.fromstring(comments_xml_bytes)  # nosec B314 # noqa: S314
+            ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+            w_tag = f"{{{ns['w']}}}"
+            for c in root.iter(f"{w_tag}comment"):
+                c_id = c.attrib.get(f"{w_tag}id", "")
+                author = c.attrib.get(f"{w_tag}author", "Editor")
+                date = c.attrib.get(f"{w_tag}date", "")
+                text_parts = []
+                for t in c.iter(f"{w_tag}t"):
+                    if t.text:
+                        text_parts.append(t.text)
+                full_comment_text = " ".join(text_parts).strip()
+                if full_comment_text:
+                    comments.append({
+                        "id": c_id,
+                        "author": author,
+                        "date": date,
+                        "text": full_comment_text,
+                    })
+    except Exception as e:
+        logger.debug("Failed extracting comments from %s: %s", docx_path, e)
+    return comments
+
+
 def convert_docx_to_markdown(docx_path: Path) -> str:
-    """Extracts prose from a DOCX file and converts it into clean Markdown."""
+    """Extracts prose from a DOCX file and converts it into clean Markdown, ignoring deleted track changes."""
     if not docx_path.is_file():
         raise FileNotFoundError(f"DOCX file not found: {docx_path}")
 
@@ -174,22 +250,15 @@ def convert_docx_to_markdown(docx_path: Path) -> str:
                     style_val = pStyle.attrib.get(f"{{{ns['w']}}}val", "").lower()
 
             p_runs = []
-            for r in p.iter(f"{{{ns['w']}}}r"):
-                rPr = r.find(f"{{{ns['w']}}}rPr")
-                is_bold = rPr is not None and rPr.find(f"{{{ns['w']}}}b") is not None
-                is_italic = rPr is not None and rPr.find(f"{{{ns['w']}}}i") is not None
-
-                t_elem = r.find(f"{{{ns['w']}}}t")
-                if t_elem is not None and t_elem.text:
-                    r_text = t_elem.text
-                    if is_bold and is_italic:
-                        p_runs.append(f"***{r_text}***")
-                    elif is_bold:
-                        p_runs.append(f"**{r_text}**")
-                    elif is_italic:
-                        p_runs.append(f"*{r_text}*")
-                    else:
-                        p_runs.append(r_text)
+            for r_text, is_bold, is_italic in _extract_active_runs_from_element(p, ns):
+                if is_bold and is_italic:
+                    p_runs.append(f"***{r_text}***")
+                elif is_bold:
+                    p_runs.append(f"**{r_text}**")
+                elif is_italic:
+                    p_runs.append(f"*{r_text}*")
+                else:
+                    p_runs.append(r_text)
 
             p_text = "".join(p_runs).strip()
             if not p_text:
@@ -371,6 +440,7 @@ def sync_manuscript_docx(manuscript_dir: Path, draft_name: str | None = None) ->
         "draft": draft_dir.name,
         "md_to_docx": [],
         "docx_to_md": [],
+        "comments_extracted": [],
         "conflicts": [],
         "errors": []
     }
@@ -417,6 +487,11 @@ def sync_manuscript_docx(manuscript_dir: Path, draft_name: str | None = None) ->
             try:
                 prose = convert_docx_to_markdown(docx_path)
                 atomic_write(target_md, prose)
+                comments = extract_docx_comments(docx_path)
+                if comments:
+                    comments_file = target_md.parent / f"{target_md.stem}.comments.json"
+                    atomic_write(comments_file, json.dumps({"source": docx_path.name, "comments": comments}, indent=2))
+                    sync_report["comments_extracted"].append(str(comments_file.relative_to(mpath)).replace("\\", "/"))
                 sync_report["docx_to_md"].append(str(target_md.relative_to(mpath)).replace("\\", "/"))
                 state[stem] = {
                     "md_sha256": get_file_sha256(target_md),
@@ -479,6 +554,11 @@ def sync_manuscript_docx(manuscript_dir: Path, draft_name: str | None = None) ->
                     combined_lines.append("")
 
                     atomic_write(md_path, "\n".join(combined_lines))
+                    comments = extract_docx_comments(docx_path)
+                    if comments:
+                        comments_file = md_path.parent / f"{md_path.stem}.comments.json"
+                        atomic_write(comments_file, json.dumps({"source": docx_path.name, "comments": comments}, indent=2))
+                        sync_report["comments_extracted"].append(str(comments_file.relative_to(mpath)).replace("\\", "/"))
                     state[stem] = {
                         "md_sha256": get_file_sha256(md_path),
                         "docx_sha256": cur_docx_hash,

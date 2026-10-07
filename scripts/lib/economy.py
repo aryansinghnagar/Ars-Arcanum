@@ -161,6 +161,16 @@ logger = logging.getLogger("arcanum.economy")
 FRONTMATTER_REGEX = re.compile(r"^---\s*\r?\n(.*?)\r?\n---\s*(?:\r?\n|$)", re.DOTALL)
 WIKILINK_REGEX = re.compile(r"\[\[([^\]\|#]+)(?:\|[^\]\]]*)?\]\]")
 
+TEMPORAL_PREPOSITION_EXCLUSIONS = {
+    "moment", "moments", "second", "seconds", "minute", "minutes", "hour", "hours",
+    "day", "days", "week", "weeks", "month", "months", "year", "years", "decade", "decades",
+    "century", "centuries", "while", "instant", "breath", "heartbeat", "heartbeats",
+    "time", "times", "eternity", "period", "spell", "stretch", "season", "seasons",
+    "night", "nights", "morning", "mornings", "afternoon", "evening",
+    "long", "good", "certain", "sure", "life", "ever", "now", "then", "once", "nothing", "free",
+    "example", "instance", "each", "everyone", "someone", "anyone", "all", "us", "them", "him", "her", "me", "you",
+}
+
 __all__ = [
     "ERA_ORDER",
     "TECH_ERAS",
@@ -370,8 +380,8 @@ def audit_manuscript_prices(
                 return amount, price
         return amount, None
 
-    price_tag_regex = re.compile(r"@price:\s*([\d\.]+)\s+([A-Za-z\s]+?)\s+(?:for|on)\s+([A-Za-z\s_-]+)", re.IGNORECASE)
-    prose_price_regex = re.compile(r"\b(\d+(?:\.\d+)?)\s+([A-Za-z\s]+?(?:crowns?|coins?|pence|shillings?|gold|silver|copper|credits?|sovereigns?|ducats?|drachmas?))\s+(?:for|on)\s+(?:a|an|the)?\s*([A-Za-z\s_-]+)\b", re.IGNORECASE)
+    price_tag_regex = re.compile(r"@price:\s*([\d\.]+)\s+([A-Za-z\s]+?)\s+(?:for|on)\s+([A-Za-z0-9\s_-]+)", re.IGNORECASE)
+    prose_price_regex = re.compile(r"\b(\d+(?:\.\d+)?)\s+([A-Za-z\s]+?(?:crowns?|coins?|pence|shillings?|gold|silver|copper|credits?|sovereigns?|ducats?|drachmas?))\s+(?:for|on)\s+(?:(?:a|an|the)\s+)?([A-Za-z0-9_-]+(?:\s+[A-Za-z0-9_-]+){0,2})\b", re.IGNORECASE)
 
     if scope:
         scoped_chapters, _, _ = filter_manuscript_scope(manuscript_dir, scope)
@@ -428,6 +438,13 @@ def audit_manuscript_prices(
                     amount = float(m.group(1))
                     curr_name = m.group(2).strip()
                     item_name = m.group(3).strip()
+                    item_norm = normalize_name(item_name)
+                    item_first_word = item_name.lower().split()[0] if item_name else ""
+
+                    # Filter out temporal and prepositional non-commodity idioms (e.g. "for a moment", "for a while")
+                    if item_norm in TEMPORAL_PREPOSITION_EXCLUSIONS or item_first_word in TEMPORAL_PREPOSITION_EXCLUSIONS:
+                        continue
+
                     curr_norm = normalize_name(curr_name)
 
                     if known_currencies and curr_norm not in known_currencies:

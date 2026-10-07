@@ -58,7 +58,15 @@ PRONOUN_EXCLUSIONS = {
     "Suddenly", "Finally", "Soon", "Now", "There", "Here", "Some", "Many", "All",
     "Each", "Every", "One", "Two", "Three", "Who", "What", "Where", "Why", "How",
     "And", "But", "Or", "If", "So", "As", "With", "At", "By", "In", "On", "From",
-    "Into", "Upon", "His", "Her", "Their", "Its", "My", "Your", "Our", "This", "That"
+    "Into", "Upon", "His", "Her", "Their", "Its", "My", "Your", "Our", "This", "That",
+    "Yesterday", "Today", "Tomorrow", "Tonight", "Although", "Because", "However",
+    "Meanwhile", "Instead", "Sometimes", "Never", "Always", "Perhaps", "Maybe",
+    "Indeed", "Certainly", "Naturally", "Clearly", "Obviously", "Generally", "Usually",
+    "Occasionally", "Later", "Earlier", "Outside", "Inside", "Nearby", "Ahead",
+    "Behind", "Beyond", "Upstairs", "Downstairs", "Somewhere", "Everywhere", "Nowhere",
+    "Someone", "Anyone", "Everyone", "Nobody", "Somebody", "Anybody", "Everything",
+    "Nothing", "Something", "Anything", "Both", "Neither", "Either", "Another",
+    "Other", "Others", "Such", "Whatever", "Whoever", "Whichever", "Whenever", "Wherever",
 }
 
 # Physical trait extraction patterns
@@ -126,6 +134,8 @@ def extract_book_entities(book_dir: Path, scope: EngineScope | None = None) -> d
         # Eye colors
         for m in EYE_COLOR_PATTERN.finditer(line):
             name = m.group(1).title()
+            if name in PRONOUN_EXCLUSIONS:
+                continue
             color = m.group(2).lower()
             if color in ("blue", "green", "brown", "hazel", "grey", "gray", "amber", "dark", "golden", "violet", "black", "crimson"):
                 character_traits[name]["eyes"].add(color)
@@ -133,6 +143,8 @@ def extract_book_entities(book_dir: Path, scope: EngineScope | None = None) -> d
         # Hair colors
         for m in HAIR_COLOR_PATTERN.finditer(line):
             name = m.group(1).title()
+            if name in PRONOUN_EXCLUSIONS:
+                continue
             color = m.group(2).lower()
             if color in ("black", "dark", "brown", "blonde", "blond", "golden", "red", "auburn", "silver", "white", "grey", "gray", "raven"):
                 character_traits[name]["hair"].add(color)

@@ -352,6 +352,29 @@ class TestStudioHubServerAPI(unittest.TestCase):
         status, _, res = self._post_json("/api/resonance/bridge", {"domain_a": "astrophysics", "domain_b": "voice"})
         self.assertEqual(status, 200)
 
+        # /api/chapter/save happy path
+        save_payload = {
+            "file": "Manuscript/03_Chapter_03.md",
+            "content": "# Chapter 3\n\nThe cold wind howled across the high peaks.",
+        }
+        status, _, res = self._post_json("/api/chapter/save", save_payload)
+        self.assertEqual(status, 200)
+        self.assertEqual(res["status"], "success")
+        self.assertIn("03_Chapter_03.md", res["path"])
+        self.assertTrue((self.root / "Manuscript" / "03_Chapter_03.md").is_file())
+
+        # /api/chapter/save path traversal rejection
+        status, _, _ = self._post_json("/api/chapter/save", {"file": "../evil.md", "content": "attack"})
+        self.assertEqual(status, 400)
+
+        # /api/chapter/save non-markdown rejection
+        status, _, _ = self._post_json("/api/chapter/save", {"file": "script.py", "content": "print('bad')"})
+        self.assertEqual(status, 400)
+
+        # /api/chapter/save missing payload
+        status, _, _ = self._post_json("/api/chapter/save", {})
+        self.assertEqual(status, 400)
+
         # 404 POST
         status, _, _ = self._post_json("/api/unknown_post", {})
         self.assertEqual(status, 404)

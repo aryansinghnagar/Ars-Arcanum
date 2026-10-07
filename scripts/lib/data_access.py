@@ -6,27 +6,34 @@ Sovereign, offline, thread-safe cached data access layer for World Bibles,
 manuscript repositories, and lore dossiers.
 
 Provides high-speed memoized file reading, AST frontmatter extraction, and entity
-catalog queries with automatic mtime-based cache invalidation to eliminate
-redundant disk walks across multi-engine pipelines.
+catalog queries with automatic mtime-based cache invalidation and LRU memory bounds
+to eliminate redundant disk walks across multi-engine pipelines.
 """
 
 from __future__ import annotations
 
 import logging
-import re
 import threading
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 try:
-    import lib._bootstrap  # noqa: F401
+    from lib._bootstrap import count_prose_words
+    from lib.frontmatter import extract_frontmatter_and_body
 except ImportError:
-    import _bootstrap  # noqa: F401
+    try:
+        from _bootstrap import count_prose_words
+        from frontmatter import extract_frontmatter_and_body
+    except ImportError:
+        def count_prose_words(text: str) -> int:
+            return len(text.split())
+
+        def extract_frontmatter_and_body(content: str) -> tuple[dict[str, Any], str]:
+            return {}, content
 
 logger = logging.getLogger("arcanum.data_access")
-
-_FRONTMATTER_PATTERN = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 
 
 @dataclass
@@ -39,11 +46,12 @@ class _CachedFileEntry:
 
 
 class DataAccessLayer:
-    """Thread-safe cached data access layer for Ars Arcanum repositories."""
+    """Thread-safe cached data access layer for Ars Arcanum repositories with LRU bounds."""
 
-    def __init__(self) -> None:
+    def __init__(self, max_entries: int = 500) -> None:
         self._lock = threading.RLock()
-        self._file_cache: dict[str, _CachedFileEntry] = {}
+        self._file_cache: OrderedDict[str, _CachedFileEntry] = OrderedDict()
+        self.max_entries = max_entries
         self._hits = 0
         self._misses = 0
 
@@ -54,17 +62,28 @@ class DataAccessLayer:
             self._hits = 0
             self._misses = 0
 
+    def evict(self, file_path: Path | str) -> bool:
+        """Evicts a specific file path from cache."""
+        p = Path(file_path).resolve()
+        path_key = str(p)
+        with self._lock:
+            if path_key in self._file_cache:
+                del self._file_cache[path_key]
+                return True
+        return False
+
     def get_stats(self) -> dict[str, int]:
         """Returns cache telemetry statistics."""
         with self._lock:
             return {
                 "cached_files": len(self._file_cache),
+                "max_entries": self.max_entries,
                 "cache_hits": self._hits,
                 "cache_misses": self._misses,
             }
 
     def read_file(self, file_path: Path | str) -> str:
-        """Reads text content of a file using thread-safe mtime caching."""
+        """Reads text content of a file using thread-safe mtime caching with LRU promotion."""
         p = Path(file_path).resolve()
         if not p.is_file():
             return ""
@@ -81,6 +100,7 @@ class DataAccessLayer:
             cached = self._file_cache.get(path_key)
             if cached is not None and cached.mtime == mtime and cached.size == size:
                 self._hits += 1
+                self._file_cache.move_to_end(path_key)
                 return cached.content
 
         # Cache miss or stale entry: read from disk
@@ -90,10 +110,12 @@ class DataAccessLayer:
             logger.warning("Failed reading file %s: %s", p, e)
             return ""
 
-        frontmatter, body = self._parse_frontmatter_raw(content)
+        frontmatter, body = extract_frontmatter_and_body(content)
 
         with self._lock:
             self._misses += 1
+            if path_key in self._file_cache:
+                self._file_cache.move_to_end(path_key)
             self._file_cache[path_key] = _CachedFileEntry(
                 mtime=mtime,
                 size=size,
@@ -101,6 +123,9 @@ class DataAccessLayer:
                 frontmatter=frontmatter,
                 body=body,
             )
+            # LRU eviction
+            while len(self._file_cache) > self.max_entries:
+                self._file_cache.popitem(last=False)
 
         return content
 
@@ -119,44 +144,7 @@ class DataAccessLayer:
             if cached is not None:
                 return dict(cached.frontmatter), cached.body
 
-        frontmatter, body = self._parse_frontmatter_raw(content)
-        return frontmatter, body
-
-    def _parse_frontmatter_raw(self, content: str) -> tuple[dict[str, Any], str]:
-        """Parses YAML frontmatter block from raw text without external dependencies."""
-        if not content.startswith("---"):
-            return {}, content
-
-        match = _FRONTMATTER_PATTERN.match(content)
-        if not match:
-            return {}, content
-
-        raw_yaml = match.group(1)
-        body = content[match.end() :]
-        frontmatter: dict[str, Any] = {}
-
-        for line in raw_yaml.splitlines():
-            line_str = line.strip()
-            if not line_str or line_str.startswith("#"):
-                continue
-            if ":" in line_str:
-                key, val = line_str.split(":", 1)
-                k = key.strip()
-                v = val.strip()
-                # Basic scalar unwrapping
-                if (v.startswith('"') and v.endswith('"')) or (v.startswith("'") and v.endswith("'")):
-                    v = v[1:-1]
-                elif v.lower() == "true":
-                    frontmatter[k] = True
-                    continue
-                elif v.lower() == "false":
-                    frontmatter[k] = False
-                    continue
-                elif v.isdigit():
-                    frontmatter[k] = int(v)
-                    continue
-                frontmatter[k] = v
-
+        frontmatter, body = extract_frontmatter_and_body(content)
         return frontmatter, body
 
     def list_files(
@@ -179,7 +167,7 @@ class DataAccessLayer:
         return sorted(results)
 
     def get_manuscript_chapters(self, manuscript_dir: Path | str) -> list[dict[str, Any]]:
-        """Extracts structured chapter descriptors from a manuscript directory."""
+        """Extracts structured chapter descriptors from a manuscript directory with canonical word counting."""
         p = Path(manuscript_dir).resolve()
         if not p.is_dir():
             return []
@@ -192,14 +180,17 @@ class DataAccessLayer:
             if "outlines" in f.parts or "back_matter" in str(f).lower():
                 continue
             content = self.read_file(f)
-            words = len(content.split())
+            prose_words = count_prose_words(content)
+            raw_words = len(content.split())
             fm, _ = self.parse_frontmatter(f)
             title = fm.get("title", f.stem.replace("_", " ").replace("-", " "))
             chapters.append({
                 "path": str(f),
                 "file": f.name,
                 "title": title,
-                "words": words,
+                "words": prose_words,
+                "prose_words": prose_words,
+                "raw_words": raw_words,
                 "frontmatter": fm,
             })
 

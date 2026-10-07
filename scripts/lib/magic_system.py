@@ -105,20 +105,18 @@ def extract_magic_profiles(world_dir: Path) -> dict:
                 max_tier = int(fm.get("max_tier", fm.get("tier_count", 5)))
 
                 # Parse markdown sections if frontmatter lacks details
-                if "## 3. Power Source, Costs & Limitations" in content:
-                    sec_text = content.split("## 3. Power Source, Costs & Limitations", 1)[1]
-                    if "## 4." in sec_text:
-                        sec_text = sec_text.split("## 4.", 1)[0]
+                cost_sec_m = re.search(r"^##+\s*(?:\d+\.?\s*)?(?:Power Source|Costs?|Limitations?|Hard Bounds?)[^\n]*\n(.*?)(?=\n##|\Z)", content, re.MULTILINE | re.DOTALL | re.IGNORECASE)
+                if cost_sec_m:
+                    sec_text = cost_sec_m.group(1)
                     for line in sec_text.splitlines():
                         if "impossible" in line.lower() or "cannot" in line.lower() or "hard bound" in line.lower():
                             clean_l = line.lstrip("- *1234567890.").strip()
                             if clean_l and clean_l not in hard_limitations:
                                 hard_limitations.append(clean_l)
 
-                if "## 4. Disciplines, Branches or Schools" in content:
-                    sec_text = content.split("## 4. Disciplines, Branches or Schools", 1)[1]
-                    if "## 5." in sec_text:
-                        sec_text = sec_text.split("## 5.", 1)[0]
+                disc_sec_m = re.search(r"^##+\s*(?:\d+\.?\s*)?(?:Disciplines?|Branches?|Schools?|Spheres?)[^\n]*\n(.*?)(?=\n##|\Z)", content, re.MULTILINE | re.DOTALL | re.IGNORECASE)
+                if disc_sec_m:
+                    sec_text = disc_sec_m.group(1)
                     for line in sec_text.splitlines():
                         if line.strip().startswith(("1.", "2.", "3.", "4.", "5.", "-", "*")):
                             match_d = re.search(r"\*\*(.*?)\*\*", line)

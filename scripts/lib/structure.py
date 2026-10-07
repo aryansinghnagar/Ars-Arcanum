@@ -233,6 +233,13 @@ PARADIGMS = {
 }
 
 
+def _normalize_beat_name(s: str) -> str:
+    """Normalizes beat title for comparison (e.g. '1. Inciting Incident' -> 'inciting incident')."""
+    s = re.sub(r"^\d+\.?\s*", "", s).lower().strip()
+    s = re.sub(r"[\(\)\[\]/_-]", " ", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
 def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_key: str = "three_act", scope: Any = None) -> dict:
     """Scans manuscript chapters and evaluates alignment against the chosen paradigm with granular scope support."""
     target_str = resolve_manuscript_dir(target_path) if target_path else resolve_manuscript_dir()
@@ -246,16 +253,33 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
     chapters = []
     total_words = 0
 
+    def _extract_author_beats(content_str: str, file_path: str | Path | None) -> list[str]:
+        beats_found: list[str] = []
+        if file_path and Path(file_path).is_file():
+            fm, _ = get_data_access().parse_frontmatter(Path(file_path))
+            b_val = fm.get("beat") or fm.get("beats") or fm.get("structure")
+            if isinstance(b_val, str) and b_val.strip():
+                beats_found.append(b_val.strip())
+            elif isinstance(b_val, list):
+                beats_found.extend(str(x).strip() for x in b_val if str(x).strip())
+        for tag_m in re.finditer(r"^@beat:\s*(.+)$", content_str, re.MULTILINE | re.IGNORECASE):
+            raw_beat = tag_m.group(1).strip()
+            if raw_beat and raw_beat not in beats_found:
+                beats_found.append(raw_beat)
+        return beats_found
+
     if p_target.is_file():
         content = get_data_access().read_file(p_target)
         words = len(re.findall(r'\b\w+\b', content))
         total_words = words
+        ch_beats = _extract_author_beats(content, p_target)
         chapters.append({
             "index": 1,
             "filename": p_target.name,
             "path": str(p_target),
             "words": words,
             "cumulative_words": words,
+            "author_beats": ch_beats,
         })
     elif p_target.is_dir():
         if scope:
@@ -275,12 +299,14 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
             for idx, title, content, fpath in items_to_map:
                 words = len(re.findall(r'\b\w+\b', content))
                 total_words += words
+                ch_beats = _extract_author_beats(content, fpath)
                 chapters.append({
                     "index": idx,
                     "filename": title,
                     "path": fpath,
                     "words": words,
                     "cumulative_words": total_words,
+                    "author_beats": ch_beats,
                 })
         else:
             files = []
@@ -291,12 +317,14 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
                 content = get_data_access().read_file(f)
                 words = len(re.findall(r'\b\w+\b', content))
                 total_words += words
+                ch_beats = _extract_author_beats(content, f)
                 chapters.append({
                     "index": idx,
                     "filename": f.name,
                     "path": str(f),
                     "words": words,
                     "cumulative_words": total_words,
+                    "author_beats": ch_beats,
                 })
     else:
         raise FileNotFoundError(f"Target path not found: {p_target}")
@@ -314,7 +342,15 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
         ch["pct_of_total"] = round((ch["words"] / total_words), 3) if total_words > 0 else 0.0
         prev_words = ch["cumulative_words"]
 
-    # Map beats to closest chapter
+    # Build map of author-tagged beats
+    tagged_beats_map: dict[str, dict[str, Any]] = {}
+    for ch in chapters:
+        for b_raw in ch.get("author_beats", []):
+            b_norm = _normalize_beat_name(b_raw)
+            if b_norm:
+                tagged_beats_map[b_norm] = ch
+
+    # Map beats to chapters
     beat_evaluations = []
     drift_penalties = []
 
@@ -323,14 +359,29 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
         w_min, w_max = beat["window"]
         target_words = int(target_pct * total_words)
 
-        # Find containing chapter or closest chapter by midpoint
+        beat_norm = _normalize_beat_name(beat["name"])
         closest_ch = None
-        for ch in chapters:
-            if ch["start_pct"] <= target_pct <= ch["cum_pct"]:
-                closest_ch = ch
-                break
-        if not closest_ch and chapters:
-            closest_ch = min(chapters, key=lambda ch: abs(ch["mid_pct"] - target_pct))
+        is_author_tagged = False
+
+        # Match against author-tagged beats
+        if beat_norm in tagged_beats_map:
+            closest_ch = tagged_beats_map[beat_norm]
+            is_author_tagged = True
+        else:
+            for t_norm, t_ch in tagged_beats_map.items():
+                if t_norm in beat_norm or beat_norm in t_norm:
+                    closest_ch = t_ch
+                    is_author_tagged = True
+                    break
+
+        # Fallback to geometric closest chapter by midpoint
+        if not closest_ch:
+            for ch in chapters:
+                if ch["start_pct"] <= target_pct <= ch["cum_pct"]:
+                    closest_ch = ch
+                    break
+            if not closest_ch and chapters:
+                closest_ch = min(chapters, key=lambda ch: abs(ch["mid_pct"] - target_pct))
 
         actual_pct = closest_ch["mid_pct"] if closest_ch else 0.0
         drift = abs(actual_pct - target_pct)
@@ -348,8 +399,9 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
             "assigned_chapter": closest_ch["index"] if closest_ch else 1,
             "assigned_file": closest_ch["filename"] if closest_ch else "",
             "is_in_window": is_in_window,
+            "is_author_tagged": is_author_tagged,
             "drift_pct": round(drift * 100, 1),
-            "desc": beat["desc"]
+            "desc": beat["desc"],
         })
 
     # Overall Structural Alignment Score

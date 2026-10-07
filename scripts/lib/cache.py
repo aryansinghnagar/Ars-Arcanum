@@ -125,42 +125,56 @@ def save_cache(project_dir: str, cache_data: dict) -> bool:
 
 def count_words(text: str) -> int:
     """ANA-01 canonical word count. All consumers must use this."""
-    clean = FRONTMATTER_REGEX.sub("", text)
-    clean = FENCED_CODE_REGEX.sub("", clean)
-    # Drop scene-metadata and Typst comment lines (not prose).
-    lines = []
-    for ln in clean.splitlines():
-        s = ln.strip()
-        if not s:
-            continue
-        if s.startswith("@") and NW_TAG_LINE_REGEX.match(s):
-            continue
-        if s.startswith("%"):
-            continue
-        lines.append(ln)
-    return len(WORD_REGEX.findall("\n".join(lines)))
+    try:
+        from lib._bootstrap import count_prose_words
+        return count_prose_words(text)
+    except ImportError:
+        try:
+            from _bootstrap import count_prose_words
+            return count_prose_words(text)
+        except ImportError:
+            clean = FRONTMATTER_REGEX.sub("", text)
+            clean = FENCED_CODE_REGEX.sub("", clean)
+            lines = []
+            for ln in clean.splitlines():
+                s = ln.strip()
+                if not s or s.startswith(("%", "<!--")):
+                    continue
+                if s.startswith("@") and NW_TAG_LINE_REGEX.match(s):
+                    continue
+                lines.append(ln)
+            return len(WORD_REGEX.findall("\n".join(lines)))
 
 
 def parse_frontmatter(content: str) -> dict:
-    match = FRONTMATTER_REGEX.match(content)
-    if not match:
-        return {}
-    raw_yaml = match.group(1)
-    meta = {}
-    for line in raw_yaml.splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if ":" in line:
-            key, val = line.split(":", 1)
-            key = key.strip()
-            val = val.strip().strip("\"'")
-            if val.startswith("[") and val.endswith("]"):
-                items = [x.strip().strip("\"'") for x in val[1:-1].split(",") if x.strip()]
-                meta[key] = items
-            else:
-                meta[key] = val
-    return meta
+    """Parses frontmatter block delegating to the unified frontmatter engine."""
+    try:
+        from lib.frontmatter import parse_yaml_frontmatter
+        return parse_yaml_frontmatter(content)
+    except ImportError:
+        try:
+            from frontmatter import parse_yaml_frontmatter
+            return parse_yaml_frontmatter(content)
+        except ImportError:
+            match = FRONTMATTER_REGEX.match(content)
+            if not match:
+                return {}
+            raw_yaml = match.group(1)
+            meta: dict = {}
+            for line in raw_yaml.splitlines():
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if ":" in line:
+                    key, val = line.split(":", 1)
+                    key = key.strip()
+                    val = val.strip().strip("\"'")
+                    if val.startswith("[") and val.endswith("]"):
+                        items = [x.strip().strip("\"'") for x in val[1:-1].split(",") if x.strip()]
+                        meta[key] = items
+                    else:
+                        meta[key] = val
+            return meta
 
 
 def parse_markdown_file(file_path: Path) -> dict:

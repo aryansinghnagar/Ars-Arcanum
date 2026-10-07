@@ -93,6 +93,7 @@ The embedded local server exposes a hardened REST API for programmatic integrati
 | `GET` | `/api/scope` | Active session scope configuration and resolved counts | Read-only |
 | `POST` | `/api/scope` | Update session target scope (`chapter`, `scene`, `book`, `world`, `lore`) | Strict Origin & Host match |
 | `POST` | `/api/engine/run` | Execute craft engine asynchronously on active scope with captured output | Strict Origin match, `ENGINE_ALLOWLIST`, Mutex lock |
+| `POST` | `/api/chapter/save` | Atomically save updated Markdown chapter prose and evict DAL cache | Strict Origin match, path traversal validation, `.md` extension check, atomic write |
 | `GET` | `/api/chapters` | Chapter list with word counts | Read-only |
 | `GET` | `/api/lore` | Lore entity category summary | Read-only |
 | `GET` | `/api/timeline` | Timeline events and paradox summary | Read-only |
@@ -102,7 +103,9 @@ The embedded local server exposes a hardened REST API for programmatic integrati
 
 1. **Origin Verification (`_validate_origin`)**: State-modifying endpoints (`POST`) require an `Origin` header matching the bound `Host` header (supporting both IPv4 `127.0.0.1` / `localhost` and IPv6 `::1` / `[::1]`). Requests with `null` or mismatched foreign origins return HTTP `403 Forbidden`.
 2. **Engine Allowlist (`ENGINE_ALLOWLIST`)**: `POST /api/engine/run` restricts execution to an explicit set of registered craft engines. Non-allowlisted engine names return HTTP `400 Bad Request`.
-3. **Thread Safety & Mutex**: Engine execution runs under a dedicated `threading.Lock()` to prevent race conditions and concurrent process conflicts.
+3. **Path Traversal & Extension Defense**: `POST /api/chapter/save` enforces strict canonical path containment within the project root (`Path.resolve().is_relative_to(project_dir)`), rejects directory traversal tokens (`..`), and requires `.md` file extensions.
+4. **Atomic Persistence & Cache Eviction**: Saves use `atomic_write()` and immediately invoke `get_dal().evict(resolved_path)` to ensure zero cache staleness across engines.
+5. **Thread Safety & Mutex**: Engine execution runs under a dedicated `threading.Lock()` to prevent race conditions and concurrent process conflicts.
 
 ### Example API call
 
@@ -115,6 +118,9 @@ curl -X POST http://127.0.0.1:8749/api/scope -H "Origin: http://127.0.0.1:8749" 
 
 # Execute Pacing engine on the active scope
 curl -X POST http://127.0.0.1:8749/api/engine/run -H "Origin: http://127.0.0.1:8749" -d '{"engine": "pacing"}'
+
+# Save updated chapter prose atomically
+curl -X POST http://127.0.0.1:8749/api/chapter/save -H "Origin: http://127.0.0.1:8749" -d '{"path": "Book-01/01_Act_I/01_Chapter_01.md", "content": "# Chapter 1\n\nThe obsidian spire loomed..."}'
 ```
 
 ---

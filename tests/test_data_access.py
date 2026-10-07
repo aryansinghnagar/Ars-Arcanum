@@ -107,9 +107,35 @@ class TestDataAccessLayer(unittest.TestCase):
         self.assertEqual(body, "")
         self.assertEqual(self.dal.list_files("/non/existent/dir"), [])
 
-        self.dal.clear()
-        stats = self.dal.get_stats()
-        self.assertEqual(stats["cached_files"], 0)
+    def test_lru_eviction_and_evict_hook(self) -> None:
+        small_dal = DataAccessLayer(max_entries=3)
+        with tempfile.TemporaryDirectory() as td:
+            f1 = Path(td) / "f1.md"
+            f2 = Path(td) / "f2.md"
+            f3 = Path(td) / "f3.md"
+            f4 = Path(td) / "f4.md"
+
+            f1.write_text("content 1", encoding="utf-8")
+            f2.write_text("content 2", encoding="utf-8")
+            f3.write_text("content 3", encoding="utf-8")
+            f4.write_text("content 4", encoding="utf-8")
+
+            small_dal.read_file(f1)
+            small_dal.read_file(f2)
+            small_dal.read_file(f3)
+            self.assertEqual(small_dal.get_stats()["cached_files"], 3)
+
+            # Access f1 to promote it in LRU
+            small_dal.read_file(f1)
+
+            # Read f4 -> should evict f2 (since f1 was promoted)
+            small_dal.read_file(f4)
+            self.assertEqual(small_dal.get_stats()["cached_files"], 3)
+
+            # Explicit evict
+            self.assertTrue(small_dal.evict(f1))
+            self.assertEqual(small_dal.get_stats()["cached_files"], 2)
+            self.assertFalse(small_dal.evict(f1))
 
 
 if __name__ == "__main__":

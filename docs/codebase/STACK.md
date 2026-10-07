@@ -29,7 +29,7 @@
 |------|---------|----------|
 | Ruff | Strict linting across rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | [`pyproject.toml#L15-L35`](file:///pyproject.toml#L15-L35), [`.github/workflows/ci.yml#L25-L35`](file:///.github/workflows/ci.yml#L25-L35) |
 | Mypy | Strict static type checking with `check_untyped_defs = True` (204 source files clean) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py#L1-L40`](file:///tests/test_type_safety.py#L1-L40) |
-| Unittest | Automated test discovery & regression test execution (871 tests, 100% pass) | [`tests/test_*.py`](file:///tests/), [`.github/workflows/ci.yml#L30-L40`](file:///.github/workflows/ci.yml#L30-L40) |
+| Unittest | Automated test discovery & regression test execution (879 tests, 100% pass) | [`tests/test_*.py`](file:///tests/), [`.github/workflows/ci.yml#L30-L40`](file:///.github/workflows/ci.yml#L30-L40) |
 | Coverage | Test coverage enforcement and reporting (`fail_under = 80`) | [`pyproject.toml#L35-L45`](file:///pyproject.toml#L35-L45) |
 
 ### 4) Key Commands
@@ -38,7 +38,7 @@
 # Standard package installation
 pip install -e .
 
-# Full test discovery suite (871 tests)
+# Full test discovery suite (879 tests)
 python -m unittest discover tests
 
 # Coverage report enforcement (80-81% aggregate coverage)
@@ -67,4 +67,4 @@ bash scripts/verify.sh
 - [`AGENTS.md#L1-L60`](file:///AGENTS.md#L1-L60)
 - [`scripts/lib/_bootstrap.py#L1-L70`](file:///scripts/lib/_bootstrap.py#L1-L70)
 - [`.github/workflows/ci.yml#L1-L60`](file:///.github/workflows/ci.yml#L1-L60)
-- [`tasks.md#L1-L50`](file:///tasks.md#L1-L50)
+- [`.agent/tasks.md#L1-L50`](file:///.agent/tasks.md#L1-L50)

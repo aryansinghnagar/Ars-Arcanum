@@ -84,8 +84,11 @@ The parser traverses the WordprocessingML tree:
 - `<w:rPr>`: Run properties (`<w:b/>` bold, `<w:i/>` italic, `<w:strike/>` strikethrough).
 - `<w:t>`: Raw text node (`xml:space="preserve"`).
 - `<w:commentRangeStart w:id="N"/>` / `<w:commentRangeEnd w:id="N"/>`: Delimits the highlighted text span associated with comment ID $N$.
-- `<w:ins w:id="N" w:author="Editor" w:date="...">`: Tracked insertion node.
-- `<w:del w:id="N" w:author="Editor" w:date="...">`: Tracked deletion node.
+- `<w:ins w:id="N" w:author="Editor" w:date="...">`: Tracked insertion node (parsed into active prose stream).
+- `<w:del w:id="N" w:author="Editor" w:date="...">`: Tracked deletion node (explicitly filtered out to prevent resurrecting deleted prose on import).
+
+### 2.2 Track Changes & Zombie Text Exclusion
+When editors use Microsoft Word Track Changes, deletions remain in `document.xml` wrapped inside `<w:del><w:r><w:delText>...</w:delText></w:r></w:del>` tags. Standard naive XML text extractors concatenate all text runs indiscriminately, causing deleted words and phrases to reappear in the imported text (the "Zombie Text" failure mode). The Ars Arcanum parser explicitly isolates `<w:del>` nodes during paragraph traversal and ignores their inner runs unless explicit `--show-deleted` review mode is requested.
 
 ---
 
@@ -118,7 +121,7 @@ If $L_{\text{norm}}(s_1, s_2) \ge 0.75$, the comment anchor is automatically re-
 
 ---
 
-## 4. Markdown Annotation Syntax & Callouts
+## 4. Markdown Annotation Syntax & Comment Sidecars
 
 When comments are extracted from Word, they are converted into Obsidian-compatible GitHub-style callouts:
 
@@ -131,7 +134,23 @@ The archon stepped onto the dais, his obsidian blade humming with latent resonan
 The dawn rose blood-red across the broken spires of High Vale.
 ```
 
-### 4.1 In-Situ Scene Tag Preservation
+### 4.1 Structured `.comments.json` Sidecar Emission
+In addition to inline Markdown callouts, `sync_manuscript_docx()` emits a structured JSON sidecar (`<Chapter>.comments.json`):
+
+```json
+[
+  {
+    "id": "1",
+    "author": "Sarah Lin",
+    "date": "2026-10-04T14:32:00Z",
+    "text": "Consider clarifying whether this resonance is audible to the soldiers below, or if only adepts can sense it.",
+    "target_text": "obsidian blade humming with latent resonance"
+  }
+]
+```
+This enables third-party editors, Zen Studio, and headless CI tools to consume margin comments programmatically without parsing Markdown callouts.
+
+### 4.2 In-Situ Scene Tag Preservation
 
 The synchronization engine differentiates top-level YAML frontmatter headers from mid-document scene directives:
 * **Top Frontmatter**: Stripped during `.docx` generation for clean Word reading; preserved at the document head on import.

@@ -126,6 +126,17 @@ class TestSeriesContinuityEngine(unittest.TestCase):
                     main()
                 self.assertEqual(cm.exception.code, 1)
 
+    def test_pronoun_and_adverb_trait_exclusions(self):
+        """Verify that sentence-initial adverbs/pronouns like 'Suddenly' or 'Yesterday' are not extracted as characters."""
+        (self.b1_dir / "04_Ch.md").write_text("Yesterday, the warrior had dark hair.\nSuddenly, he turned around with blue eyes.", encoding="utf-8")
+        report = scan_series_continuity(self.series_dir)
+        chars = [c for v in report["volumes"] for c in v.get("characters", [])]
+        trait_chars = [k for v in report["volumes"] for k in v.get("traits", {})]
+        self.assertNotIn("Yesterday", chars)
+        self.assertNotIn("Suddenly", chars)
+        self.assertNotIn("Yesterday", trait_chars)
+        self.assertNotIn("Suddenly", trait_chars)
+
 
 if __name__ == "__main__":
     unittest.main()
