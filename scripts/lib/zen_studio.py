@@ -47,7 +47,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from lib._bootstrap import atomic_write
+    from lib._bootstrap import atomic_write, count_prose_words
     from lib.frontmatter import parse_yaml_frontmatter
     from lib.registry import get_engine_catalog
     from lib.resonance import ResonanceMesh
@@ -64,7 +64,7 @@ try:
     from lib.tips import are_tips_enabled, get_tip_database
     from lib.zen_studio_template import render_zen_studio_html
 except ImportError:
-    from _bootstrap import atomic_write
+    from _bootstrap import atomic_write, count_prose_words
     from frontmatter import parse_yaml_frontmatter
     from registry import get_engine_catalog
     from resonance import ResonanceMesh
@@ -275,7 +275,7 @@ def build_zen_studio_bundle(
             body = ch.content
             fm = parse_yaml_frontmatter(body)
             body_clean = FRONTMATTER_REGEX.sub("", body).strip()
-            word_count = len(re.findall(r"\b\w+\b", body_clean))
+            word_count = count_prose_words(body_clean)
 
             # Normalized metadata structure
             pov = str(fm.get("pov", fm.get("pov_character", "")))
@@ -326,7 +326,7 @@ def build_zen_studio_bundle(
             body = FRONTMATTER_REGEX.sub("", content).strip()
             h1 = re.search(r"^#\s+(.+)$", body, flags=re.MULTILINE)
             title = str(fm.get("title", h1.group(1).strip() if h1 else f.stem.replace("_", " ").title()))
-            word_count = len(re.findall(r"\b\w+\b", body))
+            word_count = count_prose_words(body)
 
             pov = str(fm.get("pov", fm.get("pov_character", "")))
             location = str(fm.get("location", fm.get("setting", "")))

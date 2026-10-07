@@ -125,13 +125,17 @@ def extract_magic_profiles(world_dir: Path) -> dict:
                                 if d_name and d_name not in disciplines:
                                     disciplines.append(d_name)
 
-                classification_val = str(fm.get("classification", "Hard Magic"))
-                is_soft_magic = any(k in classification_val.lower() for k in ("soft", "mythic", "wonder", "unbound", "numinous"))
+                modality_raw = str(fm.get("modality", fm.get("classification", "hard"))).lower().strip()
+                is_soft_magic = any(k in modality_raw or k in str(fm.get("classification", "")).lower() for k in ("soft", "mythic", "wonder", "unbound", "numinous"))
+                is_rationalist = any(k in modality_raw or k in str(fm.get("classification", "")).lower() for k in ("rationalist", "scientific", "mathematical", "hardest"))
+                resolved_modality = "soft" if is_soft_magic else ("rationalist" if is_rationalist else "hard")
+                classification_val = str(fm.get("classification", "Soft Magic" if is_soft_magic else ("Rationalist Magic" if is_rationalist else "Hard Magic")))
 
                 systems[sys_name] = {
                     "file": str(md_file.relative_to(world_dir)).replace("\\", "/"),
                     "name": sys_name,
                     "classification": classification_val,
+                    "modality": resolved_modality,
                     "is_soft": is_soft_magic,
                     "source_of_power": fm.get("source_of_power", "Ambient / Essence"),
                     "prevalence": fm.get("prevalence", "Common"),
@@ -331,6 +335,9 @@ def scan_scene_magic_constraints(
                 # Check prose lines for impossible magic / hard limitations (MAG-103)
                 lower_l = clean_line.lower()
                 for s_name, s_data in magic_systems.items():
+                    # Soft magic systems permit mythic wonder and non-thermodynamic miracles unless marked strict
+                    if s_data.get("is_soft") or s_data.get("modality") == "soft":
+                        continue
                     for limit in s_data.get("hard_limitations", []):
                         lim_lower = limit.lower()
                         # If limitation specifies "cannot resurrect" and line mentions "resurrected" or "brought back from the dead"

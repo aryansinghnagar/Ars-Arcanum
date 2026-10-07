@@ -24,7 +24,6 @@ Zero external dependencies; 100% offline privacy.
 """
 
 import argparse
-import html
 import json
 import logging
 import re
@@ -33,7 +32,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from lib._bootstrap import atomic_write
+    from lib._bootstrap import count_prose_words
     from lib.data_access import get_data_access
     from lib.scope import (
         EngineScope,
@@ -43,8 +42,9 @@ try:
         resolve_manuscript_dir,
         resolve_world_dir,
     )
+    from lib.structure_template import generate_structure_html_report
 except ImportError:
-    from _bootstrap import atomic_write
+    from _bootstrap import count_prose_words
     from data_access import get_data_access
     from scope import (  # type: ignore[no-redef]
         EngineScope,
@@ -54,6 +54,7 @@ except ImportError:
         resolve_manuscript_dir,
         resolve_world_dir,
     )
+    from structure_template import generate_structure_html_report  # type: ignore[no-redef]
 
 try:
     from lib.manuscript_scaffold import get_paradigm_key, list_presets, read_manifest_structure
@@ -240,8 +241,13 @@ def _normalize_beat_name(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 
-def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_key: str = "three_act", scope: Any = None) -> dict:
-    """Scans manuscript chapters and evaluates alignment against the chosen paradigm with granular scope support."""
+def scan_manuscript_structure(
+    target_path: Path | str | None = None,
+    paradigm_key: str = "three_act",
+    scope: Any = None,
+    elastic: bool = False,
+) -> dict:
+    """Scans manuscript chapters and evaluates alignment against the chosen paradigm with granular scope support and optional elastic tolerances."""
     target_str = resolve_manuscript_dir(target_path) if target_path else resolve_manuscript_dir()
     if target_path and Path(target_path).exists():
         p_target = Path(target_path)
@@ -270,7 +276,7 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
 
     if p_target.is_file():
         content = get_data_access().read_file(p_target)
-        words = len(re.findall(r'\b\w+\b', content))
+        words = count_prose_words(content)
         total_words = words
         ch_beats = _extract_author_beats(content, p_target)
         chapters.append({
@@ -297,7 +303,7 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
             else:
                 items_to_map = [(c.chapter_num, c.title, c.scoped_content, str(c.file_path)) for c in scoped_chaps]
             for idx, title, content, fpath in items_to_map:
-                words = len(re.findall(r'\b\w+\b', content))
+                words = count_prose_words(content)
                 total_words += words
                 ch_beats = _extract_author_beats(content, fpath)
                 chapters.append({
@@ -315,7 +321,7 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
                     files.append(p)
             for idx, f in enumerate(files, 1):
                 content = get_data_access().read_file(f)
-                words = len(re.findall(r'\b\w+\b', content))
+                words = count_prose_words(content)
                 total_words += words
                 ch_beats = _extract_author_beats(content, f)
                 chapters.append({
@@ -354,9 +360,16 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
     beat_evaluations = []
     drift_penalties = []
 
+    # Calculate elastic window padding if enabled
+    elastic_padding = 0.0
+    if elastic and total_words > 0:
+        elastic_padding = max(0.02, min(0.12, 1200.0 / (max(2000, total_words) ** 0.5)))
+
     for beat in paradigm["beats"]:
         target_pct = beat["target_pct"]
-        w_min, w_max = beat["window"]
+        raw_w_min, raw_w_max = beat["window"]
+        w_min = max(0.0, raw_w_min - elastic_padding)
+        w_max = min(1.0, raw_w_max + elastic_padding)
         target_words = int(target_pct * total_words)
 
         beat_norm = _normalize_beat_name(beat["name"])
@@ -394,7 +407,7 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
             "beat_name": beat["name"],
             "target_pct": target_pct,
             "target_words": target_words,
-            "window_pct": [w_min, w_max],
+            "window_pct": [round(w_min, 3), round(w_max, 3)],
             "actual_pct": actual_pct,
             "assigned_chapter": closest_ch["index"] if closest_ch else 1,
             "assigned_file": closest_ch["filename"] if closest_ch else "",
@@ -415,94 +428,10 @@ def scan_manuscript_structure(target_path: Path | str | None = None, paradigm_ke
         "paradigm_key": paradigm_key,
         "paradigm_name": paradigm["name"],
         "harmony_score": harmony_score,
+        "elastic_tolerance": elastic,
         "chapters": chapters,
         "beats": beat_evaluations
     }
-
-
-def generate_structure_html_report(report: dict, output_path: Path) -> Path:
-    """Generates an offline HTML visual timeline report for story structure."""
-    beats = report.get("beats", [])
-    score = report.get("harmony_score", 0.0)
-
-    beat_rows = []
-    for b in beats:
-        status_badge = "<span style='background:#064e3b;color:#a7f3d0;padding:2px 8px;border-radius:4px;font-size:0.75rem;'>On Target</span>" if b["is_in_window"] else f"<span style='background:#78350f;color:#fde68a;padding:2px 8px;border-radius:4px;font-size:0.75rem;'>Drift ({b['drift_pct']}%)</span>"
-        row = f"""
-        <tr>
-          <td><strong>{html.escape(b['beat_name'])}</strong><br><small style="color:#94a3b8;">{html.escape(b['desc'])}</small></td>
-          <td>{int(b['target_pct']*100)}% ({b['target_words']:,} w)</td>
-          <td>Ch {b['assigned_chapter']} ({int(b['actual_pct']*100)}%)</td>
-          <td>{status_badge}</td>
-        </tr>
-        """
-        beat_rows.append(row)
-
-    html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ars Arcanum — Story Paradigm Alignment Report</title>
-<style>
-  :root {{
-    --bg: #0f172a; --panel: #1e293b; --border: #334155;
-    --text: #f8fafc; --muted: #94a3b8; --accent: #38bdf8;
-    --warn: #f59e0b; --danger: #ef4444; --success: #10b981;
-  }}
-  body {{ font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 2rem; }}
-  .container {{ max-width: 1000px; margin: 0 auto; }}
-  .header {{ border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 2rem; }}
-  .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }}
-  .card {{ background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }}
-  .card h3 {{ margin-top: 0; color: var(--muted); font-size: 0.875rem; text-transform: uppercase; }}
-  .metric {{ font-size: 2rem; font-weight: 700; color: var(--accent); }}
-  .section {{ background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }}
-  .table {{ width: 100%; border-collapse: collapse; margin-top: 1rem; }}
-  .table th, .table td {{ text-align: left; padding: 0.75rem 0.5rem; border-bottom: 1px solid var(--border); }}
-</style>
-</head>
-<body>
-<div class="container">
-  <div class="header">
-    <h1>📐 Story Paradigm & Structure Alignment</h1>
-    <p style="color: var(--muted);">Model: {html.escape(report.get('paradigm_name', ''))} | Target: {html.escape(report.get('target', ''))}</p>
-  </div>
-
-  <div class="grid">
-    <div class="card">
-      <h3>Harmony Score</h3>
-      <div class="metric" style="color: {'var(--success)' if score >= 80 else ('var(--warn)' if score >= 60 else 'var(--danger)')};">{score}%</div>
-      <p style="color: var(--muted); margin: 0.5rem 0 0 0;">Structural Beat Fidelity</p>
-    </div>
-    <div class="card">
-      <h3>Total Word Count</h3>
-      <div class="metric">{report.get('total_words', 0):,}</div>
-      <p style="color: var(--muted); margin: 0.5rem 0 0 0;">Across {report.get('total_chapters', 0)} chapters</p>
-    </div>
-    <div class="card">
-      <h3>Paradigm Beats</h3>
-      <div class="metric">{len(beats)}</div>
-      <p style="color: var(--muted); margin: 0.5rem 0 0 0;">Mapped to narrative milestones</p>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2>🎯 Structural Beat Sheet Map</h2>
-    <table class="table">
-      <thead><tr><th>Story Beat</th><th>Target Pct</th><th>Assigned Position</th><th>Status</th></tr></thead>
-      <tbody>
-        {''.join(beat_rows)}
-      </tbody>
-    </table>
-  </div>
-</div>
-</body>
-</html>
-"""
-    atomic_write(output_path, html_content)
-    return output_path
 
 
 def analyze_character_arc_geometry(
@@ -532,7 +461,7 @@ def analyze_character_arc_geometry(
 
     if p_target.is_file():
         txt = get_data_access().read_file(p_target)
-        words = len(re.findall(r"\b\w+\b", txt))
+        words = count_prose_words(txt)
         total_words = words
         pov = ""
         m_pov = re.search(r"@pov:\s*([^\n\r]+)", txt, re.IGNORECASE)
@@ -564,7 +493,7 @@ def analyze_character_arc_geometry(
             else:
                 items_to_map = [(c.chapter_num, c.title, c.scoped_content) for c in scoped_chaps]
             for idx, title, txt in items_to_map:
-                words = len(re.findall(r"\b\w+\b", txt))
+                words = count_prose_words(txt)
                 total_words += words
                 pov = ""
                 m_pov = re.search(r"@pov:\s*([^\n\r]+)", txt, re.IGNORECASE)
@@ -595,7 +524,7 @@ def analyze_character_arc_geometry(
                     files.append(p)
             for idx, f in enumerate(files, 1):
                 txt = get_data_access().read_file(f)
-                words = len(re.findall(r"\b\w+\b", txt))
+                words = count_prose_words(txt)
                 total_words += words
                 pov = ""
                 m_pov = re.search(r"@pov:\s*([^\n\r]+)", txt, re.IGNORECASE)
@@ -713,6 +642,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Manuscript structure key (maps preset to analysis paradigm if available)"
     )
     parser.add_argument("--arc", "--character-arc", action="store_true", help="Run 3D Character Arc Geometry & Lie vs Truth audit")
+    parser.add_argument("--elastic", action="store_true", help="Enable length-scaled elastic tolerance envelopes for pacing windows")
     parser.add_argument("--html", help="Generate HTML report to output path")
     parser.add_argument("--json", action="store_true", help="Output JSON results")
     add_scope_arguments(parser)
@@ -786,7 +716,12 @@ def main(argv: list[str] | None = None) -> int:
     if not chosen_paradigm:
         chosen_paradigm = "three_act"
 
-    report = scan_manuscript_structure(target_path, paradigm_key=chosen_paradigm, scope=scope)
+    report = scan_manuscript_structure(
+        target_path,
+        paradigm_key=chosen_paradigm,
+        scope=scope,
+        elastic=getattr(args, "elastic", False),
+    )
 
     if args.json:
         print(json.dumps(report, indent=2))

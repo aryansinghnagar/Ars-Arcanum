@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from lib._bootstrap import atomic_write
+    from lib._bootstrap import atomic_write, count_prose_words
     from lib.frontmatter import parse_yaml_frontmatter
     from lib.scope import (
         EngineScope,
@@ -46,7 +46,7 @@ try:
         resolve_universe_path,
     )
 except ImportError:
-    from _bootstrap import atomic_write
+    from _bootstrap import atomic_write, count_prose_words
     from frontmatter import parse_yaml_frontmatter
     from scope import (
         EngineScope,
@@ -150,7 +150,7 @@ def discover_series_volumes(target_path: Path, scope: EngineScope | None = None)
 
         for ch_file in ch_files:
             content = ch_file.read_text(encoding="utf-8", errors="replace")
-            words = len(re.findall(r"\b\w+\b", content))
+            words = count_prose_words(content)
             vol_words += words
 
             meta = parse_yaml_frontmatter(content)

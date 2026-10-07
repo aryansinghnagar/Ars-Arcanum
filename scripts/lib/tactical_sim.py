@@ -20,6 +20,7 @@ Zero external dependencies; 100% offline privacy.
 """
 
 import argparse
+import hashlib
 import json
 import logging
 import random
@@ -95,8 +96,9 @@ class Combatant:
         self.kills = 0
         self.damage_dealt = 0
 
-    def roll_initiative(self) -> int:
-        return random.randint(1, 20) + self.agility
+    def roll_initiative(self, rng: random.Random | None = None) -> int:
+        r = rng if rng is not None else random
+        return r.randint(1, 20) + self.agility
 
 
 def simulate_single_battle(
@@ -104,9 +106,19 @@ def simulate_single_battle(
     side2_data: list[dict],
     terrain: str = "open_field",
     defending_side: int = 2,
+    seed: int | None = None,
+    rng: random.Random | None = None,
 ) -> dict:
-    """Executes a full turn-based combat simulation and records a narrative combat log."""
+    """Executes a deterministic turn-based combat simulation and records a narrative combat log."""
     t_mod = TERRAIN_MODIFIERS.get(terrain, TERRAIN_MODIFIERS["open_field"])
+
+    if rng is None:
+        if seed is not None:
+            rng = random.Random(seed)
+        else:
+            seed_blob = json.dumps([side1_data, side2_data, terrain, defending_side], sort_keys=True).encode("utf-8")
+            int_seed = int(hashlib.sha256(seed_blob).hexdigest()[:8], 16)
+            rng = random.Random(int_seed)
 
     team1 = [Combatant(d, side=1) for d in side1_data]
     team2 = [Combatant(d, side=2) for d in side2_data]
@@ -126,7 +138,7 @@ def simulate_single_battle(
             break
 
         # Initiative order (roll once per fighter per round)
-        initiative_pairs = [(f.roll_initiative(), f) for f in (alive1 + alive2)]
+        initiative_pairs = [(f.roll_initiative(rng=rng), f) for f in (alive1 + alive2)]
         initiative_pairs.sort(key=lambda item: item[0], reverse=True)
         turn_order = [f for _, f in initiative_pairs]
 
@@ -139,18 +151,18 @@ def simulate_single_battle(
             if not opponents:
                 break
 
-            # Prefer lowest HP target or random
+            # Prefer lowest HP target
             target = min(opponents, key=lambda f: f.hp)
 
             # Attack Roll (d20 + attack vs target agility + 10)
-            roll = random.randint(1, 20)
+            roll = rng.randint(1, 20)
             hit_threshold = 10 + target.agility + (t_mod["def_bonus"] if target.side == defending_side and terrain == "castle_walls" else 0)
             attack_total = roll + attacker.attack
 
             if roll == 20 or attack_total >= hit_threshold:
                 # Hit!
                 is_crit = (roll == 20)
-                raw_dmg = (attacker.damage * 1.5 if is_crit else attacker.damage) + random.randint(-2, 2)
+                raw_dmg = (attacker.damage * 1.5 if is_crit else attacker.damage) + rng.randint(-2, 2)
                 effective_armor = max(0, target.armor + (t_mod["def_bonus"] if target.side == defending_side and terrain == "castle_walls" else 0))
                 dmg = max(1, int(raw_dmg - effective_armor))
 
@@ -173,7 +185,7 @@ def simulate_single_battle(
             dead_team = [f for f in team if not f.is_alive]
             if len(dead_team) >= len(team) * 0.5 and active_team:
                 for f in active_team:
-                    if random.randint(1, 100) > f.morale:
+                    if rng.randint(1, 100) > f.morale:
                         f.is_routed = True
                         log.append(f"  🏳️ {f.name} suffers morale collapse and flees the battlefield!")
 
@@ -207,15 +219,25 @@ def run_monte_carlo(
     terrain: str = "open_field",
     runs: int = 100,
     defending_side: int = 2,
+    seed: int | None = None,
 ) -> dict:
-    """Runs multiple battle simulations to assess realistic odds and victory percentages."""
+    """Runs multiple battle simulations deterministically to assess realistic odds and victory percentages."""
     side1_wins = 0
     side2_wins = 0
     draws = 0
     total_rounds = 0
 
-    for _ in range(runs):
-        res = simulate_single_battle(side1_data, side2_data, terrain=terrain, defending_side=defending_side)
+    base_rng = random.Random(seed if seed is not None else 42)
+
+    for _i in range(runs):
+        run_seed = base_rng.randint(0, 2**31 - 1)
+        res = simulate_single_battle(
+            side1_data,
+            side2_data,
+            terrain=terrain,
+            defending_side=defending_side,
+            seed=run_seed,
+        )
         if res["winner"] == 1:
             side1_wins += 1
         elif res["winner"] == 2:
@@ -364,6 +386,7 @@ def main():
     p_sim.add_argument("--terrain", choices=list(TERRAIN_MODIFIERS.keys()), default="open_field", help="Battlefield terrain type")
     p_sim.add_argument("--defending-side", type=int, choices=[1, 2], default=2, help="Defending side holding fortifications (default: 2)")
     p_sim.add_argument("-n", "--monte-carlo", type=int, default=1, help="Number of Monte Carlo simulation runs (default: 1)")
+    p_sim.add_argument("--seed", type=int, default=None, help="Explicit PRNG integer seed for reproducible combat results")
     p_sim.add_argument("--narrative", action="store_true", help="Print blow-by-blow narrative combat log")
     p_sim.add_argument("--json", action="store_true", help="Output JSON results")
     add_scope_arguments(p_sim, include_manuscript=False, include_world=True, target_pos_arg=False)
@@ -421,7 +444,14 @@ def main():
         side2 = json.loads(Path(args.side2).read_text(encoding="utf-8"))
 
     if args.monte_carlo > 1:
-        mc_results = run_monte_carlo(side1, side2, terrain=args.terrain, runs=args.monte_carlo, defending_side=args.defending_side)
+        mc_results = run_monte_carlo(
+            side1,
+            side2,
+            terrain=args.terrain,
+            runs=args.monte_carlo,
+            defending_side=args.defending_side,
+            seed=args.seed,
+        )
         if args.json:
             print(json.dumps(mc_results, indent=2))
         else:
@@ -432,7 +462,13 @@ def main():
             print(f"Draw / Stalemate: {mc_results['draw_rate']}%")
             print(f"Average Duration: {mc_results['avg_rounds']} rounds")
     else:
-        battle = simulate_single_battle(side1, side2, terrain=args.terrain, defending_side=args.defending_side)
+        battle = simulate_single_battle(
+            side1,
+            side2,
+            terrain=args.terrain,
+            defending_side=args.defending_side,
+            seed=args.seed,
+        )
         if args.json:
             print(json.dumps(battle, indent=2))
         else:

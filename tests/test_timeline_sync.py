@@ -176,7 +176,30 @@ class TestTimelineSync(unittest.TestCase):
                     main()
                 self.assertEqual(cm.exception.code, 1)
 
+    def test_relative_chronology_resolution(self):
+        """Verify two-pass relative event coordinate resolution relative(Event, +delta)."""
+        rel_dir = Path(self.temp_dir.name + "_rel")
+        rel_dir.mkdir()
+        (rel_dir / "01_Anchor.md").write_text(
+            "---\ntitle: Treaty of Aethel\ntime: 1420 3E, Day 100\n---\nPeace signed.",
+            encoding="utf-8",
+        )
+        (rel_dir / "02_Followup.md").write_text(
+            "---\ntitle: Border Skirmish\ntime: relative(Treaty of Aethel, +45d)\n---\nTensions rise 45 days later.",
+            encoding="utf-8",
+        )
+
+        events = extract_timeline_events(rel_dir)
+        report = analyze_timeline_synchronization(events)
+        self.assertEqual(report["total_events"], 2)
+        # Check chronological order: Treaty (Day 100) -> Border Skirmish (Day 145)
+        chrono = report["chronological_events"]
+        self.assertEqual(chrono[0]["title"], "Treaty Of Aethel")
+        self.assertEqual(chrono[1]["title"], "Border Skirmish")
+        self.assertGreater(chrono[1]["normalized_time"], chrono[0]["normalized_time"])
+
 
 if __name__ == "__main__":
     unittest.main()
+
 

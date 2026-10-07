@@ -132,11 +132,35 @@ class TestDataAccessLayer(unittest.TestCase):
             small_dal.read_file(f4)
             self.assertEqual(small_dal.get_stats()["cached_files"], 3)
 
-            # Explicit evict
-            self.assertTrue(small_dal.evict(f1))
+            # Explicit evict single file
+            self.assertEqual(small_dal.evict(f1), 1)
             self.assertEqual(small_dal.get_stats()["cached_files"], 2)
-            self.assertFalse(small_dal.evict(f1))
+            self.assertEqual(small_dal.evict(f1), 0)
+
+    def test_get_word_count_and_prefix_eviction(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            dir_a = Path(td) / "project_a"
+            dir_a.mkdir()
+            f1 = dir_a / "chap1.md"
+            f2 = dir_a / "chap2.md"
+            f1.write_text("# Chapter 1\nOne two three four five.", encoding="utf-8")
+            f2.write_text("# Chapter 2\nSix seven eight nine ten.", encoding="utf-8")
+
+            # Word count cached test
+            wc1 = self.dal.get_word_count(f1)
+            self.assertEqual(wc1, 7)  # "Chapter 1 One two three four five" = 7 words
+            wc2 = self.dal.get_word_count(f2)
+            self.assertEqual(wc2, 7)
+
+            _fm, body = self.dal.parse_frontmatter_and_body(f1)
+            self.assertIn("Chapter 1", body)
+
+            # Prefix eviction test
+            evicted_count = self.dal.evict(dir_a)
+            self.assertEqual(evicted_count, 2)
+            self.assertEqual(self.dal.evict(dir_a), 0)
 
 
 if __name__ == "__main__":
     unittest.main()
+

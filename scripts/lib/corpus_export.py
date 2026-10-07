@@ -48,6 +48,7 @@ __all__ = [
 ]
 
 try:
+    from lib._bootstrap import count_prose_words
     from lib.corpus_export_formatters import (
         export_jsonl,
         export_markdown_summary,
@@ -66,6 +67,7 @@ try:
         resolve_world_path,
     )
 except ImportError:
+    from _bootstrap import count_prose_words
     from corpus_export_formatters import (  # type: ignore[no-redef]
         export_jsonl,
         export_markdown_summary,
@@ -216,7 +218,7 @@ def chunk_document(
         if not current_chunk_paras:
             return
         chunk_text = "\n\n".join(current_chunk_paras).strip()
-        word_cnt = len(re.findall(r"\b\w+\b", chunk_text))
+        word_cnt = count_prose_words(chunk_text)
         token_est = round(word_cnt * 1.33)
         chunk_entities = extract_wikilinks(chunk_text)
 
@@ -243,7 +245,7 @@ def chunk_document(
                 flush_chunk()
             current_heading = h_match.group(2).strip()
 
-        para_words = len(re.findall(r"\b\w+\b", para))
+        para_words = count_prose_words(para)
         if current_chunk_words + para_words > target_chunk_words and current_chunk_paras:
             flush_chunk()
 
@@ -320,7 +322,7 @@ def process_markdown_file(
                 if link not in entities_referenced:
                     entities_referenced.append(link)
 
-    word_count = len(re.findall(r"\b\w+\b", body))
+    word_count = count_prose_words(body)
     token_count_est = round(word_count * 1.33)
 
     chunks = chunk_document(doc_id, body, target_chunk_words=target_chunk_words)

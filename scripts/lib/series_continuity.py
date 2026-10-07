@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from lib._bootstrap import atomic_write
+    from lib._bootstrap import atomic_write, count_prose_words
     from lib.data_access import get_data_access
     from lib.scope import (
         EngineScope,
@@ -40,7 +40,7 @@ try:
         resolve_manuscript_path,
     )
 except ImportError:
-    from _bootstrap import atomic_write
+    from _bootstrap import atomic_write, count_prose_words
     from data_access import get_data_access
     from scope import (
         EngineScope,
@@ -176,7 +176,7 @@ def extract_book_entities(book_dir: Path, scope: EngineScope | None = None) -> d
                 characters.add(c_name)
 
     # Word count
-    words = len(re.findall(r'\b\w+\b', text_content))
+    words = count_prose_words(text_content)
 
     return {
         "volume_name": book_dir.name,

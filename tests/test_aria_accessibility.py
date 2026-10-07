@@ -75,8 +75,8 @@ class TestAriaAccessibilityCompliance(unittest.TestCase):
         self.assertIn('aria-label=', content, "Studio Hub missing aria-label on interactive inputs/buttons")
 
     def test_story_canvas_aria_accessibility(self):
-        canvas_path = SCRIPTS_LIB / "story_canvas.py"
-        self.assertTrue(canvas_path.is_file(), f"Story Canvas script missing at {canvas_path}")
+        canvas_path = SCRIPTS_LIB / "story_canvas_template.py"
+        self.assertTrue(canvas_path.is_file(), f"Story Canvas template missing at {canvas_path}")
         content = canvas_path.read_text(encoding="utf-8")
 
         # 1. Semantic Landmarks & Main

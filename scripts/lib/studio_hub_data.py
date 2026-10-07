@@ -18,11 +18,13 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from lib._bootstrap import count_prose_words
     from lib.data_access import get_data_access
     from lib.frontmatter import parse_yaml_frontmatter
     from lib.resonance import ResonanceMesh
     from lib.tips import are_tips_enabled, get_tip_database
 except ImportError:
+    from _bootstrap import count_prose_words
     from data_access import get_data_access
     from frontmatter import parse_yaml_frontmatter
     from resonance import ResonanceMesh
@@ -83,7 +85,7 @@ def scan_manuscript_chapters(manuscript_dir: Path | None) -> list[dict[str, Any]
 
         meta = parse_yaml_frontmatter(content)
         body = FRONTMATTER_REGEX.sub("", content).strip()
-        words = len(body.split())
+        words = count_prose_words(body)
         if words == 0 and not meta:
             continue
 

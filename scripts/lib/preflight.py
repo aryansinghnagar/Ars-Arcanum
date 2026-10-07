@@ -34,7 +34,7 @@ import sys
 from pathlib import Path
 
 try:
-    from lib._bootstrap import atomic_write
+    from lib._bootstrap import atomic_write, count_prose_words
     from lib.frontmatter import parse_yaml_frontmatter
     from lib.scope import (
         EngineScope,
@@ -44,7 +44,7 @@ try:
         resolve_manuscript_path,
     )
 except ImportError:
-    from _bootstrap import atomic_write
+    from _bootstrap import atomic_write, count_prose_words
     from frontmatter import parse_yaml_frontmatter
     from scope import (
         EngineScope,
@@ -199,7 +199,7 @@ def run_preflight_linter(manuscript_dir: Path, scope: EngineScope | None = None)
             f_issues = validate_chapter_formatting(f)
             formatting_issues.extend(f_issues)
             text = f.read_text(encoding="utf-8", errors="replace")
-            words = len(re.findall(r'\b\w+\b', text))
+            words = count_prose_words(text)
             total_words += words
         except Exception as e:
             formatting_issues.append({"level": "FAIL", "file": f.name, "code": "ERR-READ", "message": str(e)})

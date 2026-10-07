@@ -23,15 +23,14 @@ import datetime
 import html
 import json
 import logging
-import re
 from pathlib import Path
 from typing import Any
 
 try:
-    from lib._bootstrap import atomic_write
+    from lib._bootstrap import atomic_write, count_prose_words
     from lib.scope import add_scope_arguments, parse_scope_args, resolve_manuscript_dir
 except ImportError:
-    from _bootstrap import atomic_write
+    from _bootstrap import atomic_write, count_prose_words
     try:
         from scope import add_scope_arguments, parse_scope_args, resolve_manuscript_dir
     except ImportError:
@@ -66,7 +65,7 @@ def analyze_manuscript_project(ms_dir: Path) -> dict:
     for cf in chapter_files:
         try:
             txt = cf.read_text(encoding="utf-8", errors="replace")
-            total_words += len(re.findall(r'\b\w+\b', txt))
+            total_words += count_prose_words(txt)
         except Exception:
             pass
 

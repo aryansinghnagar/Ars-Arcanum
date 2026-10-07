@@ -43,6 +43,7 @@ class _CachedFileEntry:
     content: str
     frontmatter: dict[str, Any]
     body: str
+    word_count: int = 0
 
 
 class DataAccessLayer:
@@ -62,15 +63,40 @@ class DataAccessLayer:
             self._hits = 0
             self._misses = 0
 
-    def evict(self, file_path: Path | str) -> bool:
-        """Evicts a specific file path from cache."""
-        p = Path(file_path).resolve()
-        path_key = str(p)
+    def evict(self, target: Path | str) -> int:
+        """Evicts a specific file path or all files under a directory prefix from cache.
+
+        Returns the number of evicted cache entries.
+        """
+        p = Path(target).resolve()
+        path_str = str(p)
+        evicted = 0
+
         with self._lock:
-            if path_key in self._file_cache:
-                del self._file_cache[path_key]
-                return True
-        return False
+            # Single exact file key match
+            if path_str in self._file_cache:
+                del self._file_cache[path_str]
+                return 1
+
+            # Directory prefix match
+            keys_to_delete = []
+            for k in list(self._file_cache.keys()):
+                kp = Path(k)
+                if kp == p:
+                    keys_to_delete.append(k)
+                else:
+                    try:
+                        if kp.is_relative_to(p):
+                            keys_to_delete.append(k)
+                    except AttributeError:
+                        if k.startswith(path_str):
+                            keys_to_delete.append(k)
+
+            for k in keys_to_delete:
+                del self._file_cache[k]
+                evicted += 1
+
+        return evicted
 
     def get_stats(self) -> dict[str, int]:
         """Returns cache telemetry statistics."""
@@ -111,6 +137,7 @@ class DataAccessLayer:
             return ""
 
         frontmatter, body = extract_frontmatter_and_body(content)
+        w_count = count_prose_words(content)
 
         with self._lock:
             self._misses += 1
@@ -122,6 +149,7 @@ class DataAccessLayer:
                 content=content,
                 frontmatter=frontmatter,
                 body=body,
+                word_count=w_count,
             )
             # LRU eviction
             while len(self._file_cache) > self.max_entries:
@@ -146,6 +174,20 @@ class DataAccessLayer:
 
         frontmatter, body = extract_frontmatter_and_body(content)
         return frontmatter, body
+
+    # Backward-compatibility alias
+    parse_frontmatter_and_body = parse_frontmatter
+
+    def get_word_count(self, file_path: Path | str) -> int:
+        """Returns cached canonical prose word count for a file."""
+        p = Path(file_path).resolve()
+        path_key = str(p)
+        self.read_file(p)
+        with self._lock:
+            cached = self._file_cache.get(path_key)
+            if cached is not None:
+                return cached.word_count
+        return 0
 
     def list_files(
         self,

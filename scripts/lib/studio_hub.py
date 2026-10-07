@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from lib._bootstrap import atomic_write
+    from lib._bootstrap import atomic_write, count_prose_words
     from lib.resonance import ResonanceMesh
     from lib.scope import (
         EngineScope,
@@ -45,7 +45,7 @@ try:
     )
     from lib.tips import are_tips_enabled, get_tip_database, toggle_tips
 except ImportError:
-    from _bootstrap import atomic_write
+    from _bootstrap import atomic_write, count_prose_words
     from resonance import ResonanceMesh  # type: ignore[no-redef]
     from scope import (  # type: ignore[no-redef]
         EngineScope,
@@ -467,7 +467,7 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             except Exception:
                 pass
 
-            words = len(re.findall(r"\b\w+\b", str(content)))
+            words = count_prose_words(str(content))
             self._send_json({
                 "status": "success",
                 "path": str(target_path.relative_to(self.project_dir)).replace("\\", "/"),

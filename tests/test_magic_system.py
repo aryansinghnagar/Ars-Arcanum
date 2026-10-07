@@ -391,7 +391,24 @@ classification: "Hard Magic"
         self.assertIn("Hydromancy", data["disciplines"])
         self.assertTrue(any("cannot resurrect" in lim.lower() for lim in data["hard_limitations"]))
 
+    def test_magic_system_modalities(self) -> None:
+        """Verify soft and rationalist magic system modality parsing."""
+        (self.world_dir / "Magic-Technology" / "Soft_Magic.md").write_text("""---
+name: "Mythic Wonder"
+modality: soft
+source_of_power: "Divine Grace"
+---
+# Mythic Wonder
+Mysterious cosmic magic.
+""", encoding="utf-8")
+
+        profiles = extract_magic_profiles(self.world_dir)
+        self.assertIn("Mythic Wonder", profiles)
+        self.assertEqual(profiles["Mythic Wonder"]["modality"], "soft")
+        self.assertEqual(profiles["Mythic Wonder"]["classification"], "Soft Magic")
+
 
 if __name__ == "__main__":
     unittest.main()
+
 

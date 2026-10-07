@@ -160,6 +160,22 @@ class TestTacticalSimulator(unittest.TestCase):
         with patch.object(sys, "argv", ["tactical_sim.py"]), self.assertRaises(SystemExit):
             main()
 
+    def test_deterministic_seed_repeatability(self):
+        """Verify that giving an explicit seed reproduces identical battle trajectories and outcomes."""
+        res1 = simulate_single_battle(DEFAULT_SIDE1, DEFAULT_SIDE2, terrain="open_field", seed=42)
+        res2 = simulate_single_battle(DEFAULT_SIDE1, DEFAULT_SIDE2, terrain="open_field", seed=42)
+        self.assertEqual(res1["winner"], res2["winner"])
+        self.assertEqual(res1["rounds_lasted"], res2["rounds_lasted"])
+        self.assertEqual(res1["log"], res2["log"])
+        self.assertEqual(res1["mvp"], res2["mvp"])
+
+        mc1 = run_monte_carlo(DEFAULT_SIDE1, DEFAULT_SIDE2, terrain="open_field", runs=20, seed=123)
+        mc2 = run_monte_carlo(DEFAULT_SIDE1, DEFAULT_SIDE2, terrain="open_field", runs=20, seed=123)
+        self.assertEqual(mc1["side1_win_rate"], mc2["side1_win_rate"])
+        self.assertEqual(mc1["side2_win_rate"], mc2["side2_win_rate"])
+
 
 if __name__ == "__main__":
     unittest.main()
+
+

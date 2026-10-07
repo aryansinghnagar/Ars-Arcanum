@@ -33,7 +33,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from lib._bootstrap import atomic_write
+    from lib._bootstrap import atomic_write, count_prose_words
     from lib.frontmatter import parse_yaml_frontmatter
     from lib.scope import (
         EngineScope,
@@ -43,7 +43,7 @@ try:
         resolve_manuscript_dir,
     )
 except ImportError:
-    from _bootstrap import atomic_write
+    from _bootstrap import atomic_write, count_prose_words
     from frontmatter import parse_yaml_frontmatter  # type: ignore[no-redef]
     from scope import (  # type: ignore[no-redef]
         EngineScope,
@@ -73,7 +73,7 @@ def extract_chapter_plot_metadata(
     arcs = set()
     pov = "Unknown"
     ch_title = title or p_file.stem
-    word_count = len(re.findall(r'\b\w+\b', content))
+    word_count = count_prose_words(content)
 
     # Parse structured YAML frontmatter if present
     fm = parse_yaml_frontmatter(content)

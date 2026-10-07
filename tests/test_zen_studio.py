@@ -363,7 +363,8 @@ A cold mist rolled across the valley floor.
                 self.assertTrue(out_html.is_file())
 
         # Human readable
-        with patch("sys.argv", ["zen_studio.py", str(self.ms_dir), "--world", str(self.world_dir)]):
+        out_human = self.root / "cli_zen_human.html"
+        with patch("sys.argv", ["zen_studio.py", str(self.ms_dir), "--world", str(self.world_dir), "--output", str(out_human)]):
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 main()
                 self.assertIn("Sovereign Zen Studio", mock_stdout.getvalue())

@@ -301,7 +301,26 @@ class TestStructureEngine(unittest.TestCase):
         self.assertEqual(mid["assigned_chapter"], 5)
         self.assertTrue(mid["is_in_window"])
 
+    def test_elastic_window_scaling(self):
+        """Verify length-scaled elastic tolerance envelopes widen for short manuscripts and narrow for epics."""
+        words_chunk = "Word " * 100
+        # 4 chapters: total words ~400 (very short novella/novelette)
+        for i in range(1, 5):
+            (self.target_dir / f"{i:02d}_Ch.md").write_text(f"# Chapter {i}\n\n{words_chunk}\n", encoding="utf-8")
+
+        # Scan with elastic=True
+        report_elastic = scan_manuscript_structure(self.target_dir, paradigm_key="three_act", elastic=True)
+        self.assertTrue(report_elastic.get("elastic_tolerance"))
+
+        # Scan with elastic=False
+        report_rigid = scan_manuscript_structure(self.target_dir, paradigm_key="three_act", elastic=False)
+        self.assertFalse(report_rigid.get("elastic_tolerance"))
+
+        # Verify beats have target windows
+        self.assertEqual(len(report_elastic["beats"]), len(report_rigid["beats"]))
+
 
 if __name__ == "__main__":
     unittest.main()
+
 

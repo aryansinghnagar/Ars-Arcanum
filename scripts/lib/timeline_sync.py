@@ -182,8 +182,27 @@ def extract_single_event(content: str, file_path: Path | str, idx: int, title: s
     )
 
 
+def _parse_time_offset(offset_str: str) -> float:
+    """Parses relative offset string like '+45d', '-2w', '+3y', '+12h' into numeric delta."""
+    s = offset_str.strip().lower().replace(" ", "")
+    m = re.match(r"^([+-]?\d+(?:\.\d+)?)\s*([a-z]+)?$", s)
+    if not m:
+        return 0.0
+    val = float(m.group(1))
+    unit = m.group(2) or "d"
+    if unit in ("y", "yr", "yrs", "year", "years"):
+        return val * 365.0
+    if unit in ("m", "mo", "mos", "month", "months"):
+        return val * 30.0
+    if unit in ("w", "wk", "wks", "week", "weeks"):
+        return val * 7.0
+    if unit in ("h", "hr", "hrs", "hour", "hours"):
+        return val / 24.0
+    return val  # days default
+
+
 def extract_timeline_events(target_path: Path | str | None = None, scope: Any = None) -> list[TimelineEvent]:
-    """Scans manuscript chapters and extracts dual-track timeline events with granular scope support."""
+    """Scans manuscript chapters and extracts dual-track timeline events with two-pass relative anchor resolution."""
     target_str = resolve_manuscript_dir(target_path) if target_path else resolve_manuscript_dir()
     if target_path and Path(target_path).exists():
         p_target = Path(target_path)
@@ -224,6 +243,34 @@ def extract_timeline_events(target_path: Path | str | None = None, scope: Any = 
                 events.append(extract_single_event(content, f, idx))
     else:
         raise FileNotFoundError(f"Target path not found: {p_target}")
+
+    # Pass 2: Resolve relative anchor time coordinates
+    anchors: dict[str, float] = {}
+    for evt in events:
+        anchors[evt.id.lower()] = evt.normalized_time
+        anchors[evt.title.lower()] = evt.normalized_time
+        anchors[Path(evt.filename).stem.lower()] = evt.normalized_time
+
+    for i, evt in enumerate(events):
+        rel_m = re.search(r"relative\(\s*([^,]+?)\s*,\s*([^\)]+?)\s*\)", evt.raw_time, re.IGNORECASE)
+        if rel_m:
+            target_key = rel_m.group(1).strip().lower()
+            offset_str = rel_m.group(2).strip()
+            if target_key in anchors:
+                base_coord = anchors[target_key]
+                delta = _parse_time_offset(offset_str)
+                evt.normalized_time = base_coord + delta
+                if delta < 0:
+                    evt.is_flashback = True
+                elif delta > 0:
+                    evt.is_flashforward = True
+        elif (evt.raw_time.strip().startswith("+") or evt.raw_time.strip().startswith("-")) and i > 0:
+            delta = _parse_time_offset(evt.raw_time)
+            evt.normalized_time = events[i - 1].normalized_time + delta
+            if delta < 0:
+                evt.is_flashback = True
+            elif delta > 0:
+                evt.is_flashforward = True
 
     return events
 
