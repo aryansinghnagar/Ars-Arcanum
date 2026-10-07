@@ -395,8 +395,14 @@ def audit_manuscript_prices(
     for md_file in md_files:
         try:
             content = dal.read_file(md_file) if dal else md_file.read_text(encoding="utf-8", errors="ignore")
+            fm = parse_yaml_frontmatter(content)
+            if fm.get("intent") == "deliberate" or fm.get("modality") in ("surreal", "mythic") or "@intent: deliberate" in content or "@modality: surreal" in content:
+                continue
+
             lines = content.splitlines()
             for line_idx, line in enumerate(lines, start=1):
+                if "@intent: deliberate" in line:
+                    continue
                 for m in price_tag_regex.finditer(line):
                     amount = float(m.group(1))
                     curr_name = m.group(2).strip()
@@ -510,9 +516,13 @@ def audit_technological_anachronisms(
     for md_file in md_files:
         try:
             content = dal.read_file(md_file) if dal else md_file.read_text(encoding="utf-8", errors="ignore")
+            fm = parse_yaml_frontmatter(content)
+            if fm.get("intent") == "deliberate" or fm.get("modality") in ("surreal", "mythic") or "@intent: deliberate" in content or "@anachronism: allow" in content:
+                continue
+
             lines = content.splitlines()
             for line_idx, line in enumerate(lines, start=1):
-                if line.strip().startswith("@"):
+                if line.strip().startswith("@") or "@intent: deliberate" in line:
                     continue
 
                 line_lower = line.lower()

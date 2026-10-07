@@ -384,5 +384,39 @@ start_year: 1050
             self.assertEqual(cm.exception.code, 2)
 
 
+    def test_deliberate_and_surreal_cycle_bypass(self):
+        """Cycles tagged with @intent: deliberate or @modality: surreal are recognized as artistic choices and bypassed."""
+        self._write(
+            self.ms_dir,
+            "dream-loop-a.md",
+            "---\nintent: deliberate\n---\n@timeline: prime\n@causal-origin: dream-loop-b\n",
+        )
+        self._write(
+            self.ms_dir,
+            "dream-loop-b.md",
+            "@timeline: prime\n@causal-origin: dream-loop-a\n",
+        )
+
+        events, timelines = extract_causal_nodes(self.world_dir, self.ms_dir)
+        findings = audit_causality(events, timelines)
+        self.assertEqual(len(findings), 0, "Deliberate paradoxical cycle should be bypassed without error")
+
+        # Test inline directive @modality: surreal
+        self._write(
+            self.ms_dir,
+            "mythic-a.md",
+            "@timeline: myth\n@modality: surreal\n@causal-origin: mythic-b\n",
+        )
+        self._write(
+            self.ms_dir,
+            "mythic-b.md",
+            "@timeline: myth\n@causal-origin: mythic-a\n",
+        )
+
+        events2, timelines2 = extract_causal_nodes(self.world_dir, self.ms_dir)
+        findings2 = audit_causality(events2, timelines2)
+        self.assertEqual(len(findings2), 0, "Surreal modality cycle should be bypassed without error")
+
+
 if __name__ == "__main__":
     unittest.main()

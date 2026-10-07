@@ -124,7 +124,7 @@ def extract_causal_nodes(
                 causes = fm.get("causes") or fm.get("triggers") or []
                 if isinstance(causes, str):
                     causes = [causes]
-                paradox_type = fm.get("paradox_type") or ""
+                paradox_type = fm.get("paradox_type") or ("deliberate" if fm.get("intent") == "deliberate" or fm.get("modality") == "surreal" else "")
                 branch_from = fm.get("branch_from") or ""
 
                 # Also scan line tags
@@ -143,7 +143,9 @@ def extract_causal_nodes(
                             causal_origins.extend([o.strip() for o in tag_v.split(",") if o.strip()])
                         elif tag_k in ("causes", "cause", "triggers", "effect"):
                             causes.extend([c.strip() for c in tag_v.split(",") if c.strip()])
-                        elif tag_k in ("paradox-type", "paradox", "loop"):
+                        elif tag_k in ("paradox-type", "paradox", "loop") or (
+                            tag_k in ("intent", "modality") and tag_v.lower() in ("deliberate", "surreal", "mythic", "intentional", "dream-logic")
+                        ):
                             paradox_type = tag_v.lower()
                         elif tag_k in ("branch-from", "branch_from", "divergence"):
                             branch_from = tag_v
@@ -239,6 +241,8 @@ def audit_causality(events: dict, timelines: dict) -> list:
         cycle_str = " -> ".join(cycle)
         cycle_nodes = [events[c] for c in cycle if c in events]
         paradox_types = {c.get("paradox_type", "") for c in cycle_nodes if c.get("paradox_type")}
+        if any(p in paradox_types for p in ("deliberate", "surreal", "mythic", "intentional", "dream-logic")):
+            continue
 
         if "novikov-violation" in paradox_types or "novikov_violation" in paradox_types or "fixed" in paradox_types:
             findings.append({

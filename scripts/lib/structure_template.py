@@ -28,9 +28,9 @@ def render_structure_html_page(report: dict) -> str:
     beat_rows = []
     for b in beats:
         status_badge = (
-            "<span style='background:#064e3b;color:#a7f3d0;padding:2px 8px;border-radius:4px;font-size:0.75rem;'>On Target</span>"
+            "<span style='background:#064e3b;color:#a7f3d0;padding:2px 8px;border-radius:4px;font-size:0.75rem;'>In Window</span>"
             if b["is_in_window"]
-            else f"<span style='background:#78350f;color:#fde68a;padding:2px 8px;border-radius:4px;font-size:0.75rem;'>Drift ({b['drift_pct']}%)</span>"
+            else f"<span style='background:#1e3a5f;color:#93c5fd;padding:2px 8px;border-radius:4px;font-size:0.75rem;'>Offset ({b['drift_pct']}%)</span>"
         )
         row = f"""
         <tr>
@@ -70,15 +70,15 @@ def render_structure_html_page(report: dict) -> str:
 <body>
 <div class="container">
   <div class="header">
-    <h1>📐 Story Paradigm & Structure Alignment</h1>
+    <h1>📐 Story Paradigm & Structure Alignment (Observational Telemetry)</h1>
     <p style="color: var(--muted);">Model: {html.escape(report.get('paradigm_name', ''))} | Target: {html.escape(report.get('target', ''))}</p>
   </div>
 
   <div class="grid">
     <div class="card">
-      <h3>Harmony Score</h3>
-      <div class="metric" style="color: {'var(--success)' if score >= 80 else ('var(--warn)' if score >= 60 else 'var(--danger)')};">{score}%</div>
-      <p style="color: var(--muted); margin: 0.5rem 0 0 0;">Structural Beat Fidelity</p>
+      <h3>Milestone Alignment</h3>
+      <div class="metric" style="color: {'var(--success)' if score >= 80 else ('var(--warn)' if score >= 60 else 'var(--accent)')};">{score}%</div>
+      <p style="color: var(--muted); margin: 0.5rem 0 0 0;">Observational Beat Alignment</p>
     </div>
     <div class="card">
       <h3>Total Word Count</h3>

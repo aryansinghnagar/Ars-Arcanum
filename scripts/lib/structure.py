@@ -727,12 +727,12 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report, indent=2))
         return 0
 
-    print(f"=== Story Paradigm Enforcer: {report['paradigm_name']} ===")
+    print(f"=== Story Paradigm Enforcer & Milestone Observer: {report['paradigm_name']} ===")
     print(f"Target: {target_path.name} | Total Words: {report['total_words']:,} | Chapters: {report['total_chapters']}")
-    print(f"Structural Harmony Score: {report['harmony_score']}%")
+    print(f"Milestone Alignment Score: {report['harmony_score']}%")
     print("-" * 75)
     for b in report["beats"]:
-        status = "[ON TARGET]" if b["is_in_window"] else f"[DRIFT {b['drift_pct']}%]"
+        status = "[IN WINDOW]" if b["is_in_window"] else f"[OFFSET {b['drift_pct']}%]"
         print(f"  {b['beat_name']:<30} | Target: {int(b['target_pct']*100):>2}% | Ch {b['assigned_chapter']:>2} ({int(b['actual_pct']*100):>2}%) | {status}")
 
     if args.html:

@@ -448,6 +448,48 @@ commodity_basket:
                 self.assertIn("Supply Shock", mock_stdout.getvalue())
 
 
+    def test_deliberate_price_and_anachronism_bypass(self):
+        """Files or lines tagged with @intent: deliberate or @anachronism: allow are bypassed during economic/tech audits."""
+        # 1. Price audit with deliberate markup
+        (self.world_dir / "Economies" / "Solar.md").write_text("""---
+name: "Solar Standard Economy"
+base_currency: "Solar Crown"
+commodity_basket:
+  - "loaf_of_bread: 2"
+---
+""", encoding="utf-8")
+        econs = extract_economy_profiles(self.world_dir)
+
+        # Deliberate frontmatter
+        ch_delib = self.ms_dir / "Book-01" / "01_Act_I" / "delib_price.md"
+        ch_delib.write_text("""---
+intent: deliberate
+---
+He bought a rare cursed loaf for 500.0 Solar Crown.
+""", encoding="utf-8")
+
+        # Inline deliberate tag
+        ch_inline = self.ms_dir / "Book-01" / "01_Act_I" / "inline_price.md"
+        ch_inline.write_text("""# Chapter
+He paid 999.0 Solar Crown for the forbidden talisman. <!-- @intent: deliberate -->
+""", encoding="utf-8")
+
+        findings = audit_manuscript_prices(self.ms_dir, econs)
+        self.assertEqual(len(findings), 0, "Deliberate price anomalies should be bypassed")
+
+        # 2. Anachronism audit with deliberate flag
+        ch_tech = self.ms_dir / "Book-01" / "01_Act_I" / "tech_anachronism.md"
+        ch_tech.write_text("""---
+tech_era: "medieval"
+intent: deliberate
+---
+He used an advanced steam engine to power the drawbridge.
+""", encoding="utf-8")
+
+        tech_findings = audit_technological_anachronisms(self.ms_dir)
+        self.assertEqual(len(tech_findings), 0, "Deliberate tech anachronisms should be bypassed")
+
+
 if __name__ == "__main__":
     unittest.main()
 

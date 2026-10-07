@@ -184,7 +184,7 @@ def render_story_canvas_page(
   <div>Target: <span id="statTarget" class="stat-val">{html.escape(target_path.name)}</span></div>
   <div>Chapters: <span id="statChapters" class="stat-val">{len(cards)}</span></div>
   <div>Total Words: <span id="statWords" class="stat-val">{total_words:,}</span></div>
-  <div>Structural Harmony: <span id="statHarmony" class="stat-val" style="color: var(--success);">--</span></div>
+  <div>Milestone Proximity: <span id="statHarmony" class="stat-val" style="color: var(--accent);">--</span></div>
 </div>
 
 <main class="canvas-container" id="columnsContainer" role="main" aria-label="Story Beat Columns">
@@ -465,15 +465,15 @@ def render_story_canvas_page(
     mathCard.style.borderRadius = "8px";
     mathCard.style.padding = "1rem 1.25rem";
     mathCard.innerHTML = `
-      <h3 style="margin:0 0 0.5rem 0;color:var(--accent);font-size:1rem;">📐 Structural Harmony Equation</h3>
+      <h3 style="margin:0 0 0.5rem 0;color:var(--accent);font-size:1rem;">📐 Milestone Proximity Reference & Structural Harmony Equation</h3>
       <p style="margin:0 0 0.5rem 0;font-size:0.85rem;color:var(--text);line-height:1.5;">
-        Ars Arcanum evaluates narrative architecture by calculating the L1 norm total variation distance between actual cumulative word distributions and canonical paradigm milestone targets:
+        Ars Arcanum maps narrative architecture by measuring the total variation distance between actual chapter word distributions and paradigm milestone targets for reference:
       </p>
       <div style="background:#0b1120;padding:0.6rem 1rem;border-radius:6px;font-family:monospace;font-size:0.85rem;color:var(--gold);margin-bottom:0.5rem;">
-        Harmony % = max(0, min(100, round(100 * (1 - 0.5 * sum(|ActualPct_b - TargetPct_b|)))))
+        Proximity % = max(0, min(100, round(100 * (1 - 0.5 * sum(|ActualPct_b - TargetPct_b|)))))
       </div>
       <p style="margin:0;font-size:0.8rem;color:var(--muted);">
-        A score of 80%+ indicates balanced narrative pacing and optimal dramatic tension delivery.
+        Milestone telemetry is purely observational to assist pacing navigation and reflects proximity to classical paradigm models without prescribing story rhythm.
       </p>
     `;
     container.appendChild(mathCard);
