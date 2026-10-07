@@ -131,6 +131,12 @@ The archon stepped onto the dais, his obsidian blade humming with latent resonan
 The dawn rose blood-red across the broken spires of High Vale.
 ```
 
+### 4.1 In-Situ Scene Tag Preservation
+
+The synchronization engine differentiates top-level YAML frontmatter headers from mid-document scene directives:
+* **Top Frontmatter**: Stripped during `.docx` generation for clean Word reading; preserved at the document head on import.
+* **Mid-Document Directives (`@scene:`, `@pov:`, `%`)**: Anchored in-situ. Tags appearing between paragraphs remain attached to their exact semantic locations during bidirectional roundtrips rather than being hoisted to the top.
+
 ---
 
 ## 5. CLI Execution & Option Reference

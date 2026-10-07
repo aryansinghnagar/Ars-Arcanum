@@ -9,7 +9,7 @@
 | Primary language | Python 3.10+ (Standard Library only for core/craft engines) | [`pyproject.toml#L1-L20`](file:///pyproject.toml#L1-L20), [`AGENTS.md#L20-L40`](file:///AGENTS.md#L20-L40) |
 | Runtime + version | CPython 3.10, 3.11, 3.12, 3.13, 3.14 (Verified in CI & local environments) | [`.github/workflows/ci.yml#L10-L40`](file:///.github/workflows/ci.yml#L10-L40), [`pyproject.toml#L10-L15`](file:///pyproject.toml#L10-L15) |
 | Package manager & build backend | Setuptools (`setuptools>=61.0`) / Standard Library (`pip install .` supported) | [`pyproject.toml#L1-L30`](file:///pyproject.toml#L1-L30), [`AGENTS.md#L20-L45`](file:///AGENTS.md#L20-L45) |
-| Module/build system | Pure Python packages (`scripts`, `scripts/lib/`), POSIX shell wrapper (`scripts/arcanum`) | [`scripts/arcanum#L1-L50`](file:///scripts/arcanum#L1-L50), [`scripts/lib/cli.py#L1-L100`](file:///scripts/lib/cli.py#L1-L100) |
+| Module/build system | Pure Python packages (`scripts`, `scripts/lib/`), POSIX shell wrapper (`scripts/arcanum`), Windows batch (`scripts/arcanum.cmd`) | [`scripts/arcanum#L1-L50`](file:///scripts/arcanum#L1-L50), [`scripts/arcanum.cmd#L1-L5`](file:///scripts/arcanum.cmd#L1-L5), [`scripts/lib/cli.py#L1-L100`](file:///scripts/lib/cli.py#L1-L100) |
 
 ### 2) Production Frameworks and Dependencies
 
@@ -28,8 +28,8 @@
 | Tool | Purpose | Evidence |
 |------|---------|----------|
 | Ruff | Strict linting across rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | [`pyproject.toml#L15-L35`](file:///pyproject.toml#L15-L35), [`.github/workflows/ci.yml#L25-L35`](file:///.github/workflows/ci.yml#L25-L35) |
-| Mypy | Strict static type checking with `check_untyped_defs = True` (203 source files clean) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py#L1-L40`](file:///tests/test_type_safety.py#L1-L40) |
-| Unittest | Automated test discovery & regression test execution (868 tests, 100% pass) | [`tests/test_*.py`](file:///tests/), [`.github/workflows/ci.yml#L30-L40`](file:///.github/workflows/ci.yml#L30-L40) |
+| Mypy | Strict static type checking with `check_untyped_defs = True` (204 source files clean) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py#L1-L40`](file:///tests/test_type_safety.py#L1-L40) |
+| Unittest | Automated test discovery & regression test execution (871 tests, 100% pass) | [`tests/test_*.py`](file:///tests/), [`.github/workflows/ci.yml#L30-L40`](file:///.github/workflows/ci.yml#L30-L40) |
 | Coverage | Test coverage enforcement and reporting (`fail_under = 80`) | [`pyproject.toml#L35-L45`](file:///pyproject.toml#L35-L45) |
 
 ### 4) Key Commands
@@ -38,7 +38,7 @@
 # Standard package installation
 pip install -e .
 
-# Full test discovery suite (868 tests)
+# Full test discovery suite (871 tests)
 python -m unittest discover tests
 
 # Coverage report enforcement (80-81% aggregate coverage)

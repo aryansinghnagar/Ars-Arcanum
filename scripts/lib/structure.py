@@ -220,6 +220,15 @@ PARADIGMS = {
             {"name": "9. Wanders in the Wilderness", "target_pct": 0.95, "window": (0.90, 0.98), "desc": "Doubt and integration of the true self"},
             {"name": "10. Chooses Her Light / Re-order", "target_pct": 0.98, "window": (0.95, 1.00), "desc": "Brings the new self into the community openly"},
         ]
+    },
+    "freeform": {
+        "name": "Freeform & Lyrical Flow (Pacing-Only / Non-Linear)",
+        "beats": [
+            {"name": "1. Opening Movement", "target_pct": 0.15, "window": (0.0, 0.30), "desc": "Initial thematic and sensory grounding"},
+            {"name": "2. Development Movement", "target_pct": 0.45, "window": (0.20, 0.65), "desc": "Fluid emotional and thematic development"},
+            {"name": "3. Thematic Turn", "target_pct": 0.75, "window": (0.50, 0.85), "desc": "Lyrical inflection or perspective shift"},
+            {"name": "4. Closing Cadence", "target_pct": 0.95, "window": (0.70, 1.00), "desc": "Resonant closing cadence and thematic echo"},
+        ]
     }
 }
 

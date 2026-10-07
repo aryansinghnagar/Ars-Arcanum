@@ -21,8 +21,12 @@
 - [x] Modularize `scope.py` into `scope_models.py`, `scope_parser.py`, and `scope_resolver.py`.
 - [x] Modularize `docx_sync.py` into `docx_builder.py`, `corpus_export.py` into `corpus_export_formatters.py`, `factions.py` into `factions_data.py`, `writing_sprint.py` into `writing_sprint_template.py`, and `revision_heatmap.py` into `revision_heatmap_template.py`.
 - [x] Create comprehensive dedicated documentation for Scope (`docs/SCOPE.md`), Lockfile (`docs/LOCKFILE.md`), Data Access Layer (`docs/DATA_ACCESS.md`), Plugins (`docs/PLUGINS.md`), and Desktop GUI (`docs/DESKTOP_APP.md`).
-- [x] Align README status (Beta), test count (868 total, 866 passing, 2 skipped on Windows), coverage threshold (80%), and repository URLs.
-- [x] Pass 100% verification across test suite (868 tests, 0 failures), Ruff linter (0 errors), and Mypy static type checking (203 source files clean).
+- [x] Align README status (Beta), test count (871 total, 869 passing, 2 skipped on Windows), coverage threshold (80%), and repository URLs.
+- [x] Pass 100% verification across test suite (871 tests, 0 failures), Ruff linter (0 errors), and Mypy static type checking (204 source files clean).
+- [x] Implement soft magic non-blocking advisory options (`magic_system.py`) and freeform non-linear narrative paradigm (`structure.py`).
+- [x] Preserve in-situ scene comments (`@scene:`, `@pov:`) during Word DOCX two-way synchronization (`docx_builder.py`).
+- [x] Implement comprehensive ARIA landmarks, tab panels, modals, and dyslexia typography across UI templates (`tests/test_aria_accessibility.py`).
+- [x] Provide complete 1-click Windows installer parity (`setup_arcanum.ps1`) and CLI dispatcher wrapper (`arcanum.cmd`).
 
 ### `next`
 - Deepen craft encyclopedia references across narrative craft, worldbuilding models, and linguistics.

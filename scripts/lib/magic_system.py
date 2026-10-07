@@ -127,10 +127,14 @@ def extract_magic_profiles(world_dir: Path) -> dict:
                                 if d_name and d_name not in disciplines:
                                     disciplines.append(d_name)
 
+                classification_val = str(fm.get("classification", "Hard Magic"))
+                is_soft_magic = any(k in classification_val.lower() for k in ("soft", "mythic", "wonder", "unbound", "numinous"))
+
                 systems[sys_name] = {
                     "file": str(md_file.relative_to(world_dir)).replace("\\", "/"),
                     "name": sys_name,
-                    "classification": fm.get("classification", "Hard Magic"),
+                    "classification": classification_val,
+                    "is_soft": is_soft_magic,
                     "source_of_power": fm.get("source_of_power", "Ambient / Essence"),
                     "prevalence": fm.get("prevalence", "Common"),
                     "danger_cost": danger_cost,
@@ -544,6 +548,8 @@ def main():
     p_check.add_argument("-w", "--world", "--world-dir", dest="world_flag", help="World Bible lore directory")
     p_check.add_argument("-m", "--manuscript", help="Manuscript draft directory")
     p_check.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    p_check.add_argument("--strict", action="store_true", help="Fail with non-zero exit code on any advisory finding")
+    p_check.add_argument("--advisory", action="store_true", help="Run in pure advisory mode with zero exit code")
     add_scope_arguments(p_check, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     # 2. magic-report
@@ -553,6 +559,8 @@ def main():
     p_rep.add_argument("-m", "--manuscript", help="Manuscript draft directory")
     p_rep.add_argument("--html", help="Path to export standalone HTML report")
     p_rep.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    p_rep.add_argument("--strict", action="store_true", help="Fail with non-zero exit code on any advisory finding")
+    p_rep.add_argument("--advisory", action="store_true", help="Run in pure advisory mode with zero exit code")
     add_scope_arguments(p_rep, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     args = parser.parse_args()
@@ -610,7 +618,16 @@ def main():
         generate_magic_html_report(audit, out_p)
         print(f"\nInteractive HTML report written to: {out_p}")
 
-    sys.exit(1 if audit["total_findings"] > 0 else 0)
+    has_blocking = any(f.get("severity") == "WARNING" for f in audit["findings"])
+    is_adv = getattr(args, "advisory", False)
+    is_st = getattr(args, "strict", False)
+
+    if is_adv:
+        sys.exit(0)
+    elif is_st:
+        sys.exit(1 if audit["total_findings"] > 0 else 0)
+    else:
+        sys.exit(1 if has_blocking else 0)
 
 
 if __name__ == "__main__":

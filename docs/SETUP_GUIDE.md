@@ -88,6 +88,18 @@ bash scripts/setup_arcanum.sh --dry-run
 bash scripts/setup_arcanum.sh
 ```
 
+### Option C: Native Windows 1-Click Setup (Windows 10 / 11)
+
+To scaffold author directories (`~/Universes`, `~/Manuscripts`, `~/Worlds`), create Desktop shortcuts, and configure CLI wrappers:
+
+```powershell
+# Open PowerShell in the project directory
+powershell -ExecutionPolicy Bypass -File scripts\setup_arcanum.ps1
+
+# To simulate planned mutations first:
+powershell -ExecutionPolicy Bypass -File scripts\setup_arcanum.ps1 -DryRun
+```
+
 ---
 
 ## 5. Step 4 — First Launch & Welcome Wizard
@@ -95,9 +107,10 @@ bash scripts/setup_arcanum.sh
 ### Launching the Studio
 
 - **Desktop GUI (Linux)**: Run `python scripts/arcanum_app.py` or click the application menu icon.
-- **Studio Hub (Web Browser, All Platforms)**: Run `arcanum hub` to open the interactive telemetry cockpit in your browser.
-- **Zen Studio (All Platforms)**: Run `arcanum zen` for distraction-free typewriter drafting.
-- **CLI Dispatcher (All Platforms)**: Run `arcanum --help` or `arcanum <subcommand>`.
+- **Desktop Launchers (Windows)**: Double-click **"Ars Arcanum Studio Hub"** or **"Ars Arcanum Zen Studio"** on your Desktop.
+- **Studio Hub (Web Browser, All Platforms)**: Run `arcanum hub` (or `.\scripts\arcanum.cmd hub` on Windows) to open the interactive telemetry cockpit in your browser.
+- **Zen Studio (All Platforms)**: Run `arcanum zen` (or `.\scripts\arcanum.cmd zen` on Windows) for distraction-free typewriter drafting.
+- **CLI Dispatcher (All Platforms)**: Run `arcanum --help` (or `.\scripts\arcanum.cmd --help` on Windows).
 
 ---
 

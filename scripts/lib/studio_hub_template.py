@@ -805,7 +805,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
 </head>
 <body>
 
-<aside class="sidebar">
+<aside class="sidebar" role="navigation" aria-label="Studio Navigation">
   <div class="brand">
     <div class="brand-icon">⚡</div>
     <div class="brand-text">
@@ -814,37 +814,37 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     </div>
   </div>
 
-  <nav class="nav-menu">
-    <button class="nav-btn active" onclick="switchTab('tab-overview')">📊 Overview Dashboard</button>
-    <button class="nav-btn" onclick="switchTab('tab-manuscript')">📖 Manuscripts & Chapters</button>
-    <button class="nav-btn" onclick="switchTab('tab-lore')">🔮 Lore Codex & Entities</button>
-    <button class="nav-btn" onclick="switchTab('tab-structure')">📐 Structure & Pacing</button>
-    <button class="nav-btn" onclick="switchTab('tab-timeline')">⏳ Timeline & Paradoxes</button>
-    <button class="nav-btn" onclick="switchTab('tab-intelligence')">🧠 Local RAG & Editorial</button>
-    <button class="nav-btn" onclick="switchTab('tab-engines')">⚙️ Craft Engine Matrix</button>
-    <button class="nav-btn" onclick="switchTab('tab-resonance')">🌌 Resonance & Synergy Mesh</button>
-    <button class="nav-btn" onclick="switchTab('tab-guide')">💡 Craft Guide & Advisory Matrix</button>
+  <nav class="nav-menu" role="tablist" aria-label="Studio Workspaces">
+    <button class="nav-btn active" id="nav-tab-overview" role="tab" aria-selected="true" aria-controls="tab-overview" onclick="switchTab('tab-overview')">📊 Overview Dashboard</button>
+    <button class="nav-btn" id="nav-tab-manuscript" role="tab" aria-selected="false" aria-controls="tab-manuscript" onclick="switchTab('tab-manuscript')">📖 Manuscripts & Chapters</button>
+    <button class="nav-btn" id="nav-tab-lore" role="tab" aria-selected="false" aria-controls="tab-lore" onclick="switchTab('tab-lore')">🔮 Lore Codex & Entities</button>
+    <button class="nav-btn" id="nav-tab-structure" role="tab" aria-selected="false" aria-controls="tab-structure" onclick="switchTab('tab-structure')">📐 Structure & Pacing</button>
+    <button class="nav-btn" id="nav-tab-timeline" role="tab" aria-selected="false" aria-controls="tab-timeline" onclick="switchTab('tab-timeline')">⏳ Timeline & Paradoxes</button>
+    <button class="nav-btn" id="nav-tab-intelligence" role="tab" aria-selected="false" aria-controls="tab-intelligence" onclick="switchTab('tab-intelligence')">🧠 Local RAG & Editorial</button>
+    <button class="nav-btn" id="nav-tab-engines" role="tab" aria-selected="false" aria-controls="tab-engines" onclick="switchTab('tab-engines')">⚙️ Craft Engine Matrix</button>
+    <button class="nav-btn" id="nav-tab-resonance" role="tab" aria-selected="false" aria-controls="tab-resonance" onclick="switchTab('tab-resonance')">🌌 Resonance & Synergy Mesh</button>
+    <button class="nav-btn" id="nav-tab-guide" role="tab" aria-selected="false" aria-controls="tab-guide" onclick="switchTab('tab-guide')">💡 Craft Guide & Advisory Matrix</button>
   </nav>
 
   <div class="sidebar-footer">
     <div class="sovereign-tag">🛡️ 100% Sovereign Offline</div>
     <div>Zero Telemetry • Standard Lib</div>
-    <div class="tip-toggle-footer" onclick="toggleTipsBar()" title="Click to enable/disable dynamic craft wisdom tips">
+    <div class="tip-toggle-footer" onclick="toggleTipsBar()" title="Click to enable/disable dynamic craft wisdom tips" aria-label="Toggle craft wisdom tips">
       <span id="tips-toggle-label">💡 Dynamic Tips: Active</span>
     </div>
   </div>
 </aside>
 
-<main class="main-content">
-  <header class="topbar">
+<main class="main-content" role="main">
+  <header class="topbar" role="banner">
     <div class="topbar-title">
-      <h2 id="page-title">Overview Dashboard</h2>
+      <h2 id="page-title" aria-live="polite">Overview Dashboard</h2>
       <p id="page-subtitle">Universe: {data['project']['world_name']} • Manuscript: {data['project']['manuscript_name']}</p>
     </div>
-    <div class="topbar-actions">
-      <button class="theme-toggle" id="btn-toggle-tips-top" onclick="toggleTipsBar()" title="Toggle non-intrusive craft wisdom tips">💡 Tips</button>
-      <input type="text" id="global-search" class="search-input" placeholder="Search chapters, lore..." oninput="handleGlobalSearch(this.value)">
-      <button class="theme-toggle" onclick="cycleTheme()">🎨 Theme</button>
+    <div class="topbar-actions" role="toolbar" aria-label="Quick Actions">
+      <button class="theme-toggle" id="btn-toggle-tips-top" onclick="toggleTipsBar()" title="Toggle non-intrusive craft wisdom tips" aria-label="Toggle dynamic craft tips">💡 Tips</button>
+      <input type="text" id="global-search" class="search-input" placeholder="Search chapters, lore..." oninput="handleGlobalSearch(this.value)" aria-label="Search chapters, lore, and entities">
+      <button class="theme-toggle" onclick="cycleTheme()" aria-label="Cycle theme color palette">🎨 Theme</button>
     </div>
   </header>
 
@@ -894,7 +894,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
   <div class="content-body">
 
     <!-- OVERVIEW TAB -->
-    <div id="tab-overview" class="tab-pane active">
+    <div id="tab-overview" class="tab-pane active" role="tabpanel" aria-labelledby="nav-tab-overview">
       <div class="metrics-grid">
         <div class="metric-card">
           <span class="metric-label">Total Word Count</span>
@@ -953,7 +953,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     </div>
 
     <!-- MANUSCRIPT TAB -->
-    <div id="tab-manuscript" class="tab-pane">
+    <div id="tab-manuscript" class="tab-pane" role="tabpanel" aria-labelledby="nav-tab-manuscript">
       <div class="section-panel">
         <div class="section-header">
           <h3>All Manuscript Chapters</h3>
@@ -979,7 +979,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     </div>
 
     <!-- LORE TAB -->
-    <div id="tab-lore" class="tab-pane">
+    <div id="tab-lore" class="tab-pane" role="tabpanel" aria-labelledby="nav-tab-lore">
       <div class="section-panel">
         <div class="section-header">
           <h3>Cosmos World Bible Entities</h3>
@@ -1003,7 +1003,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     </div>
 
     <!-- STRUCTURE TAB -->
-    <div id="tab-structure" class="tab-pane">
+    <div id="tab-structure" class="tab-pane" role="tabpanel" aria-labelledby="nav-tab-structure">
       <div class="section-panel">
         <div class="section-header">
           <h3>Multi-Paradigm Structural Harmony</h3>
@@ -1030,7 +1030,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     </div>
 
     <!-- TIMELINE TAB -->
-    <div id="tab-timeline" class="tab-pane">
+    <div id="tab-timeline" class="tab-pane" role="tabpanel" aria-labelledby="nav-tab-timeline">
       <div class="section-panel">
         <div class="section-header">
           <h3>Chronological vs Narrative Events</h3>
@@ -1055,7 +1055,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     </div>
 
     <!-- INTELLIGENCE TAB -->
-    <div id="tab-intelligence" class="tab-pane">
+    <div id="tab-intelligence" class="tab-pane" role="tabpanel" aria-labelledby="nav-tab-intelligence">
       <div class="section-panel">
         <div class="section-header">
           <h3>Local Semantic Retrieval (RAG) Query Sandbox</h3>
@@ -1086,7 +1086,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     </div>
 
     <!-- ENGINES TAB -->
-    <div id="tab-engines" class="tab-pane">
+    <div id="tab-engines" class="tab-pane" role="tabpanel" aria-labelledby="nav-tab-engines">
       <div class="section-panel">
         <div class="section-header">
           <h3>Ars Arcanum Sovereign Craft Engine Topology</h3>
@@ -1113,7 +1113,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     </div>
 
     <!-- AUTHOR CRAFT GUIDE & ADVISORY MATRIX TAB -->
-    <div id="tab-guide" class="tab-pane">
+    <div id="tab-guide" class="tab-pane" role="tabpanel" aria-labelledby="nav-tab-guide">
       <div class="section-panel">
         <div class="section-header">
           <h3>Author Craft Guide, Worldbuilding Logic & Advisory Resolution Matrix</h3>
@@ -1208,7 +1208,7 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     </div>
 
     <!-- RESONANCE MESH & CROSS-DOMAIN SYNERGY TAB -->
-    <div id="tab-resonance" class="tab-pane">
+    <div id="tab-resonance" class="tab-pane" role="tabpanel" aria-labelledby="nav-tab-resonance">
       <div class="metrics-grid">
         <div class="metric-card">
           <span class="metric-label">Universal Mesh Nodes</span>
@@ -1283,36 +1283,36 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
 </main>
 
 <!-- Interactive Engine Documentation Modal -->
-<div id="engineDocModal" class="modal-backdrop" onclick="if(event.target===this) closeEngineDocModal()">
-  <div class="modal-dialog">
+<div id="engineDocModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalEngineTitle" onclick="if(event.target===this) closeEngineDocModal()">
+  <div class="modal-dialog" role="document">
     <div class="modal-header">
       <div class="modal-title">
         <span id="modalCategoryBadge" class="tag tag-gold">CRAFT</span>
         <h3 id="modalEngineTitle" style="margin-left: 8px;">Engine Documentation</h3>
       </div>
-      <button class="modal-close" onclick="closeEngineDocModal()">&times;</button>
+      <button class="modal-close" onclick="closeEngineDocModal()" aria-label="Close Engine Documentation Modal">&times;</button>
     </div>
-    <div class="modal-nav">
-      <button class="modal-nav-btn active" onclick="switchDocModalTab('overview')">Overview</button>
-      <button class="modal-nav-btn" onclick="switchDocModalTab('logic')">📐 Math & Science Logic</button>
-      <button class="modal-nav-btn" onclick="switchDocModalTab('why')">💡 Why This Way</button>
-      <button class="modal-nav-btn" onclick="switchDocModalTab('subfeatures')">⚡ Subfeatures</button>
-      <button class="modal-nav-btn" onclick="switchDocModalTab('extension')">🛠️ How to Extend</button>
-      <button class="modal-nav-btn" onclick="switchDocModalTab('advisory')">💡 Creative Advisory</button>
+    <div class="modal-nav" role="tablist" aria-label="Documentation sections">
+      <button class="modal-nav-btn active" role="tab" aria-selected="true" onclick="switchDocModalTab('overview')">Overview</button>
+      <button class="modal-nav-btn" role="tab" aria-selected="false" onclick="switchDocModalTab('logic')">📐 Math & Science Logic</button>
+      <button class="modal-nav-btn" role="tab" aria-selected="false" onclick="switchDocModalTab('why')">💡 Why This Way</button>
+      <button class="modal-nav-btn" role="tab" aria-selected="false" onclick="switchDocModalTab('subfeatures')">⚡ Subfeatures</button>
+      <button class="modal-nav-btn" role="tab" aria-selected="false" onclick="switchDocModalTab('extension')">🛠️ How to Extend</button>
+      <button class="modal-nav-btn" role="tab" aria-selected="false" onclick="switchDocModalTab('advisory')">💡 Creative Advisory</button>
     </div>
-    <div id="modalBodyContent" class="modal-body"></div>
+    <div id="modalBodyContent" class="modal-body" role="region" aria-live="polite"></div>
   </div>
 </div>
 
 <!-- Interactive Engine Run Modal with Scope Preview & Real-Time Output -->
-<div id="engineRunModal" class="modal-backdrop" onclick="if(event.target===this) closeEngineRunModal()">
-  <div class="modal-dialog" style="max-width: 800px;">
+<div id="engineRunModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="runModalEngineTitle" onclick="if(event.target===this) closeEngineRunModal()">
+  <div class="modal-dialog" role="document" style="max-width: 800px;">
     <div class="modal-header">
       <div class="modal-title">
         <span id="runModalCategoryBadge" class="tag tag-gold">ENGINE RUNNER</span>
         <h3 id="runModalEngineTitle" style="margin-left: 8px;">Run Scoped Engine</h3>
       </div>
-      <button class="modal-close" onclick="closeEngineRunModal()">&times;</button>
+      <button class="modal-close" onclick="closeEngineRunModal()" aria-label="Close Engine Runner Modal">&times;</button>
     </div>
     <div class="modal-body">
       <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -1320,63 +1320,63 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <div>
             <label style="font-size: 11px; color: var(--text-muted);">Chapters (e.g. 1-5, 8 or ch01..ch05):</label>
-            <input type="text" id="run-modal-chapters" class="search-input" style="width: 100%; margin-top: 4px;" oninput="updateRunCommandPreview()">
+            <input type="text" id="run-modal-chapters" class="search-input" style="width: 100%; margin-top: 4px;" oninput="updateRunCommandPreview()" aria-label="Target Chapters">
           </div>
           <div>
             <label style="font-size: 11px; color: var(--text-muted);">Scenes (e.g. 1-4 or sc01..sc03):</label>
-            <input type="text" id="run-modal-scenes" class="search-input" style="width: 100%; margin-top: 4px;" oninput="updateRunCommandPreview()">
+            <input type="text" id="run-modal-scenes" class="search-input" style="width: 100%; margin-top: 4px;" oninput="updateRunCommandPreview()" aria-label="Target Scenes">
           </div>
         </div>
       </div>
       <div style="margin-top: 8px;">
         <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Command Execution Preview:</label>
-        <div id="runModalCmdPreview" class="code-block" style="margin-top: 4px; color: var(--accent-gold);"></div>
+        <div id="runModalCmdPreview" class="code-block" style="margin-top: 4px; color: var(--accent-gold);" aria-live="polite"></div>
       </div>
       <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
-        <button class="btn-primary" id="btn-run-engine-execute" onclick="executeEngineRun()">🚀 Execute Scoped Engine</button>
-        <span id="run-status-indicator" style="font-size: 12px; color: var(--text-muted);"></span>
+        <button class="btn-primary" id="btn-run-engine-execute" onclick="executeEngineRun()" aria-label="Execute Scoped Engine">🚀 Execute Scoped Engine</button>
+        <span id="run-status-indicator" style="font-size: 12px; color: var(--text-muted);" aria-live="polite"></span>
       </div>
       <div style="margin-top: 8px;">
         <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Execution Output Console:</label>
-        <pre id="runModalOutput" class="code-block" style="max-height: 280px; overflow-y: auto; background: var(--bg-base); margin-top: 4px;">Ready to execute. Click 'Execute Scoped Engine' above.</pre>
+        <pre id="runModalOutput" class="code-block" style="max-height: 280px; overflow-y: auto; background: var(--bg-base); margin-top: 4px;" role="region" aria-live="polite">Ready to execute. Click 'Execute Scoped Engine' above.</pre>
       </div>
     </div>
   </div>
 </div>
 
 <!-- Custom Scope Modal -->
-<div id="customScopeModal" class="modal-backdrop" onclick="if(event.target===this) closeScopeModal()">
-  <div class="modal-dialog" style="max-width: 600px;">
+<div id="customScopeModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Advanced Scope Selector" onclick="if(event.target===this) closeScopeModal()">
+  <div class="modal-dialog" role="document" style="max-width: 600px;">
     <div class="modal-header">
       <div class="modal-title">
         <span class="tag tag-char">SCOPE TARGETING</span>
         <h3 style="margin-left: 8px;">Advanced Scope Selector</h3>
       </div>
-      <button class="modal-close" onclick="closeScopeModal()">&times;</button>
+      <button class="modal-close" onclick="closeScopeModal()" aria-label="Close Scope Selector Modal">&times;</button>
     </div>
     <div class="modal-body">
       <p style="font-size: 12.5px; color: var(--text-secondary);">Specify granular targeting parameters for all craft engines. Engines will only process matching chapters, scenes, or lore files.</p>
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <div>
           <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Chapter Selection (Ranges & Lists):</label>
-          <input type="text" id="modal-scope-chapters" class="search-input" style="width: 100%; margin-top: 4px;" placeholder="e.g. 1-5, 7, 10-12 or ch01..ch05">
+          <input type="text" id="modal-scope-chapters" class="search-input" style="width: 100%; margin-top: 4px;" placeholder="e.g. 1-5, 7, 10-12 or ch01..ch05" aria-label="Chapter Range">
         </div>
         <div>
           <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Scene Selection (Ranges & Lists):</label>
-          <input type="text" id="modal-scope-scenes" class="search-input" style="width: 100%; margin-top: 4px;" placeholder="e.g. 1-3, 5 or sc01..sc03">
+          <input type="text" id="modal-scope-scenes" class="search-input" style="width: 100%; margin-top: 4px;" placeholder="e.g. 1-3, 5 or sc01..sc03" aria-label="Scene Range">
         </div>
         <div>
           <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Lore Categories (Comma-separated):</label>
-          <input type="text" id="modal-scope-lore" class="search-input" style="width: 100%; margin-top: 4px;" placeholder="e.g. Characters, MagicSystems, Factions">
+          <input type="text" id="modal-scope-lore" class="search-input" style="width: 100%; margin-top: 4px;" placeholder="e.g. Characters, MagicSystems, Factions" aria-label="Lore Categories">
         </div>
         <div>
           <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Unified Scope String (Alternative):</label>
-          <input type="text" id="modal-scope-raw" class="search-input" style="width: 100%; margin-top: 4px;" placeholder="e.g. Book1:ch01..ch05:sc01..sc03">
+          <input type="text" id="modal-scope-raw" class="search-input" style="width: 100%; margin-top: 4px;" placeholder="e.g. Book1:ch01..ch05:sc01..sc03" aria-label="Unified Scope Expression">
         </div>
       </div>
       <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px;">
-        <button class="scope-preset-btn" onclick="closeScopeModal()">Cancel</button>
-        <button class="btn-primary" onclick="saveCustomScope()">Apply Scope</button>
+        <button class="scope-preset-btn" onclick="closeScopeModal()" aria-label="Cancel Scope Selection">Cancel</button>
+        <button class="btn-primary" onclick="saveCustomScope()" aria-label="Apply Scope Configuration">Apply Scope</button>
       </div>
     </div>
   </div>
@@ -1389,12 +1389,24 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
 
   function switchTab(tabId) {{
     document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(el => {{
+      el.classList.remove('active');
+      el.setAttribute('aria-selected', 'false');
+    }});
 
     const target = document.getElementById(tabId);
     if (target) target.classList.add('active');
 
-    event.currentTarget.classList.add('active');
+    if (event && event.currentTarget) {{
+      event.currentTarget.classList.add('active');
+      event.currentTarget.setAttribute('aria-selected', 'true');
+    }} else {{
+      const navBtn = document.getElementById('nav-' + tabId);
+      if (navBtn) {{
+        navBtn.classList.add('active');
+        navBtn.setAttribute('aria-selected', 'true');
+      }}
+    }}
 
     const titles = {{
       'tab-overview': 'Overview Dashboard',
@@ -1412,6 +1424,14 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
       renderHubCascadeSandbox();
     }}
   }}
+
+  window.addEventListener("keydown", (e) => {{
+    if (e.key === "Escape") {{
+      closeEngineDocModal();
+      closeEngineRunModal();
+      closeScopeModal();
+    }}
+  }});
 
   function openEngineDocModal(engineId) {{
     const eng = HUB_DATA.engine_catalog.find(e => e.id === engineId);

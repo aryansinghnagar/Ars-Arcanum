@@ -159,12 +159,18 @@ Output structure:
 
 ---
 
-## Architecture Notes
+## Architecture & Accessibility Notes
 
 - **Zero external dependencies**: Uses only `http.server`, `threading`, `json`, `pathlib`, `datetime`, and `socket` from the Python standard library.
 - **Atomic project scan**: All filesystem reads complete before the first browser response; no concurrent filesystem mutations.
 - **CSP-compliant HTML**: All generated HTML passes strict offline Content Security Policy with no inline `<script src>` or `<link rel=stylesheet href>` external references.
 - **Thread safety**: `SovereignStudioHandler.data` and `SovereignStudioHandler.project_dir` are class-level attributes set before the server thread starts; `/api/refresh` re-scans synchronously and atomically replaces the class attribute.
+- **ARIA & Assistive Technology Compliance**:
+  - Full semantic landmark hierarchy (`role="navigation"`, `role="main"`, `role="banner"`, `role="toolbar"`).
+  - WAI-ARIA tab navigation pattern (`role="tablist"`, `role="tab"`, `role="tabpanel"`, `aria-selected`, `aria-controls`).
+  - Screen reader execution console with live region telemetry (`aria-live="polite"`).
+  - Accessible modal dialogs (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`, global keyboard `Escape` dismissal).
+  - High-contrast WCAG 2.1 AA verified palettes across Dark, Sepia, and Light themes.
 
 ---
 

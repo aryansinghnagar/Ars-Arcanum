@@ -67,9 +67,14 @@ def render_zen_studio_html(
     --gold: #ffb000; --emerald: #33ff33; --rose: #ff3333;
   }}
 
+  body[data-font="serif"] {{ font-family: 'Literata', 'Bookerly', Georgia, 'Times New Roman', serif; }}
+  body[data-font="sans"] {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }}
+  body[data-font="dyslexic"] {{ font-family: 'OpenDyslexic', 'Atkinson Hyperlegible', system-ui, sans-serif; letter-spacing: 0.35px; word-spacing: 1.5px; }}
+  body[data-font="mono"] {{ font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace; }}
+
   * {{ box-sizing: border-box; }}
   body {{
-    font-family: Georgia, 'Times New Roman', serif; background: var(--bg); color: var(--text);
+    font-family: 'Literata', 'Bookerly', Georgia, 'Times New Roman', serif; background: var(--bg); color: var(--text);
     margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
   }}
   header {{
@@ -247,14 +252,14 @@ def render_zen_studio_html(
   }}
 </style>
 </head>
-<body data-theme="slate">
+<body data-theme="slate" data-font="serif">
 
-<header>
+<header role="banner">
   <div class="brand-title">
-    🏛️ Ars Arcanum Zen Studio <span id="hdrDocTitle" style="color:var(--text);font-weight:400;">—</span>
+    🏛️ Ars Arcanum Zen Studio <span id="hdrDocTitle" style="color:var(--text);font-weight:400;" aria-live="polite">—</span>
   </div>
-  <div class="controls">
-    <select id="themeSelect" onchange="switchTheme(this.value)" title="Color Themes">
+  <div class="controls" role="toolbar" aria-label="Editor controls and studio panels">
+    <select id="themeSelect" onchange="switchTheme(this.value)" title="Color Themes" aria-label="Color Themes">
       <option value="slate">Classic Slate</option>
       <option value="parchment">Parchment Classical</option>
       <option value="nordic">Nordic Snow</option>
@@ -262,61 +267,67 @@ def render_zen_studio_html(
       <option value="gruvbox">Gruvbox Warmth</option>
       <option value="amber">Cyberpunk Amber</option>
     </select>
-    <button id="btnSound" onclick="toggleTypewriterSound()" title="Typewriter Mechanical Soundscape">🔇 Sound: OFF</button>
-    <button id="btnSidebar" onclick="toggleSidebar()" title="Toggle Chapters Sidebar (Ctrl+B)">📁 Files</button>
-    <button id="btnMeta" onclick="toggleMetaPanel()" title="Toggle Document Metadata Inspector (Ctrl+M)">📋 Metadata</button>
-    <button id="btnOutline" onclick="toggleOutlinePanel()" title="Toggle Multi-Tier Outline Drawer (Ctrl+O)">🗺️ Outline</button>
-    <button id="btnPreview" onclick="toggleSplitPreview()" title="Live Scene Tag & Markdown Inspector (Ctrl+P)">👁️ Preview: Off</button>
-    <button id="btnLore" onclick="toggleLoreDrawer()" title="World Lore Drawer (Ctrl+L)">📜 Lore ({lore_entities_count})</button>
-    <button class="btn-gold" onclick="openCraftModal()">💡 Craft Logic</button>
-    <button class="btn-accent" onclick="exportMarkdown()" title="Export Active Chapter Markdown (Ctrl+S)">💾 Download</button>
+    <select id="fontSelect" onchange="switchFont(this.value)" title="Typography & Accessibility Font" aria-label="Typography Font Style">
+      <option value="serif">Literary Serif</option>
+      <option value="sans">Modern Sans</option>
+      <option value="dyslexic">Dyslexia-Friendly</option>
+      <option value="mono">Monospace Focus</option>
+    </select>
+    <button id="btnSound" onclick="toggleTypewriterSound()" title="Typewriter Mechanical Soundscape" aria-label="Toggle Typewriter Sound">🔇 Sound: OFF</button>
+    <button id="btnSidebar" onclick="toggleSidebar()" title="Toggle Chapters Sidebar (Ctrl+B)" aria-label="Toggle Chapters Sidebar">📁 Files</button>
+    <button id="btnMeta" onclick="toggleMetaPanel()" title="Toggle Document Metadata Inspector (Ctrl+M)" aria-label="Toggle Document Metadata Inspector">📋 Metadata</button>
+    <button id="btnOutline" onclick="toggleOutlinePanel()" title="Toggle Multi-Tier Outline Drawer (Ctrl+O)" aria-label="Toggle Multi-Tier Outline Drawer">🗺️ Outline</button>
+    <button id="btnPreview" onclick="toggleSplitPreview()" title="Live Scene Tag & Markdown Inspector (Ctrl+P)" aria-label="Toggle Live Markdown Preview">👁️ Preview: Off</button>
+    <button id="btnLore" onclick="toggleLoreDrawer()" title="World Lore Drawer (Ctrl+L)" aria-label="Toggle World Lore Drawer">📜 Lore ({lore_entities_count})</button>
+    <button class="btn-gold" onclick="openCraftModal()" aria-label="Open Craft Engine Encyclopedia">💡 Craft Logic</button>
+    <button class="btn-accent" onclick="exportMarkdown()" title="Export Active Chapter Markdown (Ctrl+S)" aria-label="Export Markdown File">💾 Download</button>
   </div>
 </header>
 
-<div class="main-workspace">
+<main class="main-workspace" role="main">
   <!-- Left Column: Chapters Sidebar -->
-  <div class="sidebar" id="sidebar">
+  <aside class="sidebar" id="sidebar" role="region" aria-label="Manuscript Chapters">
     <div class="side-panel-header">
       <span class="panel-title-text">Manuscript Chapters</span>
       <div class="panel-header-actions">
-        <button class="btn-tool-action" onclick="toggleSidebar()" title="Close Sidebar">✕</button>
+        <button class="btn-tool-action" onclick="toggleSidebar()" title="Close Sidebar" aria-label="Close Chapters Sidebar">✕</button>
       </div>
     </div>
-    <ul class="chap-list" id="chapList"></ul>
-  </div>
+    <ul class="chap-list" id="chapList" role="listbox" aria-label="Chapter List"></ul>
+  </aside>
 
   <!-- In-Situ Document Metadata Inspector Side Panel -->
-  <div class="side-panel" id="metaPanel">
+  <aside class="side-panel" id="metaPanel" role="region" aria-label="Document Metadata Inspector">
     <div class="side-panel-header">
       <div style="display:flex;align-items:center;gap:0.4rem;">
         <span>📋</span>
         <span class="panel-title-text">Document Metadata</span>
       </div>
       <div class="panel-header-actions">
-        <button class="btn-tool-action" id="btnMetaExpand" onclick="togglePanelExpand('metaPanel')" title="Toggle Width (Compact / Wide)">🗗</button>
-        <button class="btn-tool-action" id="btnMetaCollapse" onclick="togglePanelCollapse('metaPanel')" title="Collapse Panel">▾</button>
-        <button class="btn-tool-action" onclick="closePanel('metaPanel')" title="Close Metadata Inspector">✕</button>
+        <button class="btn-tool-action" id="btnMetaExpand" onclick="togglePanelExpand('metaPanel')" title="Toggle Width (Compact / Wide)" aria-label="Toggle Metadata Panel Width">🗗</button>
+        <button class="btn-tool-action" id="btnMetaCollapse" onclick="togglePanelCollapse('metaPanel')" title="Collapse Panel" aria-label="Collapse Metadata Panel">▾</button>
+        <button class="btn-tool-action" onclick="closePanel('metaPanel')" title="Close Metadata Inspector" aria-label="Close Metadata Panel">✕</button>
       </div>
     </div>
 
     <div class="side-panel-body" id="metaPanelBody">
-      <div class="meta-sync-badge">
+      <div class="meta-sync-badge" aria-live="polite">
         <span class="sync-pulse"></span>
         <span>Real-time frontmatter 2-way sync active</span>
       </div>
 
       <div class="meta-field">
-        <label>Scene / Chapter Title</label>
+        <label for="metaTitle">Scene / Chapter Title</label>
         <input type="text" id="metaTitle" placeholder="Title of active scene..." oninput="handleMetadataInput('title', this.value)">
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
         <div class="meta-field">
-          <label>POV Character (@pov)</label>
+          <label for="metaPov">POV Character (@pov)</label>
           <input type="text" id="metaPov" placeholder="Primary POV..." oninput="handleMetadataInput('pov', this.value)">
         </div>
         <div class="meta-field">
-          <label>Drafting Status</label>
+          <label for="metaStatus">Drafting Status</label>
           <select id="metaStatus" onchange="handleMetadataInput('status', this.value)">
             <option value="Draft">Draft</option>
             <option value="Revision">Revision</option>
@@ -327,177 +338,177 @@ def render_zen_studio_html(
       </div>
 
       <div class="meta-field">
-        <label>Setting / Location (@location)</label>
+        <label for="metaLocation">Setting / Location (@location)</label>
         <input type="text" id="metaLocation" placeholder="Specific scene locale..." oninput="handleMetadataInput('location', this.value)">
       </div>
 
       <div class="meta-field">
-        <label>Cast Present in Scene (@char)</label>
+        <label for="metaCast">Cast Present in Scene (@char)</label>
         <input type="text" id="metaCast" placeholder="Characters present (comma separated)..." oninput="handleMetadataInput('characters', this.value)">
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
         <div class="meta-field">
-          <label>Plot Thread (@thread)</label>
+          <label for="metaThread">Plot Thread (@thread)</label>
           <input type="text" id="metaThread" placeholder="A-Plot, B-Plot..." oninput="handleMetadataInput('plot_thread', this.value)">
         </div>
         <div class="meta-field">
-          <label>Timeline / Day (@time)</label>
+          <label for="metaTime">Timeline / Day (@time)</label>
           <input type="text" id="metaTime" placeholder="Day 14 - Dusk..." oninput="handleMetadataInput('time_marker', this.value)">
         </div>
       </div>
 
       <div class="meta-field">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <label>Target Words</label>
-          <span id="metaTargetProgressLabel" style="font-size:0.75rem;color:var(--accent);">0 / 2,500 w (0%)</span>
+          <label for="metaTargetWords">Target Words</label>
+          <span id="metaTargetProgressLabel" style="font-size:0.75rem;color:var(--accent);" aria-live="polite">0 / 2,500 w (0%)</span>
         </div>
         <input type="number" id="metaTargetWords" min="100" step="100" value="2500" oninput="handleMetadataInput('target_words', parseInt(this.value)||2500)">
         <div class="progress-wrap" style="margin-top:0.25rem;">
           <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="metaWordProgressBar"></div>
+            <div class="progress-bar-fill" id="metaWordProgressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
           </div>
         </div>
       </div>
 
       <div class="meta-field">
-        <label>Scene Synopsis & Intent</label>
+        <label for="metaSynopsis">Scene Synopsis & Intent</label>
         <textarea id="metaSynopsis" rows="3" placeholder="Brief scene objective, conflict, and key turning point..." oninput="handleMetadataInput('synopsis', this.value)"></textarea>
       </div>
 
       <div class="meta-field">
-        <label>Tags & Categories</label>
+        <label for="metaTags">Tags & Categories</label>
         <input type="text" id="metaTags" placeholder="climax, magic-duel, politics..." oninput="handleMetadataInput('tags', this.value)">
       </div>
 
       <div style="display:flex;gap:0.5rem;margin-top:0.25rem;">
-        <button onclick="refreshMetadataFromEditor()" style="flex:1;font-size:0.75rem;">🔄 Refresh from Doc</button>
-        <button onclick="formatDocumentFrontmatter()" style="flex:1;font-size:0.75rem;">🧹 Clean Header</button>
+        <button onclick="refreshMetadataFromEditor()" style="flex:1;font-size:0.75rem;" aria-label="Refresh metadata from markdown editor">🔄 Refresh from Doc</button>
+        <button onclick="formatDocumentFrontmatter()" style="flex:1;font-size:0.75rem;" aria-label="Clean and format document frontmatter">🧹 Clean Header</button>
       </div>
     </div>
-  </div>
+  </aside>
 
   <!-- Center Drafting Canvas Area -->
   <div class="editor-area">
     <div class="editor-container">
-      <textarea class="zen-editor" id="editor" placeholder="Write your prose here..." oninput="handleEditorInput()" onkeydown="handleKeyDown(event)"></textarea>
+      <textarea class="zen-editor" id="editor" placeholder="Write your prose here..." oninput="handleEditorInput()" onkeydown="handleKeyDown(event)" aria-label="Manuscript Prose Drafting Editor"></textarea>
     </div>
-    <div class="preview-pane" id="previewPane">
+    <div class="preview-pane" id="previewPane" role="region" aria-label="Live Markdown & Scene Tag Preview">
       <div style="font-weight:600;color:var(--accent);margin-bottom:0.75rem;border-bottom:1px solid var(--border);padding-bottom:0.4rem;display:flex;justify-content:space-between;">
         <span>🔍 Live Markdown & Scene Tag Inspector</span>
-        <button class="btn-tool-action" onclick="toggleSplitPreview()">✕</button>
+        <button class="btn-tool-action" onclick="toggleSplitPreview()" aria-label="Close Markdown Preview">✕</button>
       </div>
-      <div id="previewContent"></div>
+      <div id="previewContent" aria-live="polite"></div>
     </div>
   </div>
 
   <!-- Multi-Tier Narrative Outline Drawer -->
-  <div class="side-panel right-dock" id="outlinePanel">
+  <aside class="side-panel right-dock" id="outlinePanel" role="region" aria-label="Narrative Outlines">
     <div class="side-panel-header">
       <div style="display:flex;align-items:center;gap:0.4rem;">
         <span>🗺️</span>
         <span class="panel-title-text">Narrative Outlines</span>
       </div>
       <div class="panel-header-actions">
-        <button class="btn-tool-action" id="btnOutlineExpand" onclick="togglePanelExpand('outlinePanel')" title="Toggle Width (Compact / Wide)">🗗</button>
-        <button class="btn-tool-action" id="btnOutlineCollapse" onclick="togglePanelCollapse('outlinePanel')" title="Collapse Panel">▾</button>
-        <button class="btn-tool-action" onclick="closePanel('outlinePanel')" title="Close Outline Drawer">✕</button>
+        <button class="btn-tool-action" id="btnOutlineExpand" onclick="togglePanelExpand('outlinePanel')" title="Toggle Width (Compact / Wide)" aria-label="Toggle Outline Panel Width">🗗</button>
+        <button class="btn-tool-action" id="btnOutlineCollapse" onclick="togglePanelCollapse('outlinePanel')" title="Collapse Panel" aria-label="Collapse Outline Panel">▾</button>
+        <button class="btn-tool-action" onclick="closePanel('outlinePanel')" title="Close Outline Drawer" aria-label="Close Outline Drawer">✕</button>
       </div>
     </div>
 
-    <div class="outline-tabs">
-      <button class="o-tab active" id="tabBtnFloating" onclick="switchOutlineTab('floating')">📝 Floating</button>
-      <button class="o-tab" id="tabBtnBook" onclick="switchOutlineTab('book')">📖 Book</button>
-      <button class="o-tab" id="tabBtnSeries" onclick="switchOutlineTab('series')">🌌 Series</button>
+    <div class="outline-tabs" role="tablist" aria-label="Outline Levels">
+      <button class="o-tab active" id="tabBtnFloating" role="tab" aria-selected="true" aria-controls="paneFloatingOutline" onclick="switchOutlineTab('floating')">📝 Floating</button>
+      <button class="o-tab" id="tabBtnBook" role="tab" aria-selected="false" aria-controls="paneBookOutline" onclick="switchOutlineTab('book')">📖 Book</button>
+      <button class="o-tab" id="tabBtnSeries" role="tab" aria-selected="false" aria-controls="paneSeriesOutline" onclick="switchOutlineTab('series')">🌌 Series</button>
     </div>
 
     <div class="side-panel-body" id="outlinePanelBody">
       <!-- Tier 1: Floating Scratchpad Outline -->
-      <div id="paneFloatingOutline" style="display:flex;flex-direction:column;gap:0.75rem;flex:1;">
+      <div id="paneFloatingOutline" role="tabpanel" aria-labelledby="tabBtnFloating" style="display:flex;flex-direction:column;gap:0.75rem;flex:1;">
         <div style="display:flex;gap:0.5rem;align-items:center;">
-          <select id="floatingTemplateSelect" style="flex:1;font-size:0.8rem;">
+          <select id="floatingTemplateSelect" style="flex:1;font-size:0.8rem;" aria-label="Beat Template Selector">
             <!-- Populated dynamically -->
           </select>
-          <button onclick="applyFloatingTemplate()" title="Load selected beat template" style="font-size:0.8rem;">📋 Load</button>
+          <button onclick="applyFloatingTemplate()" title="Load selected beat template" style="font-size:0.8rem;" aria-label="Load selected beat template">📋 Load</button>
         </div>
 
-        <textarea id="floatingOutlineText" style="flex:1;min-height:220px;padding:0.6rem;font-family:system-ui,sans-serif;font-size:0.85rem;line-height:1.5;resize:vertical;" placeholder="Jot down active scene beats, checklist points, and scratchpad notes..." oninput="handleFloatingOutlineChange(this.value)"></textarea>
+        <textarea id="floatingOutlineText" style="flex:1;min-height:220px;padding:0.6rem;font-family:system-ui,sans-serif;font-size:0.85rem;line-height:1.5;resize:vertical;" placeholder="Jot down active scene beats, checklist points, and scratchpad notes..." oninput="handleFloatingOutlineChange(this.value)" aria-label="Floating Scratchpad Outline Notes"></textarea>
 
         <div style="display:flex;gap:0.5rem;">
-          <button class="btn-accent" onclick="insertFloatingBeatToEditor()" style="flex:1;font-size:0.8rem;" title="Insert scratchpad beats at current prose cursor position">➕ Insert into Draft</button>
-          <button onclick="clearFloatingOutline()" style="font-size:0.8rem;">🗑️ Clear</button>
+          <button class="btn-accent" onclick="insertFloatingBeatToEditor()" style="flex:1;font-size:0.8rem;" title="Insert scratchpad beats at current prose cursor position" aria-label="Insert scratchpad beats at cursor position">➕ Insert into Draft</button>
+          <button onclick="clearFloatingOutline()" style="font-size:0.8rem;" aria-label="Clear scratchpad outline">🗑️ Clear</button>
         </div>
       </div>
 
       <!-- Tier 2: Book Master Outline -->
-      <div id="paneBookOutline" style="display:none;flex-direction:column;gap:0.75rem;">
+      <div id="paneBookOutline" role="tabpanel" aria-labelledby="tabBtnBook" style="display:none;flex-direction:column;gap:0.75rem;">
         <div class="lore-search" style="padding:0;border:none;">
-          <input type="text" id="bookOutlineQuery" placeholder="Search book acts, milestones, beats..." oninput="filterBookOutline(this.value)">
+          <input type="text" id="bookOutlineQuery" placeholder="Search book acts, milestones, beats..." oninput="filterBookOutline(this.value)" aria-label="Search book outline">
         </div>
         <div id="bookOutlineContent" style="display:flex;flex-direction:column;gap:0.6rem;"></div>
       </div>
 
       <!-- Tier 3: Series Universe Outline -->
-      <div id="paneSeriesOutline" style="display:none;flex-direction:column;gap:0.75rem;">
+      <div id="paneSeriesOutline" role="tabpanel" aria-labelledby="tabBtnSeries" style="display:none;flex-direction:column;gap:0.75rem;">
         <div class="lore-search" style="padding:0;border:none;">
-          <input type="text" id="seriesOutlineQuery" placeholder="Search series volumes, arcs, reveals..." oninput="filterSeriesOutline(this.value)">
+          <input type="text" id="seriesOutlineQuery" placeholder="Search series volumes, arcs, reveals..." oninput="filterSeriesOutline(this.value)" aria-label="Search series universe chronicle">
         </div>
         <div id="seriesOutlineContent" style="display:flex;flex-direction:column;gap:0.6rem;"></div>
       </div>
     </div>
-  </div>
+  </aside>
 
   <!-- Right Lore Drawer -->
-  <div class="lore-drawer" id="loreDrawer">
+  <aside class="lore-drawer" id="loreDrawer" role="region" aria-label="World Bible Lore Drawer">
     <div class="side-panel-header">
       <div style="display:flex;align-items:center;gap:0.4rem;">
         <span>📜</span>
         <span>World Bible Lore</span>
       </div>
       <div class="panel-header-actions">
-        <button class="btn-tool-action" onclick="toggleLoreDrawer()" title="Close Lore Drawer">✕</button>
+        <button class="btn-tool-action" onclick="toggleLoreDrawer()" title="Close Lore Drawer" aria-label="Close Lore Drawer">✕</button>
       </div>
     </div>
-    <div class="drawer-tabs">
-      <button class="d-tab active" id="tabBtnLore" onclick="switchDrawerTab('lore')">📜 Lore</button>
-      <button class="d-tab" id="tabBtnRules" onclick="switchDrawerTab('rules')">📐 Rules</button>
-      <button class="d-tab" id="tabBtnSparks" onclick="switchDrawerTab('sparks')">💡 Sparks</button>
-      <button class="d-tab" id="tabBtnTips" onclick="switchDrawerTab('tips')">💡 Tips</button>
+    <div class="drawer-tabs" role="tablist" aria-label="Lore Categories">
+      <button class="d-tab active" id="tabBtnLore" role="tab" aria-selected="true" aria-controls="loreList" onclick="switchDrawerTab('lore')">📜 Lore</button>
+      <button class="d-tab" id="tabBtnRules" role="tab" aria-selected="false" aria-controls="loreList" onclick="switchDrawerTab('rules')">📐 Rules</button>
+      <button class="d-tab" id="tabBtnSparks" role="tab" aria-selected="false" aria-controls="loreList" onclick="switchDrawerTab('sparks')">💡 Sparks</button>
+      <button class="d-tab" id="tabBtnTips" role="tab" aria-selected="false" aria-controls="loreList" onclick="switchDrawerTab('tips')">💡 Tips</button>
     </div>
     <div class="lore-search">
-      <input type="text" id="loreQuery" placeholder="Search characters, locations, rules, tips..." oninput="filterDrawer(this.value)">
+      <input type="text" id="loreQuery" placeholder="Search characters, locations, rules, tips..." oninput="filterDrawer(this.value)" aria-label="Search World Lore">
     </div>
-    <div class="lore-list" id="loreList"></div>
-  </div>
-</div>
+    <div class="lore-list" id="loreList" role="region" aria-live="polite"></div>
+  </aside>
+</main>
 
 <!-- Telemetry Footer -->
-<footer class="telemetry">
-  <div>
+<footer class="telemetry" role="contentinfo" aria-label="Live Writing Telemetry and Craft Tips">
+  <div aria-live="polite">
     <span id="telWords">0 words</span> | <span id="telChars">0 chars</span>
   </div>
-  <div id="zenTipBar" style="color:var(--gold);cursor:pointer;max-width:520px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" onclick="cycleZenTip()" title="Click for next craft wisdom tip">
+  <div id="zenTipBar" style="color:var(--gold);cursor:pointer;max-width:520px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" onclick="cycleZenTip()" title="Click for next craft wisdom tip" aria-live="polite">
     💡 <span id="zenTipText">Loading craft wisdom...</span>
   </div>
-  <div>
+  <div aria-live="polite">
     📖 Reading: <span id="telReadTime">0 min</span> | 🎙️ Narration: <span id="telSpeakTime">0 min</span> | <span id="telSaveStatus">Autosaved</span>
   </div>
 </footer>
 
 <!-- Craft Engine Modal -->
-<div class="craft-modal" id="craftModal" onclick="if(event.target===this)closeCraftModal()">
-  <div class="craft-modal-content">
+<div class="craft-modal" id="craftModal" role="dialog" aria-modal="true" aria-labelledby="craftModalTitle" onclick="if(event.target===this)closeCraftModal()">
+  <div class="craft-modal-content" role="document">
     <div class="craft-modal-header">
       <div>
-        <span style="font-weight:700;font-size:1.1rem;color:var(--accent);">💡 Ars Arcanum Craft & Engine Encyclopedia</span>
+        <span id="craftModalTitle" style="font-weight:700;font-size:1.1rem;color:var(--accent);">💡 Ars Arcanum Craft & Engine Encyclopedia</span>
         <div style="font-size:0.8rem;color:var(--muted);margin-top:2px;">50 Verified Engines • Mathematical Logic • Narrative Physics • Extension Guides</div>
       </div>
-      <button onclick="closeCraftModal()" style="font-size:1.2rem;line-height:1;background:transparent;border:none;color:var(--muted);cursor:pointer;">✕</button>
+      <button onclick="closeCraftModal()" style="font-size:1.2rem;line-height:1;background:transparent;border:none;color:var(--muted);cursor:pointer;" aria-label="Close Craft Modal">✕</button>
     </div>
     <div class="lore-search" style="background:var(--panel-alt);padding:0.75rem 1.5rem;">
-      <input type="text" id="modalEngineSearch" placeholder="Search any engine, formula, or craft principle..." oninput="filterModalEngines(this.value)">
+      <input type="text" id="modalEngineSearch" placeholder="Search any engine, formula, or craft principle..." oninput="filterModalEngines(this.value)" aria-label="Search craft engines">
     </div>
-    <div class="craft-modal-body" id="modalEngineList"></div>
+    <div class="craft-modal-body" id="modalEngineList" role="region" aria-live="polite"></div>
   </div>
 </div>
 
@@ -559,6 +570,8 @@ def render_zen_studio_html(
   function init() {{
     const savedTheme = localStorage.getItem("arcanum_zen_theme") || "slate";
     switchTheme(savedTheme);
+    const savedFont = localStorage.getItem("arcanum_zen_font") || "serif";
+    switchFont(savedFont);
     renderChapList();
     if (chapters.length > 0) {{
       loadChapter(0);
@@ -570,12 +583,19 @@ def render_zen_studio_html(
     loadUIState();
   }}
 
-  /* ---------------- Theme & Sound ---------------- */
+  /* ---------------- Theme, Font & Sound ---------------- */
   function switchTheme(theme) {{
     document.body.setAttribute("data-theme", theme);
     const select = document.getElementById("themeSelect");
     if (select) select.value = theme;
     localStorage.setItem("arcanum_zen_theme", theme);
+  }}
+
+  function switchFont(fontName) {{
+    document.body.setAttribute("data-font", fontName);
+    const select = document.getElementById("fontSelect");
+    if (select) select.value = fontName;
+    localStorage.setItem("arcanum_zen_font", fontName);
   }}
 
   function toggleTypewriterSound() {{
@@ -1047,9 +1067,21 @@ def render_zen_studio_html(
 
   function switchOutlineTab(tab) {{
     activeOutlineTab = tab;
-    document.getElementById("tabBtnFloating").className = `o-tab ${{tab === 'floating' ? 'active' : ''}}`;
-    document.getElementById("tabBtnBook").className = `o-tab ${{tab === 'book' ? 'active' : ''}}`;
-    document.getElementById("tabBtnSeries").className = `o-tab ${{tab === 'series' ? 'active' : ''}}`;
+    const btnF = document.getElementById("tabBtnFloating");
+    const btnB = document.getElementById("tabBtnBook");
+    const btnS = document.getElementById("tabBtnSeries");
+    if (btnF) {{
+      btnF.className = `o-tab ${{tab === 'floating' ? 'active' : ''}}`;
+      btnF.setAttribute("aria-selected", tab === 'floating' ? "true" : "false");
+    }}
+    if (btnB) {{
+      btnB.className = `o-tab ${{tab === 'book' ? 'active' : ''}}`;
+      btnB.setAttribute("aria-selected", tab === 'book' ? "true" : "false");
+    }}
+    if (btnS) {{
+      btnS.className = `o-tab ${{tab === 'series' ? 'active' : ''}}`;
+      btnS.setAttribute("aria-selected", tab === 'series' ? "true" : "false");
+    }}
 
     document.getElementById("paneFloatingOutline").style.display = tab === 'floating' ? 'flex' : 'none';
     document.getElementById("paneBookOutline").style.display = tab === 'book' ? 'flex' : 'none';
@@ -1359,10 +1391,13 @@ def render_zen_studio_html(
   /* ---------------- Lore Drawer & Engine Encyclopedia ---------------- */
   function switchDrawerTab(tab) {{
     activeDrawerTab = tab;
-    document.getElementById("tabBtnLore").className = `d-tab ${{tab === 'lore' ? 'active' : ''}}`;
-    document.getElementById("tabBtnRules").className = `d-tab ${{tab === 'rules' ? 'active' : ''}}`;
-    document.getElementById("tabBtnSparks").className = `d-tab ${{tab === 'sparks' ? 'active' : ''}}`;
-    document.getElementById("tabBtnTips").className = `d-tab ${{tab === 'tips' ? 'active' : ''}}`;
+    ["lore", "rules", "sparks", "tips"].forEach(t => {{
+      const btn = document.getElementById(`tabBtn${{t.charAt(0).toUpperCase() + t.slice(1)}}`);
+      if (btn) {{
+        btn.className = `d-tab ${{tab === t ? 'active' : ''}}`;
+        btn.setAttribute("aria-selected", tab === t ? "true" : "false");
+      }}
+    }});
     renderDrawer();
   }}
 
@@ -1470,12 +1505,26 @@ def render_zen_studio_html(
   }}
 
   function openCraftModal() {{
-    document.getElementById("craftModal").style.display = "flex";
+    const modal = document.getElementById("craftModal");
+    if (modal) {{
+      modal.style.display = "flex";
+      const search = document.getElementById("modalEngineSearch");
+      if (search) setTimeout(() => search.focus(), 50);
+    }}
   }}
 
   function closeCraftModal() {{
-    document.getElementById("craftModal").style.display = "none";
+    const modal = document.getElementById("craftModal");
+    if (modal) {{
+      modal.style.display = "none";
+    }}
   }}
+
+  window.addEventListener("keydown", (e) => {{
+    if (e.key === "Escape") {{
+      closeCraftModal();
+    }}
+  }});
 
   function renderModalEngines(items) {{
     const container = document.getElementById("modalEngineList");

@@ -98,6 +98,9 @@ To minimize saccadic eye fatigue during long drafting sprints, line lengths obey
 | **Focus Soundscapes** | WebAudio procedural ambient noise generators (rain, brown noise, fire, coffee shop). | Masks environmental distractions without external media players or network streaming. |
 | **Local Storage Guard** | HTML5 `localStorage` atomic autosave every 500ms with dirty-state indicator. | Zero risk of lost prose during accidental browser closure. |
 | **Target Scoping** | CLI compiler scopes bundle to specific chapter ranges (`-c 1-5`, `--scope`). | Prevents distraction from past or future unfinished scenes. |
+| **ARIA Accessibility** | Semantic landmarks (`role="main"`, `banner`, `region`, `contentinfo`), `role="tabpanel"`, and `aria-live="polite"`. | Full screen reader and assistive technology compliance. |
+| **Dyslexia Typography** | Accessible font selector supporting OpenDyslexic and Atkinson Hyperlegible. | Reduces letter-confusion and eye strain for neurodivergent authors. |
+| **Keyboard Dismissal** | Global `Escape` key listeners and modal focus traps. | Immediate, low-friction keyboard control without mouse targeting. |
 
 ---
 

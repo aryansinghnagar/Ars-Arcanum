@@ -80,17 +80,27 @@ def strip_scene_tags_and_frontmatter(text: str) -> tuple[str, dict[str, str], li
         clean_text = FRONTMATTER_REGEX.sub("", text, count=1)
 
     prose_lines: list[str] = []
+    has_seen_prose = False
+
     for line in clean_text.splitlines():
         trimmed = line.strip()
         if trimmed.startswith("@") and NW_TAG_REGEX.match(trimmed):
-            header_lines.append(trimmed)
+            if not has_seen_prose:
+                header_lines.append(trimmed)
+            else:
+                prose_lines.append(line)
             if ":" in trimmed:
                 tag_name, tag_val = trimmed[1:].split(":", 1)
                 metadata[tag_name.strip().lower()] = tag_val.strip().strip("\"'")
         elif trimmed.startswith("%"):
             # Comment line
-            header_lines.append(trimmed)
+            if not has_seen_prose:
+                header_lines.append(trimmed)
+            else:
+                prose_lines.append(line)
         else:
+            if trimmed:
+                has_seen_prose = True
             prose_lines.append(line)
 
     return ("\n".join(prose_lines), metadata, header_lines)
@@ -106,6 +116,12 @@ def parse_markdown_to_paragraphs(md_text: str) -> list[dict[str, str]]:
     for block in raw_blocks:
         b = block.strip()
         if not b:
+            continue
+
+        # Skip non-rendered inline tags and comments from Word document body
+        if b.startswith("@") and NW_TAG_REGEX.match(b):
+            continue
+        if b.startswith("%"):
             continue
 
         # Check for headings

@@ -336,58 +336,58 @@ def generate_story_canvas_html(
 </head>
 <body>
 
-<header>
+<header role="banner">
   <div class="brand">
-    <span>📐</span>
+    <span aria-hidden="true">📐</span>
     <span>Ars Arcanum Story Canvas</span>
   </div>
-  <div class="toolbar">
+  <div class="toolbar" role="toolbar" aria-label="Story Canvas Controls">
     <label style="font-size: 0.85rem; color: var(--muted);">Story Paradigm:
-      <select id="paradigmSelect" onchange="updateParadigm(this.value)">
+      <select id="paradigmSelect" aria-label="Select Story Paradigm" onchange="updateParadigm(this.value)">
         {"".join(f'<option value="{k}" {"selected" if k == paradigm_key else ""}>{html.escape(str(v["name"]))}</option>' for k, v in PARADIGMS.items())}
       </select>
     </label>
     <label style="font-size: 0.85rem; color: var(--muted);">Filter POV:
-      <select id="povFilter" onchange="filterCards()">
+      <select id="povFilter" aria-label="Filter by POV" onchange="filterCards()">
         <option value="all">All POVs</option>
       </select>
     </label>
-    <button style="background:#b45309;color:#fef3c7;border:none;font-weight:600;" onclick="openParadigmGuide()">📐 Paradigm Guide & Math</button>
-    <button class="btn-primary" onclick="exportManifest()">Export Manifest</button>
+    <button style="background:#b45309;color:#fef3c7;border:none;font-weight:600;" aria-label="Open Paradigm Guide & Math" onclick="openParadigmGuide()">📐 Paradigm Guide & Math</button>
+    <button class="btn-primary" aria-label="Export Manifest" onclick="exportManifest()">Export Manifest</button>
   </div>
 </header>
 
-<div class="stats-bar">
+<div class="stats-bar" role="region" aria-label="Manuscript Metrics">
   <div>Target: <span id="statTarget" class="stat-val">{html.escape(target_path.name)}</span></div>
   <div>Chapters: <span id="statChapters" class="stat-val">{len(cards)}</span></div>
   <div>Total Words: <span id="statWords" class="stat-val">{total_words:,}</span></div>
   <div>Structural Harmony: <span id="statHarmony" class="stat-val" style="color: var(--success);">--</span></div>
 </div>
 
-<div class="canvas-container" id="columnsContainer">
+<main class="canvas-container" id="columnsContainer" role="main" aria-label="Story Beat Columns">
   <!-- Dynamic Columns and Cards -->
-</div>
+</main>
 
-<div class="tip-bar" id="tipBar" style="display: {'flex' if (tips_enabled and tips_data) else 'none'};">
+<div class="tip-bar" id="tipBar" role="region" aria-label="Craft Tip" aria-live="polite" style="display: {'flex' if (tips_enabled and tips_data) else 'none'};">
   <div class="tip-content-box">
-    <span class="tip-icon">💡</span>
+    <span class="tip-icon" aria-hidden="true">💡</span>
     <span class="tip-badge" id="tipBadge">CRAFT WISDOM</span>
     <span class="tip-text" id="tipText">Loading craft insight...</span>
   </div>
   <div class="tip-actions">
-    <button class="tip-btn" title="Cycle to next non-obvious craft tip" onclick="cycleCanvasTip()">🔄 Next Tip</button>
-    <button class="tip-btn" title="Hide tips" onclick="dismissCanvasTip()">✕</button>
+    <button class="tip-btn" title="Cycle to next non-obvious craft tip" aria-label="Cycle to next craft tip" onclick="cycleCanvasTip()">🔄 Next Tip</button>
+    <button class="tip-btn" title="Hide tips" aria-label="Hide craft tips" onclick="dismissCanvasTip()">✕</button>
   </div>
 </div>
 
-<div class="modal-backdrop" id="paradigmGuideModal" onclick="if(event.target===this)closeParadigmGuide()">
+<div class="modal-backdrop" id="paradigmGuideModal" role="dialog" aria-modal="true" aria-labelledby="paradigmGuideTitle" onclick="if(event.target===this)closeParadigmGuide()">
   <div class="modal-window">
     <div class="modal-header">
       <div>
-        <span style="font-weight:700;font-size:1.1rem;color:var(--accent);">📐 Narrative Paradigm Guide & Mathematical Harmony</span>
+        <span id="paradigmGuideTitle" style="font-weight:700;font-size:1.1rem;color:var(--accent);">📐 Narrative Paradigm Guide & Mathematical Harmony</span>
         <div style="font-size:0.8rem;color:var(--muted);margin-top:2px;">9 Canonical Structural Architectures • Mathematical Beat Tolerances • Dynamic Tension Curves</div>
       </div>
-      <button onclick="closeParadigmGuide()" style="font-size:1.2rem;line-height:1;background:transparent;border:none;color:var(--muted);cursor:pointer;">✕</button>
+      <button onclick="closeParadigmGuide()" aria-label="Close Paradigm Guide" style="font-size:1.2rem;line-height:1;background:transparent;border:none;color:var(--muted);cursor:pointer;">✕</button>
     </div>
     <div class="modal-body" id="paradigmModalBody">
       <!-- Dynamic Paradigm Math and Beat Targets -->
@@ -402,6 +402,12 @@ def generate_story_canvas_html(
   let currentTipIdx = 0;
   let currentParadigmKey = "{paradigm_key}";
   let draggedCardId = null;
+
+  window.addEventListener("keydown", function(e) {{
+    if (e.key === "Escape") {{
+      closeParadigmGuide();
+    }}
+  }});
 
   function init() {{
     populatePOVFilter();

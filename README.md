@@ -6,7 +6,7 @@
 [![Release: v0.1.0](https://img.shields.io/badge/Release-v0.1.0%20(Beta)-blue.svg)](CHANGELOG.md)
 [![Status: Beta](https://img.shields.io/badge/Status-Beta%20(Active%20Hardening)-yellow.svg)](#)
 [![CI](https://github.com/aryansinghnagar/Ars-Arcanum/actions/workflows/ci.yml/badge.svg)](https://github.com/aryansinghnagar/Ars-Arcanum/actions/workflows/ci.yml)
-[![Tests: 868](https://img.shields.io/badge/Tests-866%2F868%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
+[![Tests: 871](https://img.shields.io/badge/Tests-869%2F871%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
 [![Coverage: 80%+](https://img.shields.io/badge/Coverage-80%25%2B-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
@@ -32,7 +32,7 @@ Everything you write is stored as **plain Markdown** (`.md`) and standard **Word
 | **🎯 Granular Target Scoping** | Run craft engines on exact targets — scenes (`--scene 1-3`), chapters (`-c 1-5`, `ch01..ch05`), books (`-b Book-01`), worlds (`-w`), or lore categories without whole-vault overhead. |
 | **🪐 World Bible** | Obsidian-powered lore vault with pre-configured plugins for characters, maps, timelines, and magic systems. |
 | **✍️ Drafting** | Write in Microsoft Word, LibreOffice, or Google Docs. Changes sync back to Markdown automatically. |
-| **🔮 47 Craft & Core Engines** | Dynamic plugin extensibility, astrophysics, hard magic, conlang morphosyntax, deific cosmology, editorial council, trade networks, and more — all offline. |
+| **🔮 47 Craft & Core Engines** | Dynamic plugin extensibility, astrophysics, hard/soft magic, conlang morphosyntax, deific cosmology, editorial council, trade networks, and more — all offline. |
 | **📚 1-Click Publishing** | Sub-second print PDF with commercial genre presets (Typst), EPUB (Pandoc), submission DOCX, and offline TTS proofreading. |
 | **🔒 Vault Safety** | Pure-Python Git snapshots, SHA-256 verified backups, and USB replication — your work is never at risk. |
 | **🧠 Semantic Search** | Ask questions across your entire lore library with local TF-IDF + SQLite full-text search. No API key needed. |
@@ -41,26 +41,32 @@ Everything you write is stored as **plain Markdown** (`.md`) and standard **Word
 
 ## ⚡ 5-Minute Setup
 
-> **Full GUI Suite & Launchers:** Linux Mint 21/22 · Debian 12/13 · Ubuntu 22.04/24.04 · Fedora · Arch · openSUSE  
+> **Full GUI Suite & Launchers:** Linux Mint 21/22 · Debian 12/13 · Ubuntu 22.04/24.04 · Fedora · Arch · openSUSE · Windows 10/11  
 > **Core CLI, Studio Hub & 47 Craft Engines:** Cross-Platform (Linux, macOS, Windows with Python 3.10+)  
 > **CI-verified on:** Ubuntu 24.04, macOS, Windows (GitHub Actions matrix).
 
 **Step 1 — Get the code:**
 ```bash
-cd ~/Downloads
 git clone https://github.com/aryansinghnagar/Ars-Arcanum.git Ars-Arcanum
 cd Ars-Arcanum
 ```
 
 **Step 2 — Run the one-command installer:**
+
+*On Linux / macOS:*
 ```bash
 bash scripts/setup_arcanum.sh
 ```
 
-This single command installs Git, Pandoc, literary fonts, Obsidian, novelWriter, Calibre, Typst, LibreOffice, FocusWriter, and all desktop launchers automatically. *(Takes 5–15 minutes depending on your internet speed.)*
+*On Windows (PowerShell):*
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\setup_arcanum.ps1
+```
+
+This installs core tools, typography fonts, shortcuts, and author directories automatically.
 
 **Step 3 — Launch:**  
-Double-click **"Ars Arcanum Control Center"** on your Desktop and follow the welcome wizard.
+Double-click **"Ars Arcanum Control Center"** (or **"Ars Arcanum Studio Hub"** on Windows) on your Desktop, or run `./scripts/arcanum hub` (or `.\scripts\arcanum.cmd hub` on Windows).
 
 > [!TIP]
 > For a complete step-by-step walkthrough with troubleshooting, see the **[📖 Detailed Setup Guide](docs/SETUP_GUIDE.md)**.

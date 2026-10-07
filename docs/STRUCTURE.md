@@ -181,6 +181,14 @@ Serial rising crises with mini-climaxes punctuated by brief valleys of recovery,
 - Crises 1 through $N$ progressively raise stakes ($20\%, 40\%, 60\%, 75\%$).
 - Climax occurs late ($85\%-92\%$) followed by rapid resolution ($95\%-100\%$).
 
+### 3.10 Freeform & Lyrical Flow (`freeform`)
+*Roots: Non-linear, experimental, atmospheric, and stream-of-consciousness traditions (Virginia Woolf, Italo Calvino, Ursula K. Le Guin).*
+A structure designed for poetic prose, vignette mosaics, and non-traditional pacing that focuses on thematic cadence rather than binary conflict milestones:
+1. **Opening Movement / Grounding** ($\tau = 0\% - 30\%$): Sensory and thematic atmosphere established.
+2. **Development Movement / Lyrical Exploration** ($\tau = 20\% - 65\%$): Fluid emotional and thematic deepening across scenes.
+3. **Thematic Turn / Inflection** ($\tau = 50\% - 85\%$): Lyrical inflection or perspective shift providing emotional resonance.
+4. **Closing Cadence / Echo** ($\tau = 70\% - 100\%$): Resonant synthesis and thematic echo.
+
 ---
 
 ## 4. Subfeatures Matrix & Algorithmic Diagnostics

@@ -116,6 +116,16 @@ Where $S_{\text{current}}$ is regional remaining stockpiles, and $\tau_{\text{ri
 
 ---
 
+## 4.1 Soft Magic Systems & Creative Sovereignty Flags
+
+Ars Arcanum upholds absolute **creative sovereignty**. While hard magic systems are audited against thermodynamic rules, soft and mythic magic systems (*e.g., fairy tales, poetic surrealism, cosmic horror*) are treated with advisory flexibility:
+
+- **Soft Magic Paradigm (`paradigm: "soft"`)**: When a magic system declares a soft/mythic paradigm (or sets `is_soft: true`), thermodynamic deficit findings (`MAG-105`) and strict tier breaches are categorized as **advisory craft insights** rather than blocking failures.
+- **`--advisory` CLI Flag**: `arcanum magic-check --advisory` treats all thermodynamic warnings as informative guidance without failing automated build pipelines.
+- **`--strict` CLI Flag**: `arcanum magic-check --strict` enforces zero-tolerance hard magic rules for pure rationalist fiction projects.
+
+---
+
 ## 5. Frontmatter Directives & YAML Schemas
 
 ### 5.1 Magic System Rule Declaration (`World/Magic-Technology/Hemocraft.md`)
