@@ -645,6 +645,12 @@ bash scripts/arcanum omnibus --help >/dev/null
 bash scripts/arcanum corpus --help >/dev/null
 bash scripts/arcanum sprint --help >/dev/null
 bash scripts/arcanum revision-heatmap --help >/dev/null
+bash scripts/arcanum resonance --help >/dev/null
+bash scripts/arcanum scope --help >/dev/null
+bash scripts/arcanum tip --help >/dev/null
+bash scripts/arcanum studio --help >/dev/null
+bash scripts/arcanum hub --help >/dev/null
+bash scripts/arcanum doc --help >/dev/null
 bash scripts/arcanum rag --help >/dev/null
 bash scripts/arcanum ambient --help >/dev/null
 bash scripts/arcanum portfolio --help >/dev/null

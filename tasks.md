@@ -18,8 +18,11 @@
 - [x] Extract Studio Hub presentation template into `scripts/lib/studio_hub_template.py`, reducing `studio_hub.py` by over 2,100 lines.
 - [x] Modularize `resonance.py` (1,796 $\to$ 646 lines) into `resonance_data.py` (591 lines) and `resonance_template.py` (677 lines), and integrate DAL caching.
 - [x] Modularize `economy.py` (1,154 $\to$ 771 lines) into `economy_data.py` (122 lines), `economy_template.py` (137 lines), and `economy_trade.py` (341 lines), and integrate DAL caching.
-- [x] Align README status (Beta), test count (862 total, 860 passing, 2 skipped on Windows), coverage threshold (80%), and repository URLs.
-- [x] Pass 100% verification across test suite (862 tests, 0 failures), Ruff linter (0 errors), and Mypy static type checking (186 source files clean).
+- [x] Modularize `scope.py` into `scope_models.py`, `scope_parser.py`, and `scope_resolver.py`.
+- [x] Modularize `docx_sync.py` into `docx_builder.py`, `corpus_export.py` into `corpus_export_formatters.py`, `factions.py` into `factions_data.py`, `writing_sprint.py` into `writing_sprint_template.py`, and `revision_heatmap.py` into `revision_heatmap_template.py`.
+- [x] Create comprehensive dedicated documentation for Scope (`docs/SCOPE.md`), Lockfile (`docs/LOCKFILE.md`), Data Access Layer (`docs/DATA_ACCESS.md`), Plugins (`docs/PLUGINS.md`), and Desktop GUI (`docs/DESKTOP_APP.md`).
+- [x] Align README status (Beta), test count (868 total, 866 passing, 2 skipped on Windows), coverage threshold (80%), and repository URLs.
+- [x] Pass 100% verification across test suite (868 tests, 0 failures), Ruff linter (0 errors), and Mypy static type checking (203 source files clean).
 
 ### `next`
 - Deepen craft encyclopedia references across narrative craft, worldbuilding models, and linguistics.
@@ -29,7 +32,6 @@
 - None.
 
 ### `improve`
-- Modularize remaining oversized engine modules (`scope.py`, `astrophysics.py`, `journey.py`, `tactical_sim.py`) to strictly satisfy `<800 lines/file`.
 - Split monolithic 21-stage Grand Tour E2E test into isolated, parameterized test stages for faster failure localization.
 - Expand golden dataset coverage across novel pacing and character arc schemas.
 - Optimize SQLite FTS5 BM25+ indexing performance for multi-million word fantasy corpora.

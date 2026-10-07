@@ -57,11 +57,11 @@
 | Inverted Index & SQLite FTS5 / TF-IDF | [`scripts/lib/vault_search.py`](file:///scripts/lib/vault_search.py) | Delivers sub-millisecond local semantic lore search without cloud vector APIs |
 | Non-Repeating LRU History Cycling | [`scripts/lib/tips.py`](file:///scripts/lib/tips.py) | Ensures novel craft tip rotation without immediate repetition |
 
-### 5) Known Architectural Risks
+### 5) Known Architectural Risks & Resolutions
 
 - Cross-platform file locking differences: POSIX `fcntl.flock` vs Windows `msvcrt.locking` handled via unified `ArcanumLock` fallback abstraction with explicit `os.lseek(fd, 0, os.SEEK_SET)`.
 - HTML Report Content Security: All generated HTML interfaces enforce strict `default-src 'none'` CSP to guarantee complete offline air-gapping.
-- Remaining oversized engine modules (`scope.py`, `astrophysics.py`): Scheduled for modularization in `docs/ROADMAP.md` (`resonance.py` and `economy.py` successfully modularized).
+- Modularization Invariant: All core and craft Python source files strictly comply with `<800 lines/file` bounds (`resonance`, `economy`, `scope`, `factions`, `writing_sprint`, `revision_heatmap`, `docx_sync`, and `corpus_export` successfully modularized into dedicated models/parsers/templates/formatters).
 
 ### 6) Evidence
 

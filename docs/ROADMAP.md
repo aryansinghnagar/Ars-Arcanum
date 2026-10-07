@@ -36,7 +36,13 @@ flowchart LR
     - Extracted Studio Hub presentation template into `scripts/lib/studio_hub_template.py`, reducing `studio_hub.py` by over 2,100 lines.
     - Modularized `scripts/lib/resonance.py` from 1,796 lines down to 573 lines via `resonance_data.py` (552 lines) and `resonance_template.py` (639 lines).
     - Modularized `scripts/lib/economy.py` from 1,154 lines down to 671 lines via `economy_data.py` (107 lines), `economy_template.py` (126 lines), and `economy_trade.py` (298 lines).
-  - [x] **Verification Gate**: Passed 100% verification across test suite (862 tests, 0 failures, 2 skipped on Windows), Ruff strict linting (0 errors), Mypy static typing (186 source files clean), and Coverage threshold (`fail_under = 80`).
+    - Modularized `scripts/lib/scope.py` into `scope_models.py`, `scope_parser.py`, and `scope_resolver.py`.
+    - Modularized `scripts/lib/docx_sync.py` into `docx_builder.py`.
+    - Modularized `scripts/lib/corpus_export.py` into `corpus_export_formatters.py`.
+    - Modularized `scripts/lib/factions.py` into `factions_data.py`.
+    - Modularized `scripts/lib/writing_sprint.py` into `writing_sprint_template.py`.
+    - Modularized `scripts/lib/revision_heatmap.py` into `revision_heatmap_template.py`.
+  - [x] **Verification Gate**: Passed 100% verification across test suite (868 tests, 0 failures, 2 skipped on Windows), Ruff strict linting (0 errors), Mypy static typing (203 source files clean), and Coverage threshold (`fail_under = 80`).
 
 ### `next` (Ready Backlog)
 - **Interactive Visualizations**:
@@ -46,8 +52,6 @@ flowchart LR
 - *None currently.* All core engines execute with zero external pip dependencies and 100% offline sovereignty.
 
 ### `improve` (Refactoring & Evals)
-- **Engine Size Optimization**:
-  - Modularize remaining oversized modules (`scope.py`, `astrophysics.py`) to conform with the `<800 lines/file` engineering contract.
 - **Testing Architecture**:
   - Decompose monolithic 21-stage E2E tests into isolated, parameterized test stages for faster failure localization.
   - Expand golden physics and astrodynamics datasets to anchor more simulation parameters.

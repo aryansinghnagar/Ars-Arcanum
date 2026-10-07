@@ -1,6 +1,6 @@
 # Ars Arcanum — Master Engine Logic Encyclopedia & Scientific Principles
 > **Comprehensive Theoretical, Mathematical, Narrative & Architectural Reference**  
-> **Platform Version:** `v2.0.0` | **Status:** Sovereign, 100% Offline, Deterministic Rails
+> **Platform Version:** `v0.1.0` | **Status:** Sovereign, 100% Offline, Deterministic Rails
 
 ---
 

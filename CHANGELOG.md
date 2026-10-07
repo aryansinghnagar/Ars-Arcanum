@@ -4,9 +4,29 @@ All notable changes to Ars Arcanum are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Scope decisions
 behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## [0.1.0] - 2026-10-06
+## [0.1.0] - 2026-10-07
 
-### Added & Hardened (Universal Modularization, Resonance/Economy Decomposition & DAL Integration)
+### Added & Hardened (Universal Modularization, CI Modernization & Comprehensive Documentation)
+- **Core Engine Modularization (<800 lines/file Invariant)**:
+  - Modularized `scope.py` into `scripts/lib/scope_models.py`, `scope_parser.py`, and `scope_resolver.py`.
+  - Modularized `docx_sync.py` into `scripts/lib/docx_builder.py`.
+  - Modularized `corpus_export.py` into `scripts/lib/corpus_export_formatters.py`.
+  - Modularized `factions.py` into `scripts/lib/factions_data.py`.
+  - Modularized `writing_sprint.py` into `scripts/lib/writing_sprint_template.py`.
+  - Modularized `revision_heatmap.py` into `scripts/lib/revision_heatmap_template.py`.
+  - Upgraded Zen Studio with real-time active document metadata inspector HUD, hierarchical multi-tier outline navigator drawer, and focus soundscapes.
+- **Dedicated Feature Documentation Suite**:
+  - Authored comprehensive architecture and craft manuals:
+    - [`docs/SCOPE.md`](docs/SCOPE.md): Universal Granular Target Scoping & Context Engine.
+    - [`docs/LOCKFILE.md`](docs/LOCKFILE.md): Cross-Platform Concurrency Control & Atomic File Safety.
+    - [`docs/DATA_ACCESS.md`](docs/DATA_ACCESS.md): Centralized Data Access Layer & Cached Vault Reader.
+    - [`docs/PLUGINS.md`](docs/PLUGINS.md): Dynamic Craft Engine Plugin Architecture.
+    - [`docs/DESKTOP_APP.md`](docs/DESKTOP_APP.md): Native Desktop Application & Presentation Layer.
+- **CI/CD Workflow & Verification Modernization**:
+  - Modernized `.github/workflows/ci.yml` across Ubuntu, macOS, and Windows with Python 3.10, 3.11, 3.12, and 3.13 matrix.
+  - Enforced strict static typecheck (`mypy --config-file mypy.ini --explicit-package-bases scripts tests`), Bandit SAST, and `--fail-under=80` coverage gate.
+  - Updated `scripts/verify.sh` with full CLI entrypoint smoke testing across all 47 engines and newly added commands (`resonance`, `scope`, `tip`, `studio`, `hub`, `doc`).
+  - Reached 868 automated unit & integration tests (0 failures), 203 source files clean under Mypy, and 80%+ code coverage.
 - **Universal Resonance Mesh Decomposition (`scripts/lib/resonance.py`, `resonance_data.py`, `resonance_template.py`)**:
   - Decomposed monolithic `resonance.py` (1,796 lines $\to$ 646 lines) into modular domain catalogs and presentation layers.
   - Extracted 47 foundational domain specs, 71 cross-domain causal edges, 9 structural isomorphisms, and deterministic cascade engine into `scripts/lib/resonance_data.py` (591 lines).
@@ -18,9 +38,6 @@ behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   - Extracted offline HTML audit report generator with strict CSP into `scripts/lib/economy_template.py` (137 lines).
   - Extracted freight margin calculations, settlement network extraction, economic gravity trade models, and supply shock simulation into `scripts/lib/economy_trade.py` (341 lines).
   - Integrated centralized `DataAccessLayer` memoization across all markdown and YAML parsing paths.
-- **Strict Engineering Invariant Compliance & Quality Gates**:
-  - All 186 Python source files strictly comply with `<800 lines/file` contract, 0 Ruff violations, 0 Mypy errors.
-  - Full test suite passes 862 automated tests with 80% code coverage.
 
 ## [0.1.0-rc1] - 2026-10-05
 

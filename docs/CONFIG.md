@@ -20,16 +20,16 @@ Creative writing projects require granular control over validation strictness, p
 |  [Tier 1: Engine Built-In Defaults]                                           |
 |       |                                                                       |
 |       v                                                                       |
-|  [Tier 2: Global User Config]    (~/.arcanum/config.yaml)                     |
+|  [Tier 2: Global User Config]    --> ~/.arcanum/config.yaml                   |
 |       |                                                                       |
 |       v                                                                       |
-|  [Tier 3: Universe World Config] (World/world.yaml)                           |
+|  [Tier 3: Universe World Config] --> World/world.yaml                         |
 |       |                                                                       |
 |       v                                                                       |
-|  [Tier 4: Manuscript Book Config](Manuscripts/Book-01/manuscript.yaml)        |
+|  [Tier 4: Manuscript Book Config]--> Manuscripts/Book-01/manuscript.yaml      |
 |       |                                                                       |
 |       v                                                                       |
-|  [Tier 5: Explicit CLI Arguments](--strict --target-words 90000)              |
+|  [Tier 5: Explicit CLI Arguments]--> --strict --target-words 90000            |
 |                                                                               |
 |  [Result: Deterministic Resolved Runtime Context C_resolved]                  |
 +-------------------------------------------------------------------------------+

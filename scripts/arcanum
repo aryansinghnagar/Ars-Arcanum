@@ -64,6 +64,10 @@ Usage:
   package [MS] [-t TARGET]     Multi-platform release packager: Reader, Submission, ARC (OPS-101)
   sprint [MS]                  Sovereign writing sprint timer & productivity analytics
   revision-heatmap [MS]        Manuscript revision density & churn heatmap
+  resonance [CMD] [opts]       Universal Knowledge Mesh, Causal Cascade & Creative Spark bridges
+  scope [TARGET] [opts]        Granular manuscript & lore scope targeting & diagnostic
+  tip [opts]                   Dynamic non-obvious craft advice & engine wisdom (aliases: tips, hint)
+  doc [ENGINE]                 Display educational craft logic documentation & advisory resolution guide (alias: guide, explain)
 
 🪐 Universe, World Lore & Series Continuity:
   universe [NAME] [--list]     Create or list narrative universes in ~/Universes/
@@ -2021,6 +2025,9 @@ case "${COMMAND}" in
         ;;
     revision-heatmap|churn|revision-density|draft-churn)
         exec python3 "${PROJECT_ROOT}/scripts/lib/revision_heatmap.py" "$@"
+        ;;
+    scope|target-scope)
+        exec python3 "${PROJECT_ROOT}/scripts/lib/scope.py" "$@"
         ;;
     package|dist|bundle)
         exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" package "$@"

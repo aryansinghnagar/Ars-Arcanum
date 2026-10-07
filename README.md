@@ -6,8 +6,8 @@
 [![Release: v0.1.0](https://img.shields.io/badge/Release-v0.1.0%20(Beta)-blue.svg)](CHANGELOG.md)
 [![Status: Beta](https://img.shields.io/badge/Status-Beta%20(Active%20Hardening)-yellow.svg)](#)
 [![CI](https://github.com/aryansinghnagar/Ars-Arcanum/actions/workflows/ci.yml/badge.svg)](https://github.com/aryansinghnagar/Ars-Arcanum/actions/workflows/ci.yml)
-[![Tests: 862](https://img.shields.io/badge/Tests-860%2F862%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
-[![Coverage: 81%](https://img.shields.io/badge/Coverage-81%25-brightgreen.svg)](#)
+[![Tests: 868](https://img.shields.io/badge/Tests-866%2F868%20Passing%2C%202%20Skipped-brightgreen.svg)](#)
+[![Coverage: 80%+](https://img.shields.io/badge/Coverage-80%25%2B-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
 
@@ -227,6 +227,12 @@ bash scripts/verify.sh                    # Full 7-stage verification harness
 |:--|:--|
 | [**📖 Setup Guide**](docs/SETUP_GUIDE.md) | Step-by-step layman-friendly installation with troubleshooting |
 | [Author's Field Manual](docs/AUTHOR_MANUAL.md) | Complete plain-English handbook for daily writing workflow |
+| [Engine Logic Encyclopedia](docs/ENGINE_LOGIC_ENCYCLOPEDIA.md) | Master reference for mathematical models, scientific logic & invariants across all 47 engines |
+| [Target Scoping System](docs/SCOPE.md) | Universal granular slice targeting (`--scope`, `--ch`, `--scene`, `--ms`, `--world`) |
+| [Cross-Platform Concurrency](docs/LOCKFILE.md) | Concurrency control, `ArcanumLock`, POSIX `flock` and Win32 file locking |
+| [Centralized Data Access](docs/DATA_ACCESS.md) | High-speed cached vault reader, AST frontmatter queries, and mtime invalidation |
+| [Dynamic Plugin Architecture](docs/PLUGINS.md) | Authoring custom zero-pip craft engines with `BaseCraftEngine` |
+| [Native Desktop GUI](docs/DESKTOP_APP.md) | Libadwaita (GTK4) and modular GTK3 desktop presentation suite |
 | [Architecture Deep-Dive](docs/ARCHITECTURE.md) | Technical blueprint, ADRs, invariants, and exit codes |
 | [Cheat Sheet](docs/CHEATSHEET.md) | Single-page keyboard shortcuts and scene metadata tags |
 | [Roadmap](docs/ROADMAP.md) | Project milestones M0–M28 and real-time status queues |

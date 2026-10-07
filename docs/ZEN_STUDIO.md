@@ -92,9 +92,12 @@ To minimize saccadic eye fatigue during long drafting sprints, line lengths obey
 |---|---|---|
 | **Typewriter Focus Mode** | CSS `scroll-margin` + JavaScript dynamic offset lock. | Eliminates neck strain and maintains forward momentum. |
 | **In-Situ Lore Vault** | Slide-out side drawer with sub-millisecond client-side substring indexing. | Eliminates application context-switching and wiki tab hunting. |
+| **Active Doc Metadata Inspector** | Real-time frontmatter HUD (POV, timeline date, location, thematic thread, word target). | Maintains narrative immersion and continuity tracking without leaving editor. |
+| **Multi-Tier Outline Drawer** | Hierarchical manuscript tree navigator (Volumes, Acts, Chapters, Scenes) with live status tags. | Seamless random-access navigation across complex novel structures. |
 | **Acoustic Haptic Clicks** | WebAudio procedural mechanical keyclick synthesis ($100\%$ offline). | Provides tactile acoustic feedback reinforcing rhythmic typing flow. |
+| **Focus Soundscapes** | WebAudio procedural ambient noise generators (rain, brown noise, fire, coffee shop). | Masks environmental distractions without external media players or network streaming. |
 | **Local Storage Guard** | HTML5 `localStorage` atomic autosave every 500ms with dirty-state indicator. | Zero risk of lost prose during accidental browser closure. |
-| **Target Scoping** | CLI compiler scopes bundle to specific chapter ranges (`-c 1-5`). | Prevents distraction from past or future unfinished scenes. |
+| **Target Scoping** | CLI compiler scopes bundle to specific chapter ranges (`-c 1-5`, `--scope`). | Prevents distraction from past or future unfinished scenes. |
 
 ---
 

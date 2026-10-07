@@ -76,7 +76,7 @@ All prose, character dossiers, lore bibles, and timelines are stored in standard
 | Command | Purpose | Verification Source / Evidence | Trigger / CI Enforcement |
 | :--- | :--- | :--- | :--- |
 | `pip install .` / `pip install -e .` | Standard packaging installation and CLI entrypoint registration | [`pyproject.toml`](file:///pyproject.toml), [`scripts/__init__.py`](file:///scripts/__init__.py) | Verified in local environments & CI packaging smoke test |
-| `python -m unittest discover tests` | Full repository Python unit & integration test suite (862 tests, 0 failures) | [`tests/test_*.py`](file:///tests/) | Pre-commit gate & Enforced CI check (`.github/workflows/ci.yml#L80-L85`) |
+| `python -m unittest discover tests` | Full repository Python unit & integration test suite (868 tests, 0 failures) | [`tests/test_*.py`](file:///tests/) | Pre-commit gate & Enforced CI check (`.github/workflows/ci.yml#L80-L85`) |
 | `python -m unittest tests/test_<engine>.py` | Isolated single engine unit test suite (e.g. `test_cosmology.py`) | [`tests/`](file:///tests/) | Developer rapid feedback loop |
 | `python -m coverage run -m unittest discover tests; python -m coverage report --fail-under=80` | Test code coverage enforcement (80-81% aggregate coverage) | [`pyproject.toml#L35-L45`](file:///pyproject.toml#L35-L45) | CI quality check & release verification gate |
 | `python -m unittest tests/test_version_consistency.py` | Universal release version synchronization test across 6 surfaces | [`tests/test_version_consistency.py`](file:///tests/test_version_consistency.py) | Regression gate across all codebase constants |
@@ -86,7 +86,7 @@ All prose, character dossiers, lore bibles, and timelines are stored in standard
 | `arcanum search <query>` | Zero-dependency local TF-IDF & SQLite FTS5 search | [`scripts/lib/vault_search.py`](file:///scripts/lib/vault_search.py) | Lore & manuscript query |
 | `arcanum scope [target]` | Live target scope resolution & chapter/scene/lore inspector | [`scripts/lib/scope.py`](file:///scripts/lib/scope.py) | Diagnostic scope verification |
 | `ruff check .` | Strict Python linter across rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | [`pyproject.toml#L1-L30`](file:///pyproject.toml#L1-L30) | CI required status check (`.github/workflows/ci.yml#L60-L64`) |
-| `mypy --explicit-package-bases scripts tests` | Strict static type checking across 186 source files (0 errors) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py`](file:///tests/test_type_safety.py) | CI required status check (`.github/workflows/ci.yml#L65-L69`) |
+| `mypy --explicit-package-bases scripts tests` | Strict static type checking across 203 source files (0 errors) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py`](file:///tests/test_type_safety.py) | CI required status check (`.github/workflows/ci.yml#L65-L69`) |
 | `bash scripts/verify.sh` | Canonical 7-stage quality and regression test harness (POSIX) | [`scripts/verify.sh#L1-L496`](file:///scripts/verify.sh#L1-L496) | Local master pre-release gate |
 
 ---
@@ -103,7 +103,7 @@ All prose, character dossiers, lore bibles, and timelines are stored in standard
 | `docs/` | User manuals, domain craft guides, engine logic encyclopedia, roadmap, and codebase documentation. |
 | `docs/codebase/` | Specialized onboarding blueprints, stack analysis, testing patterns, and architectural concerns. |
 | `docs/guides/` | Procedural guides for backups, distraction control, typography, fonts, and Obsidian plugin integrity. |
-| `tests/` | 88 test files (862 tests) covering unit, integration, threat model, and benchmark test suites. |
+| `tests/` | 88 test files (868 tests) covering unit, integration, threat model, and benchmark test suites. |
 | `templates/` | Standardized starter world bibles, demo cosmos (`Eldoria`), Obsidian plugins with SHA-256 manifest, and novelWriter templates. |
 | `launchers/` | Desktop `.desktop` application launchers and menu shortcuts. |
 | `configs/` | Deterministic plugin definitions, idiom dictionaries, and distraction-blocker rule profiles (`leechblock_arcanum_rules.json`). |
