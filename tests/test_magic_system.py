@@ -407,6 +407,34 @@ Mysterious cosmic magic.
         self.assertEqual(profiles["Mythic Wonder"]["modality"], "soft")
         self.assertEqual(profiles["Mythic Wonder"]["classification"], "Soft Magic")
 
+    def test_deliberate_and_soft_modality_scene_bypass(self) -> None:
+        """Verify that scenes with intent: deliberate or soft/mythic modality bypass hard constraint checks."""
+        (self.world_dir / "Magic-Technology" / "Hard_Arcana.md").write_text("""---
+name: "Hard Arcana"
+type: magic_tech_system
+hard_limitations:
+  - "Cannot resurrect the dead"
+---
+""", encoding="utf-8")
+        (self.world_dir / "Characters" / "Mage.md").write_text("""---
+name: "Mage"
+magic_tier: 1
+---
+""", encoding="utf-8")
+
+        # Scene with frontmatter intent: deliberate
+        sc1 = self.ms_dir / "Book-01" / "01_Act_I" / "delib_scene.md"
+        sc1.write_text("""---
+intent: deliberate
+---
+# Scene
+@cast: Mage, Supernova, tier=5
+With a breath, the ancient king was resurrected.
+""", encoding="utf-8")
+
+        audit1 = run_magic_audit(str(self.world_dir), str(self.ms_dir))
+        self.assertEqual(audit1["total_findings"], 0, "Deliberate intent scene should have 0 magic violations")
+
 
 if __name__ == "__main__":
     unittest.main()

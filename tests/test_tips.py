@@ -506,6 +506,17 @@ class TestExhaustiveSubfeatureCoverage(unittest.TestCase):
         self.assertEqual(ret, 0)
         self.assertIn("💡", buf.getvalue())
 
+    def test_cli_tradition_perspective_filter(self) -> None:
+        """Tests filtering tips by tradition or aesthetic perspective."""
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ret = tips.main(["--all", "--tradition", "kishotenketsu", "--json"])
+        self.assertEqual(ret, 0)
+        data = json.loads(buf.getvalue())
+        self.assertIsInstance(data, list)
+        self.assertGreater(len(data), 0)
+        self.assertTrue(any("kishotenketsu" in t.get("tags", []) or "kishōtenketsu" in t.get("title", "").lower() for t in data))
+
 
 if __name__ == "__main__":
     unittest.main()

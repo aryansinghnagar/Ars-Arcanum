@@ -541,29 +541,29 @@ def render_zen_studio_html(
 
   const CRAFT_RULES = [
     {{
-      title: "Motivational Response Unit (MRU)",
+      title: "Motivational Response Unit (MRU) vs. Interior Stream",
       domain: "Prose Mechanics",
-      desc: "Dwight Swain's causal sequence: Stimulus (External) -> Reflex (Involuntary) -> Fear/Rational Emotion -> Deliberate Action -> Spoken Word."
+      desc: "Dwight Swain's commercial thriller sequence: Stimulus -> Reflex -> Emotion -> Action -> Speech. In introspective literary prose (Woolf/Proust), leading with interior reflection creates distinct psychological depth."
     }},
     {{
-      title: "Gary Provost Sentence Waveform",
+      title: "Sentence Waveforms & Acoustic Rhythm",
       domain: "Stylistics & Rhythm",
-      desc: "Vary sentence length across 5, 8, 14, 25 words to create musicality and prevent ear fatigue."
+      desc: "Gary Provost sentence variation (5, 8, 14, 25 words) creates musicality. Hemingway's minimalist cadence deliberately uses uniform staccato clauses for stark realism."
     }},
     {{
-      title: "8 Sensory Channels",
-      domain: "Atmosphere & Polish",
-      desc: "Balance visual (sight), auditory (sound), olfactory (smell), gustatory (taste), tactile (touch), proprioception (body orientation), thermoception (temperature), chronoception (time passage)."
+      title: "Kishōtenketsu (起承転結) 4-Movement Flow",
+      domain: "Non-Western Structure",
+      desc: "Ki (Introduction) -> Shō (Development) -> Ten (The Twist / Perspective Shift) -> Ketsu (Synthesis). Delivers profound structural satisfaction without Western binary conflict."
     }},
     {{
-      title: "Sanderson's First Law of Magic",
-      domain: "Magic Systems",
-      desc: "An author's ability to solve problems with magic satisfyingly is directly proportional to how well the reader understands said magic."
+      title: "Sanderson's Laws vs. Mythic Wonder",
+      domain: "Magic Systems & Metaphysics",
+      desc: "Hard magic systems satisfy through clear rules and clever problem-solving. Soft and mythic magic (Tolkien, Le Guin, Ghibli) evoke cosmic awe and emotional wonder through deliberate mystery."
     }},
     {{
-      title: "Trophic Energy Transfer (10% Law)",
-      domain: "Ecology & Worldbuilding",
-      desc: "Each trophic level supports ~10% of the biomass of the level beneath it. Colossal apex predators require immense herbivore biomes."
+      title: "8 Sensory Channels & Somatic Anchors",
+      domain: "Atmosphere & Immersion",
+      desc: "Balance visual details with olfactory, acoustic, thermal, vestibular (balance), and proprioceptive cues to ground the reader in somatic physical reality."
     }}
   ];
 

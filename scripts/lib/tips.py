@@ -465,6 +465,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Search query across tip database",
     )
     parser.add_argument(
+        "--tradition",
+        "-t",
+        help="Filter tips by craft tradition or aesthetic lineage (e.g. literary, commercial, non-western, mythic, minimalist)",
+    )
+    parser.add_argument(
         "--all",
         "-a",
         action="store_true",
@@ -560,6 +565,15 @@ def main(argv: list[str] | None = None) -> int:
             results = db.get_by_context(args.context)
         else:
             results = db.get_all()
+
+        if getattr(args, "tradition", None):
+            trad = args.tradition.lower().strip()
+            results = [
+                t for t in results
+                if trad in [tag.lower() for tag in t.tags]
+                or trad in t.title.lower()
+                or trad in t.content.lower()
+            ]
 
         if args.json:
             print(json.dumps([t.to_dict() for t in results], indent=2))

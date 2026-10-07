@@ -125,8 +125,8 @@ def extract_magic_profiles(world_dir: Path) -> dict:
                                 if d_name and d_name not in disciplines:
                                     disciplines.append(d_name)
 
-                modality_raw = str(fm.get("modality", fm.get("classification", "hard"))).lower().strip()
-                is_soft_magic = any(k in modality_raw or k in str(fm.get("classification", "")).lower() for k in ("soft", "mythic", "wonder", "unbound", "numinous"))
+                modality_raw = str(fm.get("metaphysical_modality", fm.get("modality", fm.get("classification", "hard")))).lower().strip()
+                is_soft_magic = any(k in modality_raw or k in str(fm.get("classification", "")).lower() for k in ("soft", "mythic", "wonder", "unbound", "numinous", "surreal", "dream", "symbolic"))
                 is_rationalist = any(k in modality_raw or k in str(fm.get("classification", "")).lower() for k in ("rationalist", "scientific", "mathematical", "hardest"))
                 resolved_modality = "soft" if is_soft_magic else ("rationalist" if is_rationalist else "hard")
                 classification_val = str(fm.get("classification", "Soft Magic" if is_soft_magic else ("Rationalist Magic" if is_rationalist else "Hard Magic")))
@@ -136,6 +136,7 @@ def extract_magic_profiles(world_dir: Path) -> dict:
                     "name": sys_name,
                     "classification": classification_val,
                     "modality": resolved_modality,
+                    "metaphysical_modality": modality_raw or resolved_modality,
                     "is_soft": is_soft_magic,
                     "source_of_power": fm.get("source_of_power", "Ambient / Essence"),
                     "prevalence": fm.get("prevalence", "Common"),
@@ -229,7 +230,22 @@ def scan_scene_magic_constraints(
     for md_file in md_files:
         try:
             rel_path = str(md_file.relative_to(manuscript_dir)).replace("\\", "/")
-            lines = md_file.read_text(encoding="utf-8", errors="replace").splitlines()
+            full_text = md_file.read_text(encoding="utf-8", errors="replace")
+            fm = parse_yaml_frontmatter(full_text)
+
+            # Check if scene is explicitly marked with deliberate intent or soft/mythic/surreal modality
+            scene_modality = str(fm.get("metaphysical_modality", fm.get("modality", ""))).lower()
+            if (
+                fm.get("intent") == "deliberate"
+                or any(k in scene_modality for k in ("soft", "mythic", "surreal", "wonder", "dream", "unbound"))
+                or "@intent: deliberate" in full_text
+                or "@modality: surreal" in full_text
+                or "@modality: soft" in full_text
+                or "@modality: mythic" in full_text
+            ):
+                continue
+
+            lines = full_text.splitlines()
 
             # Scene level state
             active_pov = None
@@ -239,7 +255,7 @@ def scan_scene_magic_constraints(
 
             for line_idx, line in enumerate(lines, 1):
                 clean_line = line.strip()
-                if not clean_line:
+                if not clean_line or "@intent: deliberate" in clean_line:
                     continue
 
                 # Check tags
