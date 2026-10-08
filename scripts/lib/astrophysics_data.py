@@ -148,3 +148,39 @@ def format_distance(meters: float) -> str:
     if meters >= 1e6:
         return f"{meters / 1000.0:,.0f} km ({meters / AU:.4f} AU)"
     return f"{meters:,.1f} m"
+
+
+def parse_mass(val_str: str, default_unit: str = "earth") -> float:
+    """Parses mass string to kg supporting celestial presets and unit suffixes."""
+    s = val_str.strip().lower()
+    if s in BODY_PRESETS:
+        return float(BODY_PRESETS[s]["mass"])
+
+    if s.endswith("kg"):
+        return float(s[:-2].strip())
+
+    if s.endswith(("m_sun", "m_sol", "solar", "sol", "suns", "sun")):
+        num = re.split(r"(?:m_sun|m_sol|solar|sol|suns|sun)", s)[0].strip() or "1.0"
+        return float(num) * SOLAR_MASS
+
+    if s.endswith(("m_earth", "m_e", "earths", "earth")):
+        num = re.split(r"(?:m_earth|m_e|earths|earth)", s)[0].strip() or "1.0"
+        return float(num) * EARTH_MASS
+
+    if s.endswith(("m_jup", "jupiters", "jupiter")):
+        num = re.split(r"(?:m_jup|jupiters|jupiter)", s)[0].strip() or "1.0"
+        return float(num) * BODY_PRESETS["jupiter"]["mass"]
+
+    if s.endswith(("m_moon", "moons", "moon")):
+        num = re.split(r"(?:m_moon|moons|moon)", s)[0].strip() or "1.0"
+        return float(num) * BODY_PRESETS["moon"]["mass"]
+
+    val = float(s)
+    if default_unit in ("sun", "sol", "solar"):
+        return val * SOLAR_MASS
+    if default_unit == "earth":
+        return val * EARTH_MASS
+    if default_unit == "moon":
+        return val * BODY_PRESETS["moon"]["mass"]
+    return val
+

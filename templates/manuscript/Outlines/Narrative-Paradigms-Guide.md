@@ -11,7 +11,7 @@
 - **Custom Divisions**: `manuscript_scaffold` (`arcanum scaffold MyNovel/Book-01 --structure custom --divisions 'Prologue,Part-I,Part-II,Epilogue'`) — Scaffolds arbitrary named division layouts with strict regex validation.
 - **Structure Preset Introspection**: `manuscript_scaffold` (`arcanum scaffold list`, `arcanum scaffold info kishotenketsu`) — Inspects all registered structural presets and target percentage curves.
 - **Multi-Paradigm Beat Mapper**: `structure` (`arcanum structure Manuscripts/Book-01 --paradigm three_act`) — Evaluates narrative milestone percentages (Hook at 1%, Inciting Incident at 12%, Climax at 90%) across any selected paradigm.
-- **Midpoint Harmony Check**: `structure` (`arcanum structure Manuscripts/Book-01 --midpoint-check`) — Verifies that the active reversal occurs within the 48%–52% milestone envelope.
+- **Midpoint Milestone Check**: `structure` (`arcanum structure Manuscripts/Book-01 --paradigm three_act`) — Verifies that the active reversal occurs within the 48%–52% milestone envelope.
 
 ### How to Use for Your Projects:
 1. Choose the narrative framework that best fits your story's genre, pacing, and philosophical theme.

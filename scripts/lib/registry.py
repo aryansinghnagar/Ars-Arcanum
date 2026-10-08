@@ -483,6 +483,104 @@ def get_engine_catalog() -> list[dict[str, Any]]:
     ]
 
 
+def get_unified_bibliography(category: str | None = None) -> list[dict[str, Any]]:
+    """Aggregates, deduplicates, and cross-indexes theoretical foundations and citations across all registered engines."""
+    bib_map: dict[str, dict[str, Any]] = {}
+    target_cat = category.lower().strip() if category else None
+
+    for spec in _ENGINES.values():
+        if target_cat and spec.category.value.lower() != target_cat:
+            continue
+        for ref in spec.theory_references:
+            title = ref.get("title", "").strip()
+            citation = ref.get("citation", "").strip()
+            desc = ref.get("description", "").strip()
+            url = ref.get("url", "").strip()
+            if not title and not citation:
+                continue
+
+            # Key on normalized title/citation
+            norm_key = f"{title.lower()}::{citation.lower()}"
+            if norm_key not in bib_map:
+                bib_map[norm_key] = {
+                    "title": title or citation,
+                    "citation": citation,
+                    "description": desc,
+                    "url": url,
+                    "engines": [spec.name],
+                    "categories": [spec.category.value],
+                }
+            else:
+                entry = bib_map[norm_key]
+                if spec.name not in entry["engines"]:
+                    entry["engines"].append(spec.name)
+                if spec.category.value not in entry["categories"]:
+                    entry["categories"].append(spec.category.value)
+                if not entry["description"] and desc:
+                    entry["description"] = desc
+                if not entry["url"] and url:
+                    entry["url"] = url
+
+    # Sort alphabetically by title
+    return sorted(bib_map.values(), key=lambda x: x["title"].lower())
+
+
+def format_unified_bibliography(category: str | None = None, format_type: str = "text") -> str:
+    """Formats the unified craft library bibliography as text, markdown, or JSON."""
+    bib = get_unified_bibliography(category=category)
+    fmt = format_type.lower().strip()
+
+    if fmt in ("json", "js"):
+        import json
+        return json.dumps(bib, indent=2)
+
+    cat_label = f" ({category.upper()} Category)" if category else ""
+
+    if fmt in ("markdown", "md"):
+        lines = [
+            f"# Ars Arcanum Sovereign Craft Library — Unified Master Bibliography{cat_label}",
+            "> 100% offline, peer-reviewed academic foundations, craft masterclasses, and theoretical sources across all engines.\n",
+            f"**Total References**: {len(bib)}\n",
+            "---",
+        ]
+        for idx, item in enumerate(bib, 1):
+            lines.append(f"### {idx}. {item['title']}")
+            if item.get("citation") and item["citation"] != item["title"]:
+                lines.append(f"- **Citation**: {item['citation']}")
+            if item.get("description"):
+                lines.append(f"- **Annotation**: {item['description']}")
+            if item.get("url"):
+                lines.append(f"- **Reference Link**: [{item['url']}]({item['url']})")
+            engines_str = ", ".join(f"`arcanum {e}`" for e in sorted(item["engines"]))
+            cats_str = ", ".join(c.upper() for c in sorted(item["categories"]))
+            lines.append(f"- **Associated Engines**: {engines_str} `[{cats_str}]`\n")
+        return "\n".join(lines)
+
+    # Default formatted terminal text
+    header_sep = "═" * 80
+    lines = [
+        header_sep,
+        f" 🏛️  ARS ARCANUM CRAFT LIBRARY — UNIFIED MASTER BIBLIOGRAPHY{cat_label.upper()}",
+        f"     Total Scholarly & Craft Reference Citations: {len(bib)} Indexed Works",
+        header_sep,
+        "",
+    ]
+    for idx, item in enumerate(bib, 1):
+        lines.append(f"[{idx:>3}] {item['title']}")
+        if item.get("citation") and item["citation"] != item["title"]:
+            lines.append(f"      • Citation: {item['citation']}")
+        if item.get("description"):
+            lines.append(f"      • Context:  {item['description']}")
+        if item.get("url"):
+            lines.append(f"      • Source:   {item['url']}")
+        engines_str = ", ".join(f"arcanum {e}" for e in sorted(item["engines"]))
+        cats_str = ", ".join(c.upper() for c in sorted(item["categories"]))
+        lines.append(f"      • Engines:  [{cats_str}] {engines_str}\n")
+
+    lines.append(header_sep)
+    return "\n".join(lines)
+
+
 __all__ = [
     "AdvisoryResolution",
     "BaseCraftEngine",
@@ -493,6 +591,7 @@ __all__ = [
     "discover_user_plugins",
     "enable_engine",
     "format_engine_doc",
+    "format_unified_bibliography",
     "get_all_engine_docs",
     "get_core_engines",
     "get_craft_engines",
@@ -501,6 +600,7 @@ __all__ = [
     "get_engine_docs",
     "get_engine_tips",
     "get_registry",
+    "get_unified_bibliography",
     "is_engine_enabled",
     "list_engines",
     "load_engine_module",
@@ -508,3 +608,4 @@ __all__ = [
     "register_user_engine",
     "search_engine_docs",
 ]
+

@@ -120,3 +120,25 @@ TECH_ERA_DICTIONARY: dict[str, str] = {
 def normalize_name(name: str) -> str:
     """Normalizes whitespace and casing for identifier and entity comparison."""
     return re.sub(r"[\s_-]+", " ", str(name).strip().lower())
+
+
+# Temporal, idiomatic, and pronoun non-commodity exclusions for prose price parsing
+TEMPORAL_PREPOSITION_EXCLUSIONS: set[str] = {
+    "moment", "moments", "second", "seconds", "minute", "minutes", "hour", "hours",
+    "day", "days", "week", "weeks", "month", "months", "year", "years", "decade", "decades",
+    "century", "centuries", "while", "instant", "breath", "heartbeat", "heartbeats",
+    "time", "times", "eternity", "period", "spell", "stretch", "season", "seasons",
+    "night", "nights", "morning", "mornings", "afternoon", "evening",
+    "long", "good", "certain", "sure", "life", "ever", "now", "then", "once", "nothing", "free",
+    "example", "instance", "each", "everyone", "someone", "anyone", "all", "us", "them", "him", "her", "me", "you",
+}
+
+
+__all__ = [
+    "ERA_ORDER",
+    "TECH_ERAS",
+    "TECH_ERA_DICTIONARY",
+    "TEMPORAL_PREPOSITION_EXCLUSIONS",
+    "normalize_name",
+]
+

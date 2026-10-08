@@ -39,8 +39,8 @@ _CSP = (
 )
 
 _FLAG_LABELS: dict[str, str] = {
-    "REV-101": "⚠ REV-101 Over-Revised",
-    "REV-102": "🔵 REV-102 Pristine Draft",
+    "REV-101": "🔥 REV-101 High Revision Activity",
+    "REV-102": "🌱 REV-102 Pristine Draft",
     "": "",
 }
 

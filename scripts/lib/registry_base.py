@@ -63,8 +63,7 @@ def _load_doc_theory_references(engine_name: str) -> list[dict[str, str]]:
             url_match = re.search(r"(https?://[^\s\)]+)", body)
         url = url_match.group(2) if (url_match and len(url_match.groups()) >= 2) else (url_match.group(1) if url_match else "")
         if not url:
-            title_token = re.sub(r"[^a-zA-Z0-9]+", "+", author_yr.strip()).strip("+")
-            url = f"https://en.wikipedia.org/wiki/Special:Search?search={title_token}"
+            url = ""
 
         desc_match = re.search(r"\*([^*]+)\*\s*$", body)
         desc = desc_match.group(1).strip() if desc_match else ""

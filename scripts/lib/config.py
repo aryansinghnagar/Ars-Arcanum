@@ -316,6 +316,116 @@ def set_default_scope(scope_data: dict[str, Any]) -> bool:
     return save_config(cfg)
 
 
+DEFAULT_AUTHORIAL_POLICY: dict[str, Any] = {
+    "default_mode": "observational",
+    "dry_run_default": True,
+    "suggestion_mode_only": True,
+    "framework_free_default": False,
+    "whitelisted_terms": [],
+    "disabled_engines": [],
+    "active_tradition": "unconstrained",
+    "structure": {"framework": "none", "score_enabled": False, "mode": "reference"},
+    "magic": {"mode": "unconstrained", "causal_accountability": "optional"},
+    "continuity": {"timeline": "strict", "preserve_poetic_variation": True},
+    "naming": {"collision_heuristics": "advisory", "whitelisted_pairs": []},
+}
+
+
+def get_authorial_policy() -> dict[str, Any]:
+    """Returns configured authorial policy settings dictionary."""
+    cfg = load_config()
+    pol = cfg.get("authorial_policy", {})
+    res = dict(DEFAULT_AUTHORIAL_POLICY)
+    if isinstance(pol, dict):
+        res.update(pol)
+    return res
+
+
+def set_authorial_policy(policy_data: dict[str, Any]) -> bool:
+    """Sets and persists authorial policy dictionary."""
+    cfg = load_config()
+    current = get_authorial_policy()
+    current.update(policy_data)
+    cfg["authorial_policy"] = current
+    return save_config(cfg)
+
+
+def get_world_axioms(world_name: str | None = None) -> dict[str, Any]:
+    """Returns world axioms dictionary for world or global default."""
+    cfg = load_config()
+    axioms = cfg.get("world_axioms", {})
+    if not isinstance(axioms, dict):
+        axioms = {}
+    if world_name and world_name in axioms and isinstance(axioms[world_name], dict):
+        return axioms[world_name]
+    return axioms.get("default", {
+        "magic_modality": "unconstrained",
+        "epistemic_truth_default": "cultural_belief",
+        "allow_anachronisms": True,
+        "shared_universes": [],
+        "custom_categories": [],
+    })
+
+
+def set_world_axioms(world_name: str, axioms_data: dict[str, Any]) -> bool:
+    """Sets and persists world axioms for a specific world or default."""
+    cfg = load_config()
+    if "world_axioms" not in cfg or not isinstance(cfg["world_axioms"], dict):
+        cfg["world_axioms"] = {}
+    cfg["world_axioms"][world_name] = axioms_data
+    return save_config(cfg)
+
+
+def get_disabled_engines() -> list[str]:
+    """Returns list of disabled engine names."""
+    pol = get_authorial_policy()
+    return list(pol.get("disabled_engines", []))
+
+
+def is_engine_enabled(engine_name: str) -> bool:
+    """Checks if a specific engine is currently enabled."""
+    disabled = get_disabled_engines()
+    return engine_name.lower().strip() not in [d.lower().strip() for d in disabled]
+
+
+def set_engine_enabled(engine_name: str, enabled: bool) -> bool:
+    """Enables or disables an engine in authorial policy."""
+    pol = get_authorial_policy()
+    disabled = {d.lower().strip() for d in pol.get("disabled_engines", [])}
+    clean_name = engine_name.lower().strip()
+    if enabled:
+        disabled.discard(clean_name)
+    else:
+        disabled.add(clean_name)
+    pol["disabled_engines"] = sorted(disabled)
+    return set_authorial_policy(pol)
+
+
+def get_daily_flow_state() -> dict[str, Any]:
+    """Returns the daily flow ritual and cursor state dictionary."""
+    cfg = load_config()
+    flow = cfg.get("daily_flow_state", {})
+    if not isinstance(flow, dict):
+        flow = {}
+    return {
+        "last_active_manuscript": flow.get("last_active_manuscript", ""),
+        "last_active_file": flow.get("last_active_file", ""),
+        "last_cursor_line": int(flow.get("last_cursor_line", 1)),
+        "next_time_bridge": flow.get("next_time_bridge", ""),
+        "active_workspace_phase": flow.get("active_workspace_phase", "drafting"),
+        "fast_idea_scraps": list(flow.get("fast_idea_scraps", [])),
+    }
+
+
+def set_daily_flow_state(state_data: dict[str, Any]) -> bool:
+    """Sets and persists the daily flow ritual state."""
+    cfg = load_config()
+    current = get_daily_flow_state()
+    current.update(state_data)
+    cfg["daily_flow_state"] = current
+    return save_config(cfg)
+
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Ars Arcanum Configuration Tool")

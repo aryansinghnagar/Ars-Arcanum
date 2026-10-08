@@ -191,27 +191,27 @@ def audit_prophecy_resolution(
         target = pinfo.get("target_entity", "")
         target_norm = normalize_name(target)
 
-        # 1. Dead Chosen One / Prerequisite Contradiction (PRP-102)
+        # 1. Dead Chosen One / Prerequisite Observation (PRP-102)
         if target_norm in dead_entities and status in ("unfulfilled", "active", "partially_fulfilled"):
             findings.append({
                 "id": "PRP-102",
-                "severity": "ERROR",
+                "severity": "ADVISORY",
                 "prophecy": pname,
                 "target": target,
-                "message": f"Dead Chosen One Contradiction: Target entity '{target}' of unfulfilled prophecy '{pname}' is marked deceased in World Bible lore.",
+                "message": f"Prophecy Inversion Observation: Target entity '{target}' of active prophecy '{pname}' is marked deceased in lore. (Subverted prophecy or misdirection?)",
                 "file": pinfo["file"],
             })
 
         # Check if prophecy is mentioned in manuscript
         in_manuscript = (pname_norm in ms_corpus_lower) or (any(normalize_name(pname) in normalize_name(tag) for tag in scene_prophecy_tags))
 
-        # 2. Orphan Prophecy (PRP-101)
+        # 2. Unreferenced Prophecy (PRP-101)
         if manuscript_dir and manuscript_dir.is_dir() and not in_manuscript:
             findings.append({
                 "id": "PRP-101",
-                "severity": "WARNING",
+                "severity": "ADVISORY",
                 "prophecy": pname,
-                "message": f"Orphan Prophecy: Lore prophecy '{pname}' is never referenced or fulfilled anywhere in the manuscript.",
+                "message": f"Unreferenced Prophecy: Lore prophecy '{pname}' is not referenced in current manuscript scope (forgotten lore, distant volume, or future setup).",
                 "file": pinfo["file"],
             })
 

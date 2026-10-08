@@ -303,13 +303,12 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             passive_matches = len(re.findall(r"\b(?:was|were|is|are|been|being)\s+[a-z]+ed\b", text, re.IGNORECASE))
             critique_notes = [f"Average sentence length: {avg_len:.1f} words across {len(sentences)} sentences."]
             if run_ons > 0:
-                critique_notes.append(f"Flagged {run_ons} potentially unwieldy sentence(s) (>35 words).")
+                critique_notes.append(f"Contains {run_ons} extended sentence(s) (>35 words — complex or breathless cadence).")
             if passive_matches > 0:
-                critique_notes.append(f"Detected {passive_matches} passive voice construction(s).")
+                critique_notes.append(f"Identified {passive_matches} passive voice construction(s).")
             if len(sentence_lens) > 3:
                 variance = sum((slen - avg_len) ** 2 for slen in sentence_lens) / len(sentence_lens)
-                if variance < 4.0:
-                    critique_notes.append("Cadence alert: Sentence lengths are highly uniform; vary rhythm for dramatic tension.")
+                critique_notes.append(f"Cadence variance: σ²={variance:.1f} ({'uniform/staccato rhythm' if variance < 4.0 else 'varied sentence rhythm'}).")
             line_critique = " ".join(critique_notes)
 
         # 2. Lore Arbiter Critique
@@ -320,7 +319,7 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
             ename = str(ent.get("name", ""))
             if ename and ename.lower() in text_lower:
                 found_entities.append(ename)
-        lore_critique = f"Lore integrity verified: Identified {len(found_entities)} registered canon entities: {', '.join(found_entities[:5])}." if found_entities else "No registered World Bible entities detected in this excerpt."
+        lore_critique = f"Canon entities detected: {len(found_entities)} registered lore entities ({', '.join(found_entities[:5])})." if found_entities else "No registered World Bible entities directly named in this excerpt."
 
         # 3. Story Architect Critique
         dialogue_quotes = len(re.findall(r'["“][^"”]+["”]', text))
@@ -329,11 +328,11 @@ class SovereignStudioHandler(http.server.BaseHTTPRequestHandler):
         if word_count == 0:
             arch_critique = "No narrative draft supplied."
         elif dialogue_ratio > 60:
-            arch_critique = f"Dialogue-heavy scene ({dialogue_ratio:.0f}% dialogue across {dialogue_quotes} turns). Ensure sensory anchoring and physical blocking."
+            arch_critique = f"Dialogue-heavy scene ({dialogue_ratio:.0f}% dialogue across {dialogue_quotes} turns)."
         elif dialogue_ratio < 10 and word_count > 100:
-            arch_critique = f"Exposition-dense passage ({dialogue_ratio:.0f}% dialogue). Consider interspersing character interaction or internal monologue."
+            arch_critique = f"Exposition-dense passage ({dialogue_ratio:.0f}% dialogue)."
         else:
-            arch_critique = f"Balanced narrative structure ({dialogue_ratio:.0f}% dialogue, {word_count} total words)."
+            arch_critique = f"Balanced narrative distribution ({dialogue_ratio:.0f}% dialogue, {word_count} total words)."
 
         # 4. Continuity Steward Critique
         date_matches = re.findall(r"\b(?:\d{4}-\d{2}-\d{2}|Act\s+[IVXLCDM\d]+|Chapter\s+\d+|Year\s+\d+)\b", text, re.IGNORECASE)

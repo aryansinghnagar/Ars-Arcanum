@@ -15,7 +15,7 @@
 |-----------|---------------|-------|-----------------|---------------------|
 | Dual CLI dispatchers (Bash vs Python) | Legacy bash facade maintains historical wrappers | [`scripts/arcanum`](file:///scripts/arcanum), [`scripts/lib/cli.py`](file:///scripts/lib/cli.py) | Maintenance divergence across platforms | Pure-Python CLI dispatcher (`cli.py`) handles all core engine executions with packaging entry points |
 | Large static dictionaries in Python source | Embedded metadata in executable code | [`scripts/lib/registry.py`](file:///scripts/lib/registry.py) | Monolithic God Object violating `<800L` contract | **Resolved**: Decomposed into `scripts/lib/registry_base.py` and `scripts/lib/registry_specs/`, reducing `registry.py` to 434 lines |
-| Oversized engine modules (`resonance.py`, `economy.py`, `tips.py`, `studio_hub.py`) | Rich single-file implementation | `scripts/lib/*.py` | Maintenance friction | **Resolved**: Modularized `tips.py` into `tips_catalog/`, `studio_hub.py` via `studio_hub_template.py`, `resonance.py` into `resonance_data.py` & `resonance_template.py`, and `economy.py` into `economy_data.py`, `economy_template.py` & `economy_trade.py`. Remaining: `scope.py`, `astrophysics.py` |
+| Oversized engine modules (`resonance.py`, `economy.py`, `tips.py`, `studio_hub.py`, `scope.py`, `astrophysics.py`, `climate.py`, `tactical_sim.py`, `causality.py`) | Rich single-file implementation | `scripts/lib/*.py` | Maintenance friction | **Resolved**: 100% of core and craft engines refactored to `<800L/file`. `tips.py` decomposed to `tips_catalog/`, `studio_hub.py` via `studio_hub_template.py`, `resonance.py` via `resonance_data.py` & `resonance_template.py`, `economy.py` via `economy_data.py`, `economy_template.py` & `economy_trade.py`, `scope.py` via `scope_models.py`, `scope_parser.py` & `scope_resolver.py`, `astrophysics.py` via `astrophysics_calc.py`, `astrophysics_data.py` & `astrophysics_template.py`, `climate.py` via `climate_template.py`, `tactical_sim.py` via `tactical_sim_template.py`, and `causality.py` via `causality_template.py`. |
 | GTK3 accessibility baseline | Historical UI focused on visual aesthetics | `scripts/lib/ui_gtk3/` | Screen-reader inaccessibility | Add mnemonic accelerators and ATK accessible names |
 
 ### 3) Security Concerns
@@ -48,7 +48,7 @@
 
 1. [ASK USER] Would you like additional structural isomorphism presets added to `STRUCTURAL_ISOMORPHISMS` in `scripts/lib/resonance.py` for specialized fiction subgenres (e.g. Grimdark Blood Magic, Biopunk Genetic Editing, Cyberpunk Currency Networks)?
 2. [ASK USER] Should we add an option in `arcanum tip` to output tips formatted as Obsidian Daily Notes markdown callouts?
-3. [ASK USER] Would you like the remaining oversized engines (`scope.py`, `astrophysics.py`) modularized in the next iteration using the same domain-package pattern?
+3. [ASK USER] Would you like additional planetary climate models (e.g. Tidally Locked Eyeball worlds, Runaway Greenhouse, Glaciated Super-Earth) expanded in Studio Hub interactive tabs?
 
 ### 7) Evidence
 

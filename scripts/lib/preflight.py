@@ -231,8 +231,6 @@ def run_preflight_linter(manuscript_dir: Path, scope: EngineScope | None = None)
 
 def generate_preflight_html_report(report: dict, output_path: Path) -> Path:
     """Generates a publishing compliance certificate HTML report."""
-    is_ready = report["is_ready_for_publish"]
-    score = report["compliance_score"]
     issues = report.get("issues", [])
 
     issue_rows = []
@@ -255,7 +253,7 @@ def generate_preflight_html_report(report: dict, output_path: Path) -> Path:
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ars Arcanum — Pre-Flight Publishing Compliance Certificate</title>
+<title>Ars Arcanum — Pre-Flight Export Coverage Map</title>
 <style>
   :root {{
     --bg: #0f172a; --panel: #1e293b; --border: #334155;
@@ -271,7 +269,7 @@ def generate_preflight_html_report(report: dict, output_path: Path) -> Path:
   .metric {{ font-size: 2rem; font-weight: 700; color: var(--accent); }}
   .status-box {{ padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; text-align: center; }}
   .status-pass {{ background: #064e3b; border: 1px solid #059669; color: #a7f3d0; }}
-  .status-fail {{ background: #7f1d1d; border: 1px solid #dc2626; color: #fecaca; }}
+  .status-fail {{ background: #1e293b; border: 1px solid var(--border); color: var(--text); }}
   .table {{ width: 100%; border-collapse: collapse; margin-top: 1rem; }}
   .table th, .table td {{ text-align: left; padding: 0.75rem 0.5rem; border-bottom: 1px solid var(--border); }}
 </style>
@@ -279,23 +277,15 @@ def generate_preflight_html_report(report: dict, output_path: Path) -> Path:
 <body>
 <div class="container">
   <div class="header">
-    <h1>✈️ Pre-Flight Typesetting & Publishing Compliance</h1>
+    <h1>✈️ Pre-Flight Typesetting & Export Coverage Map</h1>
     <p style="color: var(--muted);">Target: {html.escape(report.get('target', ''))} | Chapters: {report.get('chapter_count', 0)}</p>
-  </div>
-
-  <div class="status-box {'status-pass' if is_ready else 'status-fail'}">
-    <h2 style="margin:0; font-size:1.75rem;">{'✓ PASSED PRE-FLIGHT COMPLIANCE' if is_ready else '⚠️ PRE-FLIGHT ISSUES REQUIRING ATTENTION'}</h2>
-    <p style="margin:0.5rem 0 0 0; opacity:0.9;">{'Ready for Typst PDF, EPUB, and Amazon KDP/IngramSpark distribution.' if is_ready else 'Please resolve the blocking errors below before compiling production prints.'}</p>
   </div>
 
   <div class="grid">
     <div class="card">
-      <h3>Compliance Score</h3>
-      <div class="metric" style="color: {'var(--success)' if score >= 90 else ('var(--warn)' if score >= 70 else 'var(--danger)')};">{score}%</div>
-    </div>
-    <div class="card">
       <h3>Total Words</h3>
       <div class="metric">{report.get('total_words', 0):,}</div>
+      <p style="color: var(--muted); margin: 0.25rem 0 0 0;">Across {report.get('chapter_count', 0)} chapters</p>
     </div>
     <div class="card">
       <h3>Estimated Pages</h3>
@@ -303,16 +293,22 @@ def generate_preflight_html_report(report: dict, output_path: Path) -> Path:
       <p style="color: var(--muted); margin: 0.25rem 0 0 0;">@ 250 w/page Trade 6x9</p>
     </div>
     <div class="card">
-      <h3>Blocking Fails</h3>
+      <h3>Structural Fails</h3>
       <div class="metric" style="color: {'var(--danger)' if report.get('fail_count', 0) > 0 else 'var(--success)'};">{report.get('fail_count', 0)}</div>
+      <p style="color: var(--muted); margin: 0.25rem 0 0 0;">Blocking format issues</p>
+    </div>
+    <div class="card">
+      <h3>Advisory Notices</h3>
+      <div class="metric" style="color: {'var(--warn)' if report.get('warn_count', 0) > 0 else 'var(--muted)'};">{report.get('warn_count', 0)}</div>
+      <p style="color: var(--muted); margin: 0.25rem 0 0 0;">Author review items</p>
     </div>
   </div>
 
-  <h2>📋 Pre-Flight Audit Checklist</h2>
+  <h2>📋 Export Coverage & Checklist</h2>
   <table class="table">
-    <thead><tr><th>Status</th><th>Rule Code</th><th>Location</th><th>Message</th></tr></thead>
+    <thead><tr><th>Category</th><th>Rule Code</th><th>Location</th><th>Item Description</th></tr></thead>
     <tbody>
-      {''.join(issue_rows) or '<tr><td colspan="4" style="color:var(--success);">✓ All checks passed cleanly with zero warnings or errors.</td></tr>'}
+      {''.join(issue_rows) or '<tr><td colspan="4" style="color:var(--success);">✓ All technical export checks verified with zero warnings or errors.</td></tr>'}
     </tbody>
   </table>
 </div>
@@ -343,17 +339,17 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report, indent=2))
         return 0
 
-    print(f"=== Pre-Flight Typesetting Linter: {target_path.name} ===")
-    print(f"Compliance Score: {report['compliance_score']}% | Ready for Publishing: {'YES (✓)' if report['is_ready_for_publish'] else 'NO (⚠️)'}")
+    print(f"=== Pre-Flight Typesetting Linter & Export Coverage: {target_path.name} ===")
     print(f"Total Words: {report['total_words']:,} | Est. Trade Pages: ~{report['estimated_pages']} | Chapters: {report['chapter_count']}")
+    print(f"Issues: {report['fail_count']} blocking failures, {report['warn_count']} advisory notices")
     print("-" * 75)
     if not report["issues"]:
-        print("✓ All checks passed with 100% compliance!")
+        print("✓ All checks passed cleanly!")
     else:
         for iss in report["issues"]:
-            level_tag = "[FAIL]" if iss["level"] == "FAIL" else "[WARN]"
+            level_tag = "[DATA ISSUE]" if iss["level"] == "FAIL" else "[OBSERVATION]"
             loc = f" ({iss.get('file', 'manifest')})" if 'file' in iss else ""
-            print(f"  {level_tag:<6} {iss['code']:<18}{loc}: {iss['message']}")
+            print(f"  {level_tag:<14} {iss['code']:<18}{loc}: {iss['message']}")
 
     if args.html:
         out_p = Path(args.html)

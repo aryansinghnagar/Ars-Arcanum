@@ -425,3 +425,170 @@ def calc_planetary_dossier(
         "climate_circulation": climate_circ,
         "scientific_plausibility_warnings": warnings
     }
+
+
+def calc_lagrange_points(
+    m1_kg: float,
+    m2_kg: float,
+    distance_m: float,
+) -> dict[str, Any]:
+    """Calculates coordinates, Hill sphere, and stability of the 5 collinear and triangular Lagrange points."""
+    if m1_kg <= 0 or m2_kg <= 0:
+        raise ValueError("Masses must be strictly positive numbers.")
+    if distance_m <= 0:
+        raise ValueError("Orbital distance must be strictly positive.")
+
+    # Ensure m1 is the larger body
+    if m2_kg > m1_kg:
+        m1_kg, m2_kg = m2_kg, m1_kg
+
+    total_mass = m1_kg + m2_kg
+    mu = m2_kg / total_mass
+    r = distance_m
+
+    # Hill sphere radius
+    r_hill_m = r * (m2_kg / (3.0 * total_mass)) ** (1.0 / 3.0)
+
+    # L1: Between M1 and M2 (towards M1 from M2)
+    d_l1_m = r - r_hill_m
+
+    # L2: Behind M2 (opposite M1)
+    d_l2_m = r + r_hill_m
+
+    # L3: Opposite side of M1
+    d_l3_m = -(r * (1.0 + (5.0 * mu) / 12.0))
+
+    # L4 / L5: Triangular equilateral points (60 degrees ahead and behind M2 in orbit)
+    x_l4_m = r * (0.5 - mu)
+    y_l4_m = r * (math.sqrt(3.0) / 2.0)
+
+    x_l5_m = x_l4_m
+    y_l5_m = -y_l4_m
+
+    mass_ratio = m1_kg / m2_kg
+    l4_l5_stable = mass_ratio > 24.96
+
+    return {
+        "primary_mass_kg": m1_kg,
+        "secondary_mass_kg": m2_kg,
+        "mass_ratio": round(mass_ratio, 2),
+        "orbital_distance_m": r,
+        "orbital_distance_km": r / 1000.0,
+        "orbital_distance_au": r / AU,
+        "hill_sphere_radius_m": r_hill_m,
+        "hill_sphere_radius_km": r_hill_m / 1000.0,
+        "hill_sphere_radius_au": r_hill_m / AU,
+        "l1": {
+            "name": "L1 (Collinear Inner)",
+            "distance_from_primary_km": d_l1_m / 1000.0,
+            "distance_from_secondary_km": r_hill_m / 1000.0,
+            "stability": "Unstable (Saddle Point — Stationkeeping Required)",
+            "utility": "Continuous solar/stellar observation, early-warning coronal mass ejection monitors.",
+        },
+        "l2": {
+            "name": "L2 (Collinear Outer)",
+            "distance_from_primary_km": d_l2_m / 1000.0,
+            "distance_from_secondary_km": r_hill_m / 1000.0,
+            "stability": "Unstable (Saddle Point — Stationkeeping Required)",
+            "utility": "Deep-space astrophysics observatories (JWST equivalent), shielded from planetary heat.",
+        },
+        "l3": {
+            "name": "L3 (Collinear Counter-Orbit)",
+            "distance_from_primary_km": abs(d_l3_m) / 1000.0,
+            "stability": "Unstable (Saddle Point)",
+            "utility": "Hidden planetary orbital points, speculative counter-Earth tropes.",
+        },
+        "l4": {
+            "name": "L4 (Leading Trojan)",
+            "angle_deg": 60.0,
+            "distance_from_primary_km": r / 1000.0,
+            "distance_from_secondary_km": r / 1000.0,
+            "barycentric_x_km": x_l4_m / 1000.0,
+            "barycentric_y_km": y_l4_m / 1000.0,
+            "stability": "Stable (Coriolis Equilibrium)" if l4_l5_stable else "Unstable (Mass ratio too low)",
+            "utility": "Natural asteroid / Trojan swarms, permanent space habitats & colony clusters.",
+        },
+        "l5": {
+            "name": "L5 (Trailing Trojan)",
+            "angle_deg": -60.0,
+            "distance_from_primary_km": r / 1000.0,
+            "distance_from_secondary_km": r / 1000.0,
+            "barycentric_x_km": x_l5_m / 1000.0,
+            "barycentric_y_km": y_l5_m / 1000.0,
+            "stability": "Stable (Coriolis Equilibrium)" if l4_l5_stable else "Unstable (Mass ratio too low)",
+            "utility": "Natural asteroid / Greek swarms, space manufacturing staging yards.",
+        },
+        "l4_l5_stable": l4_l5_stable,
+    }
+
+
+def calc_moon_orbital_stability(
+    planet_mass_kg: float,
+    moon_mass_kg: float,
+    star_mass_kg: float,
+    semi_major_axis_planet_m: float,
+    moon_semi_major_axis_m: float,
+    is_retrograde: bool = False,
+    planet_radius_m: float | None = None,
+    rotation_period_hours: float = 24.0,
+) -> dict[str, Any]:
+    """Calculates moon orbital stability boundaries, Hill sphere limits, and tidal evolution."""
+    if planet_mass_kg <= 0 or moon_mass_kg <= 0 or star_mass_kg <= 0:
+        raise ValueError("Masses must be strictly positive.")
+    if semi_major_axis_planet_m <= 0 or moon_semi_major_axis_m <= 0:
+        raise ValueError("Orbital radii must be strictly positive.")
+
+    r_planet = planet_radius_m if planet_radius_m and planet_radius_m > 0 else EARTH_RADIUS * (planet_mass_kg / EARTH_MASS) ** (1.0 / 3.0)
+
+    # Hill sphere of planet orbiting star
+    r_hill_m = semi_major_axis_planet_m * (planet_mass_kg / (3.0 * star_mass_kg)) ** (1.0 / 3.0)
+
+    # Stability factor: Prograde moons stable up to ~0.49 R_Hill; Retrograde up to ~0.69 R_Hill
+    stability_factor = 0.69 if is_retrograde else 0.49
+    max_stable_radius_m = r_hill_m * stability_factor
+
+    # Orbital velocity of moon around planet
+    v_moon_mps = math.sqrt(G * planet_mass_kg / moon_semi_major_axis_m)
+    # Orbital period of moon
+    period_moon_sec = 2.0 * math.pi * math.sqrt((moon_semi_major_axis_m ** 3) / (G * planet_mass_kg))
+    period_moon_days = period_moon_sec / SECONDS_PER_DAY
+
+    # Synchronous (geostationary) orbit radius
+    rot_sec = rotation_period_hours * 3600.0
+    r_sync_m = (G * planet_mass_kg * (rot_sec ** 2) / (4.0 * math.pi * math.pi)) ** (1.0 / 3.0)
+
+    # Roche limits
+    rho_planet = planet_mass_kg / ((4.0 / 3.0) * math.pi * (r_planet ** 3))
+    rho_moon = 3000.0
+    roche_rigid_m = r_planet * (rho_planet / rho_moon) ** (1.0 / 3.0)
+    roche_fluid_m = 2.44 * r_planet * (rho_planet / rho_moon) ** (1.0 / 3.0)
+
+    is_within_hill = moon_semi_major_axis_m < r_hill_m
+    is_long_term_stable = moon_semi_major_axis_m < max_stable_radius_m and moon_semi_major_axis_m > roche_fluid_m
+
+    if moon_semi_major_axis_m < roche_fluid_m:
+        tidal_fate = "Tidal Disruption: Inside fluid Roche limit; will break up into a planetary ring system."
+    elif moon_semi_major_axis_m < r_sync_m:
+        tidal_fate = "Inward Orbital Decay: Moon orbits faster than planet rotates (below synchronous orbit); tidal drag pulls it inward."
+    else:
+        tidal_fate = "Outward Orbital Recession: Moon orbits slower than planet rotates; tidal acceleration pushes it slowly outward."
+
+    return {
+        "planet_mass_kg": planet_mass_kg,
+        "moon_mass_kg": moon_mass_kg,
+        "star_mass_kg": star_mass_kg,
+        "is_retrograde": is_retrograde,
+        "moon_semi_major_axis_km": moon_semi_major_axis_m / 1000.0,
+        "moon_orbital_period_days": round(period_moon_days, 2),
+        "moon_orbital_velocity_kms": round(v_moon_mps / 1000.0, 2),
+        "hill_sphere_radius_km": r_hill_m / 1000.0,
+        "max_stable_orbit_radius_km": max_stable_radius_m / 1000.0,
+        "synchronous_orbit_radius_km": r_sync_m / 1000.0,
+        "roche_fluid_limit_km": roche_fluid_m / 1000.0,
+        "roche_rigid_limit_km": roche_rigid_m / 1000.0,
+        "is_within_hill_sphere": is_within_hill,
+        "is_long_term_stable": is_long_term_stable,
+        "stability_ratio_to_hill": round(moon_semi_major_axis_m / r_hill_m, 4),
+        "tidal_evolution_fate": tidal_fate,
+    }
+

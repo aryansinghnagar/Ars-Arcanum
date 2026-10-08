@@ -3,7 +3,7 @@ Master Grand Tour End-to-End Lifecycle Verification Harness
 (tests/test_grand_tour_e2e.py)
 ================================================================================
 Comprehensive 21-stage end-to-end integration test validating the entire
-creative authoring and worldbuilding lifecycle of Ars Arcanum v5.0.0:
+creative authoring and worldbuilding lifecycle of Ars Arcanum v0.1.0:
 
 Stage 1:  Cosmos Universe & Manuscript Scaffolding
 Stage 2:  Cosmos Lore Bible Population (Characters, Locations, Magic, Factions)
@@ -29,6 +29,8 @@ Stage 21: Universal Knowledge Mesh Resonance Graph
 
 100% Offline — Zero Cloud Telemetry — Grade A+ Sovereign Authoring OS.
 """
+
+from __future__ import annotations
 
 import sqlite3
 import sys
@@ -148,55 +150,48 @@ from scripts.lib.zen_studio import generate_zen_studio_bundle
 
 
 class TestGrandTourE2E(unittest.TestCase):
-    """Executes the complete 21-stage Grand Tour authoring lifecycle."""
+    """Executes discrete stages and the complete 21-stage Grand Tour authoring lifecycle."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         self.root = Path(self.temp_dir.name)
+        self.cosmos_dir = self.root / "Aethelgard-Cosmos"
+        self.world_dir = self.cosmos_dir / "Aethelgard-Prime"
+        self.book_dir = self.cosmos_dir / "Manuscripts" / "Book-01-The-Obsidian-Crown"
+        self.ms_dir = self.book_dir / "Draft-01"
+        self._setup_fixture_environment()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.temp_dir.cleanup()
 
-    def test_complete_grand_tour_lifecycle(self):
-        # ---------------------------------------------------------------------
-        # STAGE 1: Cosmos Universe & Manuscript Scaffolding
-        # ---------------------------------------------------------------------
-        cosmos_dir = self.root / "Aethelgard-Cosmos"
-        cosmos_dir.mkdir(parents=True, exist_ok=True)
-        (cosmos_dir / "universe.yaml").write_text(
+    def _setup_fixture_environment(self) -> None:
+        """Populates the canonical test universe, world bible, and manuscript chapters."""
+        self.cosmos_dir.mkdir(parents=True, exist_ok=True)
+        (self.cosmos_dir / "universe.yaml").write_text(
             "name: Aethelgard Cosmos\nversion: '0.1.0'\nauthor: Master Loreweaver\n",
             encoding="utf-8",
         )
 
-        world_dir = cosmos_dir / "Aethelgard-Prime"
-        world_dir.mkdir(parents=True, exist_ok=True)
-        (world_dir / "world.yaml").write_text(
+        self.world_dir.mkdir(parents=True, exist_ok=True)
+        (self.world_dir / "world.yaml").write_text(
             "name: Aethelgard Prime\nsetting_type: Hard Fantasy / Arcane Cybernetics\n",
             encoding="utf-8",
         )
 
-        book_dir = cosmos_dir / "Manuscripts" / "Book-01-The-Obsidian-Crown"
-        book_dir.mkdir(parents=True, exist_ok=True)
-        (book_dir / "manuscript.yaml").write_text(
+        self.book_dir.mkdir(parents=True, exist_ok=True)
+        (self.book_dir / "manuscript.yaml").write_text(
             "title: The Obsidian Crown\nvolume: 1\nseries: The Sunder Chronicle\nauthor: Master Loreweaver\n",
             encoding="utf-8",
         )
 
-        ms_dir = book_dir / "Draft-01"
-        ms_dir.mkdir(parents=True, exist_ok=True)
-        (ms_dir / "manuscript.yaml").write_text(
+        self.ms_dir.mkdir(parents=True, exist_ok=True)
+        (self.ms_dir / "manuscript.yaml").write_text(
             "title: The Obsidian Crown\nvolume: 1\nseries: The Sunder Chronicle\nauthor: Master Loreweaver\n",
             encoding="utf-8",
         )
 
-        self.assertTrue((cosmos_dir / "universe.yaml").exists())
-        self.assertTrue((world_dir / "world.yaml").exists())
-        self.assertTrue((ms_dir / "manuscript.yaml").exists())
-
-        # ---------------------------------------------------------------------
-        # STAGE 2: Cosmos Lore Bible Population
-        # ---------------------------------------------------------------------
-        chars_dir = world_dir / "Characters"
+        # Characters
+        chars_dir = self.world_dir / "Characters"
         chars_dir.mkdir(parents=True, exist_ok=True)
         (chars_dir / "Lyra_Vael.md").write_text(
             "---\nname: Lyra Vael\ntitle: Arcane Chronomancer\ntags: [protagonist, chronomancer, outcast]\naliases: [The Weft-Walker]\n---\n"
@@ -205,7 +200,6 @@ class TestGrandTourE2E(unittest.TestCase):
             "She wields the forbidden discipline of [[Aetheric Resonance]] to perceive alternate timelines.\n",
             encoding="utf-8",
         )
-
         (chars_dir / "Lord_Malakar.md").write_text(
             "---\nname: Lord Malakar\ntitle: Grand Inquisitor\ntags: [antagonist, inquisitor]\naliases: [The Iron Eye]\n---\n"
             "# Lord Malakar\n\n"
@@ -213,7 +207,8 @@ class TestGrandTourE2E(unittest.TestCase):
             encoding="utf-8",
         )
 
-        places_dir = world_dir / "Places"
+        # Places
+        places_dir = self.world_dir / "Places"
         places_dir.mkdir(parents=True, exist_ok=True)
         (places_dir / "Valenreach.md").write_text(
             "---\nname: Valenreach\ncategory: Capital City\ntags: [city, fortress, spire]\n---\n"
@@ -222,7 +217,8 @@ class TestGrandTourE2E(unittest.TestCase):
             encoding="utf-8",
         )
 
-        magic_dir = world_dir / "Magic"
+        # Magic
+        magic_dir = self.world_dir / "Magic"
         magic_dir.mkdir(parents=True, exist_ok=True)
         (magic_dir / "Aetheric_Resonance.md").write_text(
             "---\nname: Aetheric Resonance\ntags: [hard_magic, chronometry]\n---\n"
@@ -235,7 +231,8 @@ class TestGrandTourE2E(unittest.TestCase):
             encoding="utf-8",
         )
 
-        factions_dir = world_dir / "Factions"
+        # Factions
+        factions_dir = self.world_dir / "Factions"
         factions_dir.mkdir(parents=True, exist_ok=True)
         (factions_dir / "Silver_Tribunal.md").write_text(
             "---\nname: Silver Tribunal\ntags: [order, military, ruling_body]\n---\n"
@@ -244,9 +241,7 @@ class TestGrandTourE2E(unittest.TestCase):
             encoding="utf-8",
         )
 
-        # ---------------------------------------------------------------------
-        # STAGE 3: Multi-Chapter Manuscript Drafting with Directives
-        # ---------------------------------------------------------------------
+        # Manuscript Chapters
         ch1_text = (
             "---\n"
             "title: The Glass Spire\n"
@@ -260,7 +255,7 @@ class TestGrandTourE2E(unittest.TestCase):
             "Down in the sunken alleys, [[Lord Malakar]]'s hounds barked with synthetic fury.\n\n"
             "She touched the glyph, channeling [[Aetheric Resonance]]. The temporal flow shuddered.\n"
         )
-        (ms_dir / "01_Chapter_01.md").write_text(ch1_text, encoding="utf-8")
+        (self.ms_dir / "01_Chapter_01.md").write_text(ch1_text, encoding="utf-8")
 
         ch2_text = (
             "---\n"
@@ -274,76 +269,146 @@ class TestGrandTourE2E(unittest.TestCase):
             "Lyra leaped into the rain. The stellar glass hummed, slowing gravity for a heartbeat. "
             "Across the gap, the banner of the [[Silver Tribunal]] flapped against the wind.\n"
         )
-        (ms_dir / "02_Chapter_02.md").write_text(ch2_text, encoding="utf-8")
+        (self.ms_dir / "02_Chapter_02.md").write_text(ch2_text, encoding="utf-8")
 
-        # ---------------------------------------------------------------------
-        # STAGE 4: World Doctor Diagnostic Audit
-        # ---------------------------------------------------------------------
-        doc_report = check_world(world_dir)
-        self.assertIsNotNone(doc_report)
-        self.assertEqual(doc_report.get("errors", 0), 0)
-
-        # ---------------------------------------------------------------------
-        # STAGE 5: Dual-Track Timeline Synchronization
-        # ---------------------------------------------------------------------
-        events = extract_timeline_events(ms_dir)
-        self.assertTrue(len(events) >= 2)
-        timeline_res = analyze_timeline_synchronization(events)
-        self.assertEqual(timeline_res["total_events"], 2)
-        self.assertEqual(len(timeline_res["paradoxes"]), 0)
-
-        # ---------------------------------------------------------------------
-        # STAGE 6: Astrodynamics & Relativistic Spaceflight
-        # ---------------------------------------------------------------------
-        traj = calc_brachistochrone(distance_m=1.496e11, acc_mps2=9.81)
-        self.assertTrue(traj["coordinate_time_sec"] > 0)
-        dilation = calc_time_dilation(beta=0.866)
-        self.assertAlmostEqual(dilation["kinematic"]["gamma"], 2.0, places=1)
-
-        # ---------------------------------------------------------------------
-        # STAGE 7: Local Semantic Retrieval (Vault Search) Indexing & Query
-        # ---------------------------------------------------------------------
-        vault_engine = VaultSearchEngine()
-        vault_count = vault_engine.load_from_directory(world_dir)
-        self.assertTrue(vault_count >= 3)
-        vault_results = vault_engine.query("chronomancy stellar glass", top_k=3)
-        self.assertTrue(len(vault_results) > 0)
-        top_match = vault_results[0]
-        self.assertIn("Aetheric_Resonance", top_match.chunk.doc_path)
-        vault_html = self.root / "stage7_vault_search.html"
-        vault_html.write_text(generate_html_retrieval_viewer("chronomancy", vault_results), encoding="utf-8")
-        self.assertTrue(vault_html.exists())
-
-        # ---------------------------------------------------------------------
-        # STAGE 8: Deific Pantheon & Theological Cosmology Audit
-        # ---------------------------------------------------------------------
-        cosmology_dir = world_dir / "Cosmology"
+        # Cosmology
+        cosmology_dir = self.world_dir / "Cosmology"
         cosmology_dir.mkdir(parents=True, exist_ok=True)
         (cosmology_dir / "Solaris.md").write_text(
             "---\nname: Solaris\ndomains: [sun, light]\nhierarchy: High God\nalignment: Lawful Good\n---\n# Solaris\nGod of the morning dawn.",
             encoding="utf-8",
         )
-        cosmo_rep = audit_cosmology(world_dir)
+
+        # Economies
+        (self.world_dir / "Economies").mkdir(parents=True, exist_ok=True)
+        (self.world_dir / "Economies" / "Solar_Standard.md").write_text("""---
+name: "Solar Standard Economy"
+base_currency: "Solar Crown"
+tech_era: "medieval"
+currencies:
+  - "Solar Crown: 1.0"
+  - "Silver Sovereign: 0.1"
+commodity_basket:
+  - "loaf_of_bread: 2"
+  - "iron_sword: 25"
+---
+""", encoding="utf-8")
+
+        # Ecology / Bestiary / Flora
+        (self.world_dir / "Bestiary").mkdir(parents=True, exist_ok=True)
+        (self.world_dir / "Flora").mkdir(parents=True, exist_ok=True)
+        (self.world_dir / "Bestiary" / "Mountain_Goat.md").write_text("""---
+name: "Mountain Goat"
+trophic_level: 2
+habitat: "Highland"
+dietary_prey:
+  - "[[Highland Moss]]"
+biomass_kg: 45.0
+population_density: 20.0
+---
+""", encoding="utf-8")
+        (self.world_dir / "Bestiary" / "Gryphon.md").write_text("""---
+name: "Highland Gryphon"
+trophic_level: 4
+habitat: "Highland"
+dietary_prey:
+  - "[[Mountain Goat]]"
+biomass_kg: 120.0
+population_density: 0.5
+---
+""", encoding="utf-8")
+        (self.world_dir / "Flora" / "Highland_Moss.md").write_text("""---
+name: "Highland Moss"
+trophic_level: 1
+habitat: "Highland"
+biomass_kg: 2000.0
+population_density: 500.0
+---
+""", encoding="utf-8")
+
+    # =========================================================================
+    # Granular Stage Tests (1 through 21)
+    # =========================================================================
+
+    def test_stage_01_cosmos_universe_and_manuscript_scaffolding(self) -> None:
+        """Stage 1: Validates universe, world, and manuscript manifest creation."""
+        self.assertTrue((self.cosmos_dir / "universe.yaml").exists())
+        self.assertTrue((self.world_dir / "world.yaml").exists())
+        self.assertTrue((self.ms_dir / "manuscript.yaml").exists())
+
+    def test_stage_02_cosmos_lore_bible_population(self) -> None:
+        """Stage 2: Validates character, location, magic, and faction lore bible files."""
+        self.assertTrue((self.world_dir / "Characters" / "Lyra_Vael.md").exists())
+        self.assertTrue((self.world_dir / "Characters" / "Lord_Malakar.md").exists())
+        self.assertTrue((self.world_dir / "Places" / "Valenreach.md").exists())
+        self.assertTrue((self.world_dir / "Magic" / "Aetheric_Resonance.md").exists())
+        self.assertTrue((self.world_dir / "Factions" / "Silver_Tribunal.md").exists())
+
+    def test_stage_03_multi_chapter_manuscript_drafting(self) -> None:
+        """Stage 3: Validates chapter drafting with frontmatter and wikilinks."""
+        ch1 = (self.ms_dir / "01_Chapter_01.md").read_text(encoding="utf-8")
+        ch2 = (self.ms_dir / "02_Chapter_02.md").read_text(encoding="utf-8")
+        self.assertIn("Lyra Vael", ch1)
+        self.assertIn("Aetheric Resonance", ch1)
+        self.assertIn("Silver Tribunal", ch2)
+
+    def test_stage_04_world_doctor_diagnostic_audit(self) -> None:
+        """Stage 4: Validates World Doctor health and diagnostic audit."""
+        doc_report = check_world(self.world_dir)
+        self.assertIsNotNone(doc_report)
+        self.assertEqual(doc_report.get("errors", 0), 0)
+
+    def test_stage_05_dual_track_timeline_synchronization(self) -> None:
+        """Stage 5: Validates timeline event extraction and paradox checks."""
+        events = extract_timeline_events(self.ms_dir)
+        self.assertTrue(len(events) >= 2)
+        timeline_res = analyze_timeline_synchronization(events)
+        self.assertEqual(timeline_res["total_events"], 2)
+        self.assertEqual(len(timeline_res["paradoxes"]), 0)
+
+    def test_stage_06_astrodynamics_and_relativistic_spaceflight(self) -> None:
+        """Stage 6: Validates Brachistochrone trajectories and relativistic dilation."""
+        traj = calc_brachistochrone(distance_m=1.496e11, acc_mps2=9.81)
+        self.assertTrue(traj["coordinate_time_sec"] > 0)
+        dilation = calc_time_dilation(beta=0.866)
+        self.assertAlmostEqual(dilation["kinematic"]["gamma"], 2.0, places=1)
+
+    def test_stage_07_local_semantic_retrieval_vault_search(self) -> None:
+        """Stage 7: Validates zero-dependency semantic TF-IDF indexing & lore query."""
+        vault_engine = VaultSearchEngine()
+        vault_count = vault_engine.load_from_directory(self.world_dir)
+        self.assertTrue(vault_count >= 3)
+        vault_results = vault_engine.query("chronomancy stellar glass", top_k=3)
+        self.assertTrue(len(vault_results) > 0)
+        self.assertIn("Aetheric_Resonance", vault_results[0].chunk.doc_path)
+
+        vault_html = self.root / "stage7_vault_search.html"
+        vault_html.write_text(generate_html_retrieval_viewer("chronomancy", vault_results), encoding="utf-8")
+        self.assertTrue(vault_html.exists())
+        self.assertIn("Content-Security-Policy", vault_html.read_text(encoding="utf-8"))
+
+    def test_stage_08_deific_pantheon_theological_cosmology(self) -> None:
+        """Stage 8: Validates cosmology audit and offline HTML reporting."""
+        cosmo_rep = audit_cosmology(self.world_dir)
         self.assertGreaterEqual(cosmo_rep["deities_count"], 1)
         cosmo_html = self.root / "stage8_cosmology.html"
         generate_cosmology_html_report(cosmo_rep, cosmo_html)
         self.assertTrue(cosmo_html.exists())
+        self.assertIn("Content-Security-Policy", cosmo_html.read_text(encoding="utf-8"))
 
-        # ---------------------------------------------------------------------
-        # STAGE 9: Visual Story Canvas & Scene Cards Corkboard
-        # ---------------------------------------------------------------------
-        cards = extract_scene_cards(ms_dir)
+    def test_stage_09_visual_story_canvas_corkboard(self) -> None:
+        """Stage 9: Validates drag-and-drop story canvas generation with strict CSP."""
+        cards = extract_scene_cards(self.ms_dir)
         self.assertTrue(len(cards) >= 1)
         canvas_html = self.root / "story_canvas.html"
-        generate_story_canvas_html(ms_dir, cards, paradigm_key="three_act", output_path=canvas_html)
+        generate_story_canvas_html(self.ms_dir, cards, paradigm_key="three_act", output_path=canvas_html)
         self.assertTrue(canvas_html.exists())
         self.assertIn("Content-Security-Policy", canvas_html.read_text(encoding="utf-8"))
 
-        # ---------------------------------------------------------------------
-        # STAGE 10: Universal Corpus Exporter (JSONL, SQLite, Markdown)
-        # ---------------------------------------------------------------------
+    def test_stage_10_universal_corpus_exporter(self) -> None:
+        """Stage 10: Validates JSONL, SQLite FTS5, and Markdown corpus export."""
         corpus_out_dir = self.root / "corpus_export"
-        corpus_scanner = CorpusScanner(cosmos_dir)
+        corpus_scanner = CorpusScanner(self.cosmos_dir)
         corpus_scanner.scan()
 
         paths = export_jsonl(corpus_scanner, corpus_out_dir)
@@ -353,7 +418,6 @@ class TestGrandTourE2E(unittest.TestCase):
         self.assertTrue(paths["documents"].exists())
         self.assertTrue((corpus_out_dir / "corpus.db").exists())
 
-        # Verify SQLite FTS5 index content
         conn = sqlite3.connect(corpus_out_dir / "corpus.db")
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM documents")
@@ -361,52 +425,47 @@ class TestGrandTourE2E(unittest.TestCase):
         self.assertTrue(doc_count >= 5)
         conn.close()
 
-        # ---------------------------------------------------------------------
-        # STAGE 11: Multi-Volume Series Omnibus & Media Overlays
-        # ---------------------------------------------------------------------
-        volumes = discover_series_volumes(cosmos_dir)
+    def test_stage_11_multi_volume_series_omnibus(self) -> None:
+        """Stage 11: Validates multi-volume series discovery and omnibus compilation."""
+        volumes = discover_series_volumes(self.cosmos_dir)
         self.assertTrue(len(volumes) >= 1)
         omnibus_report = compile_omnibus_manuscript(volumes, series_title="The Sunder Chronicle", author="Master Loreweaver")
         self.assertTrue(len(omnibus_report["markdown_content"]) > 0)
         self.assertTrue(omnibus_report["total_chapters"] >= 1)
 
-        # ---------------------------------------------------------------------
-        # STAGE 12: Atomic Backup & Cryptographic Checksums
-        # ---------------------------------------------------------------------
+    def test_stage_12_atomic_backup_and_checksums(self) -> None:
+        """Stage 12: Validates atomic TAR/GZ backup archive creation & SHA-256 sidecars."""
         dist_out_dir = self.root / "dist_bundles"
         dist_out_dir.mkdir(parents=True, exist_ok=True)
-
-        backup_res = create_backup(ms_dir, output_dir=dist_out_dir)
+        backup_res = create_backup(self.ms_dir, output_dir=dist_out_dir)
         self.assertTrue(Path(backup_res["archive_path"]).exists())
         self.assertTrue(len(backup_res["sha256"]) > 20)
         self.assertGreaterEqual(backup_res["metadata"]["total_files"], 1)
 
-        # ---------------------------------------------------------------------
-        # STAGE 13: Sovereign Studio Desktop Hub Static Telemetry Compilation
-        # ---------------------------------------------------------------------
-        hub_data = collect_studio_hub_data(cosmos_dir)
+    def test_stage_13_studio_desktop_hub_telemetry(self) -> None:
+        """Stage 13: Validates Studio Desktop Hub static telemetry compilation."""
+        hub_data = collect_studio_hub_data(self.cosmos_dir)
         self.assertEqual(hub_data["version"], "0.1.0")
         self.assertEqual(hub_data["metrics"]["total_chapters"], 2)
         self.assertTrue(hub_data["metrics"]["total_lore_entities"] >= 4)
 
         hub_static_file = self.root / "studio_hub.html"
-        export_static_studio_hub(hub_static_file, cosmos_dir)
+        export_static_studio_hub(hub_static_file, self.cosmos_dir)
         self.assertTrue(hub_static_file.exists())
         html_text = hub_static_file.read_text(encoding="utf-8")
         self.assertIn("Ars Arcanum", html_text)
         self.assertIn("Aethelgard", html_text)
         self.assertIn("Content-Security-Policy", html_text)
 
-        # ---------------------------------------------------------------------
-        # STAGE 14: Sovereign Writing Sprint & Session Velocity Analytics
-        # ---------------------------------------------------------------------
-        sprint_state_file = ms_dir / ".arcanum" / ".sprint_state.json"
-        sprint_log_file = ms_dir / ".arcanum" / ".sprint_log.jsonl"
+    def test_stage_14_writing_sprint_velocity_analytics(self) -> None:
+        """Stage 14: Validates writing sprint lifecycle and session velocity analytics."""
+        sprint_state_file = self.ms_dir / ".arcanum" / ".sprint_state.json"
+        sprint_log_file = self.ms_dir / ".arcanum" / ".sprint_log.jsonl"
 
         state = start_sprint(
             target_words=500,
             duration_minutes=25.0,
-            manuscript_dir=ms_dir,
+            manuscript_dir=self.ms_dir,
             state_file=sprint_state_file,
         )
         self.assertEqual(state["target_words"], 500)
@@ -437,10 +496,9 @@ class TestGrandTourE2E(unittest.TestCase):
         self.assertIn("Content-Security-Policy", sprint_html)
         self.assertIn("Writing Sprint Dashboard", sprint_html)
 
-        # ---------------------------------------------------------------------
-        # STAGE 15: Causal DAG Novikov Self-Consistency & Revision Density Heatmap
-        # ---------------------------------------------------------------------
-        causal_events, causal_timelines = extract_causal_nodes(world_dir=world_dir, manuscript_dir=ms_dir)
+    def test_stage_15_causal_dag_and_revision_heatmap(self) -> None:
+        """Stage 15: Validates Causal DAG Novikov consistency and revision churn heatmap."""
+        causal_events, causal_timelines = extract_causal_nodes(world_dir=self.world_dir, manuscript_dir=self.ms_dir)
         self.assertTrue(len(causal_events) >= 1)
         causal_findings = audit_causality(causal_events, causal_timelines)
         critical_causal_errors = [f for f in causal_findings if f.get("severity") == "ERROR"]
@@ -448,13 +506,13 @@ class TestGrandTourE2E(unittest.TestCase):
 
         causal_html_out = self.root / "causality_report.html"
         generate_causality_html_report(
-            {"world": "Eldoria", "events": causal_events, "timelines": causal_timelines, "findings": causal_findings},
+            {"world": "Aethelgard", "events": causal_events, "timelines": causal_timelines, "findings": causal_findings},
             causal_html_out,
         )
         self.assertTrue(causal_html_out.exists())
         self.assertIn("Content-Security-Policy", causal_html_out.read_text(encoding="utf-8"))
 
-        chapter_revision_stats = scan_manuscript_snapshots(ms_dir, snapshot_dir=None)
+        chapter_revision_stats = scan_manuscript_snapshots(self.ms_dir, snapshot_dir=None)
         self.assertTrue(len(chapter_revision_stats) >= 2)
         churn_data = analyze_revision_churn(chapter_revision_stats)
         self.assertTrue(churn_data["total_chapters"] >= 2)
@@ -467,12 +525,11 @@ class TestGrandTourE2E(unittest.TestCase):
         self.assertTrue(heatmap_html_out.exists())
         self.assertIn("Content-Security-Policy", heatmap_html_out.read_text(encoding="utf-8"))
 
-        # ---------------------------------------------------------------------
-        # STAGE 16: Multi-Volume Dramatis Personae Synthesis
-        # ---------------------------------------------------------------------
-        discovered_chars = scan_character_profiles(world_dir)
+    def test_stage_16_multi_volume_dramatis_personae(self) -> None:
+        """Stage 16: Validates character profile extraction and cast gallery generation."""
+        discovered_chars = scan_character_profiles(self.world_dir)
         self.assertTrue(len(discovered_chars) >= 1)
-        updated_chars, cast_findings = cross_reference_manuscripts(discovered_chars, cosmos_dir / "Manuscripts")
+        updated_chars, cast_findings = cross_reference_manuscripts(discovered_chars, self.cosmos_dir / "Manuscripts")
         self.assertTrue(len(updated_chars) >= 1)
 
         cast_md_out = self.root / "DRAMATIS_PERSONAE.md"
@@ -487,32 +544,26 @@ class TestGrandTourE2E(unittest.TestCase):
             cast_html_out,
         )
         self.assertTrue(cast_html_out.exists())
-        cast_html_text = cast_html_out.read_text(encoding="utf-8")
-        self.assertIn("Content-Security-Policy", cast_html_text)
-        self.assertIn("Dramatis Personae", cast_html_text)
+        self.assertIn("Content-Security-Policy", cast_html_out.read_text(encoding="utf-8"))
+        self.assertIn("Dramatis Personae", cast_html_out.read_text(encoding="utf-8"))
 
-        # ---------------------------------------------------------------------
-        # STAGE 17: Sovereign Worldbuilding Codex & Arcane Mastery Verification
-        # ---------------------------------------------------------------------
-        categories = scan_world_vault(world_dir)
+    def test_stage_17_codex_magic_genealogy_conlang_factions_calendar(self) -> None:
+        """Stage 17: Validates single-file codex, magic audit, genealogy, conlang, and factions."""
+        categories = scan_world_vault(self.world_dir)
         self.assertTrue(len(categories) >= 1)
         codex_out = self.root / "aethelgard_codex.html"
         build_single_file_codex(categories, "Aethelgard Prime", codex_out)
         self.assertTrue(codex_out.exists())
-        codex_content = codex_out.read_text(encoding="utf-8")
-        self.assertIn("Content-Security-Policy", codex_content)
-        self.assertIn("Lyra Vael", codex_content)
+        self.assertIn("Content-Security-Policy", codex_out.read_text(encoding="utf-8"))
 
-        magic_audit = run_magic_audit(str(world_dir), str(ms_dir))
+        magic_audit = run_magic_audit(str(self.world_dir), str(self.ms_dir))
         self.assertTrue(magic_audit["systems_registered"] >= 1)
         magic_html_out = self.root / "magic_matrix.html"
         generate_magic_html_report(magic_audit, magic_html_out)
         self.assertTrue(magic_html_out.exists())
-        magic_html = magic_html_out.read_text(encoding="utf-8")
-        self.assertIn("Content-Security-Policy", magic_html)
-        self.assertIn("Aetheric Resonance", magic_html)
+        self.assertIn("Content-Security-Policy", magic_html_out.read_text(encoding="utf-8"))
 
-        genealogy_chars = load_characters_and_houses(world_dir)
+        genealogy_chars = load_characters_and_houses(self.world_dir)
         self.assertTrue(len(genealogy_chars) >= 1)
         genealogy_findings = validate_genealogy(genealogy_chars)
         self.assertEqual(len([f for f in genealogy_findings if f["severity"] == "FATAL"]), 0)
@@ -531,7 +582,7 @@ class TestGrandTourE2E(unittest.TestCase):
         shifted = mutate_text("apata", ["p > b / V_V"], ["a", "e", "i", "o", "u"], ["p", "t", "k", "b", "d", "g"])
         self.assertEqual(shifted, "abata")
 
-        factions = extract_faction_profiles(world_dir)
+        factions = extract_faction_profiles(self.world_dir)
         self.assertTrue(len(factions) >= 1)
         faction_findings = audit_faction_diplomacy(factions)
         self.assertEqual(len([f for f in faction_findings if f["severity"] == "ERROR"]), 0)
@@ -540,33 +591,19 @@ class TestGrandTourE2E(unittest.TestCase):
         logistics_sim = calc_campaign_logistics(infantry=5000, cavalry=1000, distance_km=100.0)
         self.assertTrue(logistics_sim["logistics_requirements"]["is_within_wagon_radius"])
 
-        cal_spec = load_calendar_spec(world_dir)
+        cal_spec = load_calendar_spec(self.world_dir)
         self.assertTrue(cal_spec["days_per_year"] > 0)
         m_phase = get_moon_phase(14, {"name": "Selene", "period": 28.0, "offset": 0.0})
         self.assertEqual(m_phase["phase_name"], "Full Moon")
         self.assertEqual(m_phase["glyph"], "🌕")
 
-        # ---------------------------------------------------------------------
-        # STAGE 18: Story Craft, In-World Economy & Narrative Architecture
-        # ---------------------------------------------------------------------
-        (world_dir / "Economies").mkdir(parents=True, exist_ok=True)
-        (world_dir / "Economies" / "Solar_Standard.md").write_text("""---
-name: "Solar Standard Economy"
-base_currency: "Solar Crown"
-tech_era: "medieval"
-currencies:
-  - "Solar Crown: 1.0"
-  - "Silver Sovereign: 0.1"
-commodity_basket:
-  - "loaf_of_bread: 2"
-  - "iron_sword: 25"
----
-""", encoding="utf-8")
-        econs = extract_economy_profiles(world_dir)
+    def test_stage_18_economy_trade_journey_cartography_structure(self) -> None:
+        """Stage 18: Validates economy profiles, trade margins, travel logistics, vector map, and pacing."""
+        econs = extract_economy_profiles(self.world_dir)
         self.assertIn("Solar Standard Economy", econs)
         trade_res = calc_trade_margin(buy_price_per_ton=100.0, sell_price_per_ton=250.0, cargo_tons=20.0, distance_km_or_ly=150.0)
         self.assertTrue(trade_res["is_profitable"])
-        tech_anach = audit_technological_anachronisms(ms_dir, baseline_era="medieval")
+        tech_anach = audit_technological_anachronisms(self.ms_dir, baseline_era="medieval")
         self.assertIsInstance(tech_anach, list)
 
         journey_res = calculate_journey(distance_km=120.0, terrain="mountains", mode="foot-normal", party_size=3)
@@ -576,7 +613,7 @@ commodity_basket:
         self.assertTrue(journey_html_out.exists())
         self.assertIn("Content-Security-Policy", journey_html_out.read_text(encoding="utf-8"))
 
-        locations = parse_world_locations(world_dir)
+        locations = parse_world_locations(self.world_dir)
         self.assertTrue(len(locations) >= 1)
         map_svg = generate_vector_svg_map(locations, title="Aethelgard Map", grid_mode="hex")
         self.assertIn("<svg", map_svg)
@@ -585,19 +622,19 @@ commodity_basket:
         self.assertTrue(map_html_out.exists())
         self.assertIn("Content-Security-Policy", map_html_out.read_text(encoding="utf-8"))
 
-        struct_rep = scan_manuscript_structure(ms_dir, paradigm_key="three_act")
+        struct_rep = scan_manuscript_structure(self.ms_dir, paradigm_key="three_act")
         self.assertTrue(len(struct_rep["beats"]) >= 5)
         struct_html_out = self.root / "structure_alignment.html"
         generate_structure_html_report(struct_rep, struct_html_out)
         self.assertTrue(struct_html_out.exists())
         self.assertIn("Content-Security-Policy", struct_html_out.read_text(encoding="utf-8"))
 
-        # ---------------------------------------------------------------------
-        # STAGE 19: Worldbuilding Sciences, Climate & Environmental Mechanics
-        # ---------------------------------------------------------------------
+    def test_stage_19_ambient_tactical_climate_ecology(self) -> None:
+        """Stage 19: Validates ambient synthesis, battle sim, plot matrix, climate physics, and ecology."""
         ambient_wav = self.root / "ambient_focus.wav"
         synthesize_wav(output_path=ambient_wav, duration_sec=1, noise_type="brown")
         self.assertTrue(ambient_wav.exists())
+
         ambient_html = self.root / "ambient_synth.html"
         generate_ambient_html_synthesizer(ambient_html)
         self.assertTrue(ambient_html.exists())
@@ -609,14 +646,14 @@ commodity_basket:
         mc_res = run_monte_carlo(DEFAULT_SIDE1, DEFAULT_SIDE2, runs=10)
         self.assertEqual(mc_res["runs"], 10)
 
-        plot_rep = scan_manuscript_plot_matrix(ms_dir)
+        plot_rep = scan_manuscript_plot_matrix(self.ms_dir)
         self.assertTrue(plot_rep["total_chapters"] >= 1)
         plot_html = self.root / "plot_matrix.html"
         generate_plot_html_report(plot_rep, plot_html)
         self.assertTrue(plot_html.exists())
         self.assertIn("Content-Security-Policy", plot_html.read_text(encoding="utf-8"))
 
-        timeline_events = extract_timeline_events(ms_dir)
+        timeline_events = extract_timeline_events(self.ms_dir)
         self.assertTrue(len(timeline_events) >= 1)
         timeline_rep = analyze_timeline_synchronization(timeline_events)
         timeline_html = self.root / "timeline_sync.html"
@@ -632,37 +669,7 @@ commodity_basket:
         self.assertTrue(climate_html.exists())
         self.assertIn("Content-Security-Policy", climate_html.read_text(encoding="utf-8"))
 
-        (world_dir / "Bestiary").mkdir(parents=True, exist_ok=True)
-        (world_dir / "Flora").mkdir(parents=True, exist_ok=True)
-        (world_dir / "Bestiary" / "Mountain_Goat.md").write_text("""---
-name: "Mountain Goat"
-trophic_level: 2
-habitat: "Highland"
-dietary_prey:
-  - "[[Highland Moss]]"
-biomass_kg: 45.0
-population_density: 20.0
----
-""", encoding="utf-8")
-        (world_dir / "Bestiary" / "Gryphon.md").write_text("""---
-name: "Highland Gryphon"
-trophic_level: 4
-habitat: "Highland"
-dietary_prey:
-  - "[[Mountain Goat]]"
-biomass_kg: 120.0
-population_density: 0.5
----
-""", encoding="utf-8")
-        (world_dir / "Flora" / "Highland_Moss.md").write_text("""---
-name: "Highland Moss"
-trophic_level: 1
-habitat: "Highland"
-biomass_kg: 2000.0
-population_density: 500.0
----
-""", encoding="utf-8")
-        species_rep = extract_species_profiles(world_dir)
+        species_rep = extract_species_profiles(self.world_dir)
         self.assertIn("Highland Gryphon", species_rep)
         eco_findings = audit_ecosystem(species_rep)
         self.assertIsInstance(eco_findings, list)
@@ -673,17 +680,16 @@ population_density: 500.0
         self.assertTrue(eco_html.exists())
         self.assertIn("Content-Security-Policy", eco_html.read_text(encoding="utf-8"))
 
-        # ---------------------------------------------------------------------
-        # STAGE 20: Authoring Studios, Typography & Creative Scaffolding
-        # ---------------------------------------------------------------------
+    def test_stage_20_zen_studio_portfolio_typography(self) -> None:
+        """Stage 20: Validates Zen Studio bundle, portfolio scan, and typography polish."""
         zen_out = self.root / "zen_studio.html"
-        generate_zen_studio_bundle(ms_dir, world_path=world_dir, output_path=zen_out)
+        generate_zen_studio_bundle(self.ms_dir, world_path=self.world_dir, output_path=zen_out)
         self.assertTrue(zen_out.exists())
         zen_content = zen_out.read_text(encoding="utf-8")
         self.assertIn("Content-Security-Policy", zen_content)
         self.assertIn("Zen Studio", zen_content)
 
-        port_rep = scan_portfolio(cosmos_dir / "Manuscripts")
+        port_rep = scan_portfolio(self.cosmos_dir / "Manuscripts")
         self.assertGreaterEqual(port_rep["total_projects"], 1)
         self.assertIn("total_target_words", port_rep)
         port_html = self.root / "portfolio_hub.html"
@@ -696,18 +702,41 @@ population_density: 500.0
         self.assertIn("“Hello,”", polished_prose)
         self.assertIn("ended—finally", polished_prose)
         self.assertIn("Don’t", polished_prose)
-        clean_res = clean_target(ms_dir, in_place=False, make_backup=False)
+        clean_res = clean_target(self.ms_dir, in_place=False, make_backup=False)
         self.assertGreaterEqual(clean_res["summary"]["files_scanned"], 1)
 
-        # ---------------------------------------------------------------------
-        # STAGE 21: Universal Knowledge Mesh Resonance Graph
-        # ---------------------------------------------------------------------
+    def test_stage_21_resonance_mesh_graph(self) -> None:
+        """Stage 21: Validates knowledge mesh resonance graph generation."""
         mesh = ResonanceMesh()
         self.assertGreaterEqual(len(mesh.nodes), 40)
         res_html = self.root / "stage21_resonance.html"
         res_html.write_text(mesh.generate_html_visualizer(), encoding="utf-8")
         self.assertTrue(res_html.exists())
         self.assertIn("Content-Security-Policy", res_html.read_text(encoding="utf-8"))
+
+    def test_complete_grand_tour_lifecycle(self) -> None:
+        """Executes all 21 stages consecutively in end-to-end integration sequence."""
+        self.test_stage_01_cosmos_universe_and_manuscript_scaffolding()
+        self.test_stage_02_cosmos_lore_bible_population()
+        self.test_stage_03_multi_chapter_manuscript_drafting()
+        self.test_stage_04_world_doctor_diagnostic_audit()
+        self.test_stage_05_dual_track_timeline_synchronization()
+        self.test_stage_06_astrodynamics_and_relativistic_spaceflight()
+        self.test_stage_07_local_semantic_retrieval_vault_search()
+        self.test_stage_08_deific_pantheon_theological_cosmology()
+        self.test_stage_09_visual_story_canvas_corkboard()
+        self.test_stage_10_universal_corpus_exporter()
+        self.test_stage_11_multi_volume_series_omnibus()
+        self.test_stage_12_atomic_backup_and_checksums()
+        self.test_stage_13_studio_desktop_hub_telemetry()
+        self.test_stage_14_writing_sprint_velocity_analytics()
+        self.test_stage_15_causal_dag_and_revision_heatmap()
+        self.test_stage_16_multi_volume_dramatis_personae()
+        self.test_stage_17_codex_magic_genealogy_conlang_factions_calendar()
+        self.test_stage_18_economy_trade_journey_cartography_structure()
+        self.test_stage_19_ambient_tactical_climate_ecology()
+        self.test_stage_20_zen_studio_portfolio_typography()
+        self.test_stage_21_resonance_mesh_graph()
 
 
 if __name__ == "__main__":

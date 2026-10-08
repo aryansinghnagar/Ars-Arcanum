@@ -195,8 +195,69 @@ class TestClimateEngine(unittest.TestCase):
                 with self.assertRaises(SystemExit) as cm:
                     main()
                 self.assertEqual(cm.exception.code, 0)
-                self.assertIn("Ars Arcanum Planetary Climate", mock_out.getvalue())
-                self.assertTrue(out_html.is_file())
+    def test_golden_mars_climate(self):
+        """Validates Mars-like solar insolation and cold equilibrium temperature."""
+        ins = calc_planetary_insolation(
+            stellar_luminosity=1.0,
+            semi_major_axis_au=1.524,
+            bond_albedo=0.25,
+            greenhouse_warming_k=5.0,
+        )
+        self.assertAlmostEqual(ins["stellar_flux_w_m2"], 586.0, delta=10.0)
+        self.assertAlmostEqual(ins["surface_temp_c"], -58.0, delta=5.0)
+        self.assertFalse(ins["liquid_water_habitable"])
+
+    def test_golden_venus_runaway_greenhouse(self):
+        """Validates Venus-like extreme solar flux and runaway greenhouse regime."""
+        ins = calc_planetary_insolation(
+            stellar_luminosity=1.0,
+            semi_major_axis_au=0.723,
+            bond_albedo=0.77,
+            greenhouse_warming_k=500.0,
+        )
+        self.assertAlmostEqual(ins["stellar_flux_w_m2"], 2603.0, delta=20.0)
+        self.assertGreater(ins["surface_temp_c"], 400.0)
+        self.assertFalse(ins["liquid_water_habitable"])
+
+    def test_golden_tidally_locked_hadley_circulation(self):
+        """Validates slow/tidally-locked planetary rotation yielding single global Hadley cell."""
+        circ = calc_atmospheric_circulation(rotation_period_hours=720.0)
+        self.assertEqual(circ["circulation_cells_per_hemisphere"], 1)
+        self.assertEqual(len(circ["wind_bands"]), 1)
+
+    def test_cli_presets(self):
+        """Validates CLI execution with --preset argument."""
+        import io
+        import json
+        from unittest.mock import patch
+        from lib.climate import main
+
+        for preset in ["earth", "mars", "desert_world", "ocean_world", "super_earth"]:
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with patch("sys.argv", ["climate.py", "--preset", preset, "--json"]):
+                    with self.assertRaises(SystemExit) as cm:
+                        main()
+                    self.assertEqual(cm.exception.code, 0)
+                    data = json.loads(mock_out.getvalue())
+                    self.assertIn("insolation", data)
+                    self.assertIn("circulation", data)
+                    self.assertIn("orography", data)
+                    self.assertIsNotNone(data["preset"])
+
+    def test_html_report_svg_diagrams(self):
+        """Validates that generate_climate_html_report contains SVG circulation, orographic, and Whittaker diagrams."""
+        ins = calc_planetary_insolation()
+        circ = calc_atmospheric_circulation(rotation_period_hours=24.0)
+        oro = calc_orographic_rain_shadow(mountain_elevation_m=3000.0)
+        out_html = Path(self.temp_dir.name) / "diagrams_climate.html"
+        generate_climate_html_report(
+            {"insolation": ins, "circulation": circ, "orography": oro}, out_html
+        )
+        content = out_html.read_text(encoding="utf-8")
+        self.assertIn("<svg", content)
+        self.assertIn("Hadley", content)
+        self.assertIn("Moist Ascent", content)
+        self.assertIn("Whittaker Biome Matrix", content)
 
 
 if __name__ == "__main__":

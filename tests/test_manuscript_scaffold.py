@@ -47,9 +47,9 @@ class TestManuscriptScaffold(unittest.TestCase):
             "three_act", "freytags_pyramid", "heros_journey", "save_the_cat",
             "story_circle", "kishotenketsu", "seven_point", "fichtean_curve",
             "eight_sequence", "mice_quotient", "romancing_the_beat", "virgins_promise",
-            "snowflake", "parallel", "episodic", "nonlinear"
+            "snowflake", "parallel", "episodic", "nonlinear", "none", "framework_free"
         ]
-        self.assertEqual(len(STRUCTURE_PRESETS), 16)
+        self.assertEqual(len(STRUCTURE_PRESETS), len(expected_keys))
         for key in expected_keys:
             self.assertIn(key, STRUCTURE_PRESETS, f"Preset '{key}' missing from STRUCTURE_PRESETS")
 
@@ -352,7 +352,7 @@ class TestManuscriptScaffold(unittest.TestCase):
             rc = main(["list", "--json"])
             self.assertEqual(rc, 0)
             data = json.loads(mock_out.getvalue())
-            self.assertEqual(len(data), 16)
+            self.assertEqual(len(data), len(STRUCTURE_PRESETS))
             self.assertIn("three_act", data)
 
     def test_cli_info_subcommand(self):

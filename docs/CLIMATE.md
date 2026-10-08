@@ -262,14 +262,19 @@ topographic_transects:
 ## 9. CLI Reference & Scriptorium Integration
 
 ```bash
-# Run planetary insolation and global circulation cell calculation
+# Run planetary insolation and global circulation cell calculation using a preset
+arcanum climate --preset tidally_locked
+arcanum climate --preset super_earth
+arcanum climate --preset desert_world
+
+# Custom planetary calculation (Star Luminosity, Distance, Rotation Period)
 arcanum climate --star-lum 1.15 --distance-au 1.08 --rotation-hours 22.0
 
 # Calculate exact orographic rain shadow across a 4000m mountain range
 arcanum climate --mountain-elevation 4000 --base-temp 20.0 --base-precip 1500
 
-# Export comprehensive standalone HTML climate and biome atlas
-arcanum climate --star-lum 1.0 --distance-au 1.0 --albedo 0.30 --html reports/climate_atlas.html
+# Export comprehensive standalone HTML climate, 2D SVG circulation globe, and biome atlas
+arcanum climate --preset earth --html reports/climate_atlas.html
 ```
 
 ---

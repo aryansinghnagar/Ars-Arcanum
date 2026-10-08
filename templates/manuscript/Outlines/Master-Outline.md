@@ -8,7 +8,7 @@
 
 ### Features Demonstrated in This Blueprint:
 - **Multi-Paradigm Beat Mapper**: `structure` (`arcanum structure Manuscripts/Book-01 --paradigm three_act`) — Evaluates narrative milestone percentages (Hook at 1%, Inciting Incident at 12%, Midpoint Shift at 50%, Dark Night at 75%, Climax at 90%) across 16 built-in structural frameworks.
-- **Midpoint Harmony Check**: `structure` (`arcanum structure Manuscripts/Book-01 --midpoint-check`) — Audits the active protagonist turn at the midpoint.
+- **Midpoint Milestone Check**: `structure` (`arcanum structure Manuscripts/Book-01 --paradigm three_act`) — Audits the active protagonist turn at the midpoint.
 - **Drag-and-Drop Corkboard & Story Canvas**: `story_canvas` (`arcanum canvas Manuscripts/Book-01`) — Organizes index cards by act and scene.
 - **Atomic Disk Renumberer**: `story_canvas` (`arcanum canvas Manuscripts/Book-01 --renumber`) — Renumbers disk files safely upon card reorganization without breaking link graphs.
 - **Plot Grid & Multi-POV Harmonizer**: `plot_matrix` (`arcanum plot`) — Tracks A-Plot, B-Plot, and character arc thread convergence across acts and chapters.

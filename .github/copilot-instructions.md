@@ -35,13 +35,16 @@ All scripts and the CLI facade (`scripts/arcanum` / `scripts/lib/cli.py`) adhere
 Every proposed change MUST pass the full quality gate in this exact order before opening or merging a pull request:
 
 ```bash
-# 1. Full Python Unit & Integration Test Suite (868 tests, 0 failures allowed)
+# 1. Full Python Unit & Integration Test Suite (960 tests, 0 failures allowed)
 python -m unittest discover tests
+
+# High-performance multi-core parallel test runner (~20s)
+python scripts/test_parallel.py
 
 # 2. Strict Expanded Ruff Linter Pass (0 violations allowed)
 ruff check .
 
-# 3. Strict Mypy Static Type Checking across all source files (203 files clean)
+# 3. Strict Mypy Static Type Checking across all source files (217 files clean)
 mypy --explicit-package-bases scripts tests
 
 # 4. Coverage Threshold Enforcement (fail_under = 80)

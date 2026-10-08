@@ -51,10 +51,6 @@ fields:
     type: List
   succession_order:
     type: Number
-  magic_tier:
-    type: Number
-  catalyst:
-    type: Input
 ---
 # Character FileClass Schema
 Defines structured frontmatter fields and controlled input validation for characters via Metadata Menu.

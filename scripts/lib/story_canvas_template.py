@@ -302,13 +302,29 @@ def render_story_canvas_page(
       container.appendChild(col);
     }});
 
+    function normBeat(s) {{
+      return String(s || "").replace(/^\\d+\\.?\\s*/, "").toLowerCase().replace(/[\\(\\)\\[\\]/_-]/g, " ").replace(/\\s+/g, " ").trim();
+    }}
+
     cardsData.forEach((card, cIdx) => {{
-      const cumPct = totalWords > 0 ? (card.cumulative_words / totalWords) : 0;
-      let assignedBeatIdx = 0;
-      for (let i = 0; i < beats.length; i++) {{
-        if (cumPct <= beats[i].window[1] || i === beats.length - 1) {{
-          assignedBeatIdx = i;
-          break;
+      let assignedBeatIdx = -1;
+      if (card.author_beat) {{
+        const normTag = normBeat(card.author_beat);
+        for (let i = 0; i < beats.length; i++) {{
+          const bNorm = normBeat(beats[i].name);
+          if (bNorm === normTag || bNorm.includes(normTag) || normTag.includes(bNorm)) {{
+            assignedBeatIdx = i;
+            break;
+          }}
+        }}
+      }}
+      if (assignedBeatIdx === -1) {{
+        const cumPct = totalWords > 0 ? (card.cumulative_words / totalWords) : 0;
+        for (let i = 0; i < beats.length; i++) {{
+          if (cumPct <= beats[i].window[1] || i === beats.length - 1) {{
+            assignedBeatIdx = i;
+            break;
+          }}
         }}
       }}
 
@@ -391,13 +407,32 @@ def render_story_canvas_page(
   }}
 
   function updateColumnCounts() {{
+    const totalWords = cardsData.reduce((acc, c) => acc + (c.word_count || 0), 0);
     const paradigm = paradigmsData[currentParadigmKey] || paradigmsData["three_act"];
+    const isUnconstrained = (currentParadigmKey === "framework_free" || currentParadigmKey === "freeform");
+    let cumWordsSoFar = 0;
+
     paradigm.beats.forEach((b, idx) => {{
       const list = document.getElementById(`list_beat_${{idx}}`);
       const countEl = document.getElementById(`count_beat_${{idx}}`);
       if (list && countEl) {{
+        let beatWords = 0;
         const count = list.querySelectorAll(".card").length;
-        countEl.textContent = `${{count}} scene${{count === 1 ? '' : 's'}}`;
+        list.querySelectorAll(".card").forEach(el => {{
+          const card = cardsData.find(c => c.id === el.id);
+          if (card) beatWords += card.word_count || 0;
+        }});
+        cumWordsSoFar += beatWords;
+        const cumPct = totalWords > 0 ? Math.round((cumWordsSoFar / totalWords) * 100) : 0;
+        const targetPct = Math.round(b.target_pct * 100);
+        const offset = cumPct - targetPct;
+
+        if (isUnconstrained) {{
+          countEl.textContent = `${{count}} scene${{count === 1 ? '' : 's'}} (${{beatWords.toLocaleString()}} w)`;
+        }} else {{
+          const offsetStr = offset === 0 ? "0pp" : (offset > 0 ? `+${{offset}}pp` : `${{offset}}pp`);
+          countEl.textContent = `${{count}} scene${{count === 1 ? '' : 's'}} (Cum: ${{cumPct}}% | ${{offsetStr}})`;
+        }}
       }}
     }});
   }}
@@ -410,7 +445,12 @@ def render_story_canvas_page(
       return;
     }}
     const paradigm = paradigmsData[currentParadigmKey] || paradigmsData["three_act"];
+    if (currentParadigmKey === "framework_free" || currentParadigmKey === "freeform") {{
+      harmonyEl.textContent = "100% (Unconstrained Flow)";
+      return;
+    }}
     let totalDeviation = 0;
+    let cumBeatWords = 0;
     paradigm.beats.forEach((b, idx) => {{
       const list = document.getElementById(`list_beat_${{idx}}`);
       let beatWords = 0;
@@ -420,12 +460,14 @@ def render_story_canvas_page(
           if (card) beatWords += card.word_count || 0;
         }});
       }}
-      const actualPct = beatWords / totalWords;
+      cumBeatWords += beatWords;
+      const actualCumPct = cumBeatWords / totalWords;
       const targetPct = b.target_pct;
-      totalDeviation += Math.abs(actualPct - targetPct);
+      totalDeviation += Math.abs(actualCumPct - targetPct);
     }});
-    const harmony = Math.max(0, Math.min(100, Math.round((1.0 - (totalDeviation / 2.0)) * 100)));
-    harmonyEl.textContent = `${{harmony}}%`;
+    const avgOffset = Math.round((totalDeviation / (paradigm.beats.length || 1)) * 100);
+    const harmony = Math.max(0, Math.min(100, Math.round((1.0 - (totalDeviation / (paradigm.beats.length || 1))) * 100)));
+    harmonyEl.textContent = `${{harmony}}% (Avg Δ: ${{avgOffset}}pp)`;
   }}
 
   function updateParadigm(key) {{

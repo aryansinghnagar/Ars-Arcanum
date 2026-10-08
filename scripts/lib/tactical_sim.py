@@ -26,18 +26,21 @@ import logging
 import random
 import sys
 from pathlib import Path
+from typing import Any
 
 try:
-    import lib._bootstrap  # noqa: F401
+    from lib._bootstrap import atomic_write
     from lib.scope import (
         EngineScope,
         add_scope_arguments,
         parse_scope_args,
         resolve_world_path,
     )
+    from lib.tactical_sim_template import build_tactical_sim_html
 except ImportError:
+    from _bootstrap import atomic_write
+    from tactical_sim_template import build_tactical_sim_html
     try:
-        import _bootstrap  # noqa: F401
         from scope import (
             EngineScope,
             add_scope_arguments,
@@ -57,6 +60,61 @@ except ImportError:
             return None
 
 logger = logging.getLogger("arcanum.tactical_sim")
+
+SKIRMISH_PRESETS: dict[str, dict[str, Any]] = {
+    "champion_duel": {
+        "name": "Champion Duel (Solar Commander vs Shadow Champion)",
+        "terrain": "open_field",
+        "side1": [
+            {"name": "Knight Commander Vaelor", "hp": 45, "armor": 6, "attack": 8, "damage": 12, "type": "melee", "agility": 5, "morale": 90},
+            {"name": "Solar Guard Vanguard", "hp": 25, "armor": 4, "attack": 6, "damage": 8, "type": "melee", "agility": 4, "morale": 75},
+            {"name": "Solar Guard Marksman", "hp": 20, "armor": 2, "attack": 7, "damage": 10, "type": "ranged", "agility": 7, "morale": 60},
+        ],
+        "side2": [
+            {"name": "Shadow Champion Malakar", "hp": 40, "armor": 5, "attack": 9, "damage": 14, "type": "melee", "agility": 6, "morale": 85},
+            {"name": "Void Stalker Hound", "hp": 18, "armor": 1, "attack": 6, "damage": 7, "type": "melee", "agility": 8, "morale": 50},
+            {"name": "Void Archer", "hp": 18, "armor": 2, "attack": 6, "damage": 9, "type": "ranged", "agility": 6, "morale": 55},
+        ],
+    },
+    "siege_breach": {
+        "name": "Fortress Gatehouse Breach",
+        "terrain": "castle_walls",
+        "side1": [
+            {"name": "Imperial Storm-Knight", "hp": 55, "armor": 7, "attack": 8, "damage": 14, "type": "melee", "agility": 3, "morale": 85},
+            {"name": "Legion Shieldbearer", "hp": 30, "armor": 6, "attack": 5, "damage": 7, "type": "melee", "agility": 3, "morale": 80},
+            {"name": "Siege Crossbowman", "hp": 22, "armor": 3, "attack": 8, "damage": 12, "type": "ranged", "agility": 5, "morale": 70},
+        ],
+        "side2": [
+            {"name": "Gate Captain Ronen", "hp": 40, "armor": 5, "attack": 7, "damage": 10, "type": "melee", "agility": 4, "morale": 90},
+            {"name": "Wall Longbowman A", "hp": 18, "armor": 2, "attack": 8, "damage": 11, "type": "ranged", "agility": 6, "morale": 75},
+            {"name": "Wall Longbowman B", "hp": 18, "armor": 2, "attack": 8, "damage": 11, "type": "ranged", "agility": 6, "morale": 75},
+        ],
+    },
+    "forest_ambush": {
+        "name": "Dense Canopy Forest Ambush",
+        "terrain": "dense_forest",
+        "side1": [
+            {"name": "Caravan Guard Captain", "hp": 35, "armor": 5, "attack": 6, "damage": 9, "type": "melee", "agility": 4, "morale": 65},
+            {"name": "Mercenary Escort", "hp": 22, "armor": 3, "attack": 5, "damage": 7, "type": "melee", "agility": 5, "morale": 50},
+        ],
+        "side2": [
+            {"name": "Woodland Ranger", "hp": 25, "armor": 2, "attack": 8, "damage": 11, "type": "ranged", "agility": 8, "morale": 80},
+            {"name": "Forest Trapper", "hp": 20, "armor": 1, "attack": 7, "damage": 8, "type": "ranged", "agility": 7, "morale": 70},
+        ],
+    },
+    "dungeon_chokepoint": {
+        "name": "Subterranean Crypt Chokepoint",
+        "terrain": "dungeon_corridor",
+        "side1": [
+            {"name": "Paladin Defender", "hp": 48, "armor": 7, "attack": 7, "damage": 11, "type": "melee", "agility": 3, "morale": 95},
+            {"name": "Battle Mage", "hp": 20, "armor": 1, "attack": 9, "damage": 15, "type": "ranged", "agility": 6, "morale": 60},
+        ],
+        "side2": [
+            {"name": "Crypt Wight Lord", "hp": 50, "armor": 4, "attack": 8, "damage": 13, "type": "melee", "agility": 5, "morale": 100},
+            {"name": "Skeletal Spearman", "hp": 15, "armor": 2, "attack": 5, "damage": 6, "type": "melee", "agility": 4, "morale": 100},
+        ],
+    },
+}
 
 
 DEFAULT_SIDE1 = [
@@ -376,18 +434,26 @@ $$\\alpha \\cdot (x_0^2 - x^2) = \\beta \\cdot (y_0^2 - y^2)$$
 """
 
 
+def generate_tactical_sim_html_report(data: dict, output_path: Path) -> None:
+    """Generates standalone offline HTML report for tactical combat or warfare planning."""
+    html_content = build_tactical_sim_html(data)
+    atomic_write(output_path, html_content)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Ars Arcanum Tactical Combat Simulator & Scenario Planner (WOR-104)")
     subparsers = parser.add_subparsers(dest="command", help="Simulation mode")
 
     p_sim = subparsers.add_parser("sim", help="Run skirmish simulation")
+    p_sim.add_argument("--preset", choices=list(SKIRMISH_PRESETS.keys()), help="Load skirmish preset (e.g. champion_duel, siege_breach, forest_ambush, dungeon_chokepoint)")
     p_sim.add_argument("--side1", help="Path to Side 1 JSON fighters config")
     p_sim.add_argument("--side2", help="Path to Side 2 JSON fighters config")
-    p_sim.add_argument("--terrain", choices=list(TERRAIN_MODIFIERS.keys()), default="open_field", help="Battlefield terrain type")
+    p_sim.add_argument("--terrain", choices=list(TERRAIN_MODIFIERS.keys()), default=None, help="Battlefield terrain type")
     p_sim.add_argument("--defending-side", type=int, choices=[1, 2], default=2, help="Defending side holding fortifications (default: 2)")
     p_sim.add_argument("-n", "--monte-carlo", type=int, default=1, help="Number of Monte Carlo simulation runs (default: 1)")
     p_sim.add_argument("--seed", type=int, default=None, help="Explicit PRNG integer seed for reproducible combat results")
     p_sim.add_argument("--narrative", action="store_true", help="Print blow-by-blow narrative combat log")
+    p_sim.add_argument("--html", help="Path to export standalone HTML report")
     p_sim.add_argument("--json", action="store_true", help="Output JSON results")
     add_scope_arguments(p_sim, include_manuscript=False, include_world=True, target_pos_arg=False)
 
@@ -398,6 +464,7 @@ def main():
     p_plan.add_argument("--defender-troops", type=int, default=1200, help="Defender troop count")
     p_plan.add_argument("--terrain", choices=list(TERRAIN_MODIFIERS.keys()), default="castle_walls", help="Battlefield terrain")
     p_plan.add_argument("--season", choices=["spring", "summer", "autumn", "winter"], default="autumn", help="Campaign season")
+    p_plan.add_argument("--html", help="Path to export standalone HTML report")
     p_plan.add_argument("--json", action="store_true", help="Output JSON results")
     add_scope_arguments(p_plan, include_manuscript=False, include_world=True, target_pos_arg=False)
 
@@ -433,10 +500,23 @@ def main():
             print("\n📖 Suggested Story Beats:")
             for b in res["story_beats"]:
                 print(f"  {b}")
+
+        if args.html:
+            out_p = Path(args.html)
+            generate_tactical_sim_html_report(res, out_p)
+            print(f"Interactive warfare plan report written to: {out_p}")
         return
 
-    side1 = DEFAULT_SIDE1
-    side2 = DEFAULT_SIDE2
+    # Skirmish Simulation
+    preset = SKIRMISH_PRESETS.get(args.preset) if args.preset else None
+    if preset:
+        side1 = preset["side1"]
+        side2 = preset["side2"]
+        terrain = args.terrain or preset.get("terrain", "open_field")
+    else:
+        side1 = DEFAULT_SIDE1
+        side2 = DEFAULT_SIDE2
+        terrain = args.terrain or "open_field"
 
     if args.side1 and Path(args.side1).is_file():
         side1 = json.loads(Path(args.side1).read_text(encoding="utf-8"))
@@ -447,33 +527,40 @@ def main():
         mc_results = run_monte_carlo(
             side1,
             side2,
-            terrain=args.terrain,
+            terrain=terrain,
             runs=args.monte_carlo,
             defending_side=args.defending_side,
             seed=args.seed,
         )
+        mc_results["terrain_name"] = TERRAIN_MODIFIERS.get(terrain, {}).get("name", terrain)
         if args.json:
             print(json.dumps(mc_results, indent=2))
         else:
             print(f"=== Monte Carlo Tactical Simulation ({args.monte_carlo} runs) ===")
-            print(f"Terrain:          {TERRAIN_MODIFIERS[args.terrain]['name']}")
+            print(f"Terrain:          {mc_results['terrain_name']}")
             print(f"Side 1 Win Rate:  {mc_results['side1_win_rate']}%")
             print(f"Side 2 Win Rate:  {mc_results['side2_win_rate']}%")
             print(f"Draw / Stalemate: {mc_results['draw_rate']}%")
             print(f"Average Duration: {mc_results['avg_rounds']} rounds")
+
+        if args.html:
+            out_p = Path(args.html)
+            generate_tactical_sim_html_report(mc_results, out_p)
+            print(f"Interactive Monte Carlo report written to: {out_p}")
     else:
         battle = simulate_single_battle(
             side1,
             side2,
-            terrain=args.terrain,
+            terrain=terrain,
             defending_side=args.defending_side,
             seed=args.seed,
         )
+        battle["terrain_name"] = TERRAIN_MODIFIERS.get(terrain, {}).get("name", terrain)
         if args.json:
             print(json.dumps(battle, indent=2))
         else:
             print(f"=== Tactical Skirmish Result: {battle['winner_name']} Victorious ===")
-            print(f"Terrain:       {TERRAIN_MODIFIERS[args.terrain]['name']}")
+            print(f"Terrain:       {battle['terrain_name']}")
             print(f"Rounds Lasted: {battle['rounds_lasted']}")
             print(f"Side 1 Casualties: {battle['team1_casualties']}/{len(side1)}")
             print(f"Side 2 Casualties: {battle['team2_casualties']}/{len(side2)}")
@@ -482,6 +569,11 @@ def main():
             print("\n=== Blow-by-Blow Narrative Combat Log ===")
             for line in battle["log"]:
                 print(line)
+
+        if args.html:
+            out_p = Path(args.html)
+            generate_tactical_sim_html_report(battle, out_p)
+            print(f"Interactive skirmish combat report written to: {out_p}")
 
 
 if __name__ == "__main__":

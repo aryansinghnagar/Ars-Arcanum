@@ -311,8 +311,8 @@ arcanum sim battle --force-a 1200 --force-b 800 --terrain mountain-pass --flank
         storytelling_relevance="Ensures magic creates satisfying problem-solving tension rather than unearned convenience.",
         writing_relevance="Provides visceral somatic magic details: burning blood, glowing glyphs, mana chills, spell exhaustion.",
         subfeatures=[
-            {"name": "Sanderson Three Laws Auditor", "rule": "Checks whether magical solutions in climaxes were properly foreshadowed.", "example": "arcanum magic-check Manuscript/ --sanderson"},
-            {"name": "Arcane Cost & Backlash Ledger", "rule": "Tracks spell energy accounting and somatic caster costs across scenes.", "example": "arcanum magic-report World/ --costs"},
+            {"name": "Sanderson Three Laws Auditor", "rule": "Checks whether magical solutions in climaxes were properly foreshadowed.", "example": "arcanum magic check World/ -m Manuscript/"},
+            {"name": "Arcane Cost & Backlash Ledger", "rule": "Tracks spell energy accounting and somatic caster costs across scenes.", "example": "arcanum magic report World/ -m Manuscript/"},
         ],
         extension_guide="""Define magic axioms in `World/MagicSystems/blood_alchemy.yaml`:
 ```yaml

@@ -358,14 +358,14 @@ def generate_plot_html_report(report: dict, output_path: Path) -> Path:
       <p style="color: var(--muted); margin: 0.5rem 0 0 0;">Across {report.get('total_chapters', 0)} chapters</p>
     </div>
     <div class="card">
-      <h3>Dormant Gaps (≥4 Ch)</h3>
+      <h3>Extended Gaps (≥{report.get('max_gap_threshold', 4)} Ch)</h3>
       <div class="metric" style="color: {'var(--warn)' if report.get('abandoned_tracks') else 'var(--success)'};">{len(report.get('abandoned_tracks', []))}</div>
-      <p style="color: var(--muted); margin: 0.5rem 0 0 0;">Long gaps between appearances</p>
+      <p style="color: var(--muted); margin: 0.5rem 0 0 0;">Long intervals between appearances</p>
     </div>
     <div class="card">
-      <h3>Dangling Threads</h3>
-      <div class="metric" style="color: {'var(--danger)' if report.get('dangling_tracks') else 'var(--success)'};">{len(report.get('dangling_tracks', []))}</div>
-      <p style="color: var(--muted); margin: 0.5rem 0 0 0;">Unresolved early subplots</p>
+      <h3>Early Concluded Threads</h3>
+      <div class="metric" style="color: {'var(--accent)' if report.get('dangling_tracks') else 'var(--muted)'};">{len(report.get('dangling_tracks', []))}</div>
+      <p style="color: var(--muted); margin: 0.5rem 0 0 0;">Subplots concluding before mid-story</p>
     </div>
   </div>
 
@@ -379,9 +379,9 @@ def generate_plot_html_report(report: dict, output_path: Path) -> Path:
   </div>
 
   <div class="section">
-    <h2>📋 Narrative Track Health Ledger</h2>
+    <h2>📋 Narrative Track Lifecycle & Continuity Ledger</h2>
     <table class="table">
-      <thead><tr><th>Track Name</th><th>Appearances</th><th>Range</th><th>Max Gap</th><th>Status</th></tr></thead>
+      <thead><tr><th>Track Name</th><th>Appearances</th><th>Range</th><th>Max Gap</th><th>Activity</th></tr></thead>
       <tbody>
         {''.join(f"<tr><td><strong>{html.escape(t)}</strong></td><td>{meta['occurrences']} ch ({meta['density']*100:.0f}%)</td><td>Ch {meta['first_chapter']} → Ch {meta['last_chapter']}</td><td>{meta['max_gap']} ch</td><td><span class='badge badge-{'ok' if meta['status']=='Healthy' else 'warn'}'>{meta['status']}</span></td></tr>" for t, meta in sorted(tracks.items())) or '<tr><td colspan="5" style="color:var(--muted);">No plot tracks found. Tag scenes with @plot: Name or @thread: Name.</td></tr>'}
       </tbody>

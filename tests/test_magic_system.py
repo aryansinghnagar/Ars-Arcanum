@@ -277,14 +277,21 @@ magic_tier: 1
 @cast: Valen, Nova, tier=5
 """, encoding="utf-8")
 
-        # Check with stdout
+        # Check with stdout (default advisory: exit code 0)
         with patch.object(sys, "argv", ["magic_system.py", "check", str(self.world_dir), "-m", str(self.ms_dir)]):
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 with self.assertRaises(SystemExit) as cm:
                     main()
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(cm.exception.code, 0)
                 self.assertIn("Arcane Constraint Matrix", mock_stdout.getvalue())
                 self.assertIn("MAG-101", mock_stdout.getvalue())
+
+        # Check with --strict flag (fails with exit code 1)
+        with patch.object(sys, "argv", ["magic_system.py", "check", str(self.world_dir), "-m", str(self.ms_dir), "--strict"]):
+            with patch("sys.stdout", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
 
     def test_cli_report_json_and_html(self) -> None:
         (self.world_dir / "Magic-Technology" / "Aether.md").write_text("""---
@@ -309,12 +316,12 @@ magic_tier: 1
 """, encoding="utf-8")
         html_out = Path(self.temp_dir.name) / "report.html"
 
-        # 1. report --json
+        # 1. report --json (default exit 0)
         with patch.object(sys, "argv", ["magic_system.py", "report", str(self.world_dir), "-m", str(self.ms_dir), "--json"]):
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 with self.assertRaises(SystemExit) as cm:
                     main()
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(cm.exception.code, 0)
                 import json
                 res = json.loads(mock_stdout.getvalue())
                 self.assertEqual(res["world"], self.world_dir.name)
@@ -325,7 +332,7 @@ magic_tier: 1
             with patch("sys.stdout", new_callable=io.StringIO):
                 with self.assertRaises(SystemExit) as cm:
                     main()
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(cm.exception.code, 0)
                 self.assertTrue(html_out.is_file())
 
         # 3. check --json
@@ -333,7 +340,7 @@ magic_tier: 1
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 with self.assertRaises(SystemExit) as cm:
                     main()
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(cm.exception.code, 0)
 
     def test_world_and_ms_directory_resolution_and_edge_cases(self) -> None:
         temp_home = Path(self.temp_dir.name) / "home"

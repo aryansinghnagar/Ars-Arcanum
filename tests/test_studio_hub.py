@@ -158,6 +158,17 @@ class TestStudioHubEngine(unittest.TestCase):
         self.assertIn("Kaelen", html)
         self.assertIn("Rune Casting", html)
 
+    def test_interactive_svg_visualizers(self):
+        data = collect_studio_hub_data(self.root)
+        html = generate_studio_hub_html(data, api_mode=False)
+
+        # Check interactive SVG components and renderers
+        self.assertIn("structure-pacing-svg", html)
+        self.assertIn("resonance-topology-svg", html)
+        self.assertIn("renderStructureSvgCurve", html)
+        self.assertIn("renderResonanceMeshSvg", html)
+        self.assertIn("filterResonanceDomain", html)
+
     def test_export_static_studio_hub(self):
         out_file = self.root / "studio_hub.html"
         res = export_static_studio_hub(out_file, self.root)

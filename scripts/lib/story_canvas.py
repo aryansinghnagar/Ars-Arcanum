@@ -85,6 +85,8 @@ def extract_single_card(content: str, file_path: Path | str, idx: int, title: st
     thread = str(meta.get("thread", meta.get("plot", "")))
     tension = float(meta.get("tension", 5.0))
 
+    beat = str(meta.get("beat", meta.get("beats", meta.get("structure", ""))))
+
     # Parse inline @tags if not in frontmatter
     lines = body.splitlines()
     prose_lines = []
@@ -99,6 +101,8 @@ def extract_single_card(content: str, file_path: Path | str, idx: int, title: st
                 location = v
             elif k in ("thread", "plot") and not thread:
                 thread = v
+            elif k == "beat" and not beat:
+                beat = v
             elif k == "tension":
                 try:
                     tension = float(v)
@@ -125,6 +129,7 @@ def extract_single_card(content: str, file_path: Path | str, idx: int, title: st
         "pov": pov or "Omniscient",
         "location": location or "Unspecified",
         "thread": thread or "Main Plot",
+        "author_beat": beat,
         "tension": tension,
         "word_count": words,
         "summary": summary or "No prose summary available.",

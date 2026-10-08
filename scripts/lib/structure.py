@@ -230,8 +230,19 @@ PARADIGMS = {
             {"name": "3. Thematic Turn", "target_pct": 0.75, "window": (0.50, 0.85), "desc": "Lyrical inflection or perspective shift"},
             {"name": "4. Closing Cadence", "target_pct": 0.95, "window": (0.70, 1.00), "desc": "Resonant closing cadence and thematic echo"},
         ]
+    },
+    "framework_free": {
+        "name": "Framework-Free / Pure Timeline Flow",
+        "beats": [
+            {"name": "1. Opening Movement / Q1", "target_pct": 0.25, "window": (0.0, 0.35), "desc": "Initial narrative development and scene grounding"},
+            {"name": "2. Second Movement / Q2", "target_pct": 0.50, "window": (0.25, 0.60), "desc": "Central progression and escalating stakes"},
+            {"name": "3. Third Movement / Q3", "target_pct": 0.75, "window": (0.50, 0.85), "desc": "Deepening conflict and major revelations"},
+            {"name": "4. Closing Movement / Q4", "target_pct": 1.00, "window": (0.75, 1.00), "desc": "Climactic resolution and concluding cadence"},
+        ]
     }
 }
+PARADIGMS["none"] = PARADIGMS["framework_free"]
+PARADIGMS["unconstrained"] = PARADIGMS["framework_free"]
 
 
 def _normalize_beat_name(s: str) -> str:
@@ -335,7 +346,11 @@ def scan_manuscript_structure(
     else:
         raise FileNotFoundError(f"Target path not found: {p_target}")
 
-    paradigm = PARADIGMS.get(paradigm_key, PARADIGMS["three_act"])
+    if not chapters or total_words == 0:
+        raise ValueError(f"No manuscript markdown files or prose words discovered under target: '{p_target}'. Check path or scope.")
+
+    norm_key = paradigm_key.lower().replace("-", "_").strip() if paradigm_key else "three_act"
+    paradigm = PARADIGMS.get(norm_key, PARADIGMS.get(paradigm_key, PARADIGMS["three_act"]))
 
     # Add percentages
     prev_words = 0
@@ -418,8 +433,11 @@ def scan_manuscript_structure(
         })
 
     # Overall Structural Alignment Score
-    mean_penalty = sum(drift_penalties) / len(drift_penalties) if drift_penalties else 0.0
-    harmony_score = max(0.0, min(100.0, round(100.0 - mean_penalty * 2.5, 1)))
+    if norm_key in ("framework_free", "pure_timeline", "freeform"):
+        harmony_score = 100.0
+    else:
+        mean_penalty = sum(drift_penalties) / len(drift_penalties) if drift_penalties else 0.0
+        harmony_score = max(0.0, min(100.0, round(100.0 - mean_penalty * 2.5, 1)))
 
     return {
         "target": str(target_path),
@@ -555,9 +573,10 @@ def analyze_character_arc_geometry(
                     c_txt = get_data_access().read_file(cf)
                     # simple extract
                     c_name = cf.stem.replace("_", " ").title()
-                    flaw = "Hubris & Isolation"
-                    lie = "I must rely solely on my own strength to survive"
-                    truth = "True victory requires vulnerability and trust"
+                    flaw = ""
+                    lie = ""
+                    truth = ""
+                    arc_type = "Author-Defined Arc"
                     m_flaw = re.search(r"flaw:\s*[\"']?([^\"'\n\r]+)", c_txt, re.IGNORECASE)
                     if m_flaw:
                         flaw = m_flaw.group(1).strip()
@@ -567,25 +586,19 @@ def analyze_character_arc_geometry(
                     m_truth = re.search(r"truth:\s*[\"']?([^\"'\n\r]+)", c_txt, re.IGNORECASE)
                     if m_truth:
                         truth = m_truth.group(1).strip()
+                    m_arc = re.search(r"arc_type:\s*[\"']?([^\"'\n\r]+)", c_txt, re.IGNORECASE)
+                    if m_arc:
+                        arc_type = m_arc.group(1).strip()
 
                     character_dossiers[cf.stem.lower()] = {
                         "name": c_name,
                         "flaw": flaw,
                         "lie": lie,
                         "truth": truth,
-                        "arc_type": "Positive Change Arc",
+                        "arc_type": arc_type,
                     }
                 except Exception:
                     pass
-
-    if not character_dossiers:
-        character_dossiers["protagonist"] = {
-            "name": "Protagonist",
-            "flaw": "Unchecked Ambition & Distrust",
-            "lie": "Power is the only guarantee of safety",
-            "truth": "True sovereignty comes through service and sacrifice",
-            "arc_type": "Positive Transformation Arc",
-        }
 
     # Model 3D Arc trajectory stages
     arc_stages = [
@@ -620,7 +633,6 @@ def analyze_character_arc_geometry(
         "characters_tracked": list(character_dossiers.values()),
         "arc_stages": arc_stages,
         "chapter_progression": annotated_chapters,
-        "thematic_resonance_score": 92,
     }
 
 
@@ -675,19 +687,29 @@ def main(argv: list[str] | None = None) -> int:
 
     if getattr(args, "arc", False):
         world_p = Path(args.world) if args.world else None
-        arc_report = analyze_character_arc_geometry(target_path, world_path=world_p, scope=scope)
+        try:
+            arc_report = analyze_character_arc_geometry(target_path, world_path=world_p, scope=scope)
+        except Exception as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return 1
         if args.json:
             print(json.dumps(arc_report, indent=2))
             return 0
         print("\n\033[1;36m=== 3-Dimensional Character Arc Geometry ===\033[0m")
-        print(f"Target: \033[1m{target_path.name}\033[0m | Total Words: {arc_report['total_words']:,} | Chapters: {arc_report['total_chapters']}")
-        print(f"Thematic Resonance Score: \033[1;32m{arc_report['thematic_resonance_score']}%\033[0m\n")
-        print("\033[1mCharacter Lie vs Truth Profiles:\033[0m")
-        for char in arc_report["characters_tracked"]:
-            print(f"  🎭 \033[1;33m{char['name']}\033[0m ({char['arc_type']})")
-            print(f"     Flaw : \033[31m{char['flaw']}\033[0m")
-            print(f"     Lie  : \"{char['lie']}\"")
-            print(f"     Truth: \"\033[32m{char['truth']}\033[0m\"\n")
+        print(f"Target: \033[1m{target_path.name}\033[0m | Total Words: {arc_report['total_words']:,} | Chapters: {arc_report['total_chapters']}\n")
+        if arc_report["characters_tracked"]:
+            print("\033[1mCharacter Lie vs Truth Profiles:\033[0m")
+            for char in arc_report["characters_tracked"]:
+                print(f"  🎭 \033[1;33m{char['name']}\033[0m ({char['arc_type']})")
+                if char.get("flaw"):
+                    print(f"     Flaw : \033[31m{char['flaw']}\033[0m")
+                if char.get("lie"):
+                    print(f"     Lie  : \"{char['lie']}\"")
+                if char.get("truth"):
+                    print(f"     Truth: \"\033[32m{char['truth']}\033[0m\"")
+                print()
+        else:
+            print("\033[1mCharacter Lie vs Truth Profiles:\033[0m (No character dossiers found; skipping arc projection)\n")
 
         print("\033[1mChapter Arc Progression:\033[0m")
         for ch in arc_report["chapter_progression"]:
@@ -716,24 +738,29 @@ def main(argv: list[str] | None = None) -> int:
     if not chosen_paradigm:
         chosen_paradigm = "three_act"
 
-    report = scan_manuscript_structure(
-        target_path,
-        paradigm_key=chosen_paradigm,
-        scope=scope,
-        elastic=getattr(args, "elastic", False),
-    )
+    try:
+        report = scan_manuscript_structure(
+            target_path,
+            paradigm_key=chosen_paradigm,
+            scope=scope,
+            elastic=getattr(args, "elastic", False),
+        )
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
 
     if args.json:
         print(json.dumps(report, indent=2))
         return 0
 
-    print(f"=== Story Paradigm Enforcer & Milestone Observer: {report['paradigm_name']} ===")
+    print(f"=== Story Paradigm Milestone Observer: {report['paradigm_name']} ===")
     print(f"Target: {target_path.name} | Total Words: {report['total_words']:,} | Chapters: {report['total_chapters']}")
-    print(f"Milestone Alignment Score: {report['harmony_score']}%")
     print("-" * 75)
     for b in report["beats"]:
         status = "[IN WINDOW]" if b["is_in_window"] else f"[OFFSET {b['drift_pct']}%]"
-        print(f"  {b['beat_name']:<30} | Target: {int(b['target_pct']*100):>2}% | Ch {b['assigned_chapter']:>2} ({int(b['actual_pct']*100):>2}%) | {status}")
+        w_min = int(b["window_pct"][0] * 100)
+        w_max = int(b["window_pct"][1] * 100)
+        print(f"  {b['beat_name']:<30} | Ref: {int(b['target_pct']*100):>2}% (Win: {w_min:>2}%-{w_max:>2}%) | Ch {b['assigned_chapter']:>2} ({int(b['actual_pct']*100):>2}%) | {status}")
 
     if args.html:
         out_p = Path(args.html)

@@ -25,17 +25,19 @@ Zero external dependencies; 100% offline privacy.
 """
 
 import argparse
-import html
 import json
 import logging
 import sys
 from pathlib import Path
+from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.climate_template import build_climate_html_report
     from lib.scope import add_scope_arguments, parse_scope_args
 except ImportError:
     from _bootstrap import atomic_write
+    from climate_template import build_climate_html_report
     try:
         from scope import add_scope_arguments, parse_scope_args
     except ImportError:
@@ -47,6 +49,86 @@ logger = logging.getLogger("arcanum.climate")
 # Physical constants
 SIGMA = 5.670374419e-8          # Stefan-Boltzmann constant (W m^-2 K^-4)
 SOLAR_CONSTANT_EARTH = 1361.0   # Earth solar flux at 1 AU (W/m^2)
+
+PLANETARY_PRESETS: dict[str, dict[str, Any]] = {
+    "earth": {
+        "name": "Earth Standard",
+        "star_lum": 1.0,
+        "distance_au": 1.0,
+        "albedo": 0.30,
+        "greenhouse": 33.0,
+        "rotation_hours": 24.0,
+        "mountain_elevation": 3000.0,
+        "base_precip": 1000.0,
+        "base_temp": 15.0,
+    },
+    "mars": {
+        "name": "Mars Desert & Permafrost",
+        "star_lum": 1.0,
+        "distance_au": 1.524,
+        "albedo": 0.25,
+        "greenhouse": 5.0,
+        "rotation_hours": 24.6,
+        "mountain_elevation": 8000.0,
+        "base_precip": 50.0,
+        "base_temp": -60.0,
+    },
+    "venus": {
+        "name": "Venusian Runaway Greenhouse",
+        "star_lum": 1.0,
+        "distance_au": 0.723,
+        "albedo": 0.77,
+        "greenhouse": 500.0,
+        "rotation_hours": 5832.0,
+        "mountain_elevation": 5000.0,
+        "base_precip": 0.0,
+        "base_temp": 460.0,
+    },
+    "tidally_locked": {
+        "name": "Tidally Locked Eyeball World",
+        "star_lum": 0.05,
+        "distance_au": 0.15,
+        "albedo": 0.28,
+        "greenhouse": 40.0,
+        "rotation_hours": 720.0,
+        "mountain_elevation": 4000.0,
+        "base_precip": 1200.0,
+        "base_temp": 18.0,
+    },
+    "desert_world": {
+        "name": "Hyper-Arid Dune World (Arrakis)",
+        "star_lum": 1.1,
+        "distance_au": 1.05,
+        "albedo": 0.38,
+        "greenhouse": 25.0,
+        "rotation_hours": 22.0,
+        "mountain_elevation": 4500.0,
+        "base_precip": 80.0,
+        "base_temp": 32.0,
+    },
+    "ocean_world": {
+        "name": "Pelagic Ocean Super-Biome",
+        "star_lum": 0.9,
+        "distance_au": 0.95,
+        "albedo": 0.22,
+        "greenhouse": 38.0,
+        "rotation_hours": 28.0,
+        "mountain_elevation": 1000.0,
+        "base_precip": 2600.0,
+        "base_temp": 24.0,
+    },
+    "super_earth": {
+        "name": "Dense Super-Earth",
+        "star_lum": 1.2,
+        "distance_au": 1.15,
+        "albedo": 0.32,
+        "greenhouse": 48.0,
+        "rotation_hours": 14.0,
+        "mountain_elevation": 6000.0,
+        "base_precip": 1600.0,
+        "base_temp": 22.0,
+    },
+}
 
 
 def calc_planetary_insolation(
@@ -205,125 +287,21 @@ def calc_orographic_rain_shadow(
 
 def generate_climate_html_report(climate_data: dict, output_path: Path):
     """Generates standalone HTML report for Planetary Climate and Biomes."""
-    ins = climate_data.get("insolation", {})
-    circ = climate_data.get("circulation", {})
-    oro = climate_data.get("orography", {})
-
-    wind_rows = []
-    for b in circ.get("wind_bands", []):
-        wind_rows.append(f"""
-        <tr>
-            <td>{b['lat_min']}° - {b['lat_max']}°</td>
-            <td><strong>{html.escape(b['name'])}</strong></td>
-            <td>{html.escape(b['wind_direction'])}</td>
-            <td>{html.escape(b['surface_flow'])}</td>
-        </tr>
-        """)
-
-    html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ars Arcanum — Planetary Climate & Biome Simulator</title>
-<style>
-  :root {{
-    --bg: #0f172a;
-    --card-bg: #1e293b;
-    --border: #334155;
-    --text: #f8fafc;
-    --accent: #38bdf8;
-    --warning: #fbbf24;
-    --success: #34d399;
-  }}
-  body {{
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
-    margin: 0;
-    padding: 2rem;
-  }}
-  .container {{ max-width: 1100px; margin: 0 auto; }}
-  h1, h2, h3 {{ color: var(--accent); }}
-  .card {{
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-  }}
-  table {{ width: 100%; border-collapse: collapse; margin-top: 1rem; }}
-  th, td {{ padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }}
-  th {{ background: #0f172a; color: var(--accent); }}
-  .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }}
-</style>
-</head>
-<body>
-<div class="container">
-  <h1>🌍 Ars Arcanum Planetary Climate & Biome Simulator</h1>
-
-  <div class="grid">
-    <div class="card">
-      <h2>Stellar Insolation & Surface Temp</h2>
-      <p>Stellar Flux: <strong>{ins.get('stellar_flux_w_m2')} W/m²</strong></p>
-      <p>Equilibrium Temp: <strong>{ins.get('equilibrium_temp_k')} K</strong></p>
-      <p>Mean Surface Temp: <strong>{ins.get('surface_temp_c')} °C ({ins.get('surface_temp_f')} °F)</strong></p>
-      <p>Liquid Water Habitable: <strong>{'✓ Yes' if ins.get('liquid_water_habitable') else '✗ No'}</strong></p>
-    </div>
-
-    <div class="card">
-      <h2>Atmospheric Circulation</h2>
-      <p>Rotation Period: <strong>{circ.get('rotation_period_hours')} hours</strong></p>
-      <p>Circulation Cells: <strong>{circ.get('circulation_cells_per_hemisphere')} per hemisphere</strong></p>
-      <p>Coriolis Intensity: <strong>{circ.get('coriolis_effect')}</strong></p>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Orographic Rain Shadow Dynamics ({oro.get('mountain_elevation_m')}m Ridge)</h2>
-    <div class="grid">
-      <div style="border-right: 1px solid var(--border); padding-right: 1rem;">
-        <h3 style="color: #34d399;">Windward Slope (Wet)</h3>
-        <p>Precipitation: <strong>{oro.get('windward', {}).get('precipitation_mm')} mm/yr</strong></p>
-        <p>Biome: <strong>{oro.get('windward', {}).get('biome')}</strong></p>
-      </div>
-      <div>
-        <h3 style="color: #fbbf24;">Leeward Slope (Rain Shadow)</h3>
-        <p>Precipitation: <strong>{oro.get('leeward', {}).get('precipitation_mm')} mm/yr</strong></p>
-        <p>Biome: <strong>{oro.get('leeward', {}).get('biome')}</strong></p>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Prevailing Wind Bands</h2>
-    <table>
-      <thead>
-        <tr><th>Latitude</th><th>Circulation Cell</th><th>Prevailing Wind Direction</th><th>Surface Flow</th></tr>
-      </thead>
-      <tbody>
-        {"".join(wind_rows)}
-      </tbody>
-    </table>
-  </div>
-</div>
-</body>
-</html>
-"""
+    html_content = build_climate_html_report(climate_data)
     atomic_write(output_path, html_content)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Ars Arcanum Planetary Climate & Orographic Simulator")
-    parser.add_argument("--star-lum", type=float, default=1.0, help="Stellar luminosity in L_sun (default 1.0)")
-    parser.add_argument("--distance-au", type=float, default=1.0, help="Orbital semi-major axis in AU (default 1.0)")
-    parser.add_argument("--albedo", type=float, default=0.30, help="Bond albedo (default 0.30)")
-    parser.add_argument("--greenhouse", type=float, default=33.0, help="Greenhouse warming in K (default 33.0)")
-    parser.add_argument("--rotation-hours", type=float, default=24.0, help="Planetary rotation period in hours (default 24.0)")
-    parser.add_argument("--mountain-elevation", type=float, default=3000.0, help="Mountain ridge elevation in meters (default 3000)")
-    parser.add_argument("--base-precip", type=float, default=1000.0, help="Base precipitation in mm/year (default 1000)")
-    parser.add_argument("--base-temp", type=float, default=20.0, help="Base surface temperature in °C (default 20)")
+    parser.add_argument("--preset", choices=list(PLANETARY_PRESETS.keys()), help="Load celestial planetary preset (e.g. earth, mars, venus, desert_world)")
+    parser.add_argument("--star-lum", type=float, default=None, help="Stellar luminosity in L_sun (default 1.0)")
+    parser.add_argument("--distance-au", type=float, default=None, help="Orbital semi-major axis in AU (default 1.0)")
+    parser.add_argument("--albedo", type=float, default=None, help="Bond albedo (default 0.30)")
+    parser.add_argument("--greenhouse", type=float, default=None, help="Greenhouse warming in K (default 33.0)")
+    parser.add_argument("--rotation-hours", type=float, default=None, help="Planetary rotation period in hours (default 24.0)")
+    parser.add_argument("--mountain-elevation", type=float, default=None, help="Mountain ridge elevation in meters (default 3000)")
+    parser.add_argument("--base-precip", type=float, default=None, help="Base precipitation in mm/year (default 1000)")
+    parser.add_argument("--base-temp", type=float, default=None, help="Base surface temperature in °C (default 20)")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     parser.add_argument("--html", help="Path to export standalone HTML report")
     try:
@@ -338,20 +316,33 @@ def main():
     except NameError:
         pass
 
+    # Apply preset defaults if specified
+    preset_data = PLANETARY_PRESETS.get(args.preset, {}) if args.preset else {}
+
+    star_lum = float(args.star_lum) if args.star_lum is not None else float(preset_data.get("star_lum", 1.0))
+    distance_au = float(args.distance_au) if args.distance_au is not None else float(preset_data.get("distance_au", 1.0))
+    albedo = float(args.albedo) if args.albedo is not None else float(preset_data.get("albedo", 0.30))
+    greenhouse = float(args.greenhouse) if args.greenhouse is not None else float(preset_data.get("greenhouse", 33.0))
+    rotation_hours = float(args.rotation_hours) if args.rotation_hours is not None else float(preset_data.get("rotation_hours", 24.0))
+    mountain_elevation = float(args.mountain_elevation) if args.mountain_elevation is not None else float(preset_data.get("mountain_elevation", 3000.0))
+    base_precip = float(args.base_precip) if args.base_precip is not None else float(preset_data.get("base_precip", 1000.0))
+    base_temp = float(args.base_temp) if args.base_temp is not None else float(preset_data.get("base_temp", 20.0))
+
     ins = calc_planetary_insolation(
-        stellar_luminosity=args.star_lum,
-        semi_major_axis_au=args.distance_au,
-        bond_albedo=args.albedo,
-        greenhouse_warming_k=args.greenhouse,
+        stellar_luminosity=star_lum,
+        semi_major_axis_au=distance_au,
+        bond_albedo=albedo,
+        greenhouse_warming_k=greenhouse,
     )
-    circ = calc_atmospheric_circulation(rotation_period_hours=args.rotation_hours)
+    circ = calc_atmospheric_circulation(rotation_period_hours=rotation_hours)
     oro = calc_orographic_rain_shadow(
-        mountain_elevation_m=args.mountain_elevation,
-        base_precip_mm=args.base_precip,
-        base_temp_c=args.base_temp,
+        mountain_elevation_m=mountain_elevation,
+        base_precip_mm=base_precip,
+        base_temp_c=base_temp,
     )
 
     result = {
+        "preset": preset_data.get("name", args.preset) if args.preset else None,
         "insolation": ins,
         "circulation": circ,
         "orography": oro,
@@ -360,8 +351,9 @@ def main():
     if args.json:
         print(json.dumps(result, indent=2))
     else:
-        print("\n\033[1;36m=== Ars Arcanum Planetary Climate & Biome Model ===\033[0m")
-        print(f"Stellar Insolation : \033[1m{ins['stellar_flux_w_m2']} W/m²\033[0m ({args.star_lum} L_sun @ {args.distance_au} AU)")
+        preset_tag = f" [{preset_data.get('name')}]" if args.preset else ""
+        print(f"\n\033[1;36m=== Ars Arcanum Planetary Climate & Biome Model{preset_tag} ===\033[0m")
+        print(f"Stellar Insolation : \033[1m{ins['stellar_flux_w_m2']} W/m²\033[0m ({star_lum} L_sun @ {distance_au} AU)")
         print(f"Mean Surface Temp  : \033[1;32m{ins['surface_temp_c']} °C\033[0m ({ins['surface_temp_f']} °F) — Habitable: {ins['liquid_water_habitable']}")
         print(f"Atmosphere         : {circ['circulation_cells_per_hemisphere']} circulation cells per hemisphere ({circ['coriolis_effect']} Coriolis)")
         print(f"\n\033[1;33mOrographic Rain Shadow ({oro['mountain_elevation_m']}m Mountain Ridge):\033[0m")

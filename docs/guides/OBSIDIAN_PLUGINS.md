@@ -147,8 +147,8 @@ To guarantee air-gapped security and defense against supply-chain tampering, all
 ### 6.1 Knowledge Management & Worldbuilding Treatises
 - **Ahrens, Sönke (2017)**. *How to Take Smart Notes: One Simple Technique to Boost Writing, Learning and Thinking*. CreateSpace. ISBN: 978-1542866507.  
   *The foundational guide to atomic note-taking, non-linear knowledge graphs, and Zettelkasten systems.*
-- **Sanderson, Brandon (2020)**. *Managing Lore and Magic Systems in Long-Term Bibles*. Dragonsteel.  
-  *How Brandon coordinates character dossiers and magic rules across decades of writing.*
+- **Sanderson, Brandon (2020)**. *BYU Creative Writing Lectures: Worldbuilding & Setting*. Brigham Young University / YouTube.  
+  *How worldbuilders coordinate character dossiers and magic rules across long-term projects.*
 
 ### 6.2 Video Lectures, Masterclasses & Plugin Tutorials
 - **Nicole van der Hoeven**: *Obsidian for Writers: The Complete Novel and Worldbuilding Guide*.  

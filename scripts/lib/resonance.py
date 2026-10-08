@@ -361,22 +361,25 @@ class ResonanceMesh:
             )
             selected_sparks.append(spark)
 
-        # Dynamic combinatorial generation if more requested
-        while len(selected_sparks) < count:
-            idx = len(selected_sparks) + 1
-            spark = CreativeSpark(
-                id=f"spark_dynamic_{idx}",
-                title=f"Cross-Domain Resonance #{idx}: Ecological Dynamics & Narrative Tension",
-                domains=["ecology", "factions", "scene_mechanics"],
-                pillars=["cosmology_physics", "society_systems", "narrative_chronology"],
-                core_analogy="Predator-prey Lotka-Volterra cycles mirror the oscillating power balance between underground rebel cells and imperial enforcers.",
-                narrative_premise="Rebel activity expands rapidly during harvest prosperity, attracting overwhelming military counter-measures that decimate both sides into seasonal truce.",
-                worldbuilding_hook="The imperial guild actively maintains small controlled rebellions to justify perpetual military taxes on provincial merchants.",
-                scene_conflict="A rebel squad leader realizes their successful ambush was orchestrated by the imperial spymaster to trigger emergency troop deployments.",
-                sensory_palette=["acrid blackpowder smoke", "cold iron chains clinking against wet cobblestones", "rhythmic marching of armored phalanges"],
-                symbolic_mirror="A trapped hawk turning on its falconer reflecting the protagonist turning on their corrupt mentor.",
-            )
-            selected_sparks.append(spark)
+        # Combinatorial generation if more requested
+        if len(selected_sparks) < count and candidates:
+            for idx in range(len(selected_sparks), count):
+                iso_a = candidates[idx % len(candidates)]
+                iso_b = candidates[(idx * 3 + 1) % len(candidates)]
+                combined_domains = list(dict.fromkeys(iso_a["domains"] + iso_b["domains"]))[:3]
+                spark = CreativeSpark(
+                    id=f"spark_dynamic_{idx+1}",
+                    title=f"Cross-Domain Synthesis: {iso_a['title'].split(':')[0]} × {iso_b['title'].split(':')[0]}",
+                    domains=combined_domains,
+                    pillars=[self.nodes[d].pillar.value if d in self.nodes else "general" for d in combined_domains],
+                    core_analogy=f"{iso_a['analogy']} Cross-pollinated with: {iso_b['analogy']}",
+                    narrative_premise=iso_a.get("worldbuilding_hook", iso_b.get("narrative_premise", "")),
+                    worldbuilding_hook=iso_b.get("worldbuilding_hook", iso_a.get("worldbuilding_hook", "")),
+                    scene_conflict=f"Dialectic between {iso_a['domains'][0]} and {iso_b['domains'][0]}: {iso_a.get('scene_conflict', '')}",
+                    sensory_palette=list(dict.fromkeys(iso_a.get("sensory_palette", []) + iso_b.get("sensory_palette", [])))[:4],
+                    symbolic_mirror=iso_b.get("symbolic_mirror", iso_a.get("symbolic_mirror", "")),
+                )
+                selected_sparks.append(spark)
 
         return selected_sparks
 
@@ -411,9 +414,11 @@ class ResonanceMesh:
                     visited.add(nbr)
                     queue.append([*current_path, nbr])
 
+        is_speculative = False
         if not path_found:
             # Fallback direct synthetic bridge
             path_found = [d_a, "scene_mechanics", d_b]
+            is_speculative = True
 
         steps: list[dict[str, Any]] = []
         for i in range(len(path_found) - 1):
@@ -422,13 +427,20 @@ class ResonanceMesh:
             s_node = self.nodes.get(s_id)
             t_node = self.nodes.get(t_id)
 
+            mechanism_str = (
+                f"[SPECULATION] Analogy bridge: {s_id} -> {t_id}"
+                if is_speculative
+                else f"Structural coupling through {s_id} -> {t_id}"
+            )
+
             steps.append({
                 "step": i + 1,
                 "from_domain": s_node.label if s_node else s_id,
                 "to_domain": t_node.label if t_node else t_id,
                 "from_pillar": s_node.pillar.value if s_node else "unknown",
                 "to_pillar": t_node.pillar.value if t_node else "unknown",
-                "mechanism": f"Structural coupling through {s_id} -> {t_id}",
+                "mechanism": mechanism_str,
+                "provenance": "speculative_analogy" if is_speculative else "model_derived",
             })
 
         return steps

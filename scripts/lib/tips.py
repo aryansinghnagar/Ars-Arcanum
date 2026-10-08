@@ -302,6 +302,7 @@ class TipDatabase:
         subfeature: str | None = None,
         context: str | None = None,
         query: str | None = None,
+        tradition: str | None = None,
         exclude_seen: bool = True,
     ) -> Tip | None:
         """Intelligently retrieves the best-matching, non-obvious tip for current user context."""
@@ -322,6 +323,18 @@ class TipDatabase:
         # 4. Universal fallback
         if not candidates:
             candidates = list(self._tips)
+
+        # Filter by tradition if requested
+        if tradition and tradition.lower().strip() not in ("all", "unconstrained", "*"):
+            trad = tradition.lower().strip()
+            trad_filtered = [
+                t for t in candidates
+                if trad in [tag.lower() for tag in t.tags]
+                or trad in t.title.lower()
+                or trad in t.content.lower()
+            ]
+            if trad_filtered:
+                candidates = trad_filtered
 
         # Filter out seen if requested and we have un-seen remaining
         if exclude_seen and len(candidates) > 1:
@@ -591,6 +604,7 @@ def main(argv: list[str] | None = None) -> int:
         feature=args.feature,
         context=args.context,
         query=query_text,
+        tradition=getattr(args, "tradition", None),
     )
 
     if not tip:

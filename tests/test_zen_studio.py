@@ -377,5 +377,35 @@ A cold mist rolled across the valley floor.
                 self.assertEqual(cm.exception.code, 1)
 
 
+    # ------------------------------------------------------------------ #
+    # 16. In-Situ Scene Tension & Narrative Arc Timeline Ribbon          #
+    # ------------------------------------------------------------------ #
+    def test_zen_studio_tension_timeline_ribbon(self):
+        """Bundle must include Tension Ribbon, SVG arc geometries, model selector and shortcuts."""
+        out_html = self.root / "zen_tension.html"
+        build_zen_studio_bundle(self.ms_dir, world_path=self.world_dir, output_path=out_html)
+        content = out_html.read_text(encoding="utf-8")
+
+        # HTML elements
+        self.assertIn('id="btnTension"', content)
+        self.assertIn('id="tensionRibbon"', content)
+        self.assertIn('id="tensionSvg"', content)
+        self.assertIn('id="tensionArcMode"', content)
+        self.assertIn('id="tensionLegend"', content)
+        self.assertIn('id="tensionChapLabel"', content)
+
+        # JS functions and models
+        self.assertIn("toggleTensionRibbon", content)
+        self.assertIn("renderTensionRibbon", content)
+        self.assertIn("hero_journey", content)
+        self.assertIn("fichtean", content)
+        self.assertIn("kishotenketsu", content)
+        self.assertIn("three_act", content)
+
+        # Keyboard shortcut
+        self.assertIn('event.key.toLowerCase() === "t"', content)
+
+
 if __name__ == "__main__":
     unittest.main()
+

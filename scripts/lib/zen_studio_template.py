@@ -273,7 +273,16 @@ def render_zen_studio_html(
       <option value="dyslexic">Dyslexia-Friendly</option>
       <option value="mono">Monospace Focus</option>
     </select>
+    <select id="phaseSelect" onchange="switchWorkspacePhase(this.value)" title="Workspace Phase Focus" aria-label="Workspace Phase">
+      <option value="drafting">⚡ Drafting (Focus)</option>
+      <option value="discovery">🧭 Discovery & Beats</option>
+      <option value="worldbuilding">🏛️ World & Lore</option>
+      <option value="production">📦 Production & Polish</option>
+    </select>
+    <button class="btn-accent" onclick="resumeDailyFlow()" title="Resume Flow (Restore Cursor & Next-Time Bridge)" aria-label="Resume Daily Flow">⚡ Resume Flow</button>
+    <button onclick="openFastIdeaModal()" title="Fast Idea Scraps Capture (Ctrl+J)" aria-label="Fast Idea Scraps Capture">💡 Scraps (Ctrl+J)</button>
     <button id="btnSound" onclick="toggleTypewriterSound()" title="Typewriter Mechanical Soundscape" aria-label="Toggle Typewriter Sound">🔇 Sound: OFF</button>
+    <button id="btnTension" onclick="toggleTensionRibbon()" title="Toggle In-Situ Scene Tension & Narrative Arc Timeline (Ctrl+T)" aria-label="Toggle Tension Timeline">📈 Tension</button>
     <button id="btnSidebar" onclick="toggleSidebar()" title="Toggle Chapters Sidebar (Ctrl+B)" aria-label="Toggle Chapters Sidebar">📁 Files</button>
     <button id="btnMeta" onclick="toggleMetaPanel()" title="Toggle Document Metadata Inspector (Ctrl+M)" aria-label="Toggle Document Metadata Inspector">📋 Metadata</button>
     <button id="btnOutline" onclick="toggleOutlinePanel()" title="Toggle Multi-Tier Outline Drawer (Ctrl+O)" aria-label="Toggle Multi-Tier Outline Drawer">🗺️ Outline</button>
@@ -381,6 +390,11 @@ def render_zen_studio_html(
         <input type="text" id="metaTags" placeholder="climax, magic-duel, politics..." oninput="handleMetadataInput('tags', this.value)">
       </div>
 
+      <div class="meta-field" style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.25);border-radius:6px;padding:0.5rem;margin-top:0.25rem;">
+        <label for="nextTimeBridge" style="color:var(--gold);font-weight:700;">🌉 Next-Time Bridge (Where to start next session)</label>
+        <textarea id="nextTimeBridge" rows="2" placeholder="Next action: e.g. Elenor opens the silver chest and finds the broken cipher..." oninput="handleNextTimeBridgeChange(this.value)"></textarea>
+      </div>
+
       <div style="display:flex;gap:0.5rem;margin-top:0.25rem;">
         <button onclick="refreshMetadataFromEditor()" style="flex:1;font-size:0.75rem;" aria-label="Refresh metadata from markdown editor">🔄 Refresh from Doc</button>
         <button onclick="formatDocumentFrontmatter()" style="flex:1;font-size:0.75rem;" aria-label="Clean and format document frontmatter">🧹 Clean Header</button>
@@ -391,8 +405,39 @@ def render_zen_studio_html(
   <!-- Center Drafting Canvas Area -->
   <div class="editor-area">
     <div class="editor-container">
+      <!-- In-Situ Scene Tension & Narrative Arc Timeline Ribbon -->
+      <div id="tensionRibbon" style="display:none;margin-bottom:1.25rem;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;position:relative;flex-shrink:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+          <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;font-weight:600;color:var(--accent);">
+            <span>📈 Scene Tension & Narrative Arc Timeline</span>
+            <span id="tensionChapLabel" style="color:var(--gold);font-size:0.75rem;font-weight:400;"></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <select id="tensionArcMode" onchange="renderTensionRibbon()" style="font-size:0.75rem;padding:2px 6px;">
+              <option value="three_act">Three-Act Classic Arc</option>
+              <option value="hero_journey">Hero's Journey (Campbell)</option>
+              <option value="fichtean">Fichtean Escalation Waves</option>
+              <option value="kishotenketsu">Kishōtenketsu (4-Movement)</option>
+            </select>
+            <button class="btn-tool-action" onclick="toggleTensionRibbon()" aria-label="Close Tension Ribbon">✕</button>
+          </div>
+        </div>
+        <div style="width:100%;height:100px;position:relative;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px;">
+          <svg id="tensionSvg" width="100%" height="100%" viewBox="0 0 700 90" preserveAspectRatio="none" style="overflow:visible;"></svg>
+        </div>
+        <div id="tensionLegend" style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:4px;">
+          <span>0% Hook</span>
+          <span>25% PP1</span>
+          <span>50% Midpoint</span>
+          <span>75% Dark Night</span>
+          <span>90% Climax</span>
+          <span>100% Res</span>
+        </div>
+      </div>
+
       <textarea class="zen-editor" id="editor" placeholder="Write your prose here..." oninput="handleEditorInput()" onkeydown="handleKeyDown(event)" aria-label="Manuscript Prose Drafting Editor"></textarea>
     </div>
+
     <div class="preview-pane" id="previewPane" role="region" aria-label="Live Markdown & Scene Tag Preview">
       <div style="font-weight:600;color:var(--accent);margin-bottom:0.75rem;border-bottom:1px solid var(--border);padding-bottom:0.4rem;display:flex;justify-content:space-between;">
         <span>🔍 Live Markdown & Scene Tag Inspector</span>
@@ -512,6 +557,26 @@ def render_zen_studio_html(
   </div>
 </div>
 
+<!-- Fast Idea Scraps Modal (Ctrl+J) -->
+<div class="craft-modal" id="fastIdeaModal" role="dialog" aria-modal="true" aria-labelledby="fastIdeaTitle" onclick="if(event.target===this)closeFastIdeaModal()">
+  <div class="craft-modal-content" style="max-width:550px;height:auto;max-height:60vh;" role="document">
+    <div class="craft-modal-header">
+      <div>
+        <span id="fastIdeaTitle" style="font-weight:700;font-size:1.1rem;color:var(--gold);">💡 Fast Idea Scraps Capture (Ctrl+J)</span>
+        <div style="font-size:0.8rem;color:var(--muted);margin-top:2px;">Instantly capture thoughts, dialogue sparks, or sudden lore ideas</div>
+      </div>
+      <button onclick="closeFastIdeaModal()" style="font-size:1.2rem;line-height:1;background:transparent;border:none;color:var(--muted);cursor:pointer;" aria-label="Close Idea Capture">✕</button>
+    </div>
+    <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1rem;">
+      <textarea id="fastIdeaInput" rows="4" style="width:100%;padding:0.75rem;font-size:0.95rem;line-height:1.5;resize:vertical;" placeholder="Write raw thought, dialogue fragment, or premise..."></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:0.5rem;">
+        <button onclick="closeFastIdeaModal()" style="padding:0.4rem 0.8rem;">Cancel</button>
+        <button class="btn-accent" onclick="saveFastIdea()" style="padding:0.4rem 1rem;">💾 Save to Scraps</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   function escapeHtml(str) {{
     if (!str) return "";
@@ -538,6 +603,8 @@ def render_zen_studio_html(
   let soundEnabled = false;
   let previewEnabled = false;
   let isFrontmatterSyncing = false;
+  let tensionRibbonOpen = false;
+
 
   const CRAFT_RULES = [
     {{
@@ -711,6 +778,114 @@ def render_zen_studio_html(
     saveUIState();
   }}
 
+  function toggleTensionRibbon() {{
+    tensionRibbonOpen = !tensionRibbonOpen;
+    const ribbon = document.getElementById("tensionRibbon");
+    const btn = document.getElementById("btnTension");
+    if (ribbon) ribbon.style.display = tensionRibbonOpen ? "block" : "none";
+    if (btn) btn.classList.toggle("active", tensionRibbonOpen);
+    if (tensionRibbonOpen) renderTensionRibbon();
+    saveUIState();
+  }}
+
+  function renderTensionRibbon() {{
+    const svg = document.getElementById("tensionSvg");
+    if (!svg) return;
+    const mode = (document.getElementById("tensionArcMode")?.value) || "three_act";
+    const total = chapters.length || 1;
+    const activeIdx = currentChapIdx;
+    const activePct = total > 1 ? (activeIdx / (total - 1)) : 0.5;
+
+    const label = document.getElementById("tensionChapLabel");
+    if (label) {{
+      const activeChap = chapters[activeIdx];
+      const pov = activeChap?.metadata?.pov ? ` • POV: ${{escapeHtml(activeChap.metadata.pov)}}` : "";
+      label.textContent = `Ch. ${{activeIdx + 1}} of ${{total}} (${{Math.round(activePct * 100)}}% Narrative Arc)${{pov}}`;
+    }}
+
+    const legend = document.getElementById("tensionLegend");
+    let pathD = "";
+    let areaD = "";
+
+    if (mode === "hero_journey") {{
+      if (legend) legend.innerHTML = "<span>Departure (0-20%)</span><span>Initiation Trials (30-65%)</span><span>Supreme Ordeal (80%)</span><span>Return (95-100%)</span>";
+      pathD = "M 20 75 C 90 75, 140 60, 180 58 C 240 55, 290 42, 350 48 C 420 52, 480 32, 540 28 C 580 16, 610 20, 630 35 C 650 55, 670 72, 680 75";
+      areaD = pathD + " L 680 85 L 20 85 Z";
+    }} else if (mode === "fichtean") {{
+      if (legend) legend.innerHTML = "<span>Hook</span><span>Crisis 1 (25%)</span><span>Crisis 2 (50%)</span><span>Crisis 3 (75%)</span><span>Climax (92%)</span><span>Res</span>";
+      pathD = "M 20 75 Q 80 50, 160 55 Q 240 62, 320 42 Q 400 52, 480 30 Q 560 40, 630 14 Q 660 45, 680 80";
+      areaD = pathD + " L 680 85 L 20 85 Z";
+    }} else if (mode === "kishotenketsu") {{
+      if (legend) legend.innerHTML = "<span>起 Ki (Intro 0-25%)</span><span>承 Shō (Develop 25-50%)</span><span>転 Ten (Twist 50-75%)</span><span>結 Ketsu (Synthesis 75-100%)</span>";
+      pathD = "M 20 75 L 180 72 L 350 58 L 380 20 L 525 24 L 680 65";
+      areaD = pathD + " L 680 85 L 20 85 Z";
+    }} else {{
+      if (legend) legend.innerHTML = "<span>0% Hook</span><span>25% PP1</span><span>50% Midpoint</span><span>75% Dark Night</span><span>90% Climax</span><span>100% Res</span>";
+      pathD = "M 20 75 C 90 75, 140 60, 180 58 C 240 55, 300 45, 350 48 C 420 52, 480 38, 525 52 C 570 30, 600 16, 620 18 C 650 45, 670 70, 680 78";
+      areaD = pathD + " L 680 85 L 20 85 Z";
+    }}
+
+    let svgHtml = `
+      <defs>
+        <linearGradient id="zenArcGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.3" />
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.0" />
+        </linearGradient>
+      </defs>
+      <line x1="20" y1="85" x2="680" y2="85" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+      <line x1="20" y1="50" x2="680" y2="50" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+      <line x1="20" y1="20" x2="680" y2="20" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+
+      <path d="${{areaD}}" fill="url(#zenArcGrad)" />
+      <path d="${{pathD}}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" />
+    `;
+
+    if (mode === "three_act") {{
+      svgHtml += `
+        <line x1="180" y1="15" x2="180" y2="85" stroke="var(--gold)" stroke-width="1" stroke-opacity="0.4" stroke-dasharray="2,2" />
+        <line x1="350" y1="15" x2="350" y2="85" stroke="var(--accent)" stroke-width="1" stroke-opacity="0.4" stroke-dasharray="2,2" />
+        <line x1="525" y1="15" x2="525" y2="85" stroke="var(--rose)" stroke-width="1" stroke-opacity="0.4" stroke-dasharray="2,2" />
+        <line x1="620" y1="15" x2="620" y2="85" stroke="var(--emerald)" stroke-width="1" stroke-opacity="0.4" stroke-dasharray="2,2" />
+      `;
+    }}
+
+    chapters.forEach((c, idx) => {{
+      const frac = total > 1 ? (idx / (total - 1)) : 0.5;
+      const cx = 20 + frac * 660;
+      let cy = 55;
+      if (mode === "kishotenketsu") {{
+        cy = frac < 0.25 ? 73 : (frac < 0.5 ? 65 : (frac < 0.75 ? 22 : 60));
+      }} else if (mode === "fichtean") {{
+        cy = 50 - Math.sin(frac * Math.PI * 3.5) * 22 - frac * 12;
+      }} else {{
+        cy = 75 - Math.sin(frac * Math.PI) * 45 - (frac > 0.8 ? 15 : 0);
+      }}
+      cy = Math.max(16, Math.min(80, cy));
+
+      const isCurrent = idx === activeIdx;
+      const dotColor = isCurrent ? "var(--gold)" : "var(--accent)";
+      const dotRadius = isCurrent ? 6 : 3.5;
+
+      if (isCurrent) {{
+        svgHtml += `
+          <line x1="${{cx}}" y1="10" x2="${{cx}}" y2="85" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2,2" />
+          <circle cx="${{cx}}" cy="${{cy}}" r="11" fill="none" stroke="var(--gold)" stroke-width="1.5" opacity="0.6">
+            <animate attributeName="r" values="8;14;8" dur="2s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite" />
+          </circle>
+        `;
+      }}
+
+      svgHtml += `
+        <circle cx="${{cx}}" cy="${{cy}}" r="${{dotRadius}}" fill="${{dotColor}}" stroke="var(--bg)" stroke-width="1.5" style="cursor:pointer;" onclick="loadChapter(${{idx}})">
+          <title>${{escapeHtml(c.title)}} (Words: ${{c.word_count || 0}}${{c.metadata?.pov ? ', POV: ' + escapeHtml(c.metadata.pov) : ''}})</title>
+        </circle>
+      `;
+    }});
+
+    svg.innerHTML = svgHtml;
+  }}
+
   function togglePanelExpand(panelId) {{
     const panel = document.getElementById(panelId);
     if (!panel) return;
@@ -751,6 +926,7 @@ def render_zen_studio_html(
       outlineCollapsed: document.getElementById("outlinePanel").classList.contains("collapsed"),
       loreOpen: document.getElementById("loreDrawer").classList.contains("open"),
       previewOpen: previewEnabled,
+      tensionOpen: tensionRibbonOpen,
       activeOutlineTab: activeOutlineTab,
     }};
     localStorage.setItem("arcanum_zen_ui_state", JSON.stringify(state));
@@ -797,6 +973,7 @@ def render_zen_studio_html(
         if (btn) btn.classList.add("active");
       }}
       if (state.previewOpen) toggleSplitPreview();
+      if (state.tensionOpen) toggleTensionRibbon();
       if (state.activeOutlineTab) switchOutlineTab(state.activeOutlineTab);
     }} catch (e) {{}}
   }}
@@ -829,7 +1006,9 @@ def render_zen_studio_html(
     renderChapList();
     updateTelemetry();
     if (previewEnabled) renderSplitPreview();
+    if (tensionRibbonOpen) renderTensionRibbon();
   }}
+
 
   /* ---------------- Document Metadata Real-Time Two-Way Sync ---------------- */
   function populateMetadataPanel(chap) {{
@@ -1328,6 +1507,9 @@ def render_zen_studio_html(
     }} else if (isCtrl && event.key.toLowerCase() === "p") {{
       event.preventDefault();
       toggleSplitPreview();
+    }} else if (isCtrl && event.key.toLowerCase() === "t") {{
+      event.preventDefault();
+      toggleTensionRibbon();
     }}
   }}
 
@@ -1513,6 +1695,74 @@ def render_zen_studio_html(
     }}
   }}
 
+  function switchWorkspacePhase(phase) {{
+    localStorage.setItem("arcanum_workspace_phase", phase);
+    if (phase === "drafting") {{
+      closePanel("sidebar");
+      closePanel("metaPanel");
+      closePanel("outlinePanel");
+      closePanel("loreDrawer");
+    }} else if (phase === "discovery") {{
+      openPanel("outlinePanel");
+      closePanel("loreDrawer");
+    }} else if (phase === "worldbuilding") {{
+      openPanel("loreDrawer");
+      openPanel("metaPanel");
+    }} else if (phase === "production") {{
+      openPanel("sidebar");
+      openPanel("metaPanel");
+    }}
+  }}
+
+  function handleNextTimeBridgeChange(val) {{
+    localStorage.setItem("arcanum_next_time_bridge", val);
+  }}
+
+  function resumeDailyFlow() {{
+    const savedBridge = localStorage.getItem("arcanum_next_time_bridge") || "";
+    const bridgeEl = document.getElementById("nextTimeBridge");
+    if (bridgeEl && savedBridge) {{
+      bridgeEl.value = savedBridge;
+    }}
+    const editor = document.getElementById("editor");
+    if (editor) {{
+      editor.focus();
+      const savedPos = parseInt(localStorage.getItem("arcanum_last_cursor_pos") || "0");
+      if (savedPos && savedPos < editor.value.length) {{
+        editor.selectionStart = savedPos;
+        editor.selectionEnd = savedPos;
+      }}
+    }}
+    if (savedBridge) {{
+      alert("🌉 Next-Time Bridge:\\n" + savedBridge);
+    }}
+  }}
+
+  function openFastIdeaModal() {{
+    const modal = document.getElementById("fastIdeaModal");
+    if (modal) {{
+      modal.style.display = "flex";
+      const inp = document.getElementById("fastIdeaInput");
+      if (inp) setTimeout(() => inp.focus(), 50);
+    }}
+  }}
+
+  function closeFastIdeaModal() {{
+    const modal = document.getElementById("fastIdeaModal");
+    if (modal) modal.style.display = "none";
+  }}
+
+  function saveFastIdea() {{
+    const inp = document.getElementById("fastIdeaInput");
+    const text = (inp ? inp.value : "").trim();
+    if (!text) return;
+    const existing = JSON.parse(localStorage.getItem("arcanum_idea_scraps") || "[]");
+    existing.push({{ text: text, timestamp: new Date().toISOString() }});
+    localStorage.setItem("arcanum_idea_scraps", JSON.stringify(existing));
+    if (inp) inp.value = "";
+    closeFastIdeaModal();
+  }}
+
   function closeCraftModal() {{
     const modal = document.getElementById("craftModal");
     if (modal) {{
@@ -1523,6 +1773,15 @@ def render_zen_studio_html(
   window.addEventListener("keydown", (e) => {{
     if (e.key === "Escape") {{
       closeCraftModal();
+      closeFastIdeaModal();
+    }}
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "j") {{
+      e.preventDefault();
+      openFastIdeaModal();
+    }}
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r" && e.altKey) {{
+      e.preventDefault();
+      resumeDailyFlow();
     }}
   }});
 

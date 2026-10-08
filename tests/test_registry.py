@@ -159,7 +159,7 @@ class TestRegistry(unittest.TestCase):
         sources_fmt = format_engine_doc("astrophysics", mode="sources")
         self.assertIn("THEORETICAL FOUNDATIONS & REFERENCE SOURCES", sources_fmt)
         self.assertIn("Citation:", sources_fmt)
-        self.assertIn("http", sources_fmt)
+        self.assertIn("Dole, Stephen H.", sources_fmt)
 
         # Formatted via hyphenated string
         formatted_hyphen = format_engine_doc("magic-system")

@@ -48,8 +48,8 @@ ENGINES: dict[str, EngineSpec] = {
         storytelling_relevance="Diagnoses sluggish midpoints, premature climaxes, and rushed resolutions.",
         writing_relevance="Provides structural confidence during outlining and developmental editing.",
         subfeatures=[
-            {"name": "Multi-Paradigm Beat Mapper", "rule": "Projects chapter word boundaries onto 3-Act, Save the Cat, 8-Sequence, and Kishōtenketsu models.", "example": "arcanum structure Manuscript/ --paradigm save-the-cat"},
-            {"name": "Midpoint Harmony Check", "rule": "Audits whether pivotal status-quo shift occurs within 48%-52% of total word count.", "example": "arcanum structure Manuscript/ --midpoint-check"},
+            {"name": "Multi-Paradigm Beat Mapper", "rule": "Projects chapter word boundaries onto 3-Act, Save the Cat, 8-Sequence, and Kishōtenketsu models.", "example": "arcanum structure Manuscript/ --paradigm save_the_cat"},
+            {"name": "Midpoint Milestone Check", "rule": "Audits whether pivotal status-quo shift aligns with chosen structural paradigm.", "example": "arcanum structure Manuscript/ --paradigm three_act"},
         ],
         extension_guide="""Configure custom story paradigms in `Manuscript/manuscript.yaml`:
 ```yaml

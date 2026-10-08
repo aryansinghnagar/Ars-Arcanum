@@ -1027,6 +1027,17 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
           </tbody>
         </table>
       </div>
+
+      <!-- Interactive SVG Narrative Geometry & Pacing Envelope -->
+      <div class="section-panel">
+        <div class="section-header">
+          <h3>Interactive Narrative Geometry & Pacing Envelope</h3>
+          <span class="tag tag-gold">2D Vector Projection</span>
+        </div>
+        <div id="structure-svg-container" style="position: relative; width: 100%; min-height: 240px; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; overflow: hidden;">
+          <svg id="structure-pacing-svg" viewBox="0 0 840 240" style="width: 100%; height: auto; max-height: 240px; display: block;" role="img" aria-label="Narrative Pacing & Tension Curve"></svg>
+        </div>
+      </div>
     </div>
 
     <!-- TIMELINE TAB -->
@@ -1229,6 +1240,28 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
           <span class="metric-label">Cross-Domain Integrity</span>
           <span class="metric-value" style="color: var(--accent-emerald);">100%</span>
           <span class="metric-sub">Zero Contradictions</span>
+        </div>
+      </div>
+
+      <!-- Interactive SVG Resonance Topology & Knowledge Mesh -->
+      <div class="section-panel">
+        <div class="section-header">
+          <h3>Interactive Sovereign Resonance Mesh & Topology Canvas</h3>
+          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+            <button class="scope-preset-btn active" id="res-filter-all" onclick="filterResonanceDomain('all')">All Domains</button>
+            <button class="scope-preset-btn" id="res-filter-astro" onclick="filterResonanceDomain('astrophysics')">Astrophysics</button>
+            <button class="scope-preset-btn" id="res-filter-magic" onclick="filterResonanceDomain('magic')">Magic & Tech</button>
+            <button class="scope-preset-btn" id="res-filter-factions" onclick="filterResonanceDomain('factions')">Factions</button>
+            <button class="scope-preset-btn" id="res-filter-economy" onclick="filterResonanceDomain('economy')">Economy</button>
+            <button class="scope-preset-btn" id="res-filter-ecology" onclick="filterResonanceDomain('ecology')">Ecology</button>
+          </div>
+        </div>
+        <p style="font-size: 13px; color: var(--text-secondary);">
+          Interactive vector topology mapping causal dependencies and cross-domain bridges. Click or hover any node to inspect its relational cascade.
+        </p>
+        <div id="resonance-svg-container" style="position: relative; width: 100%; min-height: 360px; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px; overflow: hidden;">
+          <svg id="resonance-topology-svg" viewBox="0 0 880 340" style="width: 100%; height: auto; max-height: 340px; display: block;" role="img" aria-label="Knowledge Mesh Resonance Graph"></svg>
+          <div id="res-node-infobox" style="display: none; position: absolute; bottom: 12px; left: 12px; right: 12px; background: var(--bg-card); border: 1px solid var(--border-color); border-left: 4px solid var(--accent-gold); border-radius: 6px; padding: 10px 14px; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);"></div>
         </div>
       </div>
 
@@ -1695,6 +1728,12 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
     }};
     document.getElementById('page-title').innerText = titles[tabId] || 'Dashboard';
     updateContextualTip(tabId);
+    if (tabId === 'tab-structure') {{
+      renderStructureSvgCurve();
+    }} else if (tabId === 'tab-resonance') {{
+      renderResonanceMeshSvg();
+      renderHubCascadeSandbox();
+    }}
   }}
 
   function filterGuideCategory(cat) {{
@@ -2030,6 +2069,201 @@ def generate_studio_hub_html(data: dict[str, Any], api_mode: bool = False) -> st
       outEl.innerText = "Error calling /api/engine/run: " + err;
     }});
   }}
+
+  function renderStructureSvgCurve() {{
+    const svg = document.getElementById('structure-pacing-svg');
+    if (!svg) return;
+    const pts = (HUB_DATA && HUB_DATA.structure && HUB_DATA.structure.pacing_curve) ? HUB_DATA.structure.pacing_curve : [];
+
+    const W = 840, H = 240;
+    const padL = 60, padR = 40, padT = 30, padB = 40;
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+
+    let svgInner = '';
+    svgInner += `<rect x="${{padL}}" y="${{padT}}" width="${{plotW}}" height="${{plotH}}" fill="var(--bg-card)" stroke="var(--border-color)" stroke-width="1" rx="4" />`;
+
+    const milestones = [
+      {{ name: "Inciting (12%)", pct: 0.12, col: "var(--accent-cyan)" }},
+      {{ name: "Plot Pt 1 (25%)", pct: 0.25, col: "var(--accent-gold)" }},
+      {{ name: "Midpoint (50%)", pct: 0.50, col: "var(--accent-purple)" }},
+      {{ name: "All Hope Lost (75%)", pct: 0.75, col: "var(--accent-crimson)" }},
+      {{ name: "Climax (90%)", pct: 0.90, col: "var(--accent-emerald)" }}
+    ];
+
+    milestones.forEach(m => {{
+      const mx = padL + plotW * m.pct;
+      svgInner += `<line x1="${{mx}}" y1="${{padT}}" x2="${{mx}}" y2="${{padT + plotH}}" stroke="${{m.col}}" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>`;
+      svgInner += `<text x="${{mx}}" y="${{padT - 8}}" fill="${{m.col}}" font-size="9.5" text-anchor="middle" font-family="var(--font-mono)">${{m.name}}</text>`;
+    }});
+
+    let idealD = `M ${{padL}} ${{padT + plotH}}`;
+    for (let i = 1; i <= 40; i++) {{
+      const t = i / 40;
+      const ix = padL + plotW * t;
+      const tension = 1 / (1 + Math.exp(-6 * (t - 0.5)));
+      const iy = padT + plotH - (plotH * (0.15 + 0.80 * tension));
+      idealD += ` L ${{ix.toFixed(1)}} ${{iy.toFixed(1)}}`;
+    }}
+    svgInner += `<path d="${{idealD}}" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.4" />`;
+    svgInner += `<text x="${{padL + 8}}" y="${{padT + 18}}" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-sans)">-- Benchmark Paradigm Envelope</text>`;
+
+    if (pts.length > 0) {{
+      let actualD = "";
+      let coordPts = [];
+      pts.forEach((p, idx) => {{
+        const pct = Math.min(100, Math.max(0, p.percentage || 0)) / 100;
+        const cx = padL + plotW * (pts.length === 1 ? 0.5 : (idx / (pts.length - 1)));
+        const cy = padT + plotH - (plotH * pct);
+        coordPts.push({{ x: cx, y: cy, data: p }});
+        if (idx === 0) {{
+          actualD += `M ${{cx.toFixed(1)}} ${{cy.toFixed(1)}}`;
+        }} else {{
+          actualD += ` L ${{cx.toFixed(1)}} ${{cy.toFixed(1)}}`;
+        }}
+      }});
+
+      const firstX = coordPts[0].x.toFixed(1);
+      const lastX = coordPts[coordPts.length - 1].x.toFixed(1);
+      const areaD = `${{actualD}} L ${{lastX}} ${{padT + plotH}} L ${{firstX}} ${{padT + plotH}} Z`;
+      svgInner += `<path d="${{areaD}}" fill="rgba(212, 175, 55, 0.08)" />`;
+      svgInner += `<path d="${{actualD}}" fill="none" stroke="var(--accent-gold)" stroke-width="2.5" />`;
+
+      coordPts.forEach(pt => {{
+        svgInner += `
+          <g style="cursor: pointer;">
+            <circle cx="${{pt.x.toFixed(1)}}" cy="${{pt.y.toFixed(1)}}" r="4.5" fill="var(--accent-gold)" stroke="var(--bg-base)" stroke-width="2">
+              <title>Ch ${{pt.data.chapter}}: ${{pt.data.title}} (${{pt.data.words}} words • ${{pt.data.percentage}}%)</title>
+            </circle>
+            <text x="${{pt.x.toFixed(1)}}" y="${{(pt.y - 8).toFixed(1)}}" fill="var(--text-primary)" font-size="9" text-anchor="middle" font-family="var(--font-mono)">Ch${{pt.data.chapter}}</text>
+          </g>
+        `;
+      }});
+    }}
+
+    svgInner += `<line x1="${{padL}}" y1="${{padT + plotH}}" x2="${{padL + plotW}}" y2="${{padT + plotH}}" stroke="var(--border-color)" stroke-width="1.5" />`;
+    svgInner += `<line x1="${{padL}}" y1="${{padT}}" x2="${{padL}}" y2="${{padT + plotH}}" stroke="var(--border-color)" stroke-width="1.5" />`;
+    svgInner += `<text x="${{padL - 10}}" y="${{padT + 12}}" fill="var(--text-secondary)" font-size="10" text-anchor="end" font-family="var(--font-mono)">100%</text>`;
+    svgInner += `<text x="${{padL - 10}}" y="${{padT + plotH}}" fill="var(--text-secondary)" font-size="10" text-anchor="end" font-family="var(--font-mono)">0%</text>`;
+    svgInner += `<text x="${{padL + plotW / 2}}" y="${{H - 10}}" fill="var(--text-secondary)" font-size="11" text-anchor="middle" font-family="var(--font-sans)">Manuscript Chapter Sequence & Structural Progression</text>`;
+
+    svg.innerHTML = svgInner;
+  }}
+
+  let ACTIVE_RESONANCE_FILTER = 'all';
+
+  const RESONANCE_PILLARS = [
+    {{ id: 'astro', name: 'Astrophysics & Cosmography', domain: 'astrophysics', x: 160, y: 100, color: 'var(--accent-cyan)', icon: '🚀', desc: 'Stellar luminosity, habitable zone boundaries, orbital mechanics & relativistic flight horizons.' }},
+    {{ id: 'magic', name: 'Magic & Metaphysics', domain: 'magic', x: 440, y: 70, color: 'var(--accent-purple)', icon: '🔮', desc: 'Hard vs soft arcane limits, conservation laws, entropy trade-offs & mana backlashes.' }},
+    {{ id: 'factions', name: 'Geopolitics & Factions', domain: 'factions', x: 720, y: 100, color: 'var(--accent-gold)', icon: '⚔️', desc: 'Diplomatic matrices, treaty covenants, Lanchester combat & military campaign logistics.' }},
+    {{ id: 'economy', name: 'Macroeconomics & Trade', domain: 'economy', x: 260, y: 250, color: 'var(--accent-emerald)', icon: '⚖️', desc: 'Purchasing power parities, specie debasement, commodity baskets & freight margins.' }},
+    {{ id: 'ecology', name: 'Ecosystems & Biomes', domain: 'ecology', x: 620, y: 250, color: 'var(--accent-crimson)', icon: '🌿', desc: 'Whittaker biomes, trophic biomass pyramids, Coriolis rain shadows & ecological carrying capacity.' }}
+  ];
+
+  const RESONANCE_BRIDGES = [
+    {{ from: 'astro', to: 'ecology', label: 'Insolation & Biome Limits', type: 'causal' }},
+    {{ from: 'astro', to: 'economy', label: 'Year Length & Seasonal Harvests', type: 'causal' }},
+    {{ from: 'magic', to: 'factions', label: 'Arcane Weaponry & Monopolies', type: 'thematic' }},
+    {{ from: 'magic', to: 'economy', label: 'Labor Guild Automation & Scarcity', type: 'causal' }},
+    {{ from: 'factions', to: 'economy', label: 'Trade Sanctions & Debasement', type: 'causal' }},
+    {{ from: 'ecology', to: 'economy', label: 'Agricultural Biomass & Famine', type: 'causal' }},
+    {{ from: 'factions', to: 'ecology', label: 'Campaign Foraging & Devastation', type: 'causal' }},
+    {{ from: 'magic', to: 'astro', label: 'Leyline Discharges & Solar Flares', type: 'thematic' }}
+  ];
+
+  function renderResonanceMeshSvg() {{
+    const svg = document.getElementById('resonance-topology-svg');
+    if (!svg) return;
+
+    let svgInner = '';
+    svgInner += `<rect width="880" height="340" fill="var(--bg-card)" stroke="var(--border-color)" stroke-width="1" rx="6"/>`;
+
+    RESONANCE_BRIDGES.forEach(edge => {{
+      const src = RESONANCE_PILLARS.find(p => p.id === edge.from);
+      const dst = RESONANCE_PILLARS.find(p => p.id === edge.to);
+      if (!src || !dst) return;
+
+      const isDimmed = ACTIVE_RESONANCE_FILTER !== 'all' && src.domain !== ACTIVE_RESONANCE_FILTER && dst.domain !== ACTIVE_RESONANCE_FILTER;
+      const opacity = isDimmed ? 0.15 : 0.65;
+      const strokeWidth = isDimmed ? 1 : 1.8;
+
+      svgInner += `
+        <line x1="${{src.x}}" y1="${{src.y}}" x2="${{dst.x}}" y2="${{dst.y}}" stroke="var(--accent-gold)" stroke-width="${{strokeWidth}}" stroke-dasharray="${{edge.type === 'causal' ? 'none' : '4 3'}}" opacity="${{opacity}}">
+          <title>${{src.name}} &rarr; ${{dst.name}}: ${{edge.label}} (${{edge.type}})</title>
+        </line>
+      `;
+
+      const mx = (src.x + dst.x) / 2;
+      const my = (src.y + dst.y) / 2;
+      if (!isDimmed) {{
+        svgInner += `
+          <rect x="${{mx - 50}}" y="${{my - 8}}" width="100" height="15" fill="var(--bg-sidebar)" rx="3" opacity="0.85"/>
+          <text x="${{mx}}" y="${{my + 3}}" fill="var(--text-muted)" font-size="8" text-anchor="middle" font-family="var(--font-mono)">${{edge.label}}</text>
+        `;
+      }}
+    }});
+
+    RESONANCE_PILLARS.forEach(p => {{
+      const isSelected = ACTIVE_RESONANCE_FILTER === 'all' || p.domain === ACTIVE_RESONANCE_FILTER;
+      const nodeOpacity = isSelected ? 1.0 : 0.35;
+      const radius = isSelected ? 26 : 20;
+
+      svgInner += `
+        <g style="cursor: pointer;" onclick="selectResonanceNode('${{p.id}}')" onmouseenter="selectResonanceNode('${{p.id}}')" opacity="${{nodeOpacity}}">
+          <circle cx="${{p.x}}" cy="${{p.y}}" r="${{radius + 7}}" fill="${{p.color}}" opacity="${{isSelected ? 0.18 : 0.04}}"/>
+          <circle cx="${{p.x}}" cy="${{p.y}}" r="${{radius}}" fill="var(--bg-sidebar)" stroke="${{p.color}}" stroke-width="${{isSelected ? 3 : 1.5}}"/>
+          <text x="${{p.x}}" y="${{p.y + 5}}" font-size="${{isSelected ? 15 : 12}}" text-anchor="middle">${{p.icon}}</text>
+          <text x="${{p.x}}" y="${{p.y + radius + 13}}" fill="var(--text-primary)" font-size="11" font-weight="600" text-anchor="middle" font-family="var(--font-sans)">${{p.name}}</text>
+        </g>
+      `;
+    }});
+
+    svg.innerHTML = svgInner;
+  }}
+
+  function filterResonanceDomain(domain) {{
+    ACTIVE_RESONANCE_FILTER = domain;
+    document.querySelectorAll('[id^="res-filter-"]').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('res-filter-' + (domain === 'astrophysics' ? 'astro' : (domain === 'magic' ? 'magic' : (domain === 'factions' ? 'factions' : (domain === 'economy' ? 'economy' : (domain === 'ecology' ? 'ecology' : 'all'))))));
+    if (btn) btn.classList.add('active');
+    renderResonanceMeshSvg();
+
+    if (domain !== 'all') {{
+      const p = RESONANCE_PILLARS.find(pillar => pillar.domain === domain);
+      if (p) selectResonanceNode(p.id);
+    }}
+  }}
+
+  function selectResonanceNode(nodeId) {{
+    const p = RESONANCE_PILLARS.find(pillar => pillar.id === nodeId);
+    if (!p) return;
+    const infobox = document.getElementById('res-node-infobox');
+    if (!infobox) return;
+
+    const outBridges = RESONANCE_BRIDGES.filter(b => b.from === nodeId);
+    const inBridges = RESONANCE_BRIDGES.filter(b => b.to === nodeId);
+
+    infobox.style.display = 'block';
+    infobox.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <strong style="color: ${{p.color}}; font-size: 13px;">${{p.icon}} ${{p.name}}</strong>
+        <span class="tag tag-char" style="font-size: 10px;">${{p.domain.toUpperCase()}} DOMAIN</span>
+      </div>
+      <p style="color: var(--text-primary); margin-top: 4px; font-size: 12px;">${{p.desc}}</p>
+      <div style="display: flex; gap: 14px; margin-top: 6px; font-size: 11px; flex-wrap: wrap;">
+        <div><strong>Outgoing Cascades:</strong> ${{outBridges.map(b => `<span style="color: var(--accent-cyan);">→ ${{b.label}}</span>`).join(' • ') || 'None'}}</div>
+        <div><strong>Incoming Drivers:</strong> ${{inBridges.map(b => `<span style="color: var(--accent-gold);">← ${{b.label}}</span>`).join(' • ') || 'None'}}</div>
+      </div>
+    `;
+  }}
+
+  window.addEventListener('DOMContentLoaded', () => {{
+    renderStructureSvgCurve();
+    renderResonanceMeshSvg();
+    if (HUB_DATA && HUB_DATA.structure) {{
+      renderHubCascadeSandbox();
+    }}
+  }});
 </script>
 </body>
 </html>

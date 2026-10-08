@@ -144,12 +144,15 @@ Synthesizes cross-volume character rosters into Markdown tables and interactive 
 ## Verification Pipeline
 
 ```bash
-# Run the complete test suite (862 tests)
+# Run the complete test suite (960 tests)
 python -m unittest discover tests
+
+# High-performance parallel test runner (~20s)
+python scripts/test_parallel.py
 
 # Verify zero lint errors
 ruff check .
 
-# Verify type safety (186 source files clean)
+# Verify type safety (217 source files clean)
 mypy --explicit-package-bases scripts tests
 ```

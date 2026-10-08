@@ -16,15 +16,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 class TestAgenticDoctrine(unittest.TestCase):
     def setUp(self):
         self.agents_md = PROJECT_ROOT / "AGENTS.md"
-        self.tasks_md = (
-            PROJECT_ROOT / ".agent" / "tasks.md"
-            if (PROJECT_ROOT / ".agent" / "tasks.md").exists()
-            else PROJECT_ROOT / "tasks.md"
-        )
-        self.decisions_md = (
-            PROJECT_ROOT / ".agent" / "decisions.md"
-            if (PROJECT_ROOT / ".agent" / "decisions.md").exists()
-            else PROJECT_ROOT / "decisions.md"
+        self.roadmap_md = (
+            PROJECT_ROOT / "docs" / "ROADMAP.md"
+            if (PROJECT_ROOT / "docs" / "ROADMAP.md").exists()
+            else PROJECT_ROOT / "ROADMAP.md"
         )
 
     def test_agents_manifesto_exists(self):
@@ -45,9 +40,9 @@ class TestAgenticDoctrine(unittest.TestCase):
         self.assertIn("`improve`", content)
         self.assertIn("`recurring`", content)
 
-    def test_tasks_momentum_queues_aligned(self):
-        self.assertTrue(self.tasks_md.exists(), "Missing tasks.md file")
-        content = self.tasks_md.read_text(encoding="utf-8")
+    def test_roadmap_momentum_queues_aligned(self):
+        self.assertTrue(self.roadmap_md.exists(), "Missing ROADMAP.md file")
+        content = self.roadmap_md.read_text(encoding="utf-8")
 
         self.assertIn("### `now`", content)
         self.assertIn("### `next`", content)

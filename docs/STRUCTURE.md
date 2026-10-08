@@ -9,18 +9,18 @@ The **Ars Arcanum Structure Engine** (`scripts/lib/structure.py`) is an offline 
 
 In long-form storytelling, the placement of major dramatic turning points (the Inciting Catalyst, the Break into Act II, the Midpoint Reversal, the Dark Night of the Soul, and the Climax) governs narrative momentum, cognitive tension, and emotional catharsis. When structural beats occur prematurely, the narrative lacks necessary worldbuilding setup, character investment, and thematic grounding; when they occur belatedly, pacing sags, causing cognitive fatigue and reader drop-off.
 
-The Structure Engine parses chapter word counts, tracks authorial `@beat:` annotations and frontmatter directives, maps the manuscript's cumulative progression curve against ideal beat windows, calculates $L_1$ structural drift penalties, and evaluates global **Structural Harmony** ($\mathcal{H} \in [0, 100\%]$).
+Operating strictly within **Subsystem 2 (Selected Craft Lenses)** pursuant to [ADR 0001](adr/0001-demotion-of-normative-evaluators-and-three-subsystems.md), the Structure Engine parses chapter word counts, tracks authorial `@beat:` annotations and frontmatter directives, maps the manuscript's cumulative progression curve against ideal beat windows, calculates $L_1$ structural drift tolerances, and provides descriptive telemetry and diagnostic inquiries. Authors may declare `@intent: deliberate` to bypass any advisory structural observation.
 
 ```mermaid
 flowchart TD
     Chapters["Manuscript Chapter Stream (w₁, w₂, ..., wₖ)"] --> CumSum["Cumulative Word Count Curve W_cum(k)"]
     Beats["Authorial @beat Tags or Auto-Beat Heuristic"] --> Alignment["Beat Alignment Engine"]
-    CumSum & Beats --> Drift["L₁ Structural Drift & Penalty Engine"]
+    CumSum & Beats --> Drift["L₁ Structural Drift & Tolerance Engine"]
     
-    Drift --> HarmonyScore["Global Structural Harmony Index (H ∈ [0, 100%])"]
-    Drift --> Diagnostics["Beat Window Violation Flags (EARLY / LATE / MISSING)"]
+    Drift --> Telemetry["Descriptive Milestone & Window Telemetry"]
+    Drift --> Diagnostics["Beat Window Observations (EARLY / LATE / ON TARGET)"]
     
-    HarmonyScore & Diagnostics --> Visualizer["Interactive SVG / HTML Beat Sheet"]
+    Telemetry & Diagnostics --> Visualizer["Interactive SVG / HTML Beat Sheet"]
 ```
 
 ---
@@ -32,30 +32,23 @@ For a manuscript composed of $K$ chapters with word counts $W = [w_1, w_2, \dots
 
 $$W_{\text{cum}}(k) = \frac{\sum_{j=1}^{k} w_j}{W_{\text{total}}} \in [0.0, 1.0]$$
 
-### 2.2 $L_1$ Structural Drift & Window Penalty Function
-Let a narrative paradigm $\mathcal{P}$ define a set of canonical beats $\mathcal{B} = \{b_1, b_2, \dots, b_M\}$, where each beat $b_i$ has a target location $\tau_i \in [0, 1]$ and an allowable tolerance envelope $[\tau_i^{\text{min}}, \tau_i^{\text{max}}]$.
+### 2.2 $L_1$ Structural Drift & Window Tolerance Envelope
+Let a narrative paradigm $\mathcal{P}$ define a set of canonical beats $\mathcal{B} = \{b_1, b_2, \dots, b_M\}$, where each beat $b_i$ has a target reference location $\tau_i \in [0, 1]$ and an allowable tolerance envelope $[\tau_i^{\text{min}}, \tau_i^{\text{max}}]$.
 
 If beat $b_i$ occurs at chapter $k_i$ with cumulative position $p_i = W_{\text{cum}}(k_i)$, the raw structural drift is:
 
 $$\Delta_i = |p_i - \tau_i|$$
 
-The window penalty function $P_i(p_i)$ penalizes positions falling strictly outside the tolerance envelope:
+The window classification categorizes beat alignment descriptively:
 
-$$P_i(p_i) = \begin{cases} 
-0.0 & \text{if } \tau_i^{\text{min}} \le p_i \le \tau_i^{\text{max}} \\
-\frac{p_i - \tau_i^{\text{max}}}{1.0 - \tau_i^{\text{max}}} & \text{if } p_i > \tau_i^{\text{max}} \quad (\text{Belated Beat}) \\
-\frac{\tau_i^{\text{min}} - p_i}{\tau_i^{\text{min}}} & \text{if } p_i < \tau_i^{\text{min}} \quad (\text{Premature Beat})
+$$\text{Status}(p_i) = \begin{cases} 
+\text{ON TARGET} & \text{if } \tau_i^{\text{min}} \le p_i \le \tau_i^{\text{max}} \\
+\text{BELATED} & \text{if } p_i > \tau_i^{\text{max}} \\
+\text{PREMATURE} & \text{if } p_i < \tau_i^{\text{min}}
 \end{cases}$$
 
-### 2.3 Global Structural Harmony Score ($\mathcal{H}$)
-The composite harmony percentage aggregates beat alignments across all active beats in paradigm $\mathcal{P}$, penalizing missing beats with a maximum penalty $P_{\text{missing}} = 1.0$:
-
-$$\mathcal{H} = \max\left(0.0, \, 100.0 \cdot \left[ 1.0 - \frac{\sum_{i=1}^{M} \omega_i \cdot \min(1.0, P_i)}{\sum_{i=1}^{M} \omega_i} \right] \right)$$
-
-Where $\omega_i$ is the dramatic criticality weight:
-- $\omega_i = 2.0$ for primary pivot milestones (Midpoint Reversal, Act II Break, Climax).
-- $\omega_i = 1.5$ for secondary inflection points (Inciting Incident, All Hope Is Lost).
-- $\omega_i = 1.0$ for tertiary beats and pinch points.
+### 2.3 Descriptive Milestone Telemetry
+Rather than computing normative composite scores or letter grades, the Structure Engine presents per-beat positional telemetry (Target %, Tolerance Window %, Chapter Index, and Relative Drift), preserving full authorial sovereignty across classic Three-Act, Hero's Journey, Kishōtenketsu, Fichtean curves, or custom framework-free manuscripts.
 
 ### 2.4 Midpoint Phase Inversion Vector
 The engine verifies that the narrative undergoes a **reactive-to-proactive phase shift** across the Midpoint ($\tau \approx 0.50$). Let $\vec{V}_{\text{agency}}(t)$ represent the rolling proactive decision density of the protagonist:
@@ -188,6 +181,14 @@ A structure designed for poetic prose, vignette mosaics, and non-traditional pac
 2. **Development Movement / Lyrical Exploration** ($\tau = 20\% - 65\%$): Fluid emotional and thematic deepening across scenes.
 3. **Thematic Turn / Inflection** ($\tau = 50\% - 85\%$): Lyrical inflection or perspective shift providing emotional resonance.
 4. **Closing Cadence / Echo** ($\tau = 70\% - 100\%$): Resonant synthesis and thematic echo.
+
+### 3.11 Framework-Free / Pure Timeline Flow (`framework_free`)
+*Roots: Absolute creative autonomy, episodic narratives, slice-of-life, and unconstrained organic drafting.*
+A blank-slate timeline mode with 4 quarterly quadrant markers ($25\%, 50\%, 75\%, 100\%$) that imposes zero prescriptive beat requirements and guarantees $100\%$ Structural Harmony:
+1. **Opening Movement / Q1** ($\tau = 0\% - 25\%$): Initial scenes and narrative grounding.
+2. **Second Movement / Q2** ($\tau = 25\% - 50\%$): Central progression.
+3. **Third Movement / Q3** ($\tau = 50\% - 75\%$): Deepening development.
+4. **Closing Movement / Q4** ($\tau = 75\% - 100\%$): Concluding cadence.
 
 ---
 

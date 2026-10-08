@@ -4,6 +4,31 @@ All notable changes to Ars Arcanum are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Scope decisions
 behind each wave are recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## [0.1.0] - 2026-10-08
+
+### Added & Hardened (Epistemic Safety, Three-Subsystem Architecture & Parallel Test Runner)
+- **Three-Subsystem Architecture & Creative Sovereignty Remediations ([ADR 0001](docs/adr/0001-demotion-of-normative-evaluators-and-three-subsystems.md))**:
+  - Permanently demoted normative composite percentages (`Structural Harmony Score: 85%`, `Thematic Resonance Score: 92%`, `Preflight Compliance Score: 100/100`, `Catastrophic Domain Penalty`).
+  - Formally partitioned system into Subsystem 1 (Deterministic Invariants, fails strict builds), Subsystem 2 (Advisory Craft Lenses, defaults to exit code 0), and Subsystem 3 (Creative Ideation & Sparks, tagged `[SPECULATION]`).
+  - Enabled universal `@intent: deliberate` and frontmatter `intent: deliberate` bypass across continuity, anachronism, and structure linters.
+  - Decoupled universal character templates from mandatory magic parameters (`templates/world-bible/Templates/fileClasses/Character.md`).
+- **Planetary Climatology & Vector Visualizers (`scripts/lib/climate.py`, `climate_template.py`)**:
+  - Extracted modular presentation layer into `climate_template.py` (<350 lines).
+  - Implemented dynamic 2D SVG Planetary Circulation Globe & Hemispheric Cross-Section (Hadley/Ferrel/Polar cells or single global Hadley cell for tidally locked worlds).
+  - Implemented dynamic 2D SVG Orographic Rain Shadow Mountain Ridge (moist ascent, cloud deck, dry adiabatic descent, foehn warming).
+  - Implemented dynamic 2D SVG Whittaker Biome Matrix and added exoplanet presets (`--preset tidally_locked`, `super_earth`, `desert_world`, `ocean_world`, `earth`, `mars`, `venus`).
+- **Tactical Combat Simulator & Lanchester Campaign Visualizers (`scripts/lib/tactical_sim.py`, `tactical_sim_template.py`)**:
+  - Extracted modular presentation layer into `tactical_sim_template.py` (<250 lines).
+  - Implemented dynamic 2D SVG Monte Carlo victory probability distributions and force ratio gauges.
+  - Implemented dynamic 2D SVG combatant cards with live HP bars, armor ratings, attack/damage stats, and morale meters.
+  - Added skirmish presets (`champion_duel`, `siege_breach`, `forest_ambush`, `dungeon_chokepoint`) via CLI `--preset <name>` and `--html` export.
+- **High-Performance Multi-Core Parallel Test Harness (`scripts/test_parallel.py`)**:
+  - Engineered zero-dependency multi-core process pool test runner executing 960 tests across 94 modules concurrently in ~20 seconds.
+- **Verification & Codebase Metrics**:
+  - Reached **960 tests passing, 0 failures, 0 errors** (2 platform skipped on Windows).
+  - 217 source files verified clean under strict Ruff and Mypy.
+  - Maintained $\ge 80\%$ test coverage floor.
+
 ## [0.1.0] - 2026-10-07
 
 ### Added & Hardened (Multi-Lens Architectural Remediations & Sovereign Modernization)

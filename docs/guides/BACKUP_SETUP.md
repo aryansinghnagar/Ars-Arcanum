@@ -115,7 +115,7 @@ A backup that has never been tested is not a backup—it is merely an unverified
 ## 6. Recommended Reading, References & Media
 
 ### 6.1 Data Preservation & Storage Reliability Treatises
-- **Chisnall, David (2008)**. *The Definitive Guide to SQLite*. Apress. ISBN: 978-1590596739.  
+- **Newman, Chris (2006)**. *The Definitive Guide to SQLite*. Apress. ISBN: 978-1590596739.  
   *Database journaling, atomic transactions, and write-ahead log backup integrity.*
 - **Tanenbaum, Andrew S. (2014)**. *Modern Operating Systems* (4th Edition). Pearson.  
   *Storage reliability, RAID configurations, and MTBF mathematical models.*

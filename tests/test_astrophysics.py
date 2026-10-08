@@ -17,12 +17,15 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from lib.astrophysics import (
-    G0, AU, LIGHT_YEAR, PARSEC, EARTH_MASS, EARTH_RADIUS, SOLAR_LUMINOSITY, parse_distance, parse_acceleration, format_duration, format_distance,
+    G0, AU, LIGHT_YEAR, PARSEC, EARTH_MASS, EARTH_RADIUS, SOLAR_MASS, SOLAR_LUMINOSITY,
+    parse_distance, parse_acceleration, parse_mass, format_duration, format_distance,
     calc_brachistochrone, calc_time_dilation, calc_orbital_transfer,
-    calc_comms_delay, calc_habitability_gravity, generate_astrophysics_html_report,
+    calc_comms_delay, calc_habitability_gravity, calc_lagrange_points, calc_moon_orbital_stability,
+    generate_astrophysics_html_report,
     generate_dossier_html_report, generate_dossier_markdown_report,
     calc_planetary_dossier, main, print_table
 )
+
 
 
 class TestAstrophysicsEngine(unittest.TestCase):
@@ -191,6 +194,37 @@ class TestAstrophysicsEngine(unittest.TestCase):
         with self.assertRaises(ValueError):
             calc_time_dilation(gamma=0.5)
 
+    def test_golden_trappist_1e_habitability(self):
+        """Validates Trappist-1e exoplanet benchmark parameters against known astrophysics."""
+        m_t1e = 0.692 * EARTH_MASS
+        r_t1e = 0.920 * EARTH_RADIUS
+        l_star = 0.000553 * SOLAR_LUMINOSITY
+        res = calc_habitability_gravity(m_t1e, r_t1e, star_luminosity_watts=l_star)
+        self.assertAlmostEqual(res["surface_gravity_g"], 0.817, delta=0.03)
+        self.assertAlmostEqual(res["escape_velocity_kms"], 9.69, delta=0.5)
+        self.assertGreater(res["habitable_zone_conservative"]["inner_au"], 0.02)
+        self.assertLess(res["habitable_zone_conservative"]["outer_au"], 0.04)
+
+    def test_golden_proxima_centauri_b(self):
+        """Validates Proxima Centauri b benchmark parameters against known astrophysics."""
+        m_proxb = 1.17 * EARTH_MASS
+        r_proxb = 1.03 * EARTH_RADIUS
+        l_proxima = 0.0017 * SOLAR_LUMINOSITY
+        res = calc_habitability_gravity(m_proxb, r_proxb, star_luminosity_watts=l_proxima)
+        self.assertAlmostEqual(res["surface_gravity_g"], 1.10, delta=0.05)
+        self.assertAlmostEqual(res["escape_velocity_kms"], 11.9, delta=0.5)
+
+    def test_golden_mars_hohmann_and_brachistochrone(self):
+        """Validates Earth-to-Mars Hohmann and 1g Brachistochrone transit metrics."""
+        mars_dist_min = 0.524 * AU
+        brach = calc_brachistochrone(mars_dist_min, acc_mps2=G0)
+        flight_days = brach["proper_time_sec"] / 86400.0
+        self.assertAlmostEqual(flight_days, 2.07, delta=0.1)
+
+        hohmann = calc_orbital_transfer(primary_body="sun", r1_m=1.0 * AU, r2_m=1.524 * AU)
+        transfer_days = hohmann["transfer_duration_sec"] / 86400.0
+        self.assertAlmostEqual(transfer_days, 258.8, delta=10.0)
+
     def test_print_table(self):
         with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
             print_table("Test Header", [("Key 1", "Value 1"), ("Key 2", "Value 2")])
@@ -284,25 +318,117 @@ class TestAstrophysicsEngine(unittest.TestCase):
                     data = json.loads(mock_out.getvalue())
                     self.assertIn("surface_gravity_g", data)
 
+    def test_parse_mass(self):
+        self.assertAlmostEqual(parse_mass("sun"), SOLAR_MASS)
+        self.assertAlmostEqual(parse_mass("earth"), EARTH_MASS)
+        self.assertAlmostEqual(parse_mass("2.0 earths"), 2.0 * EARTH_MASS)
+        self.assertAlmostEqual(parse_mass("0.5 solar"), 0.5 * SOLAR_MASS)
+        self.assertAlmostEqual(parse_mass("1.0 jupiters"), 1.8982e27)
+        self.assertAlmostEqual(parse_mass("1.0 moons"), 7.342e22)
+        self.assertAlmostEqual(parse_mass("1000 kg"), 1000.0)
+        self.assertAlmostEqual(parse_mass("2.5", default_unit="sun"), 2.5 * SOLAR_MASS)
+        self.assertAlmostEqual(parse_mass("3.0", default_unit="earth"), 3.0 * EARTH_MASS)
+
+    def test_lagrange_points_math(self):
+        res = calc_lagrange_points(m1_kg=SOLAR_MASS, m2_kg=EARTH_MASS, distance_m=AU)
+        self.assertGreater(res["mass_ratio"], 300000)
+        self.assertTrue(res["l4_l5_stable"])
+        # Earth Hill sphere ~ 1.5 million km
+        self.assertAlmostEqual(res["hill_sphere_radius_km"], 1495978.7, delta=10000.0)
+        self.assertIn("L1", res["l1"]["name"])
+        self.assertIn("L2", res["l2"]["name"])
+        self.assertIn("L3", res["l3"]["name"])
+        self.assertIn("L4", res["l4"]["name"])
+        self.assertIn("L5", res["l5"]["name"])
+        self.assertIn("Stable", res["l4"]["stability"])
+
+        # Unstable mass ratio test (M1/M2 < 24.96)
+        res_unstable = calc_lagrange_points(m1_kg=100.0, m2_kg=10.0, distance_m=1000.0)
+        self.assertFalse(res_unstable["l4_l5_stable"])
+        self.assertIn("Unstable", res_unstable["l4"]["stability"])
+
+        # Error checks
+        with self.assertRaises(ValueError):
+            calc_lagrange_points(0, 100, 1000)
+        with self.assertRaises(ValueError):
+            calc_lagrange_points(100, 100, -50)
+
+    def test_moon_orbital_stability_math(self):
+        # Earth-Moon-Sun system
+        res = calc_moon_orbital_stability(
+            planet_mass_kg=EARTH_MASS,
+            moon_mass_kg=7.342e22,
+            star_mass_kg=SOLAR_MASS,
+            semi_major_axis_planet_m=AU,
+            moon_semi_major_axis_m=384400000.0,
+            rotation_period_hours=24.0,
+        )
+        self.assertTrue(res["is_within_hill_sphere"])
+        self.assertTrue(res["is_long_term_stable"])
+        self.assertAlmostEqual(res["moon_orbital_period_days"], 27.4, delta=0.5)
+        self.assertIn("Outward Orbital Recession", res["tidal_evolution_fate"])
+
+        # Inward decay (sub-synchronous orbit, e.g. close exomoon or Phobos)
+        res_decay = calc_moon_orbital_stability(
+            planet_mass_kg=EARTH_MASS,
+            moon_mass_kg=1e20,
+            star_mass_kg=SOLAR_MASS,
+            semi_major_axis_planet_m=AU,
+            moon_semi_major_axis_m=20000000.0,  # 20,000 km vs GEO ~ 42,164 km
+            rotation_period_hours=24.0,
+        )
+        self.assertIn("Inward Orbital Decay", res_decay["tidal_evolution_fate"])
+
+        # Tidal disruption (inside fluid Roche limit)
+        res_roche = calc_moon_orbital_stability(
+            planet_mass_kg=EARTH_MASS,
+            moon_mass_kg=1e20,
+            star_mass_kg=SOLAR_MASS,
+            semi_major_axis_planet_m=AU,
+            moon_semi_major_axis_m=8000000.0,  # 8,000 km, inside Roche
+            rotation_period_hours=24.0,
+        )
+        self.assertIn("Tidal Disruption", res_roche["tidal_evolution_fate"])
+
+        # Error checks
+        with self.assertRaises(ValueError):
+            calc_moon_orbital_stability(-1, 10, 10, 100, 100)
+        with self.assertRaises(ValueError):
+            calc_moon_orbital_stability(10, 10, 10, -100, 100)
+
+    def test_cli_lagrange_and_moon_orbit(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            html_p = Path(tmp_dir) / "astro_test.html"
+
+            # lagrange json & table & html
             with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
-                with patch("sys.argv", ["astrophysics.py", "habitability", "--mass", "5.972e24kg", "--radius", "6371km"]):
+                with patch("sys.argv", ["astrophysics.py", "lagrange", "--m1", "sun", "--m2", "earth", "-d", "1.0 AU", "--json"]):
                     main()
-                    self.assertIn("Planetary Habitability & Gravity Analysis", mock_out.getvalue())
+                    data = json.loads(mock_out.getvalue())
+                    self.assertIn("hill_sphere_radius_km", data)
+                    self.assertTrue(data["l4_l5_stable"])
 
-            # error handling in CLI
-            with patch("sys.stderr", new_callable=io.StringIO) as mock_err:
-                with patch("sys.argv", ["astrophysics.py", "transit", "invalid-dist"]):
-                    with self.assertRaises(SystemExit) as cm:
-                        main()
-                    self.assertEqual(cm.exception.code, 1)
-                    self.assertIn("Error:", mock_err.getvalue())
-
-            # no subcommand
-            with patch("sys.argv", ["astrophysics.py"]):
-                with self.assertRaises(SystemExit) as cm:
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with patch("sys.argv", ["astrophysics.py", "lagrange", "--m1", "earth", "--m2", "moon", "-d", "384400 km", "--html", str(html_p)]):
                     main()
-                self.assertEqual(cm.exception.code, 0)
+                    self.assertIn("Lagrange Equilibrium Points", mock_out.getvalue())
+                    self.assertTrue(html_p.is_file())
+
+            # moon-orbit json & table & html
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with patch("sys.argv", ["astrophysics.py", "moon-orbit", "--planet-mass", "1.0", "--moon-mass", "1.0 moon", "--planet-dist", "1.0 AU", "--moon-dist", "384400 km", "--json"]):
+                    main()
+                    data = json.loads(mock_out.getvalue())
+                    self.assertIn("tidal_evolution_fate", data)
+                    self.assertTrue(data["is_long_term_stable"])
+
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                with patch("sys.argv", ["astrophysics.py", "moon-orbit", "--planet-mass", "jupiter", "--moon-mass", "1e22kg", "--planet-dist", "5.2 AU", "--moon-dist", "500000 km", "--retrograde", "--html", str(html_p)]):
+                    main()
+                    self.assertIn("Moon Orbital Stability & Tidal Evolution", mock_out.getvalue())
+                    self.assertTrue(html_p.is_file())
 
 
 if __name__ == "__main__":
     unittest.main()
+

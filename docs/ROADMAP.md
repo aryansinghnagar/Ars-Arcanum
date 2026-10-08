@@ -5,7 +5,7 @@
 
 ## 1. Operating Architecture & Momentum Queues
 
-Ars Arcanum manages ongoing engineering, research, and craft capabilities across five formal momentum queues, as established in [`AGENTS.md`](file:///AGENTS.md) and [`tasks.md`](file:///tasks.md):
+Ars Arcanum manages ongoing engineering, research, and craft capabilities across five formal momentum queues, as established in [`AGENTS.md`](file:///AGENTS.md):
 
 ```mermaid
 flowchart LR
@@ -42,19 +42,35 @@ flowchart LR
     - Modularized `scripts/lib/factions.py` into `factions_data.py`.
     - Modularized `scripts/lib/writing_sprint.py` into `writing_sprint_template.py`.
     - Modularized `scripts/lib/revision_heatmap.py` into `revision_heatmap_template.py`.
-  - [x] **Verification Gate**: Passed 100% verification across test suite (868 tests, 0 failures, 2 skipped on Windows), Ruff strict linting (0 errors), Mypy static typing (203 source files clean), and Coverage threshold (`fail_under = 80`).
+  - [x] **Creative Sovereignty & Epistemic Safety Remediations (Findings F-01 through F-14)**:
+    - Permanently removed all normative composite scores (`Thematic Resonance Score: 92%`, `Structural Harmony Score (0-100%)`, `Preflight Compliance Score`, `Catastrophic Domain Penalty`).
+    - Replaced moralizing diagnostic strings (`REV-101/102`, `PRP-101/102`) with descriptive activity metrics and author inquiries.
+    - Decoupled universal character templates from mandatory magic schemas (`templates/world-bible/Templates/fileClasses/Character.md`).
+    - Hardened zero-input error modes to fail fast with code 1 instead of calculating fake 0.0% scores.
+    - Replaced hardcoded spark loops with dynamic combinatorial spark synthesis and `[SPECULATION]` edge provenance.
+    - Enabled universal `@intent: deliberate` and frontmatter `intent: deliberate` immunity across continuity, anachronism, and magic linters.
+    - Added framework-free and `none` structure presets to `structure.py` and `manuscript_scaffold.py`.
+    - Corrected academic citations (Newman 2006 SQLite) and removed synthetic search URL generators.
+  - [x] **Master Bibliography & Theoretical Grounding**:
+    - Aggregated and cross-indexed 563+ theoretical and scholarly citations across all 47 craft engines (`arcanum doc bib` / `citations`).
+  - [x] **Testing Architecture & E2E Decomposition**:
+    - Decomposed monolithic 21-stage E2E test suite (`tests/test_grand_tour_e2e.py`) into 21 isolated stage test methods plus unified lifecycle runner (743 lines, <800L contract compliant).
+    - Expanded golden astrophysics datasets (Trappist-1e, Proxima Centauri b, Earth-Mars Brachistochrone) and climate benchmarks (Hadley circulation, runaway greenhouse).
+  - [x] **Interactive Vector Visualizations & Offline Studio Cockpit**:
+    - Added interactive SVG Narrative Geometry & Pacing Envelope with logistic milestone projections to Studio Hub (`tab-structure`).
+    - Added interactive SVG Resonance Topology & Knowledge Mesh canvas with 5 master pillars, causal bridge vectors, and domain filters to Studio Hub (`tab-resonance`).
+  - [x] **Verification Gate**: Passed 100% verification across test suite (951 tests, 0 failures, 2 skipped on Windows), Ruff strict linting (0 errors across 215 files), Mypy static typing (215 source files clean), and Coverage threshold (`fail_under = 80`).
 
 ### `next` (Ready Backlog)
-- **Interactive Visualizations**:
-  - Expand Studio Hub and Zen Studio offline widgets for high-dimensional narrative geometry and multi-branch causality graphs.
+- **Zen Studio In-Situ Outlines**:
+  - Integrate interactive SVG scene tension timeline directly into Zen Studio typewriter view.
 
 ### `blocked` (External / Human Decisions)
 - *None currently.* All core engines execute with zero external pip dependencies and 100% offline sovereignty.
 
 ### `improve` (Refactoring & Evals)
-- **Testing Architecture**:
-  - Decompose monolithic 21-stage E2E tests into isolated, parameterized test stages for faster failure localization.
-  - Expand golden physics and astrodynamics datasets to anchor more simulation parameters.
+- **Simulation Parameter Anchors**:
+  - Expand solar system planet generation presets and non-standard moon orbit dynamics.
 
 ### `recurring` (Automated Background Invariants)
 - **Supply-Chain & CDN Sweeps**: Automated verification ensuring 0% external CDN scripts, tracking beacons, or network dependencies in generated HTML artifacts, verified against Obsidian plugin digest manifest (`manifest.json`).

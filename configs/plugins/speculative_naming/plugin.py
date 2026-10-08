@@ -23,18 +23,18 @@ def consonant_skeleton(name: str) -> str:
 def hook_validate_entity(entity: dict[str, Any], context: dict[str, Any]) -> list[dict[str, Any]]:
     diagnostics = []
     name = entity.get("name", "").strip()
-    if not name:
+    if not name or entity.get("intent") == "deliberate" or entity.get("conlang") or entity.get("orthography") == "phonemic":
         return diagnostics
 
-    # 1. Consonant cluster check (e.g., 4+ consonants in a row without apostrophe)
+    # 1. Consonant cluster notice (e.g., 5+ consonants in a row without apostrophe)
     if re.search(r"[bcdfghjklmnpqrstvwxzBCDFGHJKLMNPQRSTVWXZ]{5,}", name):
         diagnostics.append({
-            "severity": "warning",
-            "message": f"Entity name '{name}' contains a dense consonant cluster (5+ consonants) which may impede reader pronunciation.",
+            "severity": "info",
+            "message": f"Entity name '{name}' features a complex consonant cluster (5+ consonants).",
             "target": name,
         })
 
-    # 2. Excessive apostrophe punctuation (trope detector)
+    # 2. Glottal stop / apostrophe orthography notice
     if name.count("'") > 1 or name.count("`") > 1:
         diagnostics.append({
             "severity": "info",
@@ -43,16 +43,21 @@ def hook_validate_entity(entity: dict[str, Any], context: dict[str, Any]) -> lis
         })
 
     # 3. Collision check against other known entities in context
+    whitelisted_pairs = context.get("whitelisted_pairs", [])
     known_names = context.get("known_names", [])
     if isinstance(known_names, list):
         for other in known_names:
             if other and other != name:
+                pair_tuple = tuple(sorted([name.lower(), other.lower()]))
+                if any(tuple(sorted([p[0].lower(), p[1].lower()])) == pair_tuple for p in whitelisted_pairs if len(p) >= 2):
+                    continue
+
                 # Direct Levenshtein ratio
                 ratio = difflib.SequenceMatcher(None, name.lower(), other.lower()).ratio()
                 if ratio >= 0.85 and abs(len(name) - len(other)) <= 2:
                     diagnostics.append({
-                        "severity": "warning",
-                        "message": f"Name '{name}' is phonetically/orthographically very close to '{other}' ({int(ratio*100)}% match). Potential reader confusion.",
+                        "severity": "info",
+                        "message": f"Name '{name}' is orthographically close to '{other}' ({int(ratio*100)}% string match). Potential reader confusion if distinct characters.",
                         "target": name,
                         "details": {"similar_to": other, "similarity": ratio},
                     })

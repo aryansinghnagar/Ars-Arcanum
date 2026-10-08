@@ -46,6 +46,13 @@ class CrossDomainNode:
         }
 
 
+class EdgeProvenance(str, Enum):
+    AUTHOR_DECLARED = "author_declared"
+    MODEL_DERIVED = "model_derived"
+    HEURISTIC_ASSOCIATION = "heuristic_association"
+    SPECULATIVE_ANALOGY = "speculative_analogy"
+
+
 @dataclass
 class CrossDomainEdge:
     source_id: str
@@ -53,6 +60,7 @@ class CrossDomainEdge:
     relation: str  # e.g., 'causally_drives', 'constrains', 'isomorphic_to', 'manifests_in', 'lexically_influences', 'economically_impacts', 'thematically_mirrors', 'sensory_grounding_for'
     strength: float = 1.0  # 0.0 to 1.0
     description: str = ""
+    provenance: EdgeProvenance = EdgeProvenance.HEURISTIC_ASSOCIATION
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -62,6 +70,7 @@ class CrossDomainEdge:
             "relation": self.relation,
             "strength": self.strength,
             "description": self.description,
+            "provenance": self.provenance.value if isinstance(self.provenance, EdgeProvenance) else str(self.provenance),
             "metadata": self.metadata,
         }
 

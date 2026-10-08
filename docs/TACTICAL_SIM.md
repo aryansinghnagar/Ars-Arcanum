@@ -256,14 +256,20 @@ logistical_column:
 ## 8. CLI Reference & Scriptorium Integration
 
 ```bash
-# Run Lanchester Square Law battle simulation with morale breaking points
+# Run tactical skirmish simulation using preconfigured presets
+arcanum tactics --preset champion_duel
+arcanum tactics --preset siege_breach
+arcanum tactics --preset forest_ambush
+arcanum tactics --preset dungeon_chokepoint
+
+# Run Lanchester Square Law battle simulation with custom forces
 arcanum tactics --simulate-battle World/Military/red_ridge.yaml
 
 # Calculate road march column length and transit deployment timeline
-arcanum wargame --column-length --infantry 15000 --cavalry 5000 --wagons 600
+arcanum tactics --column-length --infantry 15000 --cavalry 5000 --wagons 600
 
-# Generate standalone offline HTML casualty graph and battle dossier
-arcanum tactics --battle World/Military/red_ridge.yaml --html reports/battle_report.html
+# Generate standalone offline HTML battle dossier with 2D SVG victory distributions & combat cards
+arcanum tactics --preset forest_ambush --html reports/battle_report.html
 ```
 
 ---

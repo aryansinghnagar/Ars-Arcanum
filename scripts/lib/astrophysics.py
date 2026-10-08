@@ -43,6 +43,8 @@ try:
         calc_brachistochrone,
         calc_comms_delay,
         calc_habitability_gravity,
+        calc_lagrange_points,
+        calc_moon_orbital_stability,
         calc_orbital_transfer,
         calc_planetary_dossier,
         calc_roche_limit,
@@ -69,6 +71,7 @@ try:
         format_duration,
         parse_acceleration,
         parse_distance,
+        parse_mass,
     )
     from lib.astrophysics_template import (
         generate_astrophysics_html_report,
@@ -87,6 +90,8 @@ except ImportError:
             calc_brachistochrone,
             calc_comms_delay,
             calc_habitability_gravity,
+            calc_lagrange_points,
+            calc_moon_orbital_stability,
             calc_orbital_transfer,
             calc_planetary_dossier,
             calc_roche_limit,
@@ -113,6 +118,7 @@ except ImportError:
             format_duration,
             parse_acceleration,
             parse_distance,
+            parse_mass,
         )
         from astrophysics_template import (  # type: ignore[no-redef]
             generate_astrophysics_html_report,
@@ -158,6 +164,8 @@ __all__ = [
     "calc_brachistochrone",
     "calc_comms_delay",
     "calc_habitability_gravity",
+    "calc_lagrange_points",
+    "calc_moon_orbital_stability",
     "calc_orbital_transfer",
     "calc_planetary_dossier",
     "calc_roche_limit",
@@ -170,6 +178,7 @@ __all__ = [
     "main",
     "parse_acceleration",
     "parse_distance",
+    "parse_mass",
     "print_table",
 ]
 
@@ -179,6 +188,9 @@ calc_roche_limits = calc_roche_limit
 roche_limit = calc_roche_limit
 calc_roche = calc_roche_limit
 calc_brachistochrone_transit = calc_brachistochrone
+calc_lagrange = calc_lagrange_points
+calc_moon_stability = calc_moon_orbital_stability
+
 
 
 # ==============================================================================
@@ -194,6 +206,288 @@ def print_table(title: str, rows: list):
     for k, v in rows:
         print(f"  \033[1m{k:<{max_k}}\033[0m: \033[32m{v}\033[0m")
     print()
+
+
+def _handle_transit(args: argparse.Namespace) -> None:
+    d_m = parse_distance(args.distance)
+    a_mps2 = parse_acceleration(args.accel)
+    ve = float(args.ve) if args.ve else None
+    res = calc_brachistochrone(d_m, a_mps2, ve)
+
+    if args.json:
+        print(json.dumps(res, indent=2))
+    else:
+        newt_note = res["newtonian_time_formatted"]
+        if res.get("newtonian_peak_velocity_mps", 0) > 299792458:
+            newt_c = res["newtonian_peak_velocity_mps"] / 299792458.0
+            newt_note += f" (Unphysical: peak v = {newt_c:.2f}c)"
+        table = [
+            ("Mission Distance", f"{res['distance_formatted']} ({res['distance_m']:,.0f} m)"),
+            ("Constant Acceleration", f"{res['acceleration_g']:.3f} g ({res['acceleration_mps2']:.2f} m/s²)"),
+            ("Ship Proper Time (Crew)", res["proper_time_formatted"]),
+            ("Coordinate Time (Observer)", res["coordinate_time_formatted"]),
+            ("Time Dilation Difference", res["time_dilation_lag_formatted"]),
+            ("Peak Velocity (Turnover)", f"{res['peak_velocity_c_fraction'] * 100:.3f}% c ({res['peak_velocity_mps']/1000:,.1f} km/s)"),
+            ("Peak Lorentz Factor (γ)", f"{res['peak_gamma']:.4f}"),
+            ("Effective Total Delta-V", f"{res['effective_deltav_kms']:,.1f} km/s"),
+            ("Classical Newtonian Time", newt_note),
+        ]
+        if res["propellant_mass_ratio"]:
+            table.append(("Required Fuel Mass Ratio (m0/mf)", f"{res['propellant_mass_ratio']:.2e}"))
+        print_table("Relativistic Brachistochrone Trajectory", table)
+
+    if args.html:
+        out_p = Path(args.html)
+        generate_astrophysics_html_report(f"Brachistochrone Flight ({args.distance})", {"Trajectory Metrics": res}, out_p)
+        print(f"Interactive HTML report written to: {out_p}")
+
+
+def _handle_dossier(args: argparse.Namespace) -> None:
+    m_str = str(args.mass).strip().lower()
+    m_kg = float(m_str[:-2]) if m_str.endswith("kg") else float(m_str) * EARTH_MASS
+    r_str = str(args.radius).strip().lower()
+    if r_str.endswith("km"):
+        r_m = float(r_str[:-2]) * 1000.0
+    elif r_str.endswith("m"):
+        r_m = float(r_str[:-1])
+    else:
+        r_m = float(r_str) * EARTH_RADIUS
+    l_star = float(args.star_lum) * SOLAR_LUMINOSITY
+    d_au = float(args.distance_au)
+    res = calc_planetary_dossier(
+        mass_kg=m_kg, radius_m=r_m, star_luminosity_watts=l_star,
+        semi_major_axis_au=d_au, planet_type=args.type
+    )
+    if args.json:
+        print(json.dumps(res, indent=2))
+    else:
+        table = [
+            ("Configuration Type", res["planet_type"]),
+            ("Surface Gravity", f"{res['habitability_metrics']['surface_gravity_g']:.3f} g"),
+            ("Surface Temp (Equilibrium)", f"{res['climate_insolation']['surface_temp_c']:.1f} °C"),
+            ("Habitable (Liquid Water)", str(res['climate_insolation']['liquid_water_habitable'])),
+        ]
+        print_table("Star System Dossier Overview", table)
+        if res['scientific_plausibility_warnings']:
+            print("\033[1;33mPlausibility & Drift Warnings:\033[0m")
+            for w in res['scientific_plausibility_warnings']:
+                print(f"  - {w}")
+            print()
+    if args.html:
+        out_p = Path(args.html)
+        generate_dossier_html_report(f"Dossier ({args.type})", res, out_p)
+        print(f"HTML Dossier exported to {out_p}")
+    if args.md:
+        out_p = Path(args.md)
+        generate_dossier_markdown_report(f"Dossier ({args.type})", res, out_p)
+        print(f"Markdown Dossier exported to {out_p}")
+
+
+def _handle_time_dilation(args: argparse.Namespace) -> None:
+    beta_val = args.beta
+    v_val = None
+    if args.velocity:
+        v_str = args.velocity.strip().lower()
+        if v_str.endswith("c"):
+            beta_val = float(v_str[:-1])
+        elif v_str.endswith("km/s"):
+            v_val = float(v_str[:-4]) * 1000.0
+        elif v_str.endswith("m/s"):
+            v_val = float(v_str[:-3])
+        else:
+            v_val = float(v_str)
+    res = calc_time_dilation(
+        v_mps=v_val, beta=beta_val, gamma=args.gamma,
+        grav_mass_kg=args.mass, grav_radius_m=args.radius
+    )
+    if args.json:
+        print(json.dumps(res, indent=2))
+    else:
+        kin = res["kinematic"]
+        table = [
+            ("Velocity", f"{kin['velocity_kms']:,.2f} km/s ({kin['beta']*100:.4f}% c)"),
+            ("Lorentz Factor (γ)", f"{kin['gamma']:.6f}"),
+            ("Ship Time per 1 Earth Day", kin["proper_per_observer_day_formatted"]),
+            ("Time Dilation Lag per Day", kin["lag_per_observer_day_formatted"]),
+        ]
+        if "gravitational" in res:
+            g_info = res["gravitational"]
+            table.extend([
+                ("Gravitational Dilation Factor", f"{g_info['gravitational_dilation_factor']:.6f}"),
+                ("Schwarzschild Radius", f"{g_info['schwarzschild_radius_m']:,.2f} m"),
+            ])
+        print_table("Relativistic Time Dilation", table)
+
+
+def _handle_orbit(args: argparse.Namespace) -> None:
+    r1_m = parse_distance(args.r1)
+    r2_m = parse_distance(args.r2)
+    res = calc_orbital_transfer(primary_body=args.primary, r1_m=r1_m, r2_m=r2_m)
+    if args.json:
+        print(json.dumps(res, indent=2))
+    else:
+        table = [
+            ("Primary Celestial Body", res["primary_body"]),
+            ("Initial Orbit Radius (R1)", f"{res['r1_formatted']} (v={res['v1_kms']:.2f} km/s, T={res['period_r1_formatted']})"),
+            ("Target Orbit Radius (R2)", f"{res['r2_formatted']} (v={res['v2_kms']:.2f} km/s, T={res['period_r2_formatted']})"),
+            ("Transfer Transit Duration", res["transfer_duration_formatted"]),
+            ("Burn 1 Injection Δv", f"{res['delta_v1_kms']:.3f} km/s"),
+            ("Burn 2 Circularization Δv", f"{res['delta_v2_kms']:.3f} km/s"),
+            ("Total Transfer Budget Δv", f"{res['delta_v_total_kms']:.3f} km/s"),
+            ("Synodic Launch Window Period", res["synodic_period_formatted"]),
+        ]
+        print_table("Hohmann Orbital Transfer", table)
+
+
+def _handle_comms(args: argparse.Namespace) -> None:
+    d_m = parse_distance(args.distance)
+    res = calc_comms_delay(d_m)
+    if args.json:
+        print(json.dumps(res, indent=2))
+    else:
+        table = [
+            ("Baseline Distance", res["distance_formatted"]),
+            ("One-Way Signal Delay", res["one_way_formatted"]),
+            ("Round-Trip Ping Latency (RTT)", res["round_trip_formatted"]),
+        ]
+        print_table("Electromagnetic Communication Delay", table)
+
+
+def _handle_habitability(args: argparse.Namespace) -> None:
+    m_str = str(args.mass).strip().lower()
+    m_kg = float(m_str[:-2]) if m_str.endswith("kg") else float(m_str) * EARTH_MASS
+    r_str = str(args.radius).strip().lower()
+    if r_str.endswith("km"):
+        r_m = float(r_str[:-2]) * 1000.0
+    elif r_str.endswith("m"):
+        r_m = float(r_str[:-1])
+    else:
+        r_m = float(r_str) * EARTH_RADIUS
+    l_star = float(args.star_lum) * SOLAR_LUMINOSITY
+    res = calc_habitability_gravity(m_kg, r_m, l_star)
+    if args.json:
+        print(json.dumps(res, indent=2))
+    else:
+        hz = res["habitable_zone_conservative"]
+        table = [
+            ("Surface Gravity", f"{res['surface_gravity_g']:.3f} g ({res['surface_gravity_mps2']:.2f} m/s²)"),
+            ("Escape Velocity", f"{res['escape_velocity_kms']:.2f} km/s"),
+            ("Planet Mass", f"{res['mass_earth_ratio']:.2f} M_Earth"),
+            ("Planet Radius", f"{res['radius_earth_ratio']:.2f} R_Earth"),
+            ("Conservative Habitable Zone", f"{hz['inner_au']:.2f} AU – {hz['outer_au']:.2f} AU"),
+        ]
+        print_table("Planetary Habitability & Gravity Analysis", table)
+
+
+def _handle_roche(args: argparse.Namespace) -> None:
+    r_str = str(args.planet_radius).strip().lower()
+    if r_str.endswith("km"):
+        r_m = float(r_str[:-2]) * 1000.0
+    elif r_str.endswith("m"):
+        r_m = float(r_str[:-1])
+    elif "earth" in r_str:
+        r_m = float(r_str.replace("earth", "").strip() or "1.0") * EARTH_RADIUS
+    elif "jupiter" in r_str:
+        r_m = float(r_str.replace("jupiter", "").strip() or "1.0") * 71492000.0
+    else:
+        r_m = float(r_str) * 1000.0 if float(r_str) < 1000000 else float(r_str)
+    res = calc_roche_limit(
+        planet_radius_m=r_m,
+        density_planet_kgm3=float(args.density_planet),
+        density_moon_kgm3=float(args.density_moon),
+        density_ratio=float(args.density_ratio) if args.density_ratio is not None else None,
+    )
+    if args.json:
+        print(json.dumps(res, indent=2))
+    else:
+        table = [
+            ("Primary Body Radius", f"{res['planet_radius_km']:,.1f} km"),
+            ("Density Ratio (ρ_planet / ρ_moon)", f"{res['density_ratio']:.4f}"),
+            ("Rigid Roche Limit", f"{res['rigid_roche_limit_km']:,.1f} km ({res['rigid_roche_limit_radii']:.2f} R_planet)"),
+            ("Fluid Roche Limit", f"{res['fluid_roche_limit_km']:,.1f} km ({res['fluid_roche_limit_radii']:.2f} R_planet)"),
+            ("Stable Ring Formation Zone", f"{res['ring_formation_zone']['inner_km']:,.1f} km – {res['ring_formation_zone']['outer_km']:,.1f} km"),
+        ]
+        print_table("Planetary Tidal Roche Limits & Ring Boundaries", table)
+    if getattr(args, "html", None):
+        out_p = Path(args.html)
+        generate_astrophysics_html_report(f"Roche Limits ({res['planet_radius_km']} km body)", {"Tidal Boundaries": res}, out_p)
+
+
+def _handle_lagrange(args: argparse.Namespace) -> None:
+    m1_kg = parse_mass(args.m1, default_unit="sun")
+    m2_kg = parse_mass(args.m2, default_unit="earth")
+    dist_m = parse_distance(args.distance)
+    res = calc_lagrange_points(m1_kg=m1_kg, m2_kg=m2_kg, distance_m=dist_m)
+    if args.json:
+        print(json.dumps(res, indent=2))
+    else:
+        table = [
+            ("Primary Mass (M1)", f"{res['primary_mass_kg']:.3e} kg"),
+            ("Secondary Mass (M2)", f"{res['secondary_mass_kg']:.3e} kg"),
+            ("Mass Ratio (M1/M2)", f"{res['mass_ratio']:.2f}"),
+            ("Orbital Distance", f"{res['orbital_distance_au']:.4f} AU ({res['orbital_distance_km']:,.0f} km)"),
+            ("Hill Sphere Radius", f"{res['hill_sphere_radius_km']:,.0f} km ({res['hill_sphere_radius_au']:.6f} AU)"),
+            ("L1 (Inner Collinear)", f"{res['l1']['distance_from_secondary_km']:,.0f} km from secondary — {res['l1']['stability']}"),
+            ("L2 (Outer Collinear)", f"{res['l2']['distance_from_secondary_km']:,.0f} km from secondary — {res['l2']['stability']}"),
+            ("L3 (Counter-Orbit)", f"{res['l3']['distance_from_primary_km']:,.0f} km from primary — {res['l3']['stability']}"),
+            ("L4 (Leading Trojan +60°)", f"{res['l4']['distance_from_primary_km']:,.0f} km — {res['l4']['stability']}"),
+            ("L5 (Trailing Trojan -60°)", f"{res['l5']['distance_from_primary_km']:,.0f} km — {res['l5']['stability']}"),
+        ]
+        print_table("Lagrange Equilibrium Points (L1–L5)", table)
+    if getattr(args, "html", None):
+        out_p = Path(args.html)
+        generate_astrophysics_html_report("Lagrange Points (L1-L5)", {"Equilibrium Metrics": res}, out_p)
+
+
+def _handle_moon_orbit(args: argparse.Namespace) -> None:
+    p_mass = parse_mass(args.planet_mass, default_unit="earth")
+    m_mass = parse_mass(args.moon_mass, default_unit="moon")
+    s_mass = parse_mass(args.star_mass, default_unit="sun")
+    p_dist = parse_distance(args.planet_dist)
+    m_dist = parse_distance(args.moon_dist)
+    p_rad = parse_distance(args.planet_radius) if args.planet_radius else None
+    res = calc_moon_orbital_stability(
+        planet_mass_kg=p_mass,
+        moon_mass_kg=m_mass,
+        star_mass_kg=s_mass,
+        semi_major_axis_planet_m=p_dist,
+        moon_semi_major_axis_m=m_dist,
+        is_retrograde=bool(args.retrograde),
+        planet_radius_m=p_rad,
+        rotation_period_hours=float(args.rotation_period),
+    )
+    if args.json:
+        print(json.dumps(res, indent=2))
+    else:
+        table = [
+            ("Moon Orbit Distance", f"{res['moon_semi_major_axis_km']:,.0f} km"),
+            ("Orbital Period", f"{res['moon_orbital_period_days']:.2f} days"),
+            ("Orbital Velocity", f"{res['moon_orbital_velocity_kms']:.2f} km/s"),
+            ("Planet Hill Sphere", f"{res['hill_sphere_radius_km']:,.0f} km"),
+            ("Max Stable Orbit Boundary", f"{res['max_stable_orbit_radius_km']:,.0f} km ({'Retrograde 0.69 R_Hill' if res['is_retrograde'] else 'Prograde 0.49 R_Hill'})"),
+            ("Synchronous Orbit Radius", f"{res['synchronous_orbit_radius_km']:,.0f} km"),
+            ("Fluid Roche Limit", f"{res['roche_fluid_limit_km']:,.0f} km"),
+            ("Within Hill Sphere", str(res["is_within_hill_sphere"])),
+            ("Long-Term Stable", str(res["is_long_term_stable"])),
+            ("Tidal Evolution Fate", res["tidal_evolution_fate"]),
+        ]
+        print_table("Moon Orbital Stability & Tidal Evolution", table)
+    if getattr(args, "html", None):
+        out_p = Path(args.html)
+        generate_astrophysics_html_report("Moon Orbital Stability", {"Orbital Metrics": res}, out_p)
+
+
+HANDLERS = {
+    "transit": _handle_transit,
+    "dossier": _handle_dossier,
+    "time-dilation": _handle_time_dilation,
+    "orbit": _handle_orbit,
+    "comms": _handle_comms,
+    "habitability": _handle_habitability,
+    "roche": _handle_roche,
+    "lagrange": _handle_lagrange,
+    "moon-orbit": _handle_moon_orbit,
+}
 
 
 def main():
@@ -262,232 +556,42 @@ def main():
     p_dossier.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     add_scope_arguments(p_dossier, include_manuscript=False, include_world=True, target_pos_arg=False)
 
+    # 7. Lagrange Points & Equilibrium
+    p_lagrange = subparsers.add_parser("lagrange", help="Calculate collinear and triangular Lagrange points (L1-L5)")
+    p_lagrange.add_argument("--m1", default="sun", help="Primary body mass (e.g. 'sun', 'earth', '1.989e30 kg')")
+    p_lagrange.add_argument("--m2", default="earth", help="Secondary body mass (e.g. 'earth', 'moon', '5.972e24 kg')")
+    p_lagrange.add_argument("-d", "--distance", default="1.0 AU", help="Orbital separation distance (e.g. '1.0 AU', '384400 km')")
+    p_lagrange.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    p_lagrange.add_argument("--html", help="Path to export interactive HTML report")
+    add_scope_arguments(p_lagrange, include_manuscript=False, include_world=True, target_pos_arg=False)
+
+    # 8. Moon Orbital Stability & Tidal Evolution
+    p_moon = subparsers.add_parser("moon-orbit", help="Calculate moon orbital stability, Hill limits, and tidal evolution")
+    p_moon.add_argument("--planet-mass", default="1.0", help="Planet mass in Earth masses or kg (default: 1.0 Earth)")
+    p_moon.add_argument("--moon-mass", default="1.0 moon", help="Moon mass in Moon/Earth masses or kg (default: '1.0 moon')")
+    p_moon.add_argument("--star-mass", default="1.0", help="Host star mass in Solar masses or kg (default: 1.0 Solar)")
+    p_moon.add_argument("--planet-dist", default="1.0 AU", help="Planet semi-major axis (default: 1.0 AU)")
+    p_moon.add_argument("--moon-dist", default="384400 km", help="Moon orbital semi-major axis (default: 384400 km)")
+    p_moon.add_argument("--planet-radius", default=None, help="Planet physical radius in km or Earth radii")
+    p_moon.add_argument("--rotation-period", type=float, default=24.0, help="Planet rotation period in hours (default: 24.0)")
+    p_moon.add_argument("--retrograde", action="store_true", help="Flag if moon orbit is retrograde")
+    p_moon.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    p_moon.add_argument("--html", help="Path to export interactive HTML report")
+    add_scope_arguments(p_moon, include_manuscript=False, include_world=True, target_pos_arg=False)
+
     args = parser.parse_args()
 
     if not args.subcommand:
         parser.print_help()
         sys.exit(0)
 
+    handler = HANDLERS.get(args.subcommand)
+    if not handler:
+        parser.print_help()
+        sys.exit(0)
+
     try:
-        if args.subcommand == "transit":
-            d_m = parse_distance(args.distance)
-            a_mps2 = parse_acceleration(args.accel)
-            ve = float(args.ve) if args.ve else None
-            res = calc_brachistochrone(d_m, a_mps2, ve)
-
-            if args.json:
-                print(json.dumps(res, indent=2))
-            else:
-                newt_note = res["newtonian_time_formatted"]
-                if res.get("newtonian_peak_velocity_mps", 0) > 299792458:
-                    newt_c = res["newtonian_peak_velocity_mps"] / 299792458.0
-                    newt_note += f" (Unphysical: peak v = {newt_c:.2f}c)"
-                table = [
-                    ("Mission Distance", f"{res['distance_formatted']} ({res['distance_m']:,.0f} m)"),
-                    ("Constant Acceleration", f"{res['acceleration_g']:.3f} g ({res['acceleration_mps2']:.2f} m/s²)"),
-                    ("Ship Proper Time (Crew)", res["proper_time_formatted"]),
-                    ("Coordinate Time (Observer)", res["coordinate_time_formatted"]),
-                    ("Time Dilation Difference", res["time_dilation_lag_formatted"]),
-                    ("Peak Velocity (Turnover)", f"{res['peak_velocity_c_fraction'] * 100:.3f}% c ({res['peak_velocity_mps']/1000:,.1f} km/s)"),
-                    ("Peak Lorentz Factor (γ)", f"{res['peak_gamma']:.4f}"),
-                    ("Effective Total Delta-V", f"{res['effective_deltav_kms']:,.1f} km/s"),
-                    ("Classical Newtonian Time", newt_note),
-                ]
-                if res["propellant_mass_ratio"]:
-                    table.append(("Required Fuel Mass Ratio (m0/mf)", f"{res['propellant_mass_ratio']:.2e}"))
-                print_table("Relativistic Brachistochrone Trajectory", table)
-
-            if args.html:
-                out_p = Path(args.html)
-                generate_astrophysics_html_report(f"Brachistochrone Flight ({args.distance})", {"Trajectory Metrics": res}, out_p)
-                print(f"Interactive HTML report written to: {out_p}")
-
-
-        elif args.subcommand == "dossier":
-            m_str = str(args.mass).strip().lower()
-            m_kg = float(m_str[:-2]) if m_str.endswith("kg") else float(m_str) * EARTH_MASS
-
-            r_str = str(args.radius).strip().lower()
-            if r_str.endswith("km"):
-                r_m = float(r_str[:-2]) * 1000.0
-            elif r_str.endswith("m"):
-                r_m = float(r_str[:-1])
-            else:
-                r_m = float(r_str) * EARTH_RADIUS
-
-            l_star = float(args.star_lum) * SOLAR_LUMINOSITY
-            d_au = float(args.distance_au)
-
-            res = calc_planetary_dossier(
-                mass_kg=m_kg, radius_m=r_m, star_luminosity_watts=l_star,
-                semi_major_axis_au=d_au, planet_type=args.type
-            )
-
-            if args.json:
-                print(json.dumps(res, indent=2))
-            else:
-                table = [
-                    ("Configuration Type", res["planet_type"]),
-                    ("Surface Gravity", f"{res['habitability_metrics']['surface_gravity_g']:.3f} g"),
-                    ("Surface Temp (Equilibrium)", f"{res['climate_insolation']['surface_temp_c']:.1f} °C"),
-                    ("Habitable (Liquid Water)", str(res['climate_insolation']['liquid_water_habitable'])),
-                ]
-                print_table("Star System Dossier Overview", table)
-                if res['scientific_plausibility_warnings']:
-                    print("\033[1;33mPlausibility & Drift Warnings:\033[0m")
-                    for w in res['scientific_plausibility_warnings']:
-                        print(f"  - {w}")
-                    print()
-
-            if args.html:
-                out_p = Path(args.html)
-                generate_dossier_html_report(f"Dossier ({args.type})", res, out_p)
-                print(f"HTML Dossier exported to {out_p}")
-            if args.md:
-                out_p = Path(args.md)
-                generate_dossier_markdown_report(f"Dossier ({args.type})", res, out_p)
-                print(f"Markdown Dossier exported to {out_p}")
-
-        elif args.subcommand == "time-dilation":
-            beta_val = args.beta
-            v_val = None
-            if args.velocity:
-                v_str = args.velocity.strip().lower()
-                if v_str.endswith("c"):
-                    beta_val = float(v_str[:-1])
-                elif v_str.endswith("km/s"):
-                    v_val = float(v_str[:-4]) * 1000.0
-                elif v_str.endswith("m/s"):
-                    v_val = float(v_str[:-3])
-                else:
-                    v_val = float(v_str)
-
-            res = calc_time_dilation(
-                v_mps=v_val,
-                beta=beta_val,
-                gamma=args.gamma,
-                grav_mass_kg=args.mass,
-                grav_radius_m=args.radius
-            )
-
-            if args.json:
-                print(json.dumps(res, indent=2))
-            else:
-                kin = res["kinematic"]
-                table = [
-                    ("Velocity", f"{kin['velocity_kms']:,.2f} km/s ({kin['beta']*100:.4f}% c)"),
-                    ("Lorentz Factor (γ)", f"{kin['gamma']:.6f}"),
-                    ("Ship Time per 1 Earth Day", kin["proper_per_observer_day_formatted"]),
-                    ("Time Dilation Lag per Day", kin["lag_per_observer_day_formatted"]),
-                ]
-                if "gravitational" in res:
-                    g_info = res["gravitational"]
-                    table.extend([
-                        ("Gravitational Dilation Factor", f"{g_info['gravitational_dilation_factor']:.6f}"),
-                        ("Schwarzschild Radius", f"{g_info['schwarzschild_radius_m']:,.2f} m"),
-                    ])
-                print_table("Relativistic Time Dilation", table)
-
-        elif args.subcommand == "orbit":
-            r1_m = parse_distance(args.r1)
-            r2_m = parse_distance(args.r2)
-            res = calc_orbital_transfer(primary_body=args.primary, r1_m=r1_m, r2_m=r2_m)
-
-            if args.json:
-                print(json.dumps(res, indent=2))
-            else:
-                table = [
-                    ("Primary Celestial Body", res["primary_body"]),
-                    ("Initial Orbit Radius (R1)", f"{res['r1_formatted']} (v={res['v1_kms']:.2f} km/s, T={res['period_r1_formatted']})"),
-                    ("Target Orbit Radius (R2)", f"{res['r2_formatted']} (v={res['v2_kms']:.2f} km/s, T={res['period_r2_formatted']})"),
-                    ("Transfer Transit Duration", res["transfer_duration_formatted"]),
-                    ("Burn 1 Injection Δv", f"{res['delta_v1_kms']:.3f} km/s"),
-                    ("Burn 2 Circularization Δv", f"{res['delta_v2_kms']:.3f} km/s"),
-                    ("Total Transfer Budget Δv", f"{res['delta_v_total_kms']:.3f} km/s"),
-                    ("Synodic Launch Window Period", res["synodic_period_formatted"]),
-                ]
-                print_table("Hohmann Orbital Transfer", table)
-
-        elif args.subcommand == "comms":
-            d_m = parse_distance(args.distance)
-            res = calc_comms_delay(d_m)
-            if args.json:
-                print(json.dumps(res, indent=2))
-            else:
-                table = [
-                    ("Baseline Distance", res["distance_formatted"]),
-                    ("One-Way Signal Delay", res["one_way_formatted"]),
-                    ("Round-Trip Ping Latency (RTT)", res["round_trip_formatted"]),
-                ]
-                print_table("Electromagnetic Communication Delay", table)
-
-        elif args.subcommand == "habitability":
-            # parse mass
-            m_str = str(args.mass).strip().lower()
-            m_kg = float(m_str[:-2]) if m_str.endswith("kg") else float(m_str) * EARTH_MASS
-
-            # parse radius
-            r_str = str(args.radius).strip().lower()
-            if r_str.endswith("km"):
-                r_m = float(r_str[:-2]) * 1000.0
-            elif r_str.endswith("m"):
-                r_m = float(r_str[:-1])
-            else:
-                r_m = float(r_str) * EARTH_RADIUS
-
-            l_star = float(args.star_lum) * SOLAR_LUMINOSITY
-            res = calc_habitability_gravity(m_kg, r_m, l_star)
-
-            if args.json:
-                print(json.dumps(res, indent=2))
-            else:
-                hz = res["habitable_zone_conservative"]
-                table = [
-                    ("Surface Gravity", f"{res['surface_gravity_g']:.3f} g ({res['surface_gravity_mps2']:.2f} m/s²)"),
-                    ("Escape Velocity", f"{res['escape_velocity_kms']:.2f} km/s"),
-                    ("Planet Mass", f"{res['mass_earth_ratio']:.2f} M_Earth"),
-                    ("Planet Radius", f"{res['radius_earth_ratio']:.2f} R_Earth"),
-                    ("Conservative Habitable Zone", f"{hz['inner_au']:.2f} AU – {hz['outer_au']:.2f} AU"),
-                ]
-                print_table("Planetary Habitability & Gravity Analysis", table)
-
-        elif args.subcommand == "roche":
-            # parse radius
-            r_str = str(args.planet_radius).strip().lower()
-            if r_str.endswith("km"):
-                r_m = float(r_str[:-2]) * 1000.0
-            elif r_str.endswith("m"):
-                r_m = float(r_str[:-1])
-            elif "earth" in r_str:
-                r_m = float(r_str.replace("earth", "").strip() or "1.0") * EARTH_RADIUS
-            elif "jupiter" in r_str:
-                r_m = float(r_str.replace("jupiter", "").strip() or "1.0") * 71492000.0
-            else:
-                r_m = float(r_str) * 1000.0 if float(r_str) < 1000000 else float(r_str)
-
-            res = calc_roche_limit(
-                planet_radius_m=r_m,
-                density_planet_kgm3=float(args.density_planet),
-                density_moon_kgm3=float(args.density_moon),
-                density_ratio=float(args.density_ratio) if args.density_ratio is not None else None,
-            )
-
-            if args.json:
-                print(json.dumps(res, indent=2))
-            else:
-                table = [
-                    ("Primary Body Radius", f"{res['planet_radius_km']:,.1f} km"),
-                    ("Density Ratio (ρ_planet / ρ_moon)", f"{res['density_ratio']:.4f}"),
-                    ("Rigid Roche Limit", f"{res['rigid_roche_limit_km']:,.1f} km ({res['rigid_roche_limit_radii']:.2f} R_planet)"),
-                    ("Fluid Roche Limit", f"{res['fluid_roche_limit_km']:,.1f} km ({res['fluid_roche_limit_radii']:.2f} R_planet)"),
-                    ("Stable Ring Formation Zone", f"{res['ring_formation_zone']['inner_km']:,.1f} km – {res['ring_formation_zone']['outer_km']:,.1f} km"),
-                ]
-                print_table("Planetary Tidal Roche Limits & Ring Boundaries", table)
-
-            if getattr(args, "html", None):
-                out_p = Path(args.html)
-                generate_astrophysics_html_report(f"Roche Limits ({res['planet_radius_km']} km body)", {"Tidal Boundaries": res}, out_p)
-
+        handler(args)
     except Exception as e:
         print(f"\033[31mError: {e}\033[0m", file=sys.stderr)
         sys.exit(1)
@@ -495,3 +599,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

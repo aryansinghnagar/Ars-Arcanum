@@ -210,7 +210,7 @@ class TestStructureEngine(unittest.TestCase):
         with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
             rc = structure_main([str(self.target_dir), "--paradigm", "three_act", "--html", str(out_html)])
             self.assertEqual(rc, 0)
-            self.assertIn("Story Paradigm Enforcer", mock_out.getvalue())
+            self.assertIn("Story Paradigm Milestone Observer", mock_out.getvalue())
             self.assertTrue(out_html.is_file())
 
         # 2. no target -> return 1

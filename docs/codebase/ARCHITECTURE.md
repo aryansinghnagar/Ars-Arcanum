@@ -39,9 +39,10 @@
 
 | Command | Purpose | Verification Evidence | CI Enforcement Status |
 |---|---|---|---|
-| `python -m unittest discover tests` | Run complete unit and regression test suite (879 tests) | [`tests/test_*.py`](file:///tests/) | **Enforced in CI** ([`.github/workflows/ci.yml#L36`](file:///.github/workflows/ci.yml#L36)) |
+| `python -m unittest discover tests` | Run complete unit and regression test suite (960 tests) | [`tests/test_*.py`](file:///tests/) | **Enforced in CI** ([`.github/workflows/ci.yml#L36`](file:///.github/workflows/ci.yml#L36)) |
+| `python scripts/test_parallel.py` | Run parallel multi-core test suite across CPU workers (~20s execution) | [`scripts/test_parallel.py`](file:///scripts/test_parallel.py) | Local Developer / Fast CI |
 | `ruff check .` | Strict linting across 9 rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | [`pyproject.toml#L15-L35`](file:///pyproject.toml#L15-L35) | **Enforced in CI** ([`.github/workflows/ci.yml#L33`](file:///.github/workflows/ci.yml#L33)) |
-| `mypy --explicit-package-bases scripts tests` | Static type checking with `check_untyped_defs = True` (204 source files) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25) | **Enforced in CI** ([`.github/workflows/ci.yml#L34`](file:///.github/workflows/ci.yml#L34)) |
+| `mypy --explicit-package-bases scripts tests` | Static type checking with `check_untyped_defs = True` (217 source files) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25) | **Enforced in CI** ([`.github/workflows/ci.yml#L34`](file:///.github/workflows/ci.yml#L34)) |
 | `coverage run -m unittest discover tests; coverage report --fail-under=80` | Measure and enforce aggregate test coverage threshold ($\ge 80\%$) | [`pyproject.toml#L35-L45`](file:///pyproject.toml#L35-L45) | **Enforced in CI** ([`.github/workflows/ci.yml#L38`](file:///.github/workflows/ci.yml#L38)) |
 | `bash scripts/verify.sh` | Canonical 7-stage master integration and packaging verification harness | [`scripts/verify.sh#L1-L150`](file:///scripts/verify.sh#L1-L150) | **Enforced in CI** ([`.github/workflows/ci.yml#L39`](file:///.github/workflows/ci.yml#L39)) |
 | `bash scripts/setup_arcanum.sh` | Automated POSIX system installer (packages, fonts, Typst, launchers) | [`scripts/setup_arcanum.sh#L1-L100`](file:///scripts/setup_arcanum.sh#L1-L100) | Local Developer / User Script |
@@ -79,7 +80,7 @@
 │       ├── economy.py         # Macroeconomic PPP validator & tech anachronism auditor
 │       └── [Craft Engines]    # Astrophysics, climate, genealogy, conlang, causality, magic...
 ├── templates/                 # Scaffolding templates for World Bibles, manuscripts, and universes
-└── tests/                     # Comprehensive unittest suite across all 47 engines (879 tests)
+└── tests/                     # Comprehensive unittest suite across all domain engines (960 tests)
 ```
 
 ---

@@ -220,6 +220,20 @@ STRUCTURE_PRESETS: dict[str, dict[str, Any]] = {
             {"label": "Fragment-03", "desc": "Non-chronological narrative segment"},
         ],
     },
+    "none": {
+        "name": "Flat / Single Folder (Unconstrained)",
+        "paradigm_key": "framework_free",
+        "divisions": [
+            {"label": "Chapters", "desc": "Flat unconstrained chapter folder"},
+        ],
+    },
+    "framework_free": {
+        "name": "Framework-Free Flow",
+        "paradigm_key": "framework_free",
+        "divisions": [
+            {"label": "Chapters", "desc": "Flat chapter folder with unconstrained flow"},
+        ],
+    },
 }
 
 

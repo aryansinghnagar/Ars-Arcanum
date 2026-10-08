@@ -10,12 +10,12 @@ Capabilities:
    - scan_manuscript_snapshots(ms_dir): finds chapter .md files and computes line-level diff stats between
      the CURRENT draft and a BACKUP snapshot if available (from Backups/ dir or supplied snapshot_dir)
 2. Churn Analysis:
-   - analyze_revision_churn(chapter_stats): computes churn_ratio per chapter, flags outliers
-   - REV-101: Over-Revised Chapter (churn_ratio > 3x average — rewriting instability)
-   - REV-102: Under-Revised / Pristine Draft (no insertions OR deletions since initial — possibly forgotten)
+   - analyze_revision_churn(chapter_stats): computes churn_ratio per chapter, tracks revision distributions
+   - REV-101: High Revision Activity (churn_ratio > 3x average — descriptive activity telemetry)
+   - REV-102: Pristine Draft (zero line modifications since baseline snapshot)
 3. Heatmap Visualization:
    - generate_revision_heatmap_html(churn_data, output_path): standalone offline CSP-compliant HTML heatmap
-     with chapter-level colored churn bars (green=low, amber=medium, red=high)
+     with chapter-level sequential saturation churn bars
 4. CLI: main(argv) for 'arcanum revision-heatmap [MANUSCRIPT] [--export-html FILE] [--json] [--snapshot-dir DIR]'
 """
 
@@ -409,7 +409,7 @@ def analyze_revision_churn(
     for chapter in stats:
         chapter.flag = ""  # reset
 
-        # REV-101: Over-Revised
+        # REV-101: High Revision Density
         if avg_churn_ratio > 0 and chapter.churn_ratio > over_revised_threshold * avg_churn_ratio:
             chapter.flag = "REV-101"
             findings.append({
@@ -418,9 +418,8 @@ def analyze_revision_churn(
                 "chapter": chapter.chapter,
                 "rel_path": chapter.rel_path,
                 "message": (
-                    f"Over-revised chapter: churn_ratio={chapter.churn_ratio:.3f} is "
-                    f">{over_revised_threshold}x the average ({avg_churn_ratio:.3f}). "
-                    "Consider stabilising this section."
+                    f"High revision density: churn_ratio={chapter.churn_ratio:.3f} is "
+                    f">{over_revised_threshold}x the average ({avg_churn_ratio:.3f})."
                 ),
             })
             continue  # only one flag per chapter
@@ -434,8 +433,7 @@ def analyze_revision_churn(
                 "chapter": chapter.chapter,
                 "rel_path": chapter.rel_path,
                 "message": (
-                    f"Under-revised chapter: zero churn detected against snapshot with "
-                    f"{chapter.word_count} words. This chapter may have been forgotten in revision."
+                    f"Pristine draft: zero line changes detected against snapshot ({chapter.word_count} words)."
                 ),
             })
 

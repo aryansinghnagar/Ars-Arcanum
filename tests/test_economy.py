@@ -275,15 +275,23 @@ commodity_basket:
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 with self.assertRaises(SystemExit) as cm:
                     main()
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(cm.exception.code, 0)
                 self.assertIn("Price Inflation", mock_stdout.getvalue())
                 self.assertTrue(html_target.exists())
 
+        # Test --strict mode exits with code 1 when findings exist
+        with patch.object(sys, "argv", ["economy.py", "check", str(self.world_dir), str(self.ms_dir), "--strict"]):
+            with patch("sys.stdout", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
+
         # 2. tech mode human readable with findings
         with patch.object(sys, "argv", ["economy.py", "tech", str(self.ms_dir), "-w", str(self.world_dir), "--era", "medieval"]):
-            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
-                with self.assertRaises(SystemExit):
+            with patch("sys.stdout", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
                     main()
+                self.assertEqual(cm.exception.code, 0)
 
         # 3. trade mode human readable
         with patch.object(sys, "argv", ["economy.py", "trade", "--buy", "100", "--sell", "200", "--distance", "50"]):
@@ -311,7 +319,7 @@ commodity_basket:
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 with self.assertRaises(SystemExit) as cm:
                     main()
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(cm.exception.code, 0)
                 import json
                 res = json.loads(mock_stdout.getvalue())
                 self.assertEqual(res["world"], self.world_dir.name)
@@ -322,7 +330,7 @@ commodity_basket:
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 with self.assertRaises(SystemExit) as cm:
                     main()
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(cm.exception.code, 0)
                 res = json.loads(mock_stdout.getvalue())
                 self.assertIn("findings", res)
 

@@ -267,9 +267,19 @@ def scan_manuscript_scenes(manuscript_dir: Path, profiles: dict, scope: EngineSc
                     if _get_word_boundary_regex(entity).search(full_text):
                         scene_chars.append(entity)
 
+            # Check for deliberate intent / bypass tag
+            is_deliberate_file = any(
+                line.strip().lower() in ("intent: deliberate", "@intent: deliberate", "@continuity: bypass", "@continuity: allow")
+                for line in lines[:30]
+            )
+            if is_deliberate_file:
+                continue
+
             # Analyze text for trait assertions (sentence-level, CNT-01)
             for line_idx, line in enumerate(lines, 1):
                 if line.startswith(("@", "#")) or not line.strip():
+                    continue
+                if "@intent: deliberate" in line.lower() or "@continuity: allow" in line.lower() or "@continuity: bypass" in line.lower():
                     continue
 
                 for sentence in SENTENCE_SPLIT.split(line):

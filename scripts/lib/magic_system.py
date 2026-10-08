@@ -125,8 +125,9 @@ def extract_magic_profiles(world_dir: Path) -> dict:
                                 if d_name and d_name not in disciplines:
                                     disciplines.append(d_name)
 
-                modality_raw = str(fm.get("metaphysical_modality", fm.get("modality", fm.get("classification", "hard")))).lower().strip()
-                is_soft_magic = any(k in modality_raw or k in str(fm.get("classification", "")).lower() for k in ("soft", "mythic", "wonder", "unbound", "numinous", "surreal", "dream", "symbolic"))
+                is_soft_bool = bool(fm.get("is_soft", False))
+                modality_raw = str(fm.get("metaphysical_modality", fm.get("modality", fm.get("paradigm", fm.get("classification", "hard"))))).lower().strip()
+                is_soft_magic = is_soft_bool or any(k in modality_raw or k in str(fm.get("classification", "")).lower() or k in str(fm.get("paradigm", "")).lower() for k in ("soft", "mythic", "wonder", "unbound", "numinous", "surreal", "dream", "symbolic", "unconstrained"))
                 is_rationalist = any(k in modality_raw or k in str(fm.get("classification", "")).lower() for k in ("rationalist", "scientific", "mathematical", "hardest"))
                 resolved_modality = "soft" if is_soft_magic else ("rationalist" if is_rationalist else "hard")
                 classification_val = str(fm.get("classification", "Soft Magic" if is_soft_magic else ("Rationalist Magic" if is_rationalist else "Hard Magic")))
@@ -639,16 +640,12 @@ def main():
         generate_magic_html_report(audit, out_p)
         print(f"\nInteractive HTML report written to: {out_p}")
 
-    has_blocking = any(f.get("severity") == "WARNING" for f in audit["findings"])
-    is_adv = getattr(args, "advisory", False)
     is_st = getattr(args, "strict", False)
 
-    if is_adv:
-        sys.exit(0)
-    elif is_st:
+    if is_st:
         sys.exit(1 if audit["total_findings"] > 0 else 0)
     else:
-        sys.exit(1 if has_blocking else 0)
+        sys.exit(0)
 
 
 if __name__ == "__main__":

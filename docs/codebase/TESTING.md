@@ -9,14 +9,20 @@
 - Commands:
 
 ```bash
-# Run all automated unit and integration tests (879 tests)
+# Run all automated unit and integration tests (960 tests)
 python -m unittest discover tests
+
+# Run high-performance multi-core parallel test runner (~20s)
+python scripts/test_parallel.py
 
 # Run specific engine test suite
 python -m unittest tests.test_scope
 python -m unittest tests.test_registry
 python -m unittest tests.test_resonance
 python -m unittest tests.test_economy
+python -m unittest tests.test_climate
+python -m unittest tests.test_tactical_sim
+python -m unittest tests.test_epistemic_safety
 python -m unittest tests.test_data_access
 python -m unittest tests.test_frontmatter
 python -m unittest tests.test_docx_sync
@@ -33,7 +39,7 @@ python -m unittest tests.test_backup_pure_python
 # Run coverage report with threshold enforcement
 coverage run -m unittest discover tests; coverage report --fail-under=80
 
-# Run type safety verification (204 source files clean)
+# Run type safety verification (217 source files clean)
 mypy --explicit-package-bases scripts tests
 ```
 
@@ -63,7 +69,7 @@ mypy --explicit-package-bases scripts tests
 ### 5) Coverage and Quality Signals
 
 - Coverage tool + threshold: 80% aggregate coverage enforced in `pyproject.toml` (`fail_under = 80`); 0 test failures or errors permitted.
-- Current reported coverage: 879 tests collected (877 passed, 2 skipped on Windows, 0 failures) with 80%+ aggregate coverage in $\approx 40$ seconds.
+- Current reported coverage: 960 tests collected (958 passed, 2 skipped on Windows, 0 failures) with 80%+ aggregate coverage in $\approx 20$ seconds via parallel runner (`scripts/test_parallel.py`).
 - Known gaps/flaky areas: None. All tests are 100% deterministic and offline.
 
 ### 6) Evidence

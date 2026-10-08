@@ -174,6 +174,56 @@ class TestTacticalSimulator(unittest.TestCase):
         self.assertEqual(mc1["side1_win_rate"], mc2["side1_win_rate"])
         self.assertEqual(mc1["side2_win_rate"], mc2["side2_win_rate"])
 
+    def test_presets_cli_and_simulation(self):
+        """Verify that skirmish presets execute successfully and produce combat results."""
+        from lib.tactical_sim import SKIRMISH_PRESETS
+
+        for preset_name, p_data in SKIRMISH_PRESETS.items():
+            self.assertIn("side1", p_data)
+            self.assertIn("side2", p_data)
+            self.assertIn("terrain", p_data)
+            battle = simulate_single_battle(p_data["side1"], p_data["side2"], terrain=p_data["terrain"], seed=10)
+            self.assertIn(battle["winner"], (0, 1, 2))
+
+            # CLI with preset
+            with patch.object(sys, "argv", ["tactical_sim.py", "sim", "--preset", preset_name, "--json"]):
+                with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                    main()
+                    data = json.loads(mock_stdout.getvalue())
+                    self.assertIn("winner_name", data)
+
+    def test_html_report_generation(self):
+        """Verify HTML reports for both skirmish battles and warfare scenario planning."""
+        from lib.tactical_sim import generate_tactical_sim_html_report
+
+        with tempfile.TemporaryDirectory() as td:
+            # 1. Skirmish HTML
+            battle = simulate_single_battle(DEFAULT_SIDE1, DEFAULT_SIDE2, terrain="open_field")
+            battle_html = Path(td) / "battle.html"
+            generate_tactical_sim_html_report(battle, battle_html)
+            self.assertTrue(battle_html.is_file())
+            b_text = battle_html.read_text(encoding="utf-8")
+            self.assertIn("default-src 'none'", b_text)
+            self.assertIn("Skirmish Victory", b_text)
+
+            # 2. Monte Carlo HTML
+            mc = run_monte_carlo(DEFAULT_SIDE1, DEFAULT_SIDE2, terrain="open_field", runs=10)
+            mc_html = Path(td) / "mc.html"
+            generate_tactical_sim_html_report(mc, mc_html)
+            self.assertTrue(mc_html.is_file())
+            mc_text = mc_html.read_text(encoding="utf-8")
+            self.assertIn("MONTE CARLO PROBABILITY DISTRIBUTION", mc_text)
+
+            # 3. Plan HTML
+            att = {"name": "Legion", "troops": 3000}
+            dfn = {"name": "Rebels", "troops": 1000}
+            plan = plan_warfare_scenario(att, dfn)
+            plan_html = Path(td) / "plan.html"
+            generate_tactical_sim_html_report(plan, plan_html)
+            self.assertTrue(plan_html.is_file())
+            p_text = plan_html.read_text(encoding="utf-8")
+            self.assertIn("Warfare Scenario Analysis", p_text)
+
 
 if __name__ == "__main__":
     unittest.main()

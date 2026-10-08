@@ -42,6 +42,7 @@ try:
         ERA_ORDER,
         TECH_ERA_DICTIONARY,
         TECH_ERAS,
+        TEMPORAL_PREPOSITION_EXCLUSIONS,
         normalize_name,
     )
     from lib.economy_template import generate_economy_html_report
@@ -160,16 +161,6 @@ logger = logging.getLogger("arcanum.economy")
 
 FRONTMATTER_REGEX = re.compile(r"^---\s*\r?\n(.*?)\r?\n---\s*(?:\r?\n|$)", re.DOTALL)
 WIKILINK_REGEX = re.compile(r"\[\[([^\]\|#]+)(?:\|[^\]\]]*)?\]\]")
-
-TEMPORAL_PREPOSITION_EXCLUSIONS = {
-    "moment", "moments", "second", "seconds", "minute", "minutes", "hour", "hours",
-    "day", "days", "week", "weeks", "month", "months", "year", "years", "decade", "decades",
-    "century", "centuries", "while", "instant", "breath", "heartbeat", "heartbeats",
-    "time", "times", "eternity", "period", "spell", "stretch", "season", "seasons",
-    "night", "nights", "morning", "mornings", "afternoon", "evening",
-    "long", "good", "certain", "sure", "life", "ever", "now", "then", "once", "nothing", "free",
-    "example", "instance", "each", "everyone", "someone", "anyone", "all", "us", "them", "him", "her", "me", "you",
-}
 
 __all__ = [
     "ERA_ORDER",
@@ -562,6 +553,7 @@ def main() -> None:
     p_check.add_argument("-m", "--manuscript", help="Manuscript draft directory")
     p_check.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_check.add_argument("--html", help="Path to export standalone HTML report")
+    p_check.add_argument("--strict", action="store_true", help="Fail with exit code 1 if inconsistencies are found")
     add_scope_arguments(p_check, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     p_rep = subparsers.add_parser("report", help="Display full economy and PPP report")
@@ -571,6 +563,7 @@ def main() -> None:
     p_rep.add_argument("-m", "--manuscript", help="Manuscript draft directory")
     p_rep.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_rep.add_argument("--html", help="Path to export standalone HTML report")
+    p_rep.add_argument("--strict", action="store_true", help="Fail with exit code 1 if inconsistencies are found")
     add_scope_arguments(p_rep, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     # 2. tech audit
@@ -580,6 +573,7 @@ def main() -> None:
     p_tech.add_argument("-w", "--world", help="World Bible directory (for tech era detection)")
     p_tech.add_argument("--era", choices=TECH_ERAS, default="medieval", help="Baseline technological era")
     p_tech.add_argument("--json", action="store_true", help="Output machine-readable JSON")
+    p_tech.add_argument("--strict", action="store_true", help="Fail with exit code 1 if anachronisms are found")
     add_scope_arguments(p_tech, include_world=False, include_manuscript=False, target_pos_arg=False)
 
     # 3. trade calculator
@@ -684,7 +678,7 @@ def main() -> None:
             generate_economy_html_report(audit_data, out_p)
             print(f"\nInteractive HTML report written to: {out_p}")
 
-        sys.exit(1 if len(all_findings) > 0 else 0)
+        sys.exit(1 if len(all_findings) > 0 and getattr(args, "strict", False) else 0)
 
     elif args.subcommand == "tech":
         raw_ms = getattr(args, "ms_flag", None) or getattr(args, "manuscript", None)
@@ -719,7 +713,7 @@ def main() -> None:
                     print(f"  Location: {f['file']}:{f['line']}")
                     print(f"  Snippet : \"{f['snippet']}\"\n")
 
-        sys.exit(1 if len(findings) > 0 else 0)
+        sys.exit(1 if len(findings) > 0 and getattr(args, "strict", False) else 0)
 
     elif args.subcommand == "trade":
         result = calc_trade_margin(
