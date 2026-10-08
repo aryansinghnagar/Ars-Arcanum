@@ -488,12 +488,17 @@ def analyze_character_arc_geometry(
         chars = [m.group(1).strip() for m in re.finditer(r"@char:\s*([^\n\r]+)", txt, re.IGNORECASE)]
         if pov and pov not in chars:
             chars.insert(0, pov)
+        arc_tag = ""
+        m_arc_tag = re.search(r"@(arc_stage|arc|beat):\s*([^\n\r]+)", txt, re.IGNORECASE)
+        if m_arc_tag:
+            arc_tag = m_arc_tag.group(2).strip()
         chapter_entries.append({
             "idx": 1,
             "filename": p_target.name,
             "words": words,
             "pov": pov,
             "characters": chars,
+            "arc_tag": arc_tag,
         })
     elif p_target.is_dir():
         if scope:
@@ -520,12 +525,17 @@ def analyze_character_arc_geometry(
                 chars = [m.group(1).strip() for m in re.finditer(r"@char:\s*([^\n\r]+)", txt, re.IGNORECASE)]
                 if pov and pov not in chars:
                     chars.insert(0, pov)
+                arc_tag = ""
+                m_arc_tag = re.search(r"@(arc_stage|arc|beat):\s*([^\n\r]+)", txt, re.IGNORECASE)
+                if m_arc_tag:
+                    arc_tag = m_arc_tag.group(2).strip()
                 chapter_entries.append({
                     "idx": idx,
                     "filename": title,
                     "words": words,
                     "pov": pov,
                     "characters": chars,
+                    "arc_tag": arc_tag,
                 })
         else:
             files: list[Path] = []
@@ -551,12 +561,17 @@ def analyze_character_arc_geometry(
                 chars = [m.group(1).strip() for m in re.finditer(r"@char:\s*([^\n\r]+)", txt, re.IGNORECASE)]
                 if pov and pov not in chars:
                     chars.insert(0, pov)
+                arc_tag = ""
+                m_arc_tag = re.search(r"@(arc_stage|arc|beat):\s*([^\n\r]+)", txt, re.IGNORECASE)
+                if m_arc_tag:
+                    arc_tag = m_arc_tag.group(2).strip()
                 chapter_entries.append({
                     "idx": idx,
                     "filename": f.name,
                     "words": words,
                     "pov": pov,
                     "characters": chars,
+                    "arc_tag": arc_tag,
                 })
 
     # Read Character dossiers if world_path provided or found
@@ -615,13 +630,16 @@ def analyze_character_arc_geometry(
     for c in chapter_entries:
         running_words += c["words"]
         prog_pct = round(running_words / total_words, 3) if total_words > 0 else 0.0
-        # Determine active stage
-        active_stage = "1. Living the Lie"
-        for st in arc_stages:
-            w_min, w_max = st["pct_window"]
-            if w_min <= prog_pct <= w_max:
-                active_stage = st["stage"]
-                break
+        # Determine active stage: check author tag first, otherwise reference window
+        if c.get("arc_tag"):
+            active_stage = f"{c['arc_tag']} [Author-Declared]"
+        else:
+            active_stage = "1. Living the Lie"
+            for st in arc_stages:
+                w_min, w_max = st["pct_window"]
+                if w_min <= prog_pct <= w_max:
+                    active_stage = st["stage"]
+                    break
         c["progress_pct"] = prog_pct
         c["arc_stage"] = active_stage
         annotated_chapters.append(c)
@@ -761,6 +779,11 @@ def main(argv: list[str] | None = None) -> int:
         w_min = int(b["window_pct"][0] * 100)
         w_max = int(b["window_pct"][1] * 100)
         print(f"  {b['beat_name']:<30} | Ref: {int(b['target_pct']*100):>2}% (Win: {w_min:>2}%-{w_max:>2}%) | Ch {b['assigned_chapter']:>2} ({int(b['actual_pct']*100):>2}%) | {status}")
+
+    in_window_count = sum(1 for b in report["beats"] if b.get("is_in_window", False))
+    total_beats = len(report["beats"])
+    print("-" * 75)
+    print(f"Milestone Window Telemetry: [{in_window_count}/{total_beats} beats within chosen lens envelope] (Harmony: {report['harmony_score']}%)")
 
     if args.html:
         out_p = Path(args.html)

@@ -324,20 +324,59 @@ DEFAULT_AUTHORIAL_POLICY: dict[str, Any] = {
     "whitelisted_terms": [],
     "disabled_engines": [],
     "active_tradition": "unconstrained",
-    "structure": {"framework": "none", "score_enabled": False, "mode": "reference"},
-    "magic": {"mode": "unconstrained", "causal_accountability": "optional"},
-    "continuity": {"timeline": "strict", "preserve_poetic_variation": True},
-    "naming": {"collision_heuristics": "advisory", "whitelisted_pairs": []},
+    "canon": {
+        "authority": "author",
+        "narrator_reliability": "reliable",  # "reliable" | "unreliable"
+        "allow_unresolved_mysteries": True,
+    },
+    "style": {
+        "passive_voice": "observe",  # "observe" | "allow"
+        "repetition": "observe",     # "observe" | "allow"
+        "filter_verbs": "observe",   # "observe" | "allow"
+    },
+    "structure": {
+        "framework": "none",
+        "score_enabled": False,
+        "mode": "descriptive",       # "descriptive" | "reference" | "opt_in"
+    },
+    "magic": {
+        "modality": "unconstrained", # "mythic" | "soft" | "rationalist" | "unconstrained"
+        "enforce_thermodynamics": False,
+        "causal_accountability": "optional",
+    },
+    "continuity": {
+        "timeline": "flexible",
+        "preserve_poetic_variation": True,
+        "allow_figurative_language": True,
+    },
+    "naming": {
+        "collision_heuristics": "advisory",
+        "whitelisted_pairs": [],
+    },
+    "diagnostics": {
+        "default_severity": "advisory",
+        "suppressed_rules": [],
+    },
 }
+
+
+def _deep_merge_dict(target: dict[str, Any], source: dict[str, Any]) -> None:
+    """Recursively merges source dict into target dict in-place."""
+    for k, v in source.items():
+        if isinstance(v, dict) and isinstance(target.get(k), dict):
+            _deep_merge_dict(target[k], v)
+        else:
+            target[k] = v
 
 
 def get_authorial_policy() -> dict[str, Any]:
     """Returns configured authorial policy settings dictionary."""
     cfg = load_config()
     pol = cfg.get("authorial_policy", {})
-    res = dict(DEFAULT_AUTHORIAL_POLICY)
+    import copy
+    res = copy.deepcopy(DEFAULT_AUTHORIAL_POLICY)
     if isinstance(pol, dict):
-        res.update(pol)
+        _deep_merge_dict(res, pol)
     return res
 
 
@@ -348,6 +387,79 @@ def set_authorial_policy(policy_data: dict[str, Any]) -> bool:
     current.update(policy_data)
     cfg["authorial_policy"] = current
     return save_config(cfg)
+
+
+def get_authorial_constitution(
+    world_path: str | Path | None = None,
+    manuscript_path: str | Path | None = None,
+) -> dict[str, Any]:
+    """Returns the resolved Authorial Constitution merging global policy with local vault/manuscript declarations."""
+    base = get_authorial_policy()
+    res = dict(base)
+
+    def _merge_dict(target: dict[str, Any], source: dict[str, Any]) -> None:
+        for k, v in source.items():
+            if isinstance(v, dict) and isinstance(target.get(k), dict):
+                _merge_dict(target[k], v)
+            else:
+                target[k] = v
+
+    # Check world-level config or constitution
+    if world_path:
+        w_dir = Path(world_path)
+        for cand in [w_dir / "constitution.json", w_dir / "constitution.yaml", w_dir / "world_config.json"]:
+            if cand.is_file():
+                try:
+                    if cand.suffix == ".json":
+                        with open(cand, encoding="utf-8") as f:
+                            w_data = json.load(f)
+                    else:
+                        try:
+                            from lib.frontmatter import parse_yaml_document
+                            w_data = parse_yaml_document(cand.read_text(encoding="utf-8"))
+                        except ImportError:
+                            from frontmatter import parse_yaml_document
+                            w_data = parse_yaml_document(cand.read_text(encoding="utf-8"))
+                    if isinstance(w_data, dict):
+                        _merge_dict(res, w_data)
+                except Exception as e:
+                    logger.debug("Failed reading constitution at %s: %s", cand, e)
+
+    # Check manuscript-level config or constitution
+    if manuscript_path:
+        m_dir = Path(manuscript_path)
+        for cand in [m_dir / "constitution.json", m_dir / "constitution.yaml", m_dir / "manuscript_config.json"]:
+            if cand.is_file():
+                try:
+                    if cand.suffix == ".json":
+                        with open(cand, encoding="utf-8") as f:
+                            m_data = json.load(f)
+                    else:
+                        try:
+                            from lib.frontmatter import parse_yaml_document
+                            m_data = parse_yaml_document(cand.read_text(encoding="utf-8"))
+                        except ImportError:
+                            from frontmatter import parse_yaml_document
+                            m_data = parse_yaml_document(cand.read_text(encoding="utf-8"))
+                    if isinstance(m_data, dict):
+                        _merge_dict(res, m_data)
+                except Exception as e:
+                    logger.debug("Failed reading constitution at %s: %s", cand, e)
+
+    return res
+
+
+def is_rule_suppressed(rule_id: str, constitution: dict[str, Any] | None = None) -> bool:
+    """Checks whether a diagnostic rule ID is suppressed by the active Authorial Constitution."""
+    if constitution is None:
+        constitution = get_authorial_policy()
+    diag = constitution.get("diagnostics", {})
+    suppressed = set()
+    if isinstance(diag, dict):
+        suppressed.update(str(r).upper().strip() for r in diag.get("suppressed_rules", []))
+    suppressed.update(str(r).upper().strip() for r in constitution.get("suppressed_rules", []))
+    return rule_id.upper().strip() in suppressed
+
 
 
 def get_world_axioms(world_name: str | None = None) -> dict[str, Any]:

@@ -9,6 +9,11 @@ Zero programming or terminal experience is required for daily writing. Everythin
 
 ## 📑 Table of Contents
 1. [The Ars Arcanum Philosophy & Architecture](#1-the-ars-arcanum-philosophy--architecture)
+   - [Core Invariants & Privacy Sovereignty](#core-invariants--privacy-sovereignty)
+   - [The Sovereignty Principle](#the-sovereignty-principle)
+   - [The Three Subsystems](#the-three-subsystems)
+   - [The 6-Tier Diagnostic Severity Taxonomy](#the-6-tier-diagnostic-severity-taxonomy)
+   - [Authorial Constitution & Intent Directives](#authorial-constitution--intent-directives)
 2. [Quick Start: Your First 5 Minutes](#2-quick-start-your-first-5-minutes)
 3. [The Desktop Control Center Tour (6 Studios)](#3-the-desktop-control-center-tour)
    - [Studio 1: Cosmos & Worlds](#studio-1-cosmos--worlds)
@@ -42,7 +47,7 @@ Zero programming or terminal experience is required for daily writing. Everythin
 
 ## 1. The Ars Arcanum Philosophy & Architecture
 
-### Why Ars Arcanum Exists
+### Core Invariants & Privacy Sovereignty
 Most modern writing software locks your words into proprietary database formats, monthly cloud subscriptions, or closed operating systems. If the company changes pricing or shuts down, your work is in jeopardy.
 
 Ars Arcanum is built on **Four Unbreakable Invariants**:
@@ -55,6 +60,56 @@ Ars Arcanum is built on **Four Unbreakable Invariants**:
    - **Calibre**: For graphical ebook inspection and e-reader synchronization.
 3. **Zero Terminal Requirement**: Everything you do on a daily basis is executable with a single click in the graphical desktop app.
 4. **Ironclad 3-2-1 Data Safety**: Automatic background version control, 1-click milestone snapshots, and standalone verified USB backups protect your life's work against hardware failure or accidental deletion.
+
+### The Sovereignty Principle
+> *"Measure everything that helps the author think; prescribe nothing unless the author explicitly asks for a prescription."*
+
+Creative storytelling is inherently fluid, experimental, and subjective. Ars Arcanum operates on a strict **epistemic decoupling**: mathematical models, structural frameworks (like Three-Act Structure, Hero's Journey, or Save the Cat), and stylistic metrics are provided as **descriptive instruments of measurement**, not normative rules. 
+
+The software will never tell you that your story is "wrong" or "broken" simply because it departs from a textbook commercial formula.
+
+### The Three Subsystems
+To protect your creative autonomy, all engines and tools are divided into three separated subsystems:
+1. **Invariant Consistency Engine (Subsystem 1)**: Deterministic file safety, atomic locks, SHA-256 validation, YAML frontmatter syntax errors, broken internal wiki links, and explicit author-declared world rules. *This is the only subsystem that fails builds in strict mode.*
+2. **Selected Craft Lenses (Subsystem 2)**: Modular reference overlays (Three-Act, Hero's Journey, Kishōtenketsu, Gary Provost sentence dispersion, Dwight Swain MRU sequencing, macroeconomics, climate). *Always advisory (`exit 0` by default), phrased as observations, dismissible via directives or configuration.*
+3. **Creative Ideation & Sparks (Subsystem 3)**: Combinatorial analogies, cross-domain resonances, and brainstorming prompts. *Always clearly labeled with `[SPECULATION]`.*
+
+### The 6-Tier Diagnostic Severity Taxonomy
+Findings reported by the diagnostic doctor and craft engines are categorized into six clear severity levels:
+- 🔴 **`CANON_ERROR`** (Severity 5): Hard broken links, corrupt frontmatter, missing mandatory identifiers, duplicate character IDs.
+- 🟠 **`RULE_CONFLICT`** (Severity 4): Violation of a hard rule you explicitly declared in your `constitution.yaml` or `world.yaml`.
+- 🟡 **`OBSERVATION`** (Severity 3): Neutral mathematical or structural telemetry (e.g. sentence length dispersion, faction resource distribution).
+- 🔵 **`LENS_NOTE`** (Severity 2): Comparative feedback against an opt-in craft framework (e.g. Save the Cat beat milestone timing).
+- 🟢 **`SUGGESTION`** (Severity 1): Optional craft spark, sensory enrichment idea, or vocabulary expansion prompt.
+- 🟣 **`EXPERIMENT`** (Severity 0): Speculative lateral thinking prompts and thematic isomorphisms.
+
+### Authorial Constitution & Intent Directives
+You can declare the laws of your story world and customize engine behavior using a simple `constitution.yaml` or `constitution.json` file in your world or manuscript folder:
+
+```yaml
+# constitution.yaml
+active_lenses:
+  - three_act_structure
+  - gary_provost_pacing
+  - sanderson_magic_laws
+
+suppressed_rules:
+  - PAC-101   # Don't warn about uniform sentence length in stream-of-consciousness scenes
+  - FAC-102   # Don't warn about 2-faction zero-sum conflicts in Book 1
+
+hard_invariants:
+  - "Faster-than-light travel is strictly impossible in the Orion sector"
+  - "Resurrection magic requires an equal thermodynamic life sacrifice"
+
+custom_weights:
+  pacing_variance_threshold: 0.15
+```
+
+#### In-Document Intent Directives
+You can also dismiss specific craft observations directly in your prose frontmatter or markdown comments:
+- `@intent: deliberate` — Instructs the pacing and stylistics engines that an atypical sentence pattern or repetition is intentional.
+- `@intent: non-linear` — Informs timeline and causality engines that chronological jumps or memory discourse are deliberate narrative devices.
+- `@arc: <type>` / `@arc-stage: <stage>` / `@beat: <name>` — Explicitly tags a chapter with your chosen craft milestone (e.g. `@beat: Midpoint`, `@arc-stage: Ordeal`).
 
 ```
 ~/Universes/<UniverseName>/

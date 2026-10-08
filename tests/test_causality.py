@@ -368,14 +368,20 @@ start_year: 1050
                 data = json.loads(mock_out.getvalue())
                 self.assertEqual(data["events_count"], 2)
 
-        # 4. check with finding -> exit 1
+        # 4. check with finding -> exit 0 in advisory mode, exit 1 with --strict
         self._write(self.ms_dir, "bad-loop.md", "@timeline: prime\n@causal-origin: non-existent\n")
         with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
             with patch("sys.argv", ["causality.py", "-w", str(self.world_dir), "-m", str(self.ms_dir)]):
                 with self.assertRaises(SystemExit) as cm:
                     main()
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(cm.exception.code, 0)
                 self.assertIn("CAU-105", mock_out.getvalue())
+
+        with patch("sys.stdout", new_callable=io.StringIO):
+            with patch("sys.argv", ["causality.py", "-w", str(self.world_dir), "-m", str(self.ms_dir), "--strict"]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
 
         # 5. missing targets error -> exit 2
         with patch("sys.stderr", new_callable=io.StringIO), patch("sys.argv", ["causality.py", "check"]):

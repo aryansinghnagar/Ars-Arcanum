@@ -101,44 +101,45 @@ $$\text{Fog} = 0.4 \left[ \left(\frac{W}{S}\right) + 100 \left(\frac{W_{\text{co
 #### 4. Coleman-Liau Index (CLI):
 $$\text{CLI} = 0.0588 \left(\frac{C}{W} \times 100\right) - 0.296 \left(\frac{S}{W} \times 100\right) - 15.8$$
 
-### 3.2 Lexical Echo Detection via Distance Decay
+### 3.2 Lexical Echo Telemetry & Repetition Tracking
+> **Craft Tradeoff Note**: Unintentional word repetition can create auditory monotony, but intentional repetition is a fundamental rhetorical tool (anaphora, epistrophe, refrain, liturgical rhythm). The metric below tracks proximity for authorial review, not automatic penalty.
+
 For a root word stem $w$ occurring at token indices $i$ and $j$ ($i < j$):
 
 $$\Delta_{\text{distance}} = j - i \quad [\text{words}]$$
 
-The Echo Penalty $\mathcal{E}(w)$ decays exponentially over reading distance:
+The Proximity Index $\mathcal{P}(w)$ models lexical recurrence over reading distance:
 
-$$\mathcal{E}(w) = \Omega(w) \cdot e^{-\lambda \cdot \Delta_{\text{distance}}}$$
+$$\mathcal{P}(w) = \Omega(w) \cdot e^{-\lambda \cdot \Delta_{\text{distance}}}$$
 
 Where:
-- $\Omega(w) \in [1.0, 5.0]$: The lexical distinctiveness weight of the word (common words like *door* or *sword* have $\Omega = 1.0$; rare words like *scintillating* or *labyrinthine* have $\Omega = 5.0$).
-- $\lambda = 0.015$: Decay constant calibrated so that an echo within 30 words generates a severe flag, while echoes beyond 200 words decay to near zero.
+- $\Omega(w) \in [1.0, 5.0]$: The lexical distinctiveness weight of the word (common baseline words like *door* or *sword* have $\Omega = 1.0$; distinctive signature words like *scintillating* or *labyrinthine* have $\Omega = 5.0$).
+- $\lambda = 0.015$: Observational decay parameter measuring clustering within ~50–100 words.
 
 ### 3.3 Stylistic Density Index (SDI)
-The concentration of intentional rhetorical devices per thousand words:
+The concentration of identified rhetorical schemes and tropes per thousand words:
 
 $$\text{SDI} = \frac{N_{\text{schemes}} + N_{\text{tropes}}}{W_{\text{total}} / 1000}$$
 
 - **Baroque / Highly Stylized**: $\text{SDI} > 8.0$.
-- **Balanced Literary Speculative**: $3.5 \le \text{SDI} \le 7.9$.
-- **Flat / Utilitarian Prose**: $\text{SDI} < 2.0$.
+- **Balanced Speculative Prose**: $3.5 \le \text{SDI} \le 7.9$.
+- **Direct / Utilitarian Narration**: $\text{SDI} < 2.0$.
 
 ---
 
-## 4. Author Self-Editing Rubric & Line-Editing Checklist
+## 4. Author Self-Editing Rubric & Stylistic Tradeoffs
+> **Craft Lineage Notice**: The following observations reflect popular commercial line-editing standards (e.g., Strunk & White, Noah Lukeman, Rudolf Flesch). While effective for commercial clarity, literary prose routinely uses passive voice, perceptual framing, and deliberate repetition for powerful aesthetic effects.
 
-When revising a drafted manuscript for style and prose mechanics, audit your work against this checklist:
-
-| Stylistic Diagnostic | Flaw & Symptom | Self-Editing Remediating Action |
+| Stylistic Lens | Textual Pattern & Aesthetic Function | Optional Authorial Exploration |
 |---|---|---|
-| **Cognitive Filter Verbs** | Excessive occurrences of *saw, heard, felt, realized, noticed, wondered* ($> 12$ per 1000 words). | Delete the filter; describe the sensory phenomenon directly as objective narrative reality. |
-| **Lexical Echoes** | Distinctive, unusual nouns or verbs repeated within a tight 50-word span. | Replace the duplicate term with an accurate synonym, or restructure the sentence to eliminate the repetition. |
-| **Passive Voice Bloat** | Sentences where the grammatical subject is acted upon rather than acting ($> 8\%$ of clauses). | Recast into active voice with clear agent subjects (*"The gate was breached by the orcs"* $\to$ *"The orcs breached the gate"*). |
-| **Said-Bookisms** | Melodramatic dialogue attribution tags (*"hissed, groaned, opined, ejaculated"*). | Replace with the transparent tag *"said"*, or replace the tag entirely with a physical action beat. |
-| **Dialogue Tag Adverbs** | Modifying dialogue tags with redundant adverbs (*"said angrily, whispered quietly"*). | Delete the adverb; convey emotional subtext through character word choice, punctuation, and physical gestures. |
-| **Weak Verb Clusters** | Sentences dominated by forms of *to be* and static state verbs (*was, were, have, had* $> 40\%$). | Substitute static verbs with sensory, kinetic action verbs. |
-| **Cliché Sensory Shorthand** | Trite, automated figurative expressions (*"white as a sheet, crystal clear, cold as ice"*). | Apply Shklovskian defamiliarization to craft original metaphors grounded in your world's lore. |
-| **Rhetorical Cadence Mismatch** | Using sluggish polysyndeton during high-velocity action scenes or choppy asyndeton during contemplative moments. | Match sentence syntax to scene pacing: asyndeton accelerates kinetics; polysyndeton builds solemn, cumulative weight. |
+| **Perceptual Framing (Filter Verbs)** | Use of *saw, heard, felt, realized* ($> 12 / 1000$ words). Effective for emphasizing subjective isolation or sensory uncertainty. | To achieve immediate, visceral immersion: try deleting the filter and stating the sensory stimulus directly. |
+| **Lexical Recurrence** | Distinctive vocabulary repeated within a tight word window. Intentional for motifs and rhythmic refrain. | If unintended: explore synonyms or sentence restructuring to reduce accidental echoes. |
+| **Passive Construction** | Subject is acted upon ($> 8\%$ of clauses). Powerful for bureaucratic detachment, obfuscation, or victim perspective. | For dynamic kinetic set-pieces: recast with active subjects exerting physical agency. |
+| **Attribution Phrasing (Said-Bookisms)** | Highly expressive dialogue tags (*hissed, groaned, declared*). Common in stylized pulp and theatrical drama. | In contemporary commercial fiction: consider simple *"said"* or physical action beats to let dialogue carry emotion. |
+| **Adverbial Attributions** | Modifying dialogue verbs with adverbs (*said angrily, murmured softly*). | Experiment with character diction, punctuation, and physical gestures to convey subtext without adverbs. |
+| **Stative Verb Clusters** | Sentences built on *was, were, seemed* ($> 40\%$). Ideal for dreamlike, melancholic, or contemplative atmosphere. | To heighten immediacy in action scenes: try substituting stative verbs with sensory kinetic action verbs. |
+| **Familiar Metaphors** | Conventional figurative expressions (*white as a sheet, clear as day*). | Consider defamiliarization grounded in your specific worldbuilding and sensory ecology. |
+| **Rhetorical Cadence** | Matching sentence syntax (asyndeton vs polysyndeton) to dramatic intent. | Use asyndeton to accelerate action beats; use polysyndeton to build solemn, ceremonial weight. |
 
 ---
 

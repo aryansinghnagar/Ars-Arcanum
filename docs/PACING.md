@@ -80,7 +80,8 @@ Psychologist Bluma Zeigarnik established that human memory prioritizes interrupt
 
 ---
 
-## 3. Mathematical & Stylostatistical Formulations
+## 3. Stylostatistical Telemetry & Reference Lenses
+> **Craft Lineage Notice**: The models below draw on Gary Provost's syntactic waveform principles (*100 Ways to Improve Your Writing*, 1985) and modern commercial craft pacing theory (e.g., James Scott Bell, Larry Brooks). They are descriptive craft lenses intended to provide visibility into rhythm and tempo—never algorithmic constraints on literary voice.
 
 ```mermaid
 xychart-beta
@@ -90,34 +91,36 @@ xychart-beta
     line [5, 4, 18, 14, 3, 32, 12, 6, 2, 24, 15, 4]
 ```
 
-### 3.1 Narrative Velocity Metric ($V$)
-The global narrative velocity across a chapter or sequence is defined as the rate of state-altering dramatic events per thousand words:
+### 3.1 Event Density Metric ($D_E$)
+Event density provides an advisory measure of dramatic frequency per thousand words across a chapter or sequence:
 
-$$V = \frac{\Delta \mathcal{E}}{W / 1000} = \frac{\sum_{i=1}^M \omega_i \cdot \delta_i}{W / 1000}$$
+$$D_E = \frac{\Delta \mathcal{E}}{W / 1000} = \frac{\sum_{i=1}^M \omega_i \cdot \delta_i}{W / 1000}$$
 
 Where:
 - $\delta_i \in \{0, 1\}$: Occurrence of dramatic event $i$ (secret revealed, character killed, goal failed, alliance broken).
 - $\omega_i \in [1.0, 3.0]$: Dramatic magnitude weight of the event.
 - $W$: Total word count of the section.
 
-- **Fast Velocity ($V \ge 4.0$)**: Thriller, climax, escape sequence.
-- **Moderate Velocity ($1.5 \le V \le 3.9$)**: Standard commercial fantasy/sci-fi worldbuilding and investigation.
-- **Glacial / Contemplative ($V < 1.0$)**: Character study, pastoral slice-of-life, heavy philosophical digression.
+**Advisory Reference Ranges**:
+- **High Density ($D_E \ge 4.0$)**: Kinetic set-pieces, thrillers, climactic sequences.
+- **Moderate Density ($1.5 \le D_E \le 3.9$)**: Standard narrative progression and world discovery.
+- **Contemplative Density ($D_E < 1.0$)**: Character reflection, pastoral slice-of-life, atmospheric mood-setting, or philosophical depth.
 
-### 3.2 Provost Rhythm Variance & Dispersion ($\sigma^2, \sigma$)
+### 3.2 Sentence-Length Dispersion & Provost Variance ($\sigma_L$)
 For a sentence sequence $L = [L_1, L_2, \dots, L_N]$:
 
 $$\mu_L = \frac{1}{N} \sum_{i=1}^N L_i, \qquad \sigma_L = \sqrt{\frac{1}{N} \sum_{i=1}^N (L_i - \mu_L)^2}$$
 
-$$\text{Rhythm Health Index } \mathcal{R} = \min\left(100.0, \, \frac{\sigma_L}{\sigma_{\text{target}}} \times 100.0\right) \quad (\sigma_{\text{target}} \approx 7.5\text{ words})$$
+- **High Variance ($\sigma_L \ge 7.0$)**: Dynamic Provost waveforms alternating between staccato punchlines and flowing periodic sentences.
+- **Uniform Length ($\sigma_L < 3.5$)**: Useful for stylized hypnotic effects, liturgical chant, deadpan narration, or bureaucratic monotone; can be varied if dynamic tempo is desired.
 
-### 3.3 Quad-Mode Prose Distribution Vector ($\vec{Q}$)
-Every sentence in a drafted scene falls into one of four fundamental narrative modes:
+### 3.3 Quad-Mode Prose Balance ($\vec{Q}$)
+Every sentence in a drafted scene falls into one of four narrative modes:
 $$\vec{Q} = \left[ \frac{W_{\text{Dialogue}}}{W_{\text{total}}}, \, \frac{W_{\text{Action}}}{W_{\text{total}}}, \, \frac{W_{\text{Monologue}}}{W_{\text{total}}}, \, \frac{W_{\text{Exposition}}}{W_{\text{total}}} \right]$$
 
 $$\sum Q_i = 1.0$$
 
-| Target Scenario | Ideal Quad-Mode Profile $[D, A, M, E]$ |
+| Target Scenario | Reference Scenario Envelopes $[D, A, M, E]$ |
 |---|---|
 | **Urban Fantasy Set-Piece** | $[0.35, 0.45, 0.10, 0.10]$ |
 | **Hard Sci-Fi Investigation** | $[0.30, 0.20, 0.25, 0.25]$ |
@@ -128,16 +131,16 @@ $$\sum Q_i = 1.0$$
 
 ## 4. Author Self-Editing Rubric & Diagnostic Checklist
 
-When revising a manuscript for pacing, evaluate your draft against this diagnostic rubric:
+When reviewing a manuscript for pacing and rhythm, compare your draft against these craft observations:
 
-| Pacing Diagnostic | Symptom & Cause | Self-Editing Remediating Action |
+| Pacing Observation | Textual Pattern | Optional Authorial Exploration |
 |---|---|---|
-| **Monotonous Cadence** | Sentences hover at similar lengths ($\sigma_L \le 3.2$), causing auditory trance. | Deliberately vary sentence lengths: shatter compound clauses into 1–4 word staccato lines; build toward 25+ word cumulative rhythmic periods. |
-| **Exposition Drag** | $> 450$ words of uninterrupted background lore or technical worldbuilding. | Weave lore into live dialogue, immediate tactile obstacles, or visceral sensory reactions during high-stakes actions. |
-| **Flatline Velocity** | Long scene spans where no new dramatic information or character choices emerge ($V < 0.8$). | Introduce an active impediment, reveal a concealed motivation, or ratchet the ticking clock. |
-| **Missing Zeigarnik Hook** | Chapter ends neatly with characters going to sleep or resting with no open loops. | Conclude on an unresolved sensory shock, an ambiguous discovery, or an irreversible tactical ultimatum. |
-| **Stilted Stakes in Dialogue** | High-conflict confrontation rendered mostly in dry third-person exposition ($R_{\text{de}} < 0.25$). | Shift the conflict into sharp, subtext-laden spoken dialogue with conflicting conversational agendas. |
-| **Syllabic Sluggishness** | Action scene bogged down with heavy Latinate vocabulary ($> 28\%$ polysyllabic terms). | Replace abstract Latinate phrasing (*extinguish, terminate, accelerate*) with punchy Anglo-Saxon verbs (*snuff, strike, bolt*). |
+| **Cadence Uniformity** | Sentences hover at similar lengths ($\sigma_L \le 3.2$). | If dynamic rhythm is desired: experiment with 1–4 word punchy lines interspersed with 25+ word rhythmic periods. |
+| **Lore Concentration** | $> 450$ words of uninterrupted background lore or technical worldbuilding. | Consider dramatizing lore through live dialogue, immediate obstacles, or tactile character interaction. |
+| **Low Event Frequency** | Long scene spans where few external state changes occur ($D_E < 0.8$). | Intentional for atmospheric/reflective scenes; for kinetic momentum, consider introducing an active impediment or ticking clock. |
+| **Closed Chapter State** | Chapter concludes with all immediate tensions resolved. | If episodic forward pull is desired, experiment with an unresolved question, sensory shock, or impending decision. |
+| **Expository Conflict** | Confrontation described in high-level summary rather than in-scene interaction. | Shift high-stakes conflict into subtext-laden dialogue or visceral kinetic beats. |
+| **Latinate Density** | High density of abstract multi-syllable terms ($> 28\%$) in fast-paced action. | Consider punchy Germanic/Anglo-Saxon active verbs (*snuff, strike, bolt*) for physical immediacy. |
 
 ---
 

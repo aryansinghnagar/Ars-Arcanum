@@ -211,9 +211,10 @@ def run_preflight_linter(manuscript_dir: Path, scope: EngineScope | None = None)
     fail_count = sum(1 for i in all_issues if i["level"] == "FAIL")
     warn_count = sum(1 for i in all_issues if i["level"] == "WARN")
 
-    # Preflight score: 100 - (fails * 20) - (warns * 5)
-    score = max(0, min(100, 100 - (fail_count * 20) - (warn_count * 5)))
+    # Export Readiness Evaluation
     is_ready = (fail_count == 0 and total_words >= 100)
+    score = max(0, min(100, 100 - (fail_count * 20) - (warn_count * 5)))
+    readiness_status = "READY" if is_ready else "REVIEW_RECOMMENDED"
 
     return {
         "target": str(manuscript_dir),
@@ -221,6 +222,7 @@ def run_preflight_linter(manuscript_dir: Path, scope: EngineScope | None = None)
         "estimated_pages": est_pages,
         "chapter_count": len(content_files),
         "is_ready_for_publish": is_ready,
+        "readiness_status": readiness_status,
         "compliance_score": score,
         "fail_count": fail_count,
         "warn_count": warn_count,
@@ -341,7 +343,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"=== Pre-Flight Typesetting Linter & Export Coverage: {target_path.name} ===")
     print(f"Total Words: {report['total_words']:,} | Est. Trade Pages: ~{report['estimated_pages']} | Chapters: {report['chapter_count']}")
-    print(f"Issues: {report['fail_count']} blocking failures, {report['warn_count']} advisory notices")
+    print(f"Readiness Status: [{'READY FOR EXPORT' if report['is_ready_for_publish'] else 'REVIEW RECOMMENDED'}] | Issues: {report['fail_count']} blocking failures, {report['warn_count']} advisory notices")
     print("-" * 75)
     if not report["issues"]:
         print("✓ All checks passed cleanly!")

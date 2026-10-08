@@ -299,7 +299,7 @@ def audit_causality(events: dict, timelines: dict) -> list:
         if len(tinfo["events"]) == 0:
             findings.append({
                 "id": "CAU-104",
-                "severity": "WARNING",
+                "severity": "OBSERVATION",
                 "message": f"Orphan Timeline Branch: Timeline '{tid}' has no associated scene events.",
                 "timeline": tid,
                 "file": "manuscript",
@@ -332,8 +332,8 @@ def audit_causality(events: dict, timelines: dict) -> list:
             if tgt_yr is not None and src_yr > tgt_yr:
                 findings.append({
                     "id": "CAU-106",
-                    "severity": "WARNING",
-                    "message": f"Temporal Inversion: Cause '{src_id}' (Coord: {src_ev['time_coord']}) occurs chronologically after effect '{tgt_id}' (Coord: {tgt_ev['time_coord']}) on timeline '{src_ev['timeline']}' without time-travel tag.",
+                    "severity": "OBSERVATION",
+                    "message": f"Non-Linear Discourse / Temporal Inversion: Event '{src_id}' (Coord: {src_ev['time_coord']}) is sequenced chronologically after '{tgt_id}' (Coord: {tgt_ev['time_coord']}) on timeline '{src_ev['timeline']}' (narrative flashback or mystery revelation).",
                     "file": src_ev["file"],
                 })
 
@@ -443,6 +443,7 @@ def main():
     p_check.add_argument("manuscript_pos", nargs="?", help="Manuscript draft directory")
     p_check.add_argument("-w", "--world", dest="world_flag", help="World Bible lore directory")
     p_check.add_argument("-m", "--manuscript", help="Manuscript draft directory")
+    p_check.add_argument("--strict", action="store_true", help="Fail with non-zero exit code if issues are found")
     p_check.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_check.add_argument("--html", help="Path to export standalone HTML report")
     p_check.add_argument("--write-note", help="Export Mermaid.js DAG note")
@@ -453,6 +454,7 @@ def main():
     p_dag.add_argument("manuscript_pos", nargs="?", help="Manuscript draft directory")
     p_dag.add_argument("-w", "--world", dest="world_flag", help="World Bible lore directory")
     p_dag.add_argument("-m", "--manuscript", help="Manuscript draft directory")
+    p_dag.add_argument("--strict", action="store_true", help="Fail with non-zero exit code if issues are found")
     p_dag.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_dag.add_argument("--html", help="Path to export standalone HTML report")
     p_dag.add_argument("--write-note", help="Export Mermaid.js DAG note")
@@ -542,7 +544,7 @@ def main():
             generate_causality_html_report(audit_data, out_p)
             print(f"\nInteractive HTML report written to: {out_p}")
 
-        sys.exit(1 if len(findings) > 0 else 0)
+        sys.exit(1 if len(findings) > 0 and getattr(args, "strict", False) else 0)
 
     elif args.subcommand == "branch":
         branch_id = normalize_id(args.name)

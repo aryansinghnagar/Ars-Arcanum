@@ -262,7 +262,7 @@ signed_diplomatic_matrix:
 ## 8. CLI Reference & Scriptorium Integration
 
 ```bash
-# Audit institutional stability and selectorate vulnerability
+# Audit institutional stability and selectorate vulnerability (exit 0 advisory default)
 arcanum faction --audit World/Factions/imperium.yaml
 
 # Check structural balance across all international alliance triads
@@ -270,7 +270,18 @@ arcanum politics --balance World/Factions/diplomacy.yaml
 
 # Run game-theoretic payoff matrix simulation for factional dispute
 arcanum faction --simulate-game stag_hunt --factions duchy_north duchy_east
+
+# Run in strict mode (fails with exit code 1 if hard conflicts are detected)
+arcanum faction --audit World/Factions/imperium.yaml --strict
 ```
+
+### Diagnostic Telemetry & Severity Classification
+Findings from the Factions engine are classified under Subsystem 2 (Advisory Craft Lenses):
+- `FAC-101` (`[OBSERVATION]`): High schism vulnerability detected in charismatic faction without institutionalized succession.
+- `FAC-102` (`[OBSERVATION]`): Bipolar structural imbalance or unstable alliance triad detected.
+- `FAC-103` (`[OBSERVATION]`): Selectorate loyalty ratio indicates extreme vulnerability to defection.
+
+*Note: All `FAC-*` findings are advisory by default (`exit 0`) and can be suppressed via `suppressed_rules: [FAC-101, FAC-102]` in `constitution.yaml`.*
 
 ---
 

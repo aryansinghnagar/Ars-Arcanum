@@ -655,6 +655,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("world_dir", nargs="?", help="World Lore Vault directory")
     parser.add_argument("-m", "--manuscript", help="Manuscript directory for cross-validation")
+    parser.add_argument("--strict", action="store_true", help="Fail with non-zero exit code on advisory lore findings")
     parser.add_argument("--fast", action="store_true", help="Accelerate scans using mtime-keyed in-memory caching")
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON output")
     add_scope_arguments(parser, include_world=False, include_manuscript=False, target_pos_arg=False)
@@ -692,12 +693,18 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(format_report_text(findings))
 
-    has_findings = any([
+    has_hard_errors = bool(findings.get("frontmatter_parse_errors"))
+    has_lore_findings = any([
         findings["broken_links"], findings["dangling_frontmatter_refs"], findings["orphans"],
-        findings["duplicate_identities"], findings["frontmatter_parse_errors"],
-        findings["missing_required_fields"], findings["timeline_errors"], findings["manuscript_name_drift"],
+        findings["duplicate_identities"], findings["missing_required_fields"],
+        findings["timeline_errors"], findings["manuscript_name_drift"],
     ])
-    return 1 if has_findings else 0
+
+    if has_hard_errors:
+        return 1
+    if has_lore_findings and getattr(args, "strict", False):
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

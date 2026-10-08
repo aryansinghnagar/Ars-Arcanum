@@ -11,11 +11,31 @@
 - **Creative Assets & Human Authorship:** All narrative templates, worldbuilding taxonomies, story paradigm structures, and world lore schemas within this repository are human-curated creative frameworks authored under CC BY-SA 4.0.
 - **Codebase Development:** Implementation, refactoring, and test harnesses across Ars Arcanum were engineered using modern AI-assisted development environments (including GitHub Copilot and Google DeepMind agentic coding workflows) and verified against automated Python and shell test suites.
 - **Open-Source & Creative Commons Compliance:** All integrated software tools, fonts, libraries, and plugins are licensed under verified Free and Open Source Software (FOSS) or Creative Commons licenses allowing personal and commercial creative authoring.
-- **Creator Credits:** This document provides comprehensive credit, upstream repository links, and licensing information for all upstream tools and resources utilized across the Ars Arcanum platform.
+- **Creator Credits:** This document provides comprehensive credit, upstream repository links, and licensing information for all upstream tools, resources, and craft methodologies utilized across the Ars Arcanum platform.
 
 ---
 
-## 2. Typography & Fonts
+## 2. Narrative & Scientific Craft Lineage
+
+Ars Arcanum integrates established craft traditions, narrative frameworks, and scientific models as descriptive analytical lenses:
+
+| Craft Lens / Scientific Model | Originator & Landmark Work | Era / Lineage | Application in Ars Arcanum |
+| :--- | :--- | :--- | :--- |
+| **Motivation-Reaction Units (MRU)** | Dwight V. Swain (*Techniques of the Selling Writer*) | 1965 (Commercial Fiction) | `scripts/lib/scene_mechanics.py` — Cause-and-effect stimulus/reaction sequencing lens. |
+| **Sentence-Length Cadence & Dispersion** | Gary Provost (*100 Ways to Improve Your Writing*) | 1985 (Stylistics & Craft) | `scripts/lib/pacing.py` — Standard deviation and harmonic variance of sentence lengths. |
+| **Three-Act Paradigm Structure** | Syd Field (*Screenplay*) | 1979 (Dramatic Structure) | `scripts/lib/structure.py` — 25%/50%/75% plot turning point telemetry. |
+| **The Hero's Journey (Monomyth)** | Joseph Campbell (1949) / Christopher Vogler (1992) | 1949 / 1992 (Mythic Structure) | `scripts/lib/structure.py` — 12-stage mythic progression overlay. |
+| **15-Beat Structural Beat Sheet** | Blake Snyder (*Save the Cat!*) | 2005 (Commercial Plotting) | `scripts/lib/structure.py` — Target beat percentage distribution lens. |
+| **Laws of Arcane Systems** | Brandon Sanderson (*Sanderson's Laws of Magic*) | 2007–2012 (Speculative Fiction) | `scripts/lib/magic_system.py` — Cost, limitation, and thermodynamic consistency auditing. |
+| **Tactical Attrition Dynamics** | Frederick W. Lanchester (*Aircraft in Warfare*) | 1916 (Military Operations Research) | `scripts/lib/tactical_sim.py` — Linear and square law force combat modeling. |
+| **Planetary Biome Classification** | Wladimir Köppen & Rudolf Geiger | 1884 / 1936 (Climatology) | `scripts/lib/climate.py` — Insolation, temperature, and precipitation biome mapping. |
+| **Macroeconomic Equation of Exchange** | Irving Fisher (*The Purchasing Power of Money*) | 1911 (Monetary Economics) | `scripts/lib/economy.py` — Price level, money supply, and currency debasement simulations. |
+| **Self-Consistency in Causal Loops** | Igor Dmitriyevich Novikov | 1990 (Theoretical Physics) | `scripts/lib/causality.py` — Closed timelike curve and temporal paradox verification. |
+| **Historical Sound Shift Laws** | Jacob Grimm (1822) & Karl Verner (1877) | 19th Century (Comparative Linguistics) | `scripts/lib/conlang.py` — Systematic phonetic sound changes across conlang dialects. |
+
+---
+
+## 3. Typography & Fonts
 
 All recommended typefaces are licensed under the [SIL Open Font License (OFL)](https://openfontlicense.org/) or [GPL with Font Exception](https://www.gnu.org/licenses/gpl-faq.html#FontException):
 
@@ -33,7 +53,7 @@ All recommended typefaces are licensed under the [SIL Open Font License (OFL)](h
 
 ---
 
-## 3. Core Upstream Software & Publishing Engines
+## 4. Core Upstream Software & Publishing Engines
 
 | Software | Creators / Maintainers | License | Official Project Link |
 | :--- | :--- | :--- | :--- |
@@ -53,7 +73,7 @@ All recommended typefaces are licensed under the [SIL Open Font License (OFL)](h
 
 ---
 
-## 4. Obsidian Community Plugins (Pre-Configured World Bible)
+## 5. Obsidian Community Plugins (Pre-Configured World Bible)
 
 | Plugin | Original Author | Repository Link | License |
 | :--- | :--- | :--- | :--- |
@@ -70,7 +90,7 @@ All recommended typefaces are licensed under the [SIL Open Font License (OFL)](h
 
 ---
 
-## 5. Creative Commons & Open Data Attributions
+## 6. Creative Commons & Open Data Attributions
 
 - **Standard Story Templates & Lore Schemas:** Authored under the [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/) by the Ars Arcanum Contributors.
 - **Azgaar's Fantasy Map Generator:** Azgaar ([github.com/Azgaar/Fantasy-Map-Generator](https://github.com/Azgaar/Fantasy-Map-Generator)) - MIT License.

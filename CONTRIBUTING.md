@@ -56,8 +56,11 @@ You do not need the full desktop toolchain to iterate: the test suites sandbox
 Every change must pass all of these quality gates:
 
 ```bash
-# 1. Full Python Unit & Integration Test Suite (855 tests, 0 failures allowed)
+# 1. Full Python Unit & Integration Test Suite (970 tests across 95 modules, 0 failures allowed)
 python -m unittest discover tests
+
+# High-performance parallel test runner (~20s execution)
+python scripts/test_parallel.py
 
 # 2. Strict Expanded Ruff Linter Pass (0 violations allowed)
 ruff check .

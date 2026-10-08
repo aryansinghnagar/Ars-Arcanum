@@ -195,10 +195,10 @@ def audit_prophecy_resolution(
         if target_norm in dead_entities and status in ("unfulfilled", "active", "partially_fulfilled"):
             findings.append({
                 "id": "PRP-102",
-                "severity": "ADVISORY",
+                "severity": "LENS_NOTE",
                 "prophecy": pname,
                 "target": target,
-                "message": f"Prophecy Inversion Observation: Target entity '{target}' of active prophecy '{pname}' is marked deceased in lore. (Subverted prophecy or misdirection?)",
+                "message": f"Prophetic Inversion / Subversion: Target entity '{target}' of active prophecy '{pname}' is marked deceased in lore.",
                 "file": pinfo["file"],
             })
 
@@ -209,9 +209,9 @@ def audit_prophecy_resolution(
         if manuscript_dir and manuscript_dir.is_dir() and not in_manuscript:
             findings.append({
                 "id": "PRP-101",
-                "severity": "ADVISORY",
+                "severity": "OBSERVATION",
                 "prophecy": pname,
-                "message": f"Unreferenced Prophecy: Lore prophecy '{pname}' is not referenced in current manuscript scope (forgotten lore, distant volume, or future setup).",
+                "message": f"Unreferenced Prophecy (Distant Lore / Future Setup): Lore prophecy '{pname}' is not referenced in current manuscript scope.",
                 "file": pinfo["file"],
             })
 
@@ -221,9 +221,9 @@ def audit_prophecy_resolution(
             if not has_tag and "fulfilled" not in ms_corpus_lower and "prophecy" not in ms_corpus_lower:
                 findings.append({
                     "id": "PRP-103",
-                    "severity": "WARNING",
+                    "severity": "OBSERVATION",
                     "prophecy": pname,
-                    "message": f"Resolution Status Discrepancy: Prophecy '{pname}' is marked '{status}' in lore, but no scene resolution tag was found in manuscript.",
+                    "message": f"Resolution Status Observation: Prophecy '{pname}' is marked '{status}' in lore, but no explicit scene resolution tag was found in manuscript.",
                     "file": pinfo["file"],
                 })
 
@@ -413,6 +413,7 @@ def main():
     p_check.add_argument("manuscript_pos", nargs="?", help="Manuscript draft directory")
     p_check.add_argument("-w", "--world", dest="world_flag", help="World Bible lore directory")
     p_check.add_argument("-m", "--manuscript", help="Manuscript draft directory")
+    p_check.add_argument("--strict", action="store_true", help="Fail with non-zero exit code if issues are found")
     p_check.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_check.add_argument("--html", help="Path to export standalone HTML report")
     p_check.add_argument("--write-note", help="Export Mermaid.js Prophecy Lifecycle note")
@@ -423,6 +424,7 @@ def main():
     p_rep.add_argument("manuscript_pos", nargs="?", help="Manuscript draft directory")
     p_rep.add_argument("-w", "--world", dest="world_flag", help="World Bible lore directory")
     p_rep.add_argument("-m", "--manuscript", help="Manuscript draft directory")
+    p_rep.add_argument("--strict", action="store_true", help="Fail with non-zero exit code if issues are found")
     p_rep.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_rep.add_argument("--html", help="Path to export standalone HTML report")
     p_rep.add_argument("--write-note", help="Export Mermaid.js Prophecy Lifecycle note")
@@ -498,7 +500,7 @@ def main():
         generate_prophecy_html_report(audit_data, out_p)
         print(f"\nInteractive HTML report written to: {out_p}")
 
-    sys.exit(1 if len(findings) > 0 else 0)
+    sys.exit(1 if len(findings) > 0 and getattr(args, "strict", False) else 0)
 
 
 if __name__ == "__main__":

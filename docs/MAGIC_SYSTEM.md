@@ -183,6 +183,27 @@ inventory:
 Kaelen crushed the vitriol vial in his palm and whispered the binding verse.
 ```
 
+### 5.4 CLI Reference & Diagnostic Severity
+```bash
+# Audit magic system casting actions against rules (exit 0 default)
+arcanum magic-check World/Magic-Technology/
+
+# Generate standalone HTML arcane constraint report
+arcanum magic-report --html dist/magic_report.html
+
+# Run strict verification (fails with exit code 1 if hard limitation breaches occur)
+arcanum magic-check World/Magic-Technology/ --strict
+```
+
+#### Diagnostic Severity Classification:
+- `MAG-101` (`[RULE_CONFLICT]`): Tier limit breach (character casts spell above dossier tier).
+- `MAG-102` (`[RULE_CONFLICT]`): Missing catalyst or insufficient inventory reagent quantity.
+- `MAG-103` (`[RULE_CONFLICT]`): Hard limitation breach (breaking explicit rule defined in lore).
+- `MAG-104` (`[OBSERVATION]`): Fatigue overdraw warning (casting under severe exhaustion).
+- `MAG-105` (`[OBSERVATION]`): Thermodynamic energy conservation mismatch.
+
+*Note: Rules can be suppressed or customized in `constitution.yaml` under `suppressed_rules` or `hard_invariants`.*
+
 ---
 
 ## 6. Worked Step-by-Step Example

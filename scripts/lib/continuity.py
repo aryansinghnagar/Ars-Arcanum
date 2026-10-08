@@ -391,6 +391,7 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Ars Arcanum Local Semantic Continuity Engine")
     parser.add_argument("-w", "--world", help="World Bible lore directory")
     parser.add_argument("-m", "--manuscript", help="Manuscript draft directory")
+    parser.add_argument("--strict", action="store_true", help="Fail with non-zero exit code if issues are found")
     parser.add_argument("--json", action="store_true", help="Output JSON report")
     add_scope_arguments(parser, include_world=False, include_manuscript=False, target_pos_arg=False)
     args = parser.parse_args(argv)
@@ -466,7 +467,7 @@ def main(argv: list[str] | None = None) -> None:
             for w in report["warnings"]:
                 print(f"  [!] {w.get('file')}: {w.get('error')}")
 
-    sys.exit(1 if report["total_findings"] > 0 else 0)
+    sys.exit(1 if report["total_findings"] > 0 and getattr(args, "strict", False) else 0)
 
 
 if __name__ == "__main__":

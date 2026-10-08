@@ -217,15 +217,20 @@ clauses: "The bell shall toll"
 status: unfulfilled
 ---
 """, encoding="utf-8")
-        (self.ms_dir / "Book-01" / "01_Act_I" / "01_Chapter.md").write_text("# Chapter 1\nNo prophecies mentioned.\n", encoding="utf-8")
-        # Check with stdout
+        # Check with stdout -> exit 0 in advisory mode, exit 1 with --strict
         with patch.object(sys, "argv", ["prophecy.py", str(self.world_dir), str(self.ms_dir)]):
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 with self.assertRaises(SystemExit) as cm:
                     main()
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(cm.exception.code, 0)
                 self.assertIn("Prophecy Resolution Matrix", mock_stdout.getvalue())
                 self.assertIn("Ancient Fate", mock_stdout.getvalue())
+
+        with patch.object(sys, "argv", ["prophecy.py", str(self.world_dir), str(self.ms_dir), "--strict"]):
+            with patch("sys.stdout", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
 
     def test_cli_errors_and_path_resolution(self):
         # Invalid world dir

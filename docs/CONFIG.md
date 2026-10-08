@@ -97,12 +97,43 @@ worldbuilding:
 typesetting:
   page_size: "6x9in"                    # Standard trade paperback trim size
   font_family: "Minion Pro"             # Primary serif reading face
-  font_size_pt: 11.0
-  line_height_ratio: 1.40
-
 autosave:
   interval_sec: 60                      # Local snapshot persistence interval
   max_backup_snapshots: 50              # Rolling snapshot retention limit
+```
+
+### 3.1 Authorial Constitution Schema (`constitution.yaml` / `constitution.json`)
+The **Authorial Constitution** is the sovereign declaration of story laws, active craft models, and rule suppressions loaded via `scripts/lib/config.py: get_authorial_constitution()`:
+
+```yaml
+# constitution.yaml (Placed in World or Manuscript root)
+active_lenses:
+  - three_act_structure
+  - gary_provost_pacing
+  - sanderson_magic_laws
+
+suppressed_rules:
+  - PAC-101   # Suppress uniform sentence length warning (intentional stream-of-consciousness)
+  - FAC-102   # Suppress binary zero-sum conflict warning in Book 1
+  - PRP-101   # Suppress unfulfilled prophecy check for unresolved foreshadowing
+
+hard_invariants:
+  - "FTL travel is impossible in this star system"
+  - "Resurrection spells require reciprocal thermodynamic life sacrifice"
+
+custom_weights:
+  pacing_variance_threshold: 0.15
+  mru_strictness: 0.5
+```
+
+#### Programmatic Access in Engines:
+```python
+from scripts.lib.config import get_authorial_constitution, is_rule_suppressed
+
+constitution = get_authorial_constitution(vault_root)
+if not is_rule_suppressed("PAC-101", constitution):
+    # Emit observation
+    pass
 ```
 
 ---

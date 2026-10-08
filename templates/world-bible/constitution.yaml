@@ -1,0 +1,34 @@
+# ==============================================================================
+# Ars Arcanum — Sovereign Authorial Constitution (World Bible Schema)
+# ==============================================================================
+# The Authorial Constitution defines the active craft lenses, hard worldbuilding
+# invariants, and diagnostic rule suppressions for your world lore and stories.
+# All craft lenses are descriptive and advisory-first (exit 0 by default).
+# ==============================================================================
+
+# 1. Selected Craft Lenses (Subsystem 2 Overlays)
+active_lenses:
+  - three_act_structure         # 25% / 50% / 75% structural turning points
+  - gary_provost_pacing         # Sentence-length harmonic cadence & dispersion
+  - sanderson_magic_laws        # Costs, limitations & thermodynamic consistency
+  - weber_authority_factions    # Traditional, Charismatic & Rational-Legal institutions
+  - koppen_climate              # Planetary insolation, rain shadows & biomes
+
+# 2. Suppressed Engine Rules (Skip unwanted advisory observations)
+suppressed_rules:
+  # - PAC-101                  # Suppress sentence length uniformity in stream-of-consciousness
+  # - FAC-102                  # Suppress binary zero-sum conflict warning in Book 1
+  # - PRP-101                  # Suppress unfulfilled prophecy check for intentional mystery
+  # - CAU-104                  # Suppress non-linear timeline discourse warnings
+
+# 3. Hard Invariants (Subsystem 1 Hard Canon Rules)
+# Hard rules declared here will trigger [RULE_CONFLICT] diagnostics if violated.
+hard_invariants:
+  - "Magic cannot resurrect the deceased without equal thermodynamic life exchange"
+  - "Faster-than-light travel is strictly constrained by warp beacon network reach"
+
+# 4. Custom Analytical Weights & Thresholds
+custom_weights:
+  pacing_variance_threshold: 0.15
+  mru_strictness: 0.5
+  sensory_min_channels: 3

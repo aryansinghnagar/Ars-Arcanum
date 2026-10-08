@@ -8,10 +8,11 @@
 **Ars Arcanum (Scriptorium)** is a sovereign, 100% offline, privacy-first operating system and craft studio designed for speculative fiction authors, worldbuilders, and narrative designers. 
 
 ### Core Operating Principles
-1. **Absolute Creative Sovereignty**: Zero cloud dependencies, zero external network telemetry, and 100% offline privacy for unpublished creative intellectual property.
-2. **Deterministic Rails over Probabilistic Free-Form**: Mandatory validation gates, rigid schemas, atomic POSIX/Windows file I/O, and mathematical consistency checks for all lore and manuscript operations.
-3. **Continuous Verification & Anti-Stall Momentum**: Every milestone ratchets forward repository capabilities across explicit momentum queues (`now`, `next`, `blocked`, `improve`, `recurring`).
-4. **Defense in Depth**: Strict path traversal sanitization, cross-platform file locking, stream-verified archives, and cryptographic GPG backup protection.
+1. **Absolute Creative Sovereignty**: Zero cloud dependencies, zero external network telemetry, and 100% offline privacy for unpublished creative intellectual property. The system exists to empower authorial agency, not enforce stylistic homogenization.
+2. **Descriptive Measurement over Prescriptive Dogma**: Craft lenses (three-act structure, pacing variance, motivational response units, macroeconomics, climate) measure narrative geometry and provide observational telemetry. They never gatekeep or dictate aesthetic choices.
+3. **Deterministic Rails over Probabilistic Hallucination**: Mandatory validation gates, rigid schemas, atomic POSIX/Windows file I/O, and mathematical consistency checks for all lore and manuscript operations.
+4. **Continuous Verification & Anti-Stall Momentum**: Every milestone ratchets forward repository capabilities across explicit momentum queues (`now`, `next`, `blocked`, `improve`, `recurring`).
+5. **Defense in Depth**: Strict path traversal sanitization, cross-platform file locking, stream-verified archives, and cryptographic GPG backup protection.
 
 ---
 
@@ -20,8 +21,8 @@
 All automated agents, subagents, and human contributors must strictly uphold these non-negotiable architectural contracts:
 
 ### 2.1 File Safety & Storage Invariants
-- **Atomic Writes**: All file modifications must use `atomic_write()` from [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py) (temporary file $\to$ `flush` $\to$ `fsync` $\to$ `os.replace` $\to$ parent directory `fsync`). Direct unbuffered file overwrites are prohibited.
-- **Cross-Platform File Locking**: Concurrency-sensitive operations (snapshots, backups, migrations) must acquire an `ArcanumLock` ([`scripts/lib/lockfile.py`](file:///scripts/lib/lockfile.py)) utilizing `fcntl.flock` on POSIX and `msvcrt.locking` on Windows.
+- **Atomic Writes**: All file modifications must use `atomic_write()` from [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py) (temporary file $\to$ `flush` $\to$ `fsync` $\to$ `os.replace` $\to$ parent directory `fsync`). Direct unbuffered file overwrites are strictly prohibited.
+- **Cross-Platform File Locking**: Concurrency-sensitive operations (snapshots, backups, migrations) must acquire an `ArcanumLock` ([`scripts/lib/lockfile.py`](file:///scripts/lib/lockfile.py)) utilizing `fcntl.flock` on POSIX and `msvcrt.locking` on Windows with deterministic byte-0 positioning.
 - **Path Traversal Defense**: All user-supplied volume names, draft identifiers, and book targets must be sanitized via regex token validation `^[A-Za-z0-9_-]+$`. Directory separators (`/`, `\`) and path traversals (`..`) are rejected immediately, alongside Windows reserved device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`).
 - **Zero-Pip Dependency Guarantee**: All core craft engines, validators, parsers, and static site generators must execute exclusively on standard library Python primitives without external `pip` dependencies.
 
@@ -30,7 +31,7 @@ All automated agents, subagents, and human contributors must strictly uphold the
   ```html
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
   ```
-- No external CDN scripts, remote fonts, or network requests are permitted in generated artifacts.
+- No external CDN scripts, remote fonts, or network telemetry are permitted in any generated artifacts.
 
 ### 2.3 Granular Scope & Intelligent Context Invariants
 - **Altitude-Aware Context Defaults**: Engines must never perform unconstrained whole-drive or all-vault scans by default. When no explicit target is supplied, engines resolve the active manuscript/world context via `config.json`, current working directory, or single-project discovery.
@@ -38,9 +39,24 @@ All automated agents, subagents, and human contributors must strictly uphold the
 
 ### 2.4 Separation of the Three Subsystems & Epistemic Safety
 To protect authorial sovereignty and prevent technical urgency from lending false authority to subjective aesthetic opinions, all engines and tools must strictly operate within one of three separated subsystems:
-1. **Invariant Consistency Engine (Subsystem 1)**: Deterministic file safety, atomic locks, SHA-256 validation, syntax/parse errors, and explicit author-declared hard invariants (`[AUTHOR RULE]`, `[DATA ISSUE]`). **Fails builds (`exit 1`) in strict mode.**
-2. **Selected Craft Lenses (Subsystem 2)**: Modular reference overlays (Three-Act, Save the Cat, Hero's Journey, Kishōtenketsu, Fichtean, soft/hard magic, readability, cadence variance). **Always advisory (`exit 0` by default), phrased as observations or questions, dismissible via `@intent: deliberate`.**
+1. **Invariant Consistency Engine (Subsystem 1)**: Deterministic file safety, atomic locks, SHA-256 validation, YAML/JSON syntax parse errors, broken internal link pointers, and explicit author-declared hard invariants (`[AUTHOR RULE]`, `[DATA ISSUE]`). **Fails builds (`exit 1`) in strict mode.**
+2. **Selected Craft Lenses (Subsystem 2)**: Modular reference overlays (Three-Act, Save the Cat, Hero's Journey, Kishōtenketsu, Fichtean, soft/hard magic, readability, cadence variance). **Always advisory (`exit 0` by default), phrased as observations or questions, dismissible via `@intent: deliberate` or Authorial Constitution configuration.**
 3. **Creative Ideation & Sparks (Subsystem 3)**: Combinatorial analogies, creative prompts, conceptual bridge syntheses. **Always clearly labeled with provenance tags (`[SPECULATION]`).**
+
+### 2.5 6-Tier Diagnostic Severity Taxonomy
+All diagnostic outputs across the CLI, desktop app, and Studio Hub must classify findings into one of six standardized severity levels:
+- `CANON_ERROR` (Severity 5): Hard broken links, invalid YAML frontmatter, missing mandatory identifiers, duplicate unique IDs.
+- `RULE_CONFLICT` (Severity 4): Contradiction of an explicit author-declared world rule in `constitution.yaml` or `world.yaml`.
+- `OBSERVATION` (Severity 3): Neutral mathematical or structural telemetry (e.g. sentence variance, MRU sequence, faction balance).
+- `LENS_NOTE` (Severity 2): Comparative feedback against a selected optional craft framework (e.g. Save the Cat beat sheet milestone).
+- `SUGGESTION` (Severity 1): Optional creative spark, alternative phrasing, or vocabulary expansion prompt.
+- `EXPERIMENT` (Severity 0): Speculative lateral thinking prompts, cross-domain isomorphisms, or "what-if" divergences.
+
+### 2.6 Authorial Constitution & Intent Preservation
+All craft engines must honor the Authorial Constitution defined in `constitution.yaml`, `constitution.json`, `world.yaml`, or `manuscript.yaml`:
+- **Suppressed Rules**: If an engine rule ID (e.g., `PAC-101`, `FAC-102`, `PRP-101`) is listed under `suppressed_rules`, the engine must skip reporting that finding.
+- **Intent Directives**: Document-level `@intent: deliberate`, `@intent: non-linear`, or inline `@beat: <name>` / `@arc-stage: <stage>` tags must be respected by structural and pacing analyzers without forcing normative defaults.
+- **Advisory Default Contract**: Subsystem 2 and Subsystem 3 checks must exit with returncode `0` unless the author explicitly supplies the `--strict` CLI flag.
 
 ---
 
@@ -77,10 +93,11 @@ scripts/
 ├── lib/
 │   ├── _bootstrap.py          # Atomic write, path resolution & common primitives
 │   ├── cli.py                 # Authoritative Python CLI dispatcher (v0.1.0)
+│   ├── config.py              # Configuration & Authorial Constitution loader
 │   ├── scope.py               # Universal granular target scoping & range parsing engine
 │   ├── ui_gtk3/               # Modular presentation package (<800 lines/file)
 │   ├── ui_adw.py              # Modern Libadwaita interface
-│   ├── registry_base.py       # Core EngineSpec dataclasses, categories & base classes (<200 lines)
+│   ├── registry_base.py       # Core EngineSpec dataclasses, DiagnosticSeverity & base classes (<200 lines)
 │   ├── registry_specs/        # Domain engine specifications package across 7 domains (<400 lines/file)
 │   ├── registry.py            # Core vs. Craft engine discovery matrix & doc formatting (<600 lines)
 │   ├── data_access.py         # Centralized cached vault reader & frontmatter AST layer
@@ -112,7 +129,7 @@ scripts/
 Before any milestone or phase is marked complete, the following quality gates must pass with 100% compliance:
 
 ```bash
-# 1. Full Python Test Suite Discovery (960 tests, 0 failures permitted)
+# 1. Full Python Test Suite Discovery (970 tests across 95 modules, 0 failures permitted)
 python -m unittest discover tests
 
 # High-performance parallel test runner (~20s execution)

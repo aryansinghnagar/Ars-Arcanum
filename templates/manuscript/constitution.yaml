@@ -1,0 +1,28 @@
+# ==============================================================================
+# Ars Arcanum — Sovereign Authorial Constitution (Manuscript Project Schema)
+# ==============================================================================
+# Declares active craft lenses, suppressed diagnostic rules, and specific style
+# guidelines for this manuscript. All Subsystem 2 checks are advisory (exit 0).
+# ==============================================================================
+
+# 1. Selected Craft Lenses (Subsystem 2 Overlays)
+active_lenses:
+  - three_act_structure         # Syd Field / 3-Act structural turning points
+  - gary_provost_pacing         # Sentence-length cadence & harmonic dispersion
+  - dwight_swain_mru            # Motivation-Reaction Unit sequencing lens
+
+# 2. Suppressed Engine Rules
+suppressed_rules:
+  # - PAC-101                  # Suppress sentence length uniformity in stream-of-consciousness
+  # - STY-102                  # Suppress passive voice warnings in formal/bureaucratic dialogue
+  # - MRU-102                  # Suppress static polarity shift warnings
+
+# 3. Hard Manuscript Invariants (Triggers [RULE_CONFLICT] if violated)
+hard_invariants:
+  - "POV character for Book 1 is strictly third-person limited (Kaelen or Isolde)"
+  - "No modern idioms or anachronisms allowed in dialogue"
+
+# 4. Custom Analytical Weights & Thresholds
+custom_weights:
+  pacing_variance_threshold: 0.15
+  target_words_per_chapter: 3500

@@ -283,12 +283,17 @@ type: character
 A simple knight.
 """, encoding="utf-8")
 
-        # 1. table text output with findings (orphan note)
+        # 1. table text output with findings (orphan note) -> 0 in advisory, 1 in strict
         stdout_buf = StringIO()
         with patch("sys.stdout", stdout_buf):
             code = doctor_main([str(self.bible)])
-            self.assertEqual(code, 1)
+            self.assertEqual(code, 0)
             self.assertIn("World Doctor", stdout_buf.getvalue())
+
+        stdout_strict = StringIO()
+        with patch("sys.stdout", stdout_strict):
+            code_strict = doctor_main([str(self.bible), "--strict"])
+            self.assertEqual(code_strict, 1)
 
         # 2. fast cache flag
         stdout_buf = StringIO()

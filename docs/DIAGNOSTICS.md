@@ -73,6 +73,18 @@ flowchart TD
     PandocCheck -->|No| StandalonePath["Tertiary Fallback: Pure-Python Standalone HTML / Codex"]
 ```
 
+### 2.3 The 6-Tier Diagnostic Severity Taxonomy
+All diagnostic alerts, consistency checks, and craft engine outputs across Ars Arcanum are mapped to the `DiagnosticSeverity` enum defined in [`scripts/lib/registry_base.py`](file:///scripts/lib/registry_base.py):
+
+| Severity Level | Integer Rank | UI / Terminal Icon | Subsystem | Behavior & Description |
+| :--- | :--- | :--- | :--- | :--- |
+| **`CANON_ERROR`** | `5` | 🔴 `[CANON_ERROR]` | Subsystem 1 | Hard broken wiki links, corrupted YAML frontmatter AST, missing mandatory identifiers, duplicate IDs. **Fails builds (`exit 1`) in strict mode.** |
+| **`RULE_CONFLICT`** | `4` | 🟠 `[RULE_CONFLICT]`| Subsystem 1 | Violation of an explicit author-declared world rule in `constitution.yaml` or `world.yaml`. |
+| **`OBSERVATION`** | `3` | 🟡 `[OBSERVATION]`  | Subsystem 2 | Pure descriptive mathematical or structural telemetry (e.g. sentence length dispersion, MRU sequencing, faction balance). Always advisory (`exit 0`). |
+| **`LENS_NOTE`** | `2` | 🔵 `[LENS_NOTE]`    | Subsystem 2 | Comparative analysis against an opt-in narrative framework (e.g. Save the Cat beat sheet, 3-Act turning points, Campbell Monomyth). |
+| **`SUGGESTION`** | `1` | 🟢 `[SUGGESTION]`   | Subsystem 2 | Optional craft suggestions, sensory vocabulary expansions, or idiom alternatives. |
+| **`EXPERIMENT`** | `0` | 🟣 `[EXPERIMENT]`   | Subsystem 3 | Lateral brainstorming prompts, thematic isomorphisms, and speculative "what-if" bridges (`[SPECULATION]`). |
+
 ---
 
 ## 3. The Capability Matrix & Subsystem Probes

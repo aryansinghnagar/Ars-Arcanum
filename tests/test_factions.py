@@ -94,7 +94,7 @@ allies: []
 
         factions = extract_faction_profiles(self.world_dir)
         findings = audit_faction_diplomacy(factions)
-        self.assertTrue(any(f["id"] == "FAC-101" and f["severity"] == "WARNING" and "Asymmetric Alliance" in f["message"] for f in findings))
+        self.assertTrue(any(f["id"] == "FAC-101" and f["severity"] == "OBSERVATION" and "Asymmetric Alliance" in f["message"] for f in findings))
 
     def test_diplomatic_contradiction_fac101(self) -> None:
         (self.world_dir / "Factions" / "Faction_A.md").write_text("""---
@@ -112,7 +112,7 @@ rivals:
 
         factions = extract_faction_profiles(self.world_dir)
         findings = audit_faction_diplomacy(factions)
-        self.assertTrue(any(f["id"] == "FAC-101" and f["severity"] == "ERROR" and "Contradiction" in f["message"] for f in findings))
+        self.assertTrue(any(f["id"] == "FAC-101" and f["severity"] == "OBSERVATION" and "Geopolitical Tension" in f["message"] for f in findings))
 
     def test_diplomatic_triad_tension_fac102(self) -> None:
         (self.world_dir / "Factions" / "Faction_A.md").write_text("""---
@@ -168,7 +168,7 @@ allies:
 
         factions = extract_faction_profiles(self.world_dir)
         findings = audit_faction_diplomacy(factions)
-        self.assertTrue(any(f["id"] == "FAC-103" and f["severity"] == "ERROR" for f in findings))
+        self.assertTrue(any(f["id"] == "FAC-103" and f["severity"] == "OBSERVATION" for f in findings))
 
     def test_diplomatic_self_reference_fac104(self) -> None:
         (self.world_dir / "Factions" / "House_Solo.md").write_text("""---
@@ -272,9 +272,15 @@ allies: ["Merchants Guild"]
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 with self.assertRaises(SystemExit) as cm:
                     main()
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(cm.exception.code, 0)
                 self.assertIn("Geopolitical Faction Matrix", mock_stdout.getvalue())
                 self.assertIn("FAC-104", mock_stdout.getvalue())
+
+        with patch.object(sys, "argv", ["factions.py", "check", str(self.world_dir), "--strict"]):
+            with patch("sys.stdout", new_callable=io.StringIO):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 1)
 
         # 2. Battle with stdout
         with patch.object(sys, "argv", ["factions.py", "battle", "-a", "5000", "-d", "3000"]):
@@ -307,7 +313,7 @@ allies: ["Solar"]
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
                 with self.assertRaises(SystemExit) as cm:
                     main()
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(cm.exception.code, 0)
                 import json
                 res = json.loads(mock_stdout.getvalue())
                 self.assertEqual(res["world"], self.world_dir.name)
@@ -317,7 +323,7 @@ allies: ["Solar"]
             with patch("sys.stdout", new_callable=io.StringIO):
                 with self.assertRaises(SystemExit) as cm:
                     main()
-                self.assertEqual(cm.exception.code, 1)
+                self.assertEqual(cm.exception.code, 0)
                 self.assertTrue(note_out.is_file())
                 self.assertTrue(html_out.is_file())
 

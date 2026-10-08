@@ -148,7 +148,6 @@ clauses:
 ---
 ```
 
-### 5.2 Manuscript Scene Directive (`Manuscript/Chapter-07.md`)
 ```markdown
 # Chapter 7: The Sky Bleeds Black
 @prophecy: ember_covenant
@@ -157,6 +156,25 @@ clauses:
 
 Aethelgard looked to the blackened sky. The sun was consumed by a bleeding shadow.
 ```
+
+### 5.3 CLI Reference & Diagnostic Severity
+```bash
+# Audit prophecy clause fulfillment across vault (exit 0 advisory default)
+arcanum prophecy --audit
+
+# Generate interactive HTML dramatic irony report
+arcanum oracle --html report.html
+
+# Run strict validation (fails with exit code 1 if hard contradictions exist)
+arcanum prophecy --audit --strict
+```
+
+#### Diagnostic Findings Classification:
+- `PRP-101` (`[OBSERVATION]`): Prophecy declared fulfilled in lore notes with no detected manuscript fulfillment event.
+- `PRP-102` (`[LENS_NOTE]`): Target entity died prior to fulfilling key prophesied clauses without subversion annotation.
+- `PRP-103` (`[OBSERVATION]`): Unreferenced orphan prophecy detected in lore notes.
+
+*Note: All `PRP-*` findings are advisory by default and can be suppressed via `suppressed_rules: [PRP-101, PRP-102]` in `constitution.yaml`.*
 
 ---
 

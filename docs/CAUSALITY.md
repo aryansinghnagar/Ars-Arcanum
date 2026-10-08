@@ -239,7 +239,7 @@ temporal_loops:
 ## 8. CLI Reference & Scriptorium Integration
 
 ```bash
-# Audit causal DAG for unblocked backdoor paths and collider bias
+# Audit causal DAG for unblocked backdoor paths and collider bias (exit 0 default)
 arcanum causality --audit World/Plot/assassination_dag.yaml
 
 # Compute interventional effect P(Y | do(X)) using Pearl backdoor criterion
@@ -247,7 +247,17 @@ arcanum causality --intervene --action X_roderick_guard --outcome Y_king_poisone
 
 # Check temporal loop for grandfather contradictions or branch stability
 arcanum timeline --paradox-check World/Plot/time_loops.yaml
+
+# Run in strict mode (fails with exit code 1 on unresolved grandfather paradoxes)
+arcanum causality --audit World/Plot/assassination_dag.yaml --strict
 ```
+
+### Diagnostic Severity & Intent Suppression
+- `CAU-101` (`[RULE_CONFLICT]`): Unresolved causal grandfather paradox in Novikov universe.
+- `CAU-104` (`[OBSERVATION]`): Non-linear narrative discourse or temporal jump detected.
+- `CAU-106` (`[OBSERVATION]`): Unresolved alternate timeline branch detected.
+
+*Note: Non-linear narrative discourse can be exempted via `@intent: non-linear` in scene headers or `suppressed_rules: [CAU-104]` in `constitution.yaml`.*
 
 ---
 

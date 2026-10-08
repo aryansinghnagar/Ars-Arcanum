@@ -22,30 +22,33 @@ flowchart TD
     subgraph SomaticLayer["Somatic & Biological Prose Layer (MRUs)"]
         SceneNode & SequelNode --> MRU["Motivation-Reaction Units"]
         MRU --> S1["1. External Stimulus (Objective Reality)"]
-        S1 --> S2["2. Involuntary Visceral Reflex (Autonomic Nervous System)"]
-        S2 --> S3["3. Emotional Surge (Limbic Amygdala Activation)"]
-        S3 --> S4["4. Cognitive Thought (Prefrontal Cortex Reasoning)"]
-        S4 --> S5["5. Deliberate Action / Spoken Dialogue (Motor Execution)"]
+        S1 --> S2["2. Somatic / Visceral Reflex (Initial Sensation)"]
+        S2 --> S3["3. Emotional Response (Valence & Feeling)"]
+        S3 --> S4["4. Cognitive Processing (Monologue & Calculation)"]
+        S4 --> S5["5. Deliberate Action / Spoken Dialogue (External Agency)"]
     end
 ```
 
-### 1.1 The Neurological & Somatic Basis of Dwight Swain's MRU
-In *Techniques of the Selling Writer* (1965), Dwight V. Swain codified the **Motivation-Reaction Unit (MRU)**. Far from an arbitrary stylistic dogma, Swain's model reflects the hardwired physiological processing sequence of the human nervous system:
+### 1.1 Historical Lineage: Dwight Swain's Motivation-Reaction Unit (MRU)
+> **Craft Lineage Notice**: The Motivation-Reaction Unit was codified by pulp author and writing professor Dwight V. Swain in *Techniques of the Selling Writer* (1965), and later refined by Jack M. Bickham and Jim Butcher. It was engineered specifically to maximize kinetic momentum and visceral reader empathy in commercial genre fiction and adventure narrative. It is an opt-in craft lens—not a biological mandate or cognitive law.
 
-1. **Stimulus (External World)**: An event occurs outside the character's boundary ($t = 0\text{ ms}$). Light hits the retina; acoustic soundwaves compress against the tympanic membrane.
-2. **Visceral Reflex (Autonomic / Brainstem)**: Before the stimulus reaches conscious awareness, the sympathetic nervous system triggers involuntary somatic changes ($t \approx 50 - 150\text{ ms}$): heart palpitations, adrenaline release, pupil dilation, galvanic skin response, flinching, or throat constriction.
-3. **Emotional Surge (Limbic System / Amygdala)**: The raw visceral state coalesces into emotional valence ($t \approx 150 - 300\text{ ms}$): primal dread, burning rage, cold grief, or soaring triumph.
-4. **Cognitive Thought (Neocortex / Prefrontal Cortex)**: Conscious mental realization, tactical assessment, and internal monologue form ($t \approx 300 - 500\text{ ms}$). The character names the threat and calculates options.
-5. **Deliberate Action & Spoken Dialogue (Somatic Motor Cortex)**: The character exerts willful agency upon the physical environment ($t > 500\text{ ms}$): swinging a blade, diving behind cover, or speaking a retort.
+Swain's model proposes a sequential unfolding from external cause to internal reaction:
+1. **Stimulus (External Event)**: An event occurs in the environment (e.g., an explosion, an insult, a door creaking open).
+2. **Visceral Reflex (Somatic Cue)**: Immediate physical sensation or involuntary reaction (gasp, flinch, sudden adrenaline pulse).
+3. **Emotional Resonance (Feeling)**: The character's emotional perception of the stimulus (dread, fury, sorrow, relief).
+4. **Cognitive Thought (Monologue / Reflection)**: Conscious realization and internal assessment of options.
+5. **Deliberate Action & Spoken Dialogue**: The character exercises agency by acting or speaking into the scene.
 
-#### The Immersion-Breaking Cost of Inverted MRUs
-When an author inverts this biological sequence—placing conscious thought before physical reflex (*"She realized the assassin was behind her, her heart pounding with terror"*), or action before stimulus (*"He ducked before the arrow whistled past"* without precognitive justification)—the reader's mirror neuron network detects a synthetic cognitive dissonance. The prose feels artificial, "stage-managed," and emotionally detached.
+#### Stylistic Variations & Deliberate Inversions
+While Swain's linear order excels at high-intensity kinetic pacing, literary and psychological traditions routinely invert or collapse these phases to achieve specific aesthetic effects:
+- **Stream-of-Consciousness / Psychological Interiority** (e.g., Virginia Woolf, Marcel Proust): Prioritizes subjective associative memory and philosophical reflection before or without external stimuli.
+- **Deadpan / Hardboiled Narration** (e.g., Dashiell Hammett, Ernest Hemingway): Strips away internal emotional and cognitive commentary entirely, reporting only external stimulus and motor action.
+- **Impulsive / Instinctive Action**: Action occurring simultaneously with or before conscious cognition, reflecting battlefield muscle memory.
 
 ---
 
 ## 2. The Scene vs. Sequel Dialectic
-
-Dramatic progression is an alternating thermodynamic cycle between **kinetic entropy generation (Scenes)** and **somatic entropy processing (Sequels)**.
+> **Craft Lineage**: Developed by Dwight Swain and Jack Bickham as a modular paradigm for managing dramatic tension and pacing in serialized fiction.
 
 ```
        [ PROACTIVE SCENE ]                             [ REACTIVE SEQUEL ]
@@ -67,25 +70,22 @@ Dramatic progression is an alternating thermodynamic cycle between **kinetic ent
 ```
 
 ### 2.1 The Proactive Scene Architecture
-A Proactive Scene is driven by external agency and immediate objective obstacles. It contains three non-negotiable structural phases:
-
-1. **Goal**: The POV character enters the unit with a specific, measurable, urgent objective. It cannot be vague ("He wanted peace"); it must be physical and immediate ("He must steal the cipher key from the magistrate's desk before the clock strikes midnight").
-2. **Conflict**: The POV character meets escalating opposition that cannot be easily bypassed. The resistance is dynamic: the antagonist or environment actively counters the protagonist's tactical maneuvers.
-3. **Disaster (The Hook / Complication)**: The scene ends with an unexpected failure or a pyrrhic victory that destabilizes the protagonist's position:
-   - **"No, and furthermore..." (Absolute Disaster)**: The protagonist fails to achieve the goal, and their operational situation worsens catastrophically.
-   - **"Yes, but..." (Pyrrhic Disaster)**: The protagonist achieves the immediate goal, but doing so triggers a severe new complication (e.g., securing the cipher reveals the enemy has already decrypted the capital's coordinates).
-   - **Prohibited Ending**: Simple *"Yes"* (which terminates dramatic tension) or random *"No"* unconnected to protagonist agency (which feels like cheap *deus ex machina*).
+In Swain's model, a Proactive Scene focuses on external agency and tangible conflict:
+1. **Goal**: The POV character enters the unit pursuing a concrete immediate objective.
+2. **Conflict**: The POV character encounters escalating active or environmental opposition.
+3. **Outcome / Complication**: The attempt culminates in a complication that prevents simple closure:
+   - **"No, and furthermore..." (Complication)**: The immediate goal fails and the predicament deepens.
+   - **"Yes, but..." (Pyrrhic Gain)**: The immediate goal succeeds, but introduces a new challenge.
 
 ### 2.2 The Reactive Sequel Architecture
-A Reactive Sequel is the necessary physiological and cognitive aftermath of a Disaster. It provides emotional digestion, thematic integration, and strategic recalibration:
-
-1. **Reaction**: The character experiences visceral grief, physical collapse, or panic resulting from the previous disaster. Adrenaline recedes, revealing vulnerability and physical damage.
-2. **Dilemma**: The character confronts the new reality. All obvious solutions are exhausted. The character faces a **Hobson's choice** (an apparent choice with only one real option) or a **Value Dilemma** (choosing between two sacred loyalties or two catastrophic sacrifices).
-3. **Decision**: Out of the crucible of the dilemma, the protagonist makes a resolute, deliberate choice. This decision generates the **Goal** for the subsequent Proactive Scene, re-engaging the kinetic cycle.
+A Reactive Sequel provides space for emotional processing and strategic reorientation:
+1. **Reaction**: The character processes the emotional and physical impact of recent events.
+2. **Dilemma**: The character confronts limited options or conflicting values.
+3. **Decision**: The character commits to a new proactive course of action, seeding the next goal.
 
 ---
 
-## 3. Mathematical Models & Dramaturgical Formulations
+## 3. Stylostatistical Telemetry & Dramatic Measurements
 
 ```mermaid
 xychart-beta
@@ -95,50 +95,43 @@ xychart-beta
     line [25, 55, 88, 96, 45, 62, 78]
 ```
 
-### 3.1 Scene Energy Metric ($E_{\text{scene}}$)
-The thermodynamic vitality of a dramatic unit is quantified as the ratio of active kinetic agency and visceral somatic cues to static exposition:
+### 3.1 Prose Composition Balance ($R_{\text{balance}}$)
+Provides a descriptive ratio of kinetic agency and spoken dialogue relative to exposition and reflection:
 
-$$E_{\text{scene}} = \frac{\sum w_{\text{action}} + \sum w_{\text{dialogue}} + 1.5 \sum w_{\text{visceral}}}{\sum w_{\text{exposition}} + 0.5 \sum w_{\text{cognitive}} + 1.0}$$
+$$R_{\text{balance}} = \frac{\sum w_{\text{action}} + \sum w_{\text{dialogue}} + 1.5 \sum w_{\text{visceral}}}{\sum w_{\text{exposition}} + 0.5 \sum w_{\text{cognitive}} + 1.0}$$
 
 Where:
 - $w_{\text{action}}$: Word count of physical kinetic movement and environmental interactions.
-- $w_{\text{dialogue}}$: Word count of direct character-to-character verbal exchanges.
-- $w_{\text{visceral}}$: Word count of autonomic physiological reactions (pulse, breath, sweat, flinch).
-- $w_{\text{exposition}}$: Word count of static backstory, omniscient worldbuilding, and passive description.
-- $w_{\text{cognitive}}$: Word count of internal contemplation and reflective reasoning.
+- $w_{\text{dialogue}}$: Word count of direct character verbal exchanges.
+- $w_{\text{visceral}}$: Word count of somatic cues (pulse, breath, sensory impressions).
+- $w_{\text{exposition}}$: Word count of contextual background and narrator exposition.
+- $w_{\text{cognitive}}$: Word count of internal contemplation and reflective monologue.
 
 ### 3.2 Dynamic Tension Index ($T(t)$)
-The instantaneous dramatic tension across a normalized narrative timeline $t \in [0.0, 1.0]$:
+An advisory model of dramatic tension across narrative progress $t \in [0.0, 1.0]$:
 
 $$T(t) = \Pi(t) \cdot \left(1.0 + \alpha \cdot \frac{d\mathcal{S}}{dt}\right) \cdot e^{-\lambda(t - t_{\text{crisis}})^2}$$
 
-Where:
-- $\Pi(t) \in [-1.0, +1.0]$: The instantaneous dramatic polarity (negative for peril/defeat, positive for triumph/hope).
-- $\frac{d\mathcal{S}}{dt}$: The rate of stakes escalation per 100 words.
-- $\lambda$: The decay coefficient of post-crisis tension release.
-
-### 3.3 The Swain Pacing Coefficient ($\kappa_{\text{swain}}$)
-The macro-structural ratio between external kinetic scenes and internal cognitive sequels:
+### 3.3 The Swain Macro Balance ($\kappa_{\text{swain}}$)
+Descriptive ratio between external kinetic scenes and contemplative sequels:
 
 $$\kappa_{\text{swain}} = \frac{N_{\text{scene}}}{N_{\text{scene}} + N_{\text{sequel}}}$$
 
-- **High-Octane Thriller / Action Fantasy**: $\kappa_{\text{swain}} \in [0.70, 0.85]$ (rapid scene chaining with compressed sequels).
-- **Literary Speculative / Psychological Drama**: $\kappa_{\text{swain}} \in [0.45, 0.55]$ (balanced oscillation with expansive dilemma exploration).
-- **Sagging Narrative / Analytical Paralysis**: $\kappa_{\text{swain}} < 0.35$ (excessive internal contemplation without external obstacles).
+- **Kinetic Focus**: $\kappa_{\text{swain}} \in [0.70, 0.85]$ (rapid scene transitions with compressed sequels).
+- **Reflective / Literary Speculative**: $\kappa_{\text{swain}} \in [0.45, 0.55]$ (balanced oscillation with expansive character introspection).
+- **Contemplative Atmosphere**: $\kappa_{\text{swain}} < 0.35$ (introspective world immersion, pastoral or philosophical depth).
 
-### 3.4 Polarity Shift Vector ($\Delta \Pi$)
-Every vital dramatic scene must execute a net shift in value polarity across its duration:
+### 3.4 Polarity Shift Telemetry ($\Delta \Pi$)
+Tracks the shift in character fortune or emotional state across a scene unit:
 
 $$\Delta \Pi = \Pi_{\text{exit}} - \Pi_{\text{entry}}$$
 
-$$\text{Valid Dramatic Unit} \iff |\Delta \Pi| \ge 1.0 \quad \text{or} \quad \text{Sign}(\Pi_{\text{entry}}) \neq \text{Sign}(\Pi_{\text{exit}})$$
-
-| Entry State ($\Pi_{\text{entry}}$) | Exit State ($\Pi_{\text{exit}}$) | Dynamic Type | Narrative Effect |
+| Entry State ($\Pi_{\text{entry}}$) | Exit State ($\Pi_{\text{exit}}$) | Dynamic Pattern | Narrative Context |
 |---|---|---|---|
-| $+0.8$ (Confident / In Control) | $-0.9$ (Ambushed / Trapped) | $+ \to -$ (Classic Disaster) | Plunges protagonist into crisis; demands immediate sequel. |
-| $-0.7$ (Desperate / Bleeding) | $+0.6$ (Secured Antidote) | $- \to +$ (Hard-Won Reversal) | Cathartic relief; sets up new high-stakes complication. |
-| $+0.5$ (Sneaking Undetected) | $+0.6$ (Still Undetected) | $\Delta \Pi \approx 0$ (Static / Flatline) | **FLAW**: Scene produces no dramatic change; candidate for pruning. |
-| $+0.7 \to -0.8 \to +0.8$ | $+0.8$ (Double Reversal) | $+ \to - \to +$ (Rollercoaster) | High dramatic intensity; common in midpoint and climactic set-pieces. |
+| $+0.8$ (Confident / In Control) | $-0.9$ (Ambushed / Trapped) | $+ \to -$ (Dramatic Reversal) | Plunges protagonist into crisis; invites immediate reaction. |
+| $-0.7$ (Desperate / Bleeding) | $+0.6$ (Secured Antidote) | $- \to +$ (Hard-Won Pivot) | Cathartic turnaround; sets up subsequent challenge. |
+| $+0.5$ (Sneaking Undetected) | $+0.6$ (Still Undetected) | $\Delta \Pi \approx 0$ (Steady State) | **OBSERVATION**: Low polarity shift; characteristic of atmospheric, transitional, or contemplative slice-of-life scenes. |
+| $+0.7 \to -0.8 \to +0.8$ | $+0.8$ (Double Reversal) | $+ \to - \to +$ (Rollercoaster) | High narrative oscillation; characteristic of midpoint and climactic set-pieces. |
 
 ---
 

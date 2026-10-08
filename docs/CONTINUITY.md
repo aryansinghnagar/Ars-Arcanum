@@ -149,6 +149,20 @@ state_mutations:
 The club struck Isolde's ribs with a sickening crack. The stiletto tumbled into the churning mud.
 ```
 
+### 5.3 CLI Reference & Execution
+```bash
+# Check intra-volume continuity across manuscript (advisory exit 0 default)
+arcanum continuity --manuscript Book-01
+
+# Filter checks for specific entity or scope
+arcanum state --entity Lady_Isolde --chapter 1-10
+
+# Run in strict mode (fails with exit code 1 if trait mutations or impossible actions occur)
+arcanum continuity --manuscript Book-01 --strict
+```
+
+*Note: Invariant rules like `CON-101` or `CON-103` can be selectively suppressed in `constitution.yaml` via `suppressed_rules: [CON-103]`.*
+
 ---
 
 ## 6. Worked Step-by-Step Example

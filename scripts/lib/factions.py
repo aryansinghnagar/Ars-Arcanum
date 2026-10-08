@@ -202,15 +202,15 @@ def audit_faction_diplomacy(factions: dict) -> list:
                 if fn_norm in target_rivals_norm:
                     findings.append({
                         "id": "FAC-101",
-                        "severity": "ERROR",
+                        "severity": "OBSERVATION",
                         "faction": fname,
-                        "message": f"Contradiction: '{fname}' lists '{target_real}' as an ally, but '{target_real}' lists '{fname}' as a rival.",
+                        "message": f"Geopolitical Tension / Secret Betrayal: '{fname}' lists '{target_real}' as an ally, but '{target_real}' lists '{fname}' as a rival.",
                         "file": f_info["file"],
                     })
                 elif fn_norm not in target_allies_norm:
                     findings.append({
                         "id": "FAC-101",
-                        "severity": "WARNING",
+                        "severity": "OBSERVATION",
                         "faction": fname,
                         "message": f"Asymmetric Alliance: '{fname}' claims alliance with '{target_real}', but '{target_real}' does not reciprocate in frontmatter.",
                         "file": f_info["file"],
@@ -232,7 +232,7 @@ def audit_faction_diplomacy(factions: dict) -> list:
                         b_real = norm_map[bnorm]
                         findings.append({
                             "id": "FAC-102",
-                            "severity": "WARNING",
+                            "severity": "OBSERVATION",
                             "faction": fname,
                             "message": f"Triad Tension Paradox: '{fname}' is allied with '{b_real}', who is allied with '{c_real}', but '{fname}' and '{c_real}' are declared rivals.",
                             "file": f_info["file"],
@@ -252,9 +252,9 @@ def audit_faction_diplomacy(factions: dict) -> list:
                         r_real = norm_map.get(rnorm, r_name)
                         findings.append({
                             "id": "FAC-103",
-                            "severity": "ERROR",
+                            "severity": "OBSERVATION",
                             "faction": fname,
-                            "message": f"Vassal Conflict: Vassal '{v_real}' of overlord '{fname}' is allied with overlord's rival '{r_real}'.",
+                            "message": f"Vassal Intrigue / Conflict: Vassal '{v_real}' of overlord '{fname}' is allied with overlord's rival '{r_real}'.",
                             "file": f_info["file"],
                         })
 
@@ -305,6 +305,7 @@ def main():
     p_audit = subparsers.add_parser("check", help="Run diplomatic consistency audit on faction relations")
     p_audit.add_argument("world", nargs="?", help="World Bible lore directory")
     p_audit.add_argument("-w", "--world", dest="world_flag", help="World Bible lore directory")
+    p_audit.add_argument("--strict", action="store_true", help="Fail with non-zero exit code if issues are found")
     p_audit.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_audit.add_argument("--html", help="Path to export standalone HTML report")
     p_audit.add_argument("--write-note", help="Export Mermaid.js relationship graph to note")
@@ -313,6 +314,7 @@ def main():
     p_matrix = subparsers.add_parser("matrix", help="Display faction matrix and relationship graph")
     p_matrix.add_argument("world", nargs="?", help="World Bible lore directory")
     p_matrix.add_argument("-w", "--world", dest="world_flag", help="World Bible lore directory")
+    p_matrix.add_argument("--strict", action="store_true", help="Fail with non-zero exit code if issues are found")
     p_matrix.add_argument("--json", action="store_true", help="Output machine-readable JSON")
     p_matrix.add_argument("--html", help="Path to export standalone HTML report")
     p_matrix.add_argument("--write-note", help="Export Mermaid.js relationship graph to note")
@@ -406,7 +408,7 @@ def main():
             generate_faction_html_report(audit_data, out_p)
             print(f"\nInteractive HTML report written to: {out_p}")
 
-        sys.exit(1 if len(findings) > 0 else 0)
+        sys.exit(1 if len(findings) > 0 and getattr(args, "strict", False) else 0)
 
     elif args.subcommand == "battle":
         result = calc_lanchester_battle(

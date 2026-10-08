@@ -105,16 +105,16 @@ A high drift index ($J_{\text{drift}} > 0.20$) indicates that significant lore e
 
 ## 3. Diagnostic Codes & Triage Reference Matrix
 
-| Code | Severity | Category | Diagnostic Description | Authorial Remediation Strategy |
+| Code | Severity Tier | Category | Diagnostic Description | Authorial Remediation Strategy |
 |---|---|---|---|---|
-| **`WLD-101`** | **ERROR** | Link Integrity | **Broken Wikilink**: `[[Target]]` points to a non-existent note. | Create missing note in `World/` or fix spelling in link. |
-| **`WLD-102`** | **ERROR** | Frontmatter | **Dangling YAML Link**: Typed field references unregistered entity. | Register target entity or correct YAML property value. |
-| **`WLD-103`** | **ERROR** | Schema | **Missing Mandatory Field**: Node lacks required keys (`name`, `role`).| Fill missing keys using `arcanum frontmatter --interactive`. |
-| **`WLD-104`** | **ERROR** | Chronology | **Chronological Inversion**: Death precedes birth, or causal clash. | Align dates in timeline frontmatter or character dossier. |
-| **`WLD-105`** | **ERROR** | Identity | **Duplicate Identity Claim**: Multiple files claim identical entity name. | Disambiguate names (e.g. `Valerius I` vs `Valerius II`) or merge files. |
-| **`WLD-106`** | **ERROR** | Syntax | **Malformed YAML Delimiters**: Syntax errors in frontmatter. | Repair unclosed quotes or bad indentation in YAML header. |
-| **`WLD-107`** | **WARN** | Taxonomy | **Orphan Lore Note**: Node has 0 incoming/outgoing wikilinks. | Connect node to parent faction/region or move to `Archive/`. |
-| **`WLD-108`** | **WARN** | Manuscript | **Manuscript Entity Drift**: Entity in prose missing from World Bible. | Scaffold new lore note using `arcanum scaffold` or fix prose typo. |
+| **`WLD-101`** | **`CANON_ERROR`** | Link Integrity | **Broken Wikilink**: `[[Target]]` points to a non-existent note. | Create missing note in `World/` or fix spelling in link. |
+| **`WLD-102`** | **`CANON_ERROR`** | Frontmatter | **Dangling YAML Link**: Typed field references unregistered entity. | Register target entity or correct YAML property value. |
+| **`WLD-103`** | **`CANON_ERROR`** | Schema | **Missing Mandatory Field**: Node lacks required keys (`name`, `role`).| Fill missing keys using `arcanum frontmatter --interactive`. |
+| **`WLD-104`** | **`RULE_CONFLICT`** | Chronology | **Chronological Inversion**: Death precedes birth, or causal clash. | Align dates in timeline frontmatter or character dossier. |
+| **`WLD-105`** | **`CANON_ERROR`** | Identity | **Duplicate Identity Claim**: Multiple files claim identical entity name. | Disambiguate names (e.g. `Valerius I` vs `Valerius II`) or merge files. |
+| **`WLD-106`** | **`CANON_ERROR`** | Syntax | **Malformed YAML Delimiters**: Syntax errors in frontmatter. | Repair unclosed quotes or bad indentation in YAML header. |
+| **`WLD-107`** | **`OBSERVATION`** | Taxonomy | **Orphan Lore Note**: Node has 0 incoming/outgoing wikilinks. | Connect node to parent faction/region or move to `Archive/`. |
+| **`WLD-108`** | **`OBSERVATION`** | Manuscript | **Manuscript Entity Drift**: Entity in prose missing from World Bible. | Scaffold new lore note using `arcanum scaffold` or fix prose typo. |
 
 ---
 
