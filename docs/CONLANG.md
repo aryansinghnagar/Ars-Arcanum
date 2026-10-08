@@ -1,13 +1,14 @@
-# Constructed Languages, Phonology, Morphology & Historical Sound Change (`docs/CONLANG.md`)
-> **Domain C: Characters, Society, Conlangs & Magic** | **CLI:** `arcanum conlang` / `arcanum ipa`
+# Master Craft Reference: Constructed Languages, Phonology & Diachronic Sound Change (`docs/CONLANG.md`)
+> **Domain C: Characters, Society, Conlangs & Magic** | **Master Craft Reference Manual**
+> **Primary Active Toolchain:** [PolyGlot](https://draquet.github.io/PolyGlot/) + [Condict](https://github.com/arimah/condict) + [Rootweave](file:///templates/world-bible/.obsidian/plugins/rootweave) + [LanguageForge](file:///templates/world-bible/.obsidian/plugins/languageforge) | **Reference CLI:** `arcanum conlang`
 
 ---
 
 ## 1. Executive Summary & Epistemological Architecture
 
-The **Ars Arcanum Conlang & Linguistics Engine** (`scripts/lib/conlang.py`) is an offline phonetic inventory compiler, phonotactic rule validator, diachronic sound change simulator, and morphological typology analyzer engineered for conlangers, worldbuilders, and speculative novelists.
+This document serves as the **Master Craft Reference Manual** for linguistic realism, phonetic inventory construction, phonotactic constraints, diachronic historical sound shifts, and morphological typology in speculative fiction worldbuilding. Active in-vault lexicon management is powered by **Rootweave** and **LanguageForge**, while desktop conlang compilation is handled via **PolyGlot** and **Condict** (see [Master External Tools Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md)).
 
-Language is the primary cultural operating system of any sentient species. Fictional constructed languages (conlangs) frequently suffer from amateur design pitfalls:
+Language is the primary cultural operating system of any sentient species. Fictional constructed languages (conlangs) frequently suffer from four fundamental amateur design pitfalls:
 1. **The Re-Lexified English Fallacy (`LNG-101`)**: Creating a conlang that simply swaps English words 1:1 for invented strings while retaining identical English grammar, idioms, and irregular syntax.
 2. **Apostrophe / Letter Salad (`LNG-102`)**: Inserting unpronounceable clusters and arbitrary apostrophes without defining underlying glottal stops, ejective consonants, or phonotactic constraints.
 3. **Phonotactic Lawlessness (`LNG-103`)**: Generating root words that violate the Sonority Sequencing Principle (e.g., word-initial $/rtk-/$) without epenthesis or historical phonological justification.

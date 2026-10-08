@@ -1,13 +1,14 @@
-# Dynastic Succession, Hereditary Lineages & Population Genetics (`docs/GENEALOGY.md`)
-> **Domain B: Societies, Lineages, Geopolitics & Tactical War** | **CLI:** `arcanum genealogy` / `arcanum dynasty`
+# Master Craft Reference: Dynastic Succession, Hereditary Lineages & Population Genetics (`docs/GENEALOGY.md`)
+> **Domain B: Societies, Lineages, Geopolitics & Tactical War** | **Master Craft Reference Manual**
+> **Primary Active Toolchain:** [Gramps](https://gramps-project.org/) (GEDCOM Standard) + [Canvas Roots](file:///templates/world-bible/.obsidian/plugins/charted-roots) + [StoryLine](file:///templates/world-bible/.obsidian/plugins/storyline) | **Reference CLI:** `arcanum genealogy`
 
 ---
 
 ## 1. Executive Summary & Epistemological Architecture
 
-The **Ars Arcanum Genealogy & Dynastic Engine** (`scripts/lib/genealogy.py`) is an offline genealogical tree validator, succession law simulator, Wright's inbreeding coefficient calculator, and heraldic cadency compiler designed for fantasy worldbuilders, historical novelists, and dynastic roleplaying architects.
+This document serves as the **Master Craft Reference Manual** for royal genealogies, succession law jurisprudence, Wright's inbreeding coefficient mathematics, pedigree collapse, and heraldic cadency in speculative fiction worldbuilding. Active family tree visualization is powered in-vault by **Canvas Roots** (`charted-roots`) and **StoryLine**, while complex multi-generational dynastic databases are compiled via **Gramps** (see [Master External Tools Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md)).
 
-Hereditary monarchies and aristocratic houses are governed by legal precedent, biological kinship, and genetic realities. Fictional lineages frequently suffer from critical structural contradictions:
+Hereditary monarchies and aristocratic houses are governed by legal precedent, biological kinship, and genetic realities. Fictional lineages frequently suffer from four critical structural contradictions:
 1. **Contradictory Succession Claims (`GEN-101`)**: Two claimants citing legal succession precedents that are mathematically or legally mutually exclusive within the declared constitution of the realm.
 2. **Pedigree Collapse Amnesia (`GEN-102`)**: Depicting royal families practicing endogamous cousin/sibling marriage for twenty consecutive generations without calculating Wright's inbreeding coefficient ($F$) or modeling homozygous genetic disorders (e.g., Habsburg jaw, hemophilia).
 3. **Heraldic Rule of Tincture Violations (`GEN-103`)**: Blazons placing metal directly on metal (gold on silver) or color on color (red on blue), violating fundamental historical optical contrast rules.
@@ -238,6 +239,10 @@ arcanum dynasty --inbreeding --person aurelia --tree World/Lineages/
 # Resolve legal succession order following monarch death
 arcanum dynasty --succession --monarch valerius_iv --law male_preference
 ```
+
+### 7.1 In-Vault Lineage Visualizers: Obsidian Storyline & Gramps
+- **Obsidian Storyline**: The pre-bundled [`storyline`](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#14-storyline) plugin renders interactive character relationship and lineage networks directly inside Obsidian notes using Dataview frontmatter relationships (`father: [[Valerius IV]]`, `mother: [[Queen Lyra]]`).
+- **Gramps**: For massive dynasties containing hundreds of historical cadet branches, the open-source **Gramps** desktop database ([`docs/guides/SOFTWARE_CATALOG.md`](file:///docs/guides/SOFTWARE_CATALOG.md)) provides standalone deep lineage tracking.
 
 ---
 

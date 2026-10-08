@@ -21,6 +21,7 @@ from lib.astrophysics import (
     parse_distance, parse_acceleration, parse_mass, format_duration, format_distance,
     calc_brachistochrone, calc_time_dilation, calc_orbital_transfer,
     calc_comms_delay, calc_habitability_gravity, calc_lagrange_points, calc_moon_orbital_stability,
+    calc_roche_limit, roche_limit, calc_roche,
     generate_astrophysics_html_report,
     generate_dossier_html_report, generate_dossier_markdown_report,
     calc_planetary_dossier, main, print_table
@@ -427,6 +428,38 @@ class TestAstrophysicsEngine(unittest.TestCase):
                     main()
                     self.assertIn("Moon Orbital Stability & Tidal Evolution", mock_out.getvalue())
                     self.assertTrue(html_p.is_file())
+
+    def test_earth_moon_roche_limit_fluid_and_rigid(self):
+        res = calc_roche_limit(
+            planet_radius_m=EARTH_RADIUS,
+            density_planet_kgm3=5515.0,
+            density_moon_kgm3=3344.0,
+        )
+        self.assertIn("rigid_roche_limit_km", res)
+        self.assertIn("fluid_roche_limit_km", res)
+        self.assertIn("fluid_roche_limit_radii", res)
+        self.assertIn("ring_formation_zone", res)
+        self.assertAlmostEqual(res["rigid_roche_limit_km"], 9497.0, delta=200.0)
+        self.assertAlmostEqual(res["fluid_roche_limit_km"], 18386.0, delta=300.0)
+        self.assertGreater(res["fluid_roche_limit_km"], res["rigid_roche_limit_km"])
+
+    def test_roche_limit_density_ratio(self):
+        res = calc_roche_limit(planet_radius_m=70000000.0, density_ratio=1.33)
+        self.assertGreater(res["fluid_roche_limit_km"], 70000.0)
+        self.assertGreater(res["rigid_roche_limit_km"], 70000.0)
+
+    def test_roche_limit_aliases(self):
+        res1 = calc_roche_limit(planet_radius_m=6371000.0, density_planet_kgm3=5515.0, density_moon_kgm3=3344.0)
+        res2 = roche_limit(planet_radius_m=6371000.0, density_planet_kgm3=5515.0, density_moon_kgm3=3344.0)
+        res3 = calc_roche(planet_radius_m=6371000.0, density_planet_kgm3=5515.0, density_moon_kgm3=3344.0)
+        self.assertEqual(res1["rigid_roche_limit_km"], res2["rigid_roche_limit_km"])
+        self.assertEqual(res1["fluid_roche_limit_km"], res3["fluid_roche_limit_km"])
+
+    def test_roche_limit_zero_validation(self):
+        with self.assertRaises(ValueError):
+            calc_roche_limit(planet_radius_m=0.0)
+        with self.assertRaises(ValueError):
+            calc_roche_limit(planet_radius_m=6000000.0, density_planet_kgm3=5000.0, density_moon_kgm3=0.0)
 
 
 if __name__ == "__main__":

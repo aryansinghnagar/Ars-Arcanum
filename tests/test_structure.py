@@ -319,8 +319,48 @@ class TestStructureEngine(unittest.TestCase):
         # Verify beats have target windows
         self.assertEqual(len(report_elastic["beats"]), len(report_rigid["beats"]))
 
+    def test_paradigm_beat_specifications(self):
+        for key, paradigm in PARADIGMS.items():
+            if key == "framework_free":
+                continue
+            self.assertIn("name", paradigm, f"Paradigm '{key}' missing 'name'")
+            self.assertIn("beats", paradigm, f"Paradigm '{key}' missing 'beats'")
+            self.assertGreaterEqual(len(paradigm["beats"]), 4, f"Paradigm '{key}' must have at least 4 beats")
+
+            last_pct = 0.0
+            for beat in paradigm["beats"]:
+                self.assertIn("name", beat)
+                self.assertIn("target_pct", beat)
+                self.assertIn("window", beat)
+                self.assertIn("desc", beat)
+
+                target_pct = beat["target_pct"]
+                w_min, w_max = beat["window"]
+
+                self.assertGreaterEqual(target_pct, 0.0)
+                self.assertLessEqual(target_pct, 1.0)
+                self.assertLessEqual(w_min, w_max)
+                self.assertGreaterEqual(w_min, 0.0)
+                self.assertLessEqual(w_max, 1.0)
+                self.assertGreaterEqual(target_pct, last_pct, f"Beat target_pct out of order in '{key}': {beat['name']}")
+                last_pct = target_pct
+
+    def test_scan_all_paradigms_on_manuscript(self):
+        words_chunk = "Word " * 500
+        for i in range(1, 5):
+            (self.target_dir / f"{i:02d}_Ch.md").write_text(f"# Chapter {i}\n\n{words_chunk}\n", encoding="utf-8")
+
+        for p_key in PARADIGMS:
+            report = scan_manuscript_structure(self.target_dir, paradigm_key=p_key)
+            self.assertEqual(report["total_chapters"], 4)
+            self.assertEqual(report["paradigm_key"], p_key)
+            self.assertGreaterEqual(report["harmony_score"], 0.0)
+            self.assertLessEqual(report["harmony_score"], 100.0)
+            self.assertEqual(len(report["beats"]), len(PARADIGMS[p_key]["beats"]))
+
 
 if __name__ == "__main__":
     unittest.main()
+
 
 

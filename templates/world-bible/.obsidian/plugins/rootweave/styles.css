@@ -1,0 +1,1083 @@
+/*
+ * Rootweave Plugin Styles
+ *
+ * We use Obsidian's CSS variables (--background-primary, --text-normal, etc.)
+ * instead of hardcoded colors. This means the plugin automatically looks right
+ * in light mode, dark mode, and any community theme the user has installed.
+ *
+ * Browse available variables: https://docs.obsidian.md/Reference/CSS+variables/
+ */
+
+/* ── Outer container ───────────────────────────────────────────────────────── */
+
+.rootweave-container {
+    padding: 8px 10px;
+    height: 100%;
+    overflow-y: auto;
+    font-family: var(--font-interface);
+    box-sizing: border-box;
+}
+
+.rw-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.rw-title {
+    font-size: 1.05em;
+    font-weight: 700;
+    color: var(--text-accent);
+    letter-spacing: 0.02em;
+}
+
+/* ── Tab bar ───────────────────────────────────────────────────────────────── */
+
+.rw-tab-bar {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.rw-tab-btn {
+    background: none;
+    border: none;
+    padding: 3px 9px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.82em;
+    border-radius: 4px;
+    transition: background 0.12s, color 0.12s;
+    font-family: var(--font-interface);
+}
+
+.rw-tab-btn:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.rw-tab-btn.is-active {
+    color: var(--text-accent);
+    font-weight: 600;
+    background: var(--background-modifier-hover);
+}
+
+/* ── Content area ──────────────────────────────────────────────────────────── */
+
+.rw-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* ── Typography helpers ────────────────────────────────────────────────────── */
+
+.rw-subtitle {
+    color: var(--text-muted);
+    font-size: 0.8em;
+    margin: 0 0 10px 0;
+    line-height: 1.4;
+}
+
+.rw-label {
+    font-size: 0.78em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 8px 0 4px 0;
+}
+
+.rw-label-warn {
+    color: var(--color-orange, #f5a623);
+}
+
+.rw-empty {
+    color: var(--text-muted);
+    font-size: 0.82em;
+    font-style: italic;
+    margin: 6px 0;
+}
+
+.rw-ok {
+    color: var(--color-green, #4caf50);
+    font-size: 0.82em;
+    margin: 4px 0;
+}
+
+.rw-ok-link {
+    cursor: pointer;
+}
+
+/* ── Form controls ─────────────────────────────────────────────────────────── */
+
+.rw-controls {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.rw-input {
+    background: var(--background-modifier-form-field);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    color: var(--text-normal);
+    padding: 4px 8px;
+    font-size: 0.82em;
+    flex: 1;
+    min-width: 80px;
+    font-family: var(--font-interface);
+    line-height: 1.4;
+}
+
+.rw-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb, 124,58,237), 0.15);
+}
+
+.rw-input-lg {
+    font-size: 0.95em;
+    padding: 6px 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.rw-textarea {
+    background: var(--background-modifier-form-field);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    color: var(--text-normal);
+    padding: 6px 8px;
+    font-size: 0.82em;
+    width: 100%;
+    min-height: 70px;
+    resize: vertical;
+    font-family: var(--font-interface);
+    box-sizing: border-box;
+    line-height: 1.5;
+}
+
+.rw-textarea:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+}
+
+.rw-select {
+    background: var(--background-modifier-form-field);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    color: var(--text-normal);
+    padding: 4px 6px;
+    font-size: 0.82em;
+    font-family: var(--font-interface);
+    cursor: pointer;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────────── */
+
+.rw-btn {
+    background: var(--background-modifier-form-field);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    color: var(--text-normal);
+    padding: 4px 11px;
+    cursor: pointer;
+    font-size: 0.82em;
+    font-family: var(--font-interface);
+    transition: background 0.12s;
+    white-space: nowrap;
+}
+
+.rw-btn:hover {
+    background: var(--background-modifier-hover);
+}
+
+.rw-btn-primary {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.rw-btn-primary:hover {
+    background: var(--interactive-accent-hover);
+    border-color: var(--interactive-accent-hover);
+}
+
+.rw-btn-danger {
+    color: var(--text-error, #e05252);
+    border-color: transparent;
+    background: transparent;
+}
+
+.rw-btn-danger:hover {
+    background: var(--background-modifier-error, rgba(230, 80, 80, 0.1));
+}
+
+.rw-btn-sm {
+    padding: 2px 7px;
+    font-size: 0.78em;
+}
+
+/* ── Root lexicon cards ─────────────────────────────────────────────────────── */
+
+.rw-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-bottom: 8px;
+}
+
+.rw-card {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 7px 10px;
+}
+
+.rw-card-info {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-bottom: 3px;
+}
+
+.rw-card-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 5px;
+}
+
+.rw-root-text {
+    font-weight: 700;
+    font-family: var(--font-monospace);
+    color: var(--text-accent);
+    font-size: 0.9em;
+}
+
+.rw-root-meaning {
+    color: var(--text-normal);
+    font-size: 0.82em;
+}
+
+.rw-root-notes {
+    color: var(--text-muted);
+    font-size: 0.78em;
+    font-style: italic;
+    margin-top: 2px;
+}
+
+/* Category / tag badges */
+.rw-badge {
+    background: var(--tag-background, rgba(124,58,237,0.12));
+    color: var(--tag-color, var(--text-accent));
+    border-radius: 10px;
+    padding: 1px 8px;
+    font-size: 0.72em;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.rw-badge-sm {
+    font-size: 0.68em;
+    padding: 0 5px;
+}
+
+/* Grammar rule type badges */
+.rw-badge-prefix {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--color-blue, #3b82f6);
+}
+
+.rw-badge-suffix {
+    background: rgba(76, 175, 80, 0.15);
+    color: var(--color-green, #4caf50);
+}
+
+.rw-badge-infix {
+    background: rgba(245, 166, 35, 0.15);
+    color: var(--color-orange, #f5a623);
+}
+
+.rw-badge-other {
+    background: var(--background-modifier-hover);
+    color: var(--text-muted);
+}
+
+/* Alternate form chip (e.g. "via sight") */
+.rw-alt-chip {
+    color: var(--text-muted);
+    font-size: 0.82em;
+    font-style: italic;
+}
+
+/* ── Word Builder ───────────────────────────────────────────────────────────── */
+
+.rw-suggestions {
+    margin: 8px 0 4px;
+}
+
+.rw-suggestion-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+    font-size: 0.82em;
+    flex-wrap: wrap;
+}
+
+.rw-root-chip {
+    background: var(--background-modifier-hover);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: var(--font-monospace);
+    font-size: 0.88em;
+    color: var(--text-accent);
+    font-weight: 600;
+}
+
+.rw-meaning-hint {
+    color: var(--text-muted);
+    font-size: 0.78em;
+    font-style: italic;
+    margin: 5px 0 0 0;
+}
+
+
+/* ── Grammar forms (Builder tab) ───────────────────────────────────────────── */
+
+.rw-grammar-forms {
+    margin: 8px 0 4px;
+}
+
+.rw-form-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 0.82em;
+    flex-wrap: wrap;
+}
+
+.rw-form-result {
+    font-family: var(--font-monospace);
+    font-weight: 700;
+    color: var(--text-accent);
+}
+
+.rw-form-meaning {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.9em;
+}
+
+.rw-add-word-area {
+    margin-top: 14px;
+    border-top: 1px solid var(--background-modifier-border);
+    padding-top: 10px;
+}
+
+.rw-add-word-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+/* ── Dictionary table ──────────────────────────────────────────────────────── */
+
+.rw-dict-list {
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.rw-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8em;
+}
+
+.rw-table th {
+    text-align: left;
+    padding: 4px 7px;
+    border-bottom: 2px solid var(--background-modifier-border);
+    color: var(--text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 0.9em;
+}
+
+.rw-table td {
+    padding: 5px 7px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    vertical-align: middle;
+    line-height: 1.3;
+}
+
+.rw-table tr:hover td {
+    background: var(--background-modifier-hover);
+}
+
+.rw-word-cell {
+    font-family: var(--font-monospace);
+    color: var(--text-accent);
+    font-weight: 700;
+}
+
+/* ── Translator ─────────────────────────────────────────────────────────────── */
+
+.rw-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8em;
+    color: var(--text-muted);
+    margin: 8px 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.rw-translator-output {
+    margin-top: 12px;
+}
+
+.rw-translation-line {
+    font-size: 0.95em;
+    line-height: 1.9;
+    padding: 10px 12px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    word-break: break-word;
+}
+
+/* Known word: shown in accent color with a hover tooltip */
+.rw-word-found {
+    color: var(--text-accent);
+    font-weight: 600;
+    cursor: help;
+    border-bottom: 1px dotted var(--text-accent);
+}
+
+/* Unknown word: red with wavy underline */
+.rw-word-missing {
+    color: var(--text-error, #e05252);
+    border-bottom: 1px solid var(--text-error, #e05252);
+    cursor: help;
+}
+
+/* Interlinear gloss */
+.rw-gloss {
+    font-size: 0.85em;
+    margin-bottom: 10px;
+    overflow-x: auto;
+    padding: 10px 12px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rw-gloss-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.rw-gloss-original {
+    color: var(--text-normal);
+    font-weight: 600;
+}
+
+.rw-gloss-translation {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.rw-gloss-cell {
+    min-width: 36px;
+    text-align: center;
+}
+
+.rw-gloss-found   { color: var(--text-accent); }
+.rw-gloss-missing { color: var(--text-error, #e05252); }
+
+.rw-unknown-word {
+    color: var(--text-error, #e05252);
+    cursor: help;
+}
+
+.rw-copy-btn {
+    margin-top: 8px;
+}
+
+.rw-tts-btn {
+    font-size: 0.9em;
+    padding: 1px 6px;
+    line-height: 1.4;
+    opacity: 0.7;
+}
+.rw-tts-btn:hover { opacity: 1; }
+
+.rw-trans-btn-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    align-items: center;
+}
+
+/* ── Translator: confidence + rhyme ─────────────────────────────────────────── */
+
+.rw-trans-conf-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    font-size: 0.85em;
+}
+
+.rw-trans-conf-detail {
+    color: var(--text-muted);
+}
+
+.rw-trans-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.rw-trans-blank {
+    height: 0.6em;
+}
+
+.rw-rhyme-section {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    font-size: 0.85em;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.rw-rhyme-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.rw-rhyme-label {
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+.rw-rhyme-scheme {
+    font-family: var(--font-monospace);
+    font-size: 0.95em;
+    letter-spacing: 0.05em;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.rw-rhyme-letter {
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.rw-rhyme-ok      { color: var(--color-green, #4caf50); background: color-mix(in srgb, var(--color-green, #4caf50) 12%, transparent); }
+.rw-rhyme-break   { color: var(--text-error, #e05252);  background: color-mix(in srgb, var(--text-error, #e05252) 12%, transparent); }
+.rw-rhyme-unknown { color: var(--text-muted); }
+
+.rw-rhyme-fix-row {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+}
+
+.rw-rhyme-fix-label {
+    color: var(--text-error, #e05252);
+}
+
+.rw-rhyme-alt {
+    font-family: var(--font-monospace);
+    font-size: 0.95em;
+    color: var(--text-accent);
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--interactive-accent) 10%, transparent);
+    cursor: pointer;
+}
+
+.rw-rhyme-alt-exact {
+    font-weight: 700;
+    background: color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+}
+
+/* ── Quick-add panel ─────────────────────────────────────────────────────────── */
+
+.rw-word-addable {
+    cursor: pointer;
+    border-bottom: 1px dashed var(--text-error, #e05252);
+}
+.rw-word-addable:hover {
+    background: color-mix(in srgb, var(--text-error, #e05252) 10%, transparent);
+    border-radius: 2px;
+}
+
+.rw-gloss-missing {
+    cursor: pointer;
+}
+
+.rw-quick-add-panel {
+    margin-top: 8px;
+}
+
+.rw-qa-inner {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--background-secondary);
+    border: 1px solid var(--interactive-accent);
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+
+.rw-qa-label {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.rw-qa-input {
+    width: 140px;
+    font-family: var(--font-monospace);
+}
+
+.rw-qa-pos {
+    font-size: 0.85em;
+    padding: 2px 4px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+}
+
+.rw-qa-hint {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    font-style: italic;
+    flex-basis: 100%;
+    padding-top: 2px;
+}
+
+/* ── Export ─────────────────────────────────────────────────────────────────── */
+
+.rw-file-links {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+}
+
+.rw-file-link {
+    text-align: left;
+    font-family: var(--font-monospace);
+    font-size: 0.78em;
+    color: var(--text-accent);
+}
+
+.rw-divider {
+    border-top: 1px solid var(--background-modifier-border);
+    margin: 12px 0;
+}
+
+.rw-export-stats {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 0.82em;
+    color: var(--text-muted);
+    line-height: 1.8;
+}
+
+.rw-export-stats p {
+    margin: 0;
+}
+
+/* ── Modals (Add / Edit Root) ───────────────────────────────────────────────── */
+
+.rw-modal-field {
+    margin-bottom: 12px;
+}
+
+.rw-modal-field label {
+    display: block;
+    font-size: 0.82em;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.rw-modal-field .rw-input {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 0.9em;
+}
+
+/* ── Settings: import textarea ──────────────────────────────────────────────── */
+
+.rw-import-textarea {
+    width: 100%;
+    font-family: var(--font-monospace);
+}
+
+/* ── Graph View ─────────────────────────────────────────────────────────────── */
+
+.rw-graph-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 8px 10px;
+    box-sizing: border-box;
+    font-family: var(--font-interface);
+}
+
+.rw-graph-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.rw-graph-legend {
+    font-size: 0.8em;
+    color: var(--text-muted);
+}
+
+.rw-legend-root {
+    color: var(--interactive-accent);
+    font-size: 1.1em;
+}
+
+.rw-legend-word {
+    color: var(--text-muted);
+    font-size: 1.1em;
+}
+
+.rw-graph-canvas {
+    flex: 1;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    background: var(--background-secondary);
+    cursor: grab;
+}
+
+.rw-graph-canvas:active {
+    cursor: grabbing;
+}
+
+/* SVG elements */
+.rw-graph-edge {
+    stroke: var(--background-modifier-border);
+    stroke-width: 1.5;
+}
+
+.rw-node-root {
+    fill: var(--interactive-accent);
+}
+
+.rw-node-word {
+    fill: var(--text-muted);
+    opacity: 0.65;
+}
+
+.rw-graph-label {
+    font-size: 10px;
+    fill: var(--text-normal);
+    font-family: var(--font-interface);
+    pointer-events: none;
+    user-select: none;
+}
+
+.rw-graph-node {
+    cursor: grab;
+}
+
+.rw-graph-node:active {
+    cursor: grabbing;
+}
+
+/* Tooltip bar at the bottom of the canvas */
+.rw-graph-tip {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--background-primary);
+    border-top: 1px solid var(--background-modifier-border);
+    padding: 4px 10px;
+    font-size: 0.8em;
+    color: var(--text-normal);
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rw-graph-tip.is-visible {
+    display: block;
+}
+
+/* ── Phonology tab ──────────────────────────────────────────────────────────── */
+
+.rw-phon-section {
+    margin-bottom: 4px;
+}
+
+.rw-phon-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 6px 0;
+}
+
+.rw-phon-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.rw-phon-sym {
+    width: 42px;
+    font-family: var(--font-monospace);
+    text-align: center;
+}
+
+.rw-phon-pron {
+    width: 80px;
+}
+
+.rw-phon-long-label {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.82em;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* Mode toggle */
+.rw-mode-row {
+    display: flex;
+    gap: 6px;
+    margin: 6px 0 10px;
+}
+
+.rw-mode-btn {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 0.85em;
+    color: var(--text-muted);
+    transition: all 0.1s;
+}
+
+.rw-mode-btn.is-active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+/* Phoneme breakdown in Builder */
+.rw-phon-breakdown {
+    margin: 8px 0 4px;
+}
+
+.rw-phon-break {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1px;
+    margin: 4px 0;
+    font-family: var(--font-monospace);
+    font-size: 1.05em;
+}
+
+.rw-phon-dot {
+    color: var(--text-faint);
+    font-size: 1.1em;
+}
+
+.rw-phon-token {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 3px;
+    padding: 1px 4px;
+    cursor: help;
+}
+
+.rw-phon-unknown {
+    background: color-mix(in srgb, var(--color-red) 15%, transparent);
+    border: 1px solid var(--color-red);
+    border-radius: 3px;
+    padding: 1px 4px;
+    color: var(--color-red);
+}
+
+.rw-phon-pron-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 5px 0;
+}
+
+.rw-phon-pron-text {
+    font-family: var(--font-monospace);
+    font-size: 1.1em;
+    color: var(--text-accent);
+    font-style: italic;
+}
+
+/* Confidence badges */
+.rw-conf {
+    font-size: 0.78em;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.rw-conf-high { background: color-mix(in srgb, var(--color-green) 20%, transparent); color: var(--color-green); }
+.rw-conf-mid  { background: color-mix(in srgb, var(--color-yellow) 20%, transparent); color: var(--color-yellow); }
+.rw-conf-low  { background: color-mix(in srgb, var(--color-red) 15%, transparent); color: var(--color-red); }
+
+/* Stress row */
+.rw-phon-stress-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 5px 0;
+}
+
+.rw-phon-syll {
+    font-family: var(--font-monospace);
+    font-size: 0.95em;
+    opacity: 0.65;
+}
+
+.rw-phon-syll.is-stressed {
+    opacity: 1;
+    border-color: var(--interactive-accent);
+    color: var(--text-accent);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.rw-phon-warn {
+    font-size: 0.82em;
+    color: var(--color-orange);
+    margin: 3px 0;
+}
+
+.rw-phon-hint, .rw-phon-try-result .rw-empty {
+    font-size: 0.82em;
+    color: var(--text-muted);
+    margin: 4px 0;
+}
+
+/* Try a word result area */
+.rw-phon-try-result {
+    margin-top: 8px;
+    padding: 8px;
+    background: var(--background-secondary);
+    border-radius: 6px;
+    min-height: 32px;
+}
+
+/* Phoneme map SVG */
+.rw-phon-map {
+    display: block;
+    margin: 8px 0;
+    background: var(--background-secondary);
+    border-radius: 6px;
+}
+
+/* Observations list */
+.rw-obs-list {
+    margin: 4px 0 0 16px;
+    padding: 0;
+    font-size: 0.88em;
+    color: var(--text-normal);
+}
+
+.rw-obs-list li {
+    margin-bottom: 2px;
+}
+
+.rw-btn-ml { margin-left: 8px; }
+
+.rw-phon-syll-display {
+    font-family: var(--font-monospace);
+    font-size: 1.05em;
+    padding: 1px 3px;
+    border-radius: 3px;
+}
+
+.rw-phon-syll-display.is-stressed {
+    font-weight: 700;
+    color: var(--text-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    background: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
+}
+
+.rw-phon-reading {
+    font-size: 0.82em;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-left: 4px;
+}
+
+.rw-phon-corr-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0 4px;
+}
+
+.rw-phon-corr-input {
+    font-family: var(--font-monospace);
+    width: 160px;
+}

@@ -1,245 +1,822 @@
 {
-  "description": "Ars Arcanum Pre-configured Obsidian Community Plugin Suite & Integrity Manifest",
+  "schema_version": "1.0.0",
+  "total_plugins": 32,
   "plugins": {
-    "calendarium": {
+    "aprils-automatic-timelines": {
+      "id": "aprils-automatic-timelines",
+      "name": "April Automatic Timelines",
+      "version": "0.14.1",
+      "minAppVersion": "0.15.0",
+      "description": "Simple timeline generator for story tellers.",
+      "author": "April Gras",
       "files": {
         "data.json": {
-          "sha256": "3cb41234cab889d72bd1ad6b8b2676938bcd23688e838eb8d8d5d6b1d5301f05",
-          "size_bytes": 194
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
         },
         "main.js": {
-          "sha256": "bb91db87f0725631b5276393af58e3796caeeb0ef5a6c702bec4c3890bb20f7d",
-          "size_bytes": 1057130
+          "sha256": "92eaf2e503618d992bf97d967ad15e89c87b421794a2b6e71fd42a53cba3353f",
+          "size": 495424
         },
         "manifest.json": {
-          "sha256": "622bea579d400bf63b18fa5770d93912e9215fb7b2b817534bb8b20eb2f84678",
-          "size_bytes": 354
+          "sha256": "bd0080dca513a2820681dd25021015b9ac09aae14210e6d4cca3c548981ddfbf",
+          "size": 297
         },
         "styles.css": {
-          "sha256": "54c447c17e31750482ab861814f552cafc01855f64380b4d27453b4c1a672a97",
-          "size_bytes": 7416
+          "sha256": "d2c68a52dc4310776bcb9b9e9f9c0f4a3eaafaa22dfd3bcd5da9c2a30527fa61",
+          "size": 4992
         }
-      },
+      }
+    },
+    "calendarium": {
       "id": "calendarium",
       "name": "Calendarium",
       "version": "2.1.0",
-      "author": "Jeremy Valentine"
-    },
-    "dataview": {
+      "minAppVersion": "1.5.7",
+      "description": "Craft mind-bending fantasy and sci-fi calendars.",
+      "author": "Jeremy Valentine",
       "files": {
         "data.json": {
-          "sha256": "ace5e1857ae6ce59a054803c9c94f696aaac7a83b1befe4ed7f9564d57f3b96b",
-          "size_bytes": 393
+          "sha256": "3cb41234cab889d72bd1ad6b8b2676938bcd23688e838eb8d8d5d6b1d5301f05",
+          "size": 194
         },
         "main.js": {
-          "sha256": "6bb1cf7010afad830e73575fca0e2bfbd3279c562e3d9d24f2d2f45161eb7d00",
-          "size_bytes": 2377634
+          "sha256": "bb91db87f0725631b5276393af58e3796caeeb0ef5a6c702bec4c3890bb20f7d",
+          "size": 1057130
         },
         "manifest.json": {
-          "sha256": "9235db47112da81b85591c79ecb9ae2574e5e72207056e976472f90616286185",
-          "size_bytes": 357
+          "sha256": "622bea579d400bf63b18fa5770d93912e9215fb7b2b817534bb8b20eb2f84678",
+          "size": 354
         },
         "styles.css": {
-          "sha256": "3306dd9032e00f989ba7233a37fd255bc4d3f4340cee661762e952f3f6aa1de9",
-          "size_bytes": 2965
+          "sha256": "54c447c17e31750482ab861814f552cafc01855f64380b4d27453b4c1a672a97",
+          "size": 7416
         }
-      },
+      }
+    },
+    "charted-roots": {
+      "id": "charted-roots",
+      "name": "Charted Roots",
+      "version": "0.22.76",
+      "minAppVersion": "1.7.2",
+      "description": "Family tree visualization for genealogists and worldbuilders. Interactive charts, geographic maps, evidence tracking, GEDCOM support, and fictional calendars.",
+      "author": "banisterious",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "55e531e51d2ce9889dbac156fa1c166cbdedd74a65655cae8ef14f969484eb14",
+          "size": 8787420
+        },
+        "manifest.json": {
+          "sha256": "ff61597dadb7ae598861d62f2f74bd07f04d65aeddcd6d0b7698670b483e9f4e",
+          "size": 531
+        },
+        "styles.css": {
+          "sha256": "94170fd55ac535f2cba0ede3fbc7c6adbcc83d18818a9141fb47418459054326",
+          "size": 876270
+        }
+      }
+    },
+    "commentator": {
+      "id": "commentator",
+      "name": "Commentator",
+      "version": "0.2.7",
+      "minAppVersion": "1.7.5",
+      "description": "Suggest edits, add comments, and annotate your notes using CriticMarkup syntax.",
+      "author": "kometenstaub and Fevol",
+      "files": {
+        "data.json": {
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "size": 2
+        },
+        "main.js": {
+          "sha256": "418a5ab4db306256a497072a750d26f55a00b60193cd184bf4e8cb7036f2896a",
+          "size": 728283
+        },
+        "manifest.json": {
+          "sha256": "a9dd6332c01e20b6818f10d754f25a624328c4420f3df852b96464fb0d40799f",
+          "size": 323
+        },
+        "styles.css": {
+          "sha256": "811bfd0fbb6906eac8015644b810c59904a0b9dc513429d1f9a02c5dfc5395e6",
+          "size": 18438
+        }
+      }
+    },
+    "dataview": {
       "id": "dataview",
       "name": "Dataview",
       "version": "0.5.68",
-      "author": "Michael Brenan <blacksmithgu@gmail.com>"
-    },
-    "longform": {
+      "minAppVersion": "0.13.11",
+      "description": "Complex data views for the data-obsessed.",
+      "author": "Michael Brenan <blacksmithgu@gmail.com>",
       "files": {
         "data.json": {
-          "sha256": "0752ab1a184194713c081cb1f0549e2820bfa8b01e32ef4476b94382a7dd018f",
-          "size_bytes": 151
+          "sha256": "ace5e1857ae6ce59a054803c9c94f696aaac7a83b1befe4ed7f9564d57f3b96b",
+          "size": 393
         },
         "main.js": {
-          "sha256": "d937568a0a522778b1c2968d47288ef5fb18f7c28d02bdccb31415e304daaf3b",
-          "size_bytes": 1239095
+          "sha256": "6bb1cf7010afad830e73575fca0e2bfbd3279c562e3d9d24f2d2f45161eb7d00",
+          "size": 2377634
         },
         "manifest.json": {
-          "sha256": "b6ff0a8e9e5964cfc1a126a10f1df02366a76fdaa09e2b97ca1c98406f0146c2",
-          "size_bytes": 329
+          "sha256": "9235db47112da81b85591c79ecb9ae2574e5e72207056e976472f90616286185",
+          "size": 357
         },
         "styles.css": {
-          "sha256": "c49db364bb574dccbd55bf1d326b01e1a0580045e72d01bfb08bb6ad94e991f5",
-          "size_bytes": 383
+          "sha256": "3306dd9032e00f989ba7233a37fd255bc4d3f4340cee661762e952f3f6aa1de9",
+          "size": 2965
         }
-      },
+      }
+    },
+    "formatforge": {
+      "id": "formatforge",
+      "name": "formatForge",
+      "version": "0.3.0",
+      "minAppVersion": "1.13.0",
+      "description": "Simple typography and colour formatting \u2014 standalone, and for the Forge plugin family.",
+      "author": "volcanicMole",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "d5795d10ada474c3cb2a76111fbbb7b91b1976c82ab281c0eb5fb5a91afefa9c",
+          "size": 3475196
+        },
+        "manifest.json": {
+          "sha256": "6c6fb6e21c75a47375f3d08626283a2846f8f0021c63f533b893f111d4b2dcee",
+          "size": 260
+        },
+        "styles.css": {
+          "sha256": "a5137610cf36e95f8ca25bef577e0f4c54c7193b7c23d561770fb56d6dfa631e",
+          "size": 48193
+        }
+      }
+    },
+    "global-search-and-replace": {
+      "id": "global-search-and-replace",
+      "name": "Global Search and Replace",
+      "version": "0.5.0",
+      "minAppVersion": "1.1.1",
+      "description": "Search and replace in all vault files",
+      "author": "Mahmoud Fawzy Khalil",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "cdd0a365fccdf929d1f76ca9872cd828bf9bdead557957f36f429cc76ee2427d",
+          "size": 1033045
+        },
+        "manifest.json": {
+          "sha256": "dab3069853d6fa77d73abd29d2ac6a4f6c85bbc887f18945e386af37690a389a",
+          "size": 298
+        },
+        "styles.css": {
+          "sha256": "6876b5096e23d74aa8f3fa08f54046b29d3ae1643fbcd059fd72cd6c03d4a395",
+          "size": 1421
+        }
+      }
+    },
+    "languageforge": {
+      "id": "languageforge",
+      "name": "languageForge",
+      "version": "0.8.1",
+      "minAppVersion": "1.13.0",
+      "description": "Seed naming cultures for your world: language family trees, culture cards, gate-filtered name batches with pronunciation and meaning, reverse-seeding, and naming traditions.",
+      "author": "KennyRN",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "e4cdabb2614f44180898a845c7419966f7df2d86a9f8659340753912ee2628cd",
+          "size": 181717
+        },
+        "manifest.json": {
+          "sha256": "7ba863d62cd81f26fa40f522d1d27ed684f84eb7bfa658b6352f4da542c02eb1",
+          "size": 394
+        },
+        "styles.css": {
+          "sha256": "6df0a6cd23c133311f7333a6db91fd21380370910539e89386f1fd46fe374558",
+          "size": 18399
+        }
+      }
+    },
+    "languagetool": {
+      "id": "languagetool",
+      "name": "LanguageTool",
+      "version": "1.5.2",
+      "minAppVersion": "1.13.6",
+      "description": "Unofficial integration of the LanguageTool spell and grammar checker.",
+      "author": "Lars Wrenger, Clemens Ertle",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "6801d1df33c80f0f0da0809b196bfba0cca7e614c32ab29adf86e5ee9faae63c",
+          "size": 184089
+        },
+        "manifest.json": {
+          "sha256": "cb4dbc9c5734ba39364b1ac8257a6d8a6b8616ae15a6e86d7a81aafb3b353454",
+          "size": 308
+        },
+        "styles.css": {
+          "sha256": "df639d47fa4079dd67e5ef331c5aa10159643831d001bbfce35c61b598f10ca6",
+          "size": 877
+        }
+      }
+    },
+    "longform": {
       "id": "longform",
       "name": "Longform",
       "version": "2.1.0",
-      "author": "Kevin Barrett"
-    },
-    "metadata-menu": {
+      "minAppVersion": "1.0",
+      "description": "Write novels, screenplays, and other long projects in Obsidian.",
+      "author": "Kevin Barrett",
       "files": {
         "data.json": {
-          "sha256": "345f28bb3446d16f42b9cb46a486e49afa239cbef1468c662680392318557bdd",
-          "size_bytes": 247
+          "sha256": "0752ab1a184194713c081cb1f0549e2820bfa8b01e32ef4476b94382a7dd018f",
+          "size": 151
         },
         "main.js": {
-          "sha256": "a4c37d9f3931a72a8115c34ca226121f8d6f3d1c1d1feaef1179f05113cf3c6d",
-          "size_bytes": 1003040
+          "sha256": "d937568a0a522778b1c2968d47288ef5fb18f7c28d02bdccb31415e304daaf3b",
+          "size": 1239095
         },
         "manifest.json": {
-          "sha256": "6b0b03b4c5f702beb85524d1fcbd276cf79baf18c63f7224beb8aab942dc4b4a",
-          "size_bytes": 421
+          "sha256": "b6ff0a8e9e5964cfc1a126a10f1df02366a76fdaa09e2b97ca1c98406f0146c2",
+          "size": 329
         },
         "styles.css": {
-          "sha256": "b08f764bb08ae8ea06c1def27f97a2da16b4cc1920bbb618aaae2dcc7cf4f3cf",
-          "size_bytes": 82452
+          "sha256": "c49db364bb574dccbd55bf1d326b01e1a0580045e72d01bfb08bb6ad94e991f5",
+          "size": 383
         }
-      },
+      }
+    },
+    "metadata-menu": {
       "id": "metadata-menu",
       "name": "Metadata Menu",
       "version": "0.8.12",
-      "author": "mdelobelle"
-    },
-    "novel-word-count": {
+      "minAppVersion": "1.4.16",
+      "description": "For data quality enthusiasts (and dataview users): manage the metadata of your notes.",
+      "author": "mdelobelle",
       "files": {
         "data.json": {
-          "sha256": "bf3de4ff52133be5b96b6bef4c80f07b580700b1795b26bd804a7bf43f9f50dd",
-          "size_bytes": 261
+          "sha256": "345f28bb3446d16f42b9cb46a486e49afa239cbef1468c662680392318557bdd",
+          "size": 247
         },
         "main.js": {
-          "sha256": "65d5f85af85d0232ba0dd4050f495749e09d8767da609f8943ca5e27ac3a7461",
-          "size_bytes": 84094
+          "sha256": "a4c37d9f3931a72a8115c34ca226121f8d6f3d1c1d1feaef1179f05113cf3c6d",
+          "size": 1003040
         },
         "manifest.json": {
-          "sha256": "94bd1961888c8973d9c8240a966033dc97f3e5df2c6e5593f21b2d9df1a4129d",
-          "size_bytes": 359
+          "sha256": "6b0b03b4c5f702beb85524d1fcbd276cf79baf18c63f7224beb8aab942dc4b4a",
+          "size": 421
         },
         "styles.css": {
-          "sha256": "378a6d1dfbffd39ab6c155e6a13b99c8d14faa644e32be23db74d9dc95084ab9",
-          "size_bytes": 3461
+          "sha256": "b08f764bb08ae8ea06c1def27f97a2da16b4cc1920bbb618aaae2dcc7cf4f3cf",
+          "size": 82452
         }
-      },
+      }
+    },
+    "novel-word-count": {
       "id": "novel-word-count",
       "name": "Novel word count",
       "version": "5.0.0",
-      "author": "Isaac Lyman"
-    },
-    "obsidian-git": {
+      "minAppVersion": "0.13.31",
+      "description": "Displays a word count (and more!) for each file, folder and vault in the File Explorer pane.",
+      "author": "Isaac Lyman",
       "files": {
         "data.json": {
-          "sha256": "bf584c4c9e3544cbade9cdab4c81bf9ec41fb22139b6f549c3bf6d77e9004e07",
-          "size_bytes": 634
+          "sha256": "bf3de4ff52133be5b96b6bef4c80f07b580700b1795b26bd804a7bf43f9f50dd",
+          "size": 261
         },
         "main.js": {
-          "sha256": "6f198f140be39254c410c21998c1bd86f9a077ad415604356382e5dc5836e1a1",
-          "size_bytes": 732445
+          "sha256": "65d5f85af85d0232ba0dd4050f495749e09d8767da609f8943ca5e27ac3a7461",
+          "size": 84094
         },
         "manifest.json": {
-          "sha256": "c9f0d49c2094c4751b97e395015b49761651944c371cba67bbf6a46170f2cb91",
-          "size_bytes": 325
+          "sha256": "94bd1961888c8973d9c8240a966033dc97f3e5df2c6e5593f21b2d9df1a4129d",
+          "size": 359
         },
         "styles.css": {
-          "sha256": "f5ab93f4d5b4dd1bd1e577864c5c79087f7adfd448ac346e0489e5847ce6922d",
-          "size_bytes": 18303
+          "sha256": "378a6d1dfbffd39ab6c155e6a13b99c8d14faa644e32be23db74d9dc95084ab9",
+          "size": 3461
         }
-      },
+      }
+    },
+    "noveler-a-storyline-expansion": {
+      "id": "noveler-a-storyline-expansion",
+      "name": "Noveler - A StoryLine Expansion",
+      "version": "1.2.4",
+      "minAppVersion": "1.12.7",
+      "description": "A manuscript editor with integrated StoryLine scene routing, formatted exports, and Antidote Connect support.",
+      "author": "Dylan Comas",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "aadf8d90412a851392c1eca461874a4245b9c874161c7606cd4bca5897c606fc",
+          "size": 444022
+        },
+        "manifest.json": {
+          "sha256": "5e6a7118531c0e56e5c23b1f23aeb067a0079b90846ed5f76459a7c4b8cdcbb5",
+          "size": 402
+        },
+        "styles.css": {
+          "sha256": "477e5759cfc3b99d84b908e0ce3266081cb2f24064a2753f350f39b03a2dddcf",
+          "size": 47690
+        }
+      }
+    },
+    "obsidian-copy-block-link": {
+      "id": "obsidian-copy-block-link",
+      "name": "Copy Block Link",
+      "version": "1.0.4",
+      "minAppVersion": "0.12.12",
+      "description": "Get links to blocks and headings from Obsidian's right click menu",
+      "author": "mgmeyers",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "df87d614b629241ce5c33507459f39a0ed50723a7f060bc59720170e4a821e85",
+          "size": 14183
+        },
+        "manifest.json": {
+          "sha256": "cc98234a70d464ec7f6c665332e1d201d22d5e997cb748d7a0d01fad46fe39a4",
+          "size": 329
+        }
+      }
+    },
+    "obsidian-footnotes": {
+      "id": "obsidian-footnotes",
+      "name": "Footnote Shortcut",
+      "version": "0.2.0",
+      "minAppVersion": "1.13.0",
+      "description": "Footnotes without the mouse: insert, navigate, and popup-edit them where you're typing, with a built-in linter that keeps numbering and placement tidy.",
+      "author": "Alexis Rondeau, Micha Brugger, Jason Qin",
+      "files": {
+        "data.json": {
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "size": 2
+        },
+        "main.js": {
+          "sha256": "17e4a96806d23eb87284632653a265a0202dffa4b1825c9f45901f7ec0790ee5",
+          "size": 96253
+        },
+        "manifest.json": {
+          "sha256": "579269af9d57b6daec8833d4c81e04c91de71ef442a20fe033aeeb7651dea1ab",
+          "size": 493
+        },
+        "styles.css": {
+          "sha256": "cbb6dfa0c29a5f69b788edc179af0a5f66df23ff9e33491f8b7d0b1eea2a4b42",
+          "size": 4723
+        }
+      }
+    },
+    "obsidian-git": {
       "id": "obsidian-git",
       "name": "Git",
       "version": "2.40.0",
-      "author": "Vinzent"
-    },
-    "obsidian-style-settings": {
+      "minAppVersion": "0.15.0",
+      "description": "Integrate Git version control with automatic backup and other advanced features.",
+      "author": "Vinzent",
       "files": {
         "data.json": {
-          "sha256": "4745351be64e82eca9dd5f92eb8d2709b103b480ae1ae48fb9aefb874c6d0497",
-          "size_bytes": 169
+          "sha256": "bf584c4c9e3544cbade9cdab4c81bf9ec41fb22139b6f549c3bf6d77e9004e07",
+          "size": 634
         },
         "main.js": {
-          "sha256": "1828abaacdab4c5578b705a625c585b30512f8efad4c7cfc5a18e70cc3557468",
-          "size_bytes": 154561
+          "sha256": "6f198f140be39254c410c21998c1bd86f9a077ad415604356382e5dc5836e1a1",
+          "size": 732445
         },
         "manifest.json": {
-          "sha256": "9cffdc20cf2aa1354820e0050b694b0f9b576446e3d5d44a36ae8b0187e5bfb8",
-          "size_bytes": 321
+          "sha256": "c9f0d49c2094c4751b97e395015b49761651944c371cba67bbf6a46170f2cb91",
+          "size": 325
         },
         "styles.css": {
-          "sha256": "ee7937d2be50653a89ccb30ae5f0572b23507d5b7f1328d005271a363075bfd8",
-          "size_bytes": 13906
+          "sha256": "f5ab93f4d5b4dd1bd1e577864c5c79087f7adfd448ac346e0489e5847ce6922d",
+          "size": 18303
         }
-      },
+      }
+    },
+    "obsidian-leaflet-plugin": {
+      "id": "obsidian-leaflet-plugin",
+      "name": "Leaflet",
+      "version": "6.0.5",
+      "minAppVersion": "0.12.12",
+      "description": "Interactive maps inside your notes",
+      "author": "Jeremy Valentine",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "96875cd50a7fab453ec0e555409228dedd7bc2e5994b6859ba2b56e85a34ca89",
+          "size": 1566892
+        },
+        "manifest.json": {
+          "sha256": "5e5729b71ea6564ff128f91de5604452c8fd9e233245d323875dca4d9ea1d90a",
+          "size": 290
+        },
+        "styles.css": {
+          "sha256": "d945d9b1beff0c46fe6d8bec7fd39ab585045bf000c298bc29e13c8adfa93c67",
+          "size": 30521
+        }
+      }
+    },
+    "obsidian-outliner": {
+      "id": "obsidian-outliner",
+      "name": "Outliner",
+      "version": "4.10.2",
+      "minAppVersion": "1.11.7",
+      "description": "Work with your lists like in Workflowy or RoamResearch.",
+      "author": "Viacheslav Slinko",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "3d5bc634d3045ead4df9747d07ab51f16d9722f4601f9fee27e0c7fe9828fb33",
+          "size": 475201
+        },
+        "manifest.json": {
+          "sha256": "277a8887eb959cc7a4ae047608421153b359bdf451c2d66caab91c35ca98b93f",
+          "size": 286
+        },
+        "styles.css": {
+          "sha256": "7922a264883894e69f22c37f549744f7d46d1de926fc802aa4e94c75cd2fbceb",
+          "size": 2169
+        }
+      }
+    },
+    "obsidian-pandoc": {
+      "id": "obsidian-pandoc",
+      "name": "Pandoc Plugin",
+      "version": "0.4.1",
+      "minAppVersion": "0.12.5",
+      "description": "This is a Pandoc export plugin for Obsidian. It provides commands to export to formats like DOCX, ePub and PDF.",
+      "author": "Oliver Balfour",
+      "files": {
+        "data.json": {
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "size": 2
+        },
+        "main.js": {
+          "sha256": "987ecbc7602f11e0e9d4b7e88958a33e205796c159a498d31bd2841fda7cdf3f",
+          "size": 324162
+        },
+        "manifest.json": {
+          "sha256": "4d15400af4396fec59d393045a7ad4b6855cf6ba07674b28b212ab2cd3606dc8",
+          "size": 361
+        },
+        "styles.css": {
+          "sha256": "32bd1df3f5cfb74566243e31118ab348878d3cac258d19da66f248b45729f9a4",
+          "size": 42
+        }
+      }
+    },
+    "obsidian-smart-typography": {
+      "id": "obsidian-smart-typography",
+      "name": "Smart Typography",
+      "version": "1.0.18",
+      "minAppVersion": "0.15.0",
+      "description": "Converts quotes to curly quotes, dashes to em dashes, and periods to ellipses",
+      "author": "mgmeyers",
+      "files": {
+        "data.json": {
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "size": 2
+        },
+        "main.js": {
+          "sha256": "a1c690ba0c93dbe3f203ff6e14010b7737161e3ac6ceb7bf9625d197f620bce4",
+          "size": 36792
+        },
+        "manifest.json": {
+          "sha256": "ea53a4d0da44eb1770d34d9c9ab8f0a71046d8b9b5c092ec5f2d02a0e5a3559f",
+          "size": 344
+        }
+      }
+    },
+    "obsidian-style-settings": {
       "id": "obsidian-style-settings",
       "name": "Style Settings",
       "version": "1.0.9",
-      "author": "mgmeyers"
-    },
-    "storyline": {
+      "minAppVersion": "0.11.5",
+      "description": "Offers controls for adjusting theme, plugin, and snippet CSS variables.",
+      "author": "mgmeyers",
       "files": {
         "data.json": {
-          "sha256": "d0825f23edb706a7936150bfdb41903fd92ea60ba27315f212559c290e4d763c",
-          "size_bytes": 206
+          "sha256": "4745351be64e82eca9dd5f92eb8d2709b103b480ae1ae48fb9aefb874c6d0497",
+          "size": 169
         },
         "main.js": {
-          "sha256": "d504b4894b888096b19f1ebe574abae3006239ca6ef63eb112987fa5d3b67bfa",
-          "size_bytes": 3004704
+          "sha256": "1828abaacdab4c5578b705a625c585b30512f8efad4c7cfc5a18e70cc3557468",
+          "size": 154561
         },
         "manifest.json": {
-          "sha256": "888ee179d71acfeb0bb5378732d3bb63b58dcdebc81cf386c02a94b73860703a",
-          "size_bytes": 450
+          "sha256": "9cffdc20cf2aa1354820e0050b694b0f9b576446e3d5d44a36ae8b0187e5bfb8",
+          "size": 321
         },
         "styles.css": {
-          "sha256": "aa82f33fa3ff0acda0e64eeaabdd20c18673b642898aab1a48f434b47f0b99d2",
-          "size_bytes": 314613
+          "sha256": "ee7937d2be50653a89ccb30ae5f0572b23507d5b7f1328d005271a363075bfd8",
+          "size": 13906
         }
-      },
+      }
+    },
+    "readability-score": {
+      "id": "readability-score",
+      "name": "Readability Score",
+      "version": "0.1.5",
+      "minAppVersion": "0.15.0",
+      "description": "Score the readabilty of your writing using the Flesch Reading Ease (FRE) formula.",
+      "author": "zuchka",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "6f981c2a8ad5b47cb448bf1b51c6827285fca5ad52713a17f8aa687d77d7eb7f",
+          "size": 175075
+        },
+        "manifest.json": {
+          "sha256": "f9868db66a2bd7535c9f94da81209593bc6e23d89781ef3fbaad49a3b50df552",
+          "size": 287
+        }
+      }
+    },
+    "rootweave": {
+      "id": "rootweave",
+      "name": "Rootweave",
+      "version": "1.8.3",
+      "minAppVersion": "1.13.0",
+      "description": "A conlang workspace for worldbuilders \u2014 manage roots, build words, validate grammar, and translate.",
+      "author": "Max Oliver",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "7ff9e70ebae4713650a04602785bcefe0236e43b1ad091119aa4383b73d61219",
+          "size": 109799
+        },
+        "manifest.json": {
+          "sha256": "e31caa533178a7e2a5ff5d2670209d505128ecfdc70e5329dd6e9261ee5cda89",
+          "size": 312
+        },
+        "styles.css": {
+          "sha256": "3d55f684daf9344151e999f99b9c1a9625f92788732582de6d865e317a290e63",
+          "size": 24092
+        }
+      }
+    },
+    "sentence-rhythm": {
+      "id": "sentence-rhythm",
+      "name": "Sentence Rhythm",
+      "version": "0.6.0",
+      "minAppVersion": "1.0.0",
+      "description": "Adds toggleable colored highlights to sentences based on their length so you can easily see the rhythm of your writing.",
+      "author": "Adam Fletcher",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "b4f4944f1c7055323c89015e56aeecb85a3134aec79fa27846229035babcf3cf",
+          "size": 8172
+        },
+        "manifest.json": {
+          "sha256": "f6bfcd2187cd1ee345f7ed6cc30732f6f9831a5ba8847ba8679c982202785bd5",
+          "size": 338
+        },
+        "styles.css": {
+          "sha256": "7625572ded88b3f2c3d8a5385e45f880c7a9f6802f26314572840a59f31552f5",
+          "size": 1800
+        }
+      }
+    },
+    "storyline": {
       "id": "storyline",
       "name": "StoryLine",
       "version": "1.10.72",
-      "author": "Jan Sandstr\u00f6m"
-    },
-    "storyteller-suite": {
+      "minAppVersion": "1.12.7",
+      "description": "Transform your vault into a powerful book planning and writing tool. Corkboard,KanbanBoard view, timeline, plotlines,character tracking, and more.",
+      "author": "Jan Sandstr\u00f6m",
       "files": {
         "data.json": {
-          "sha256": "a397121fa62da8df469b2c26bec1955939a5cdcd01311490f80c9995e1c62c7e",
-          "size_bytes": 133
+          "sha256": "d0825f23edb706a7936150bfdb41903fd92ea60ba27315f212559c290e4d763c",
+          "size": 206
         },
         "main.js": {
-          "sha256": "8aa32041f8cc519f3027b9ebdffd4372dfb625ae5c6d839c7a25c950841f1265",
-          "size_bytes": 3352990
+          "sha256": "d504b4894b888096b19f1ebe574abae3006239ca6ef63eb112987fa5d3b67bfa",
+          "size": 3004704
         },
         "manifest.json": {
-          "sha256": "24958112c0ed8e2657446af1a7ae9260f7e8baa3e2f48175df9c05f735fa02c9",
-          "size_bytes": 367
+          "sha256": "888ee179d71acfeb0bb5378732d3bb63b58dcdebc81cf386c02a94b73860703a",
+          "size": 450
         },
         "styles.css": {
-          "sha256": "f3b4822ecac64169711890b5269a7c665ab59ec9a49066a496e9dbd913dcb7c5",
-          "size_bytes": 349910
+          "sha256": "aa82f33fa3ff0acda0e64eeaabdd20c18673b642898aab1a48f434b47f0b99d2",
+          "size": 314613
         }
-      },
+      }
+    },
+    "storyteller-suite": {
       "id": "storyteller-suite",
       "name": "Storyteller Suite",
       "version": "1.8.19",
-      "author": "Maws"
-    },
-    "templater-obsidian": {
+      "minAppVersion": "1.7.2",
+      "description": "World-building and story management - characters, locations, events, maps, compendium, timeline, manuscript compilation, and more.",
+      "author": "Maws",
       "files": {
         "data.json": {
-          "sha256": "658a66f972cb59913dfc008adbcbd320c636d66d3470427cf7a92a700d457b6d",
-          "size_bytes": 216
+          "sha256": "a397121fa62da8df469b2c26bec1955939a5cdcd01311490f80c9995e1c62c7e",
+          "size": 133
         },
         "main.js": {
-          "sha256": "eb86d9282694ce1f099154c320286fdd89473e60dc2441ee310f3ac331333e94",
-          "size_bytes": 453498
+          "sha256": "8aa32041f8cc519f3027b9ebdffd4372dfb625ae5c6d839c7a25c950841f1265",
+          "size": 3352990
         },
         "manifest.json": {
-          "sha256": "b99280d2c4ab2cd22ad010c12faeedf255bcf385d127d973b89f85deb27d23fd",
-          "size_bytes": 756
+          "sha256": "24958112c0ed8e2657446af1a7ae9260f7e8baa3e2f48175df9c05f735fa02c9",
+          "size": 367
         },
         "styles.css": {
-          "sha256": "67a6dd2d1d6dedca1287c334ca884ec4196433f71ca47388a0bd3eac14cf8b5f",
-          "size_bytes": 4201
+          "sha256": "f3b4822ecac64169711890b5269a7c665ab59ec9a49066a496e9dbd913dcb7c5",
+          "size": 349910
         }
-      },
+      }
+    },
+    "tag-wrangler": {
+      "id": "tag-wrangler",
+      "name": "Tag Wrangler",
+      "version": "0.6.5",
+      "minAppVersion": "1.12.7",
+      "description": "Rename, merge, toggle, and search tags from the tags view; create/open tag pages, and more.",
+      "author": "PJ Eby",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "f390bf135135033cb2b8485438af42efb993ddd93255ac0836016e112ee9ab20",
+          "size": 133501
+        },
+        "manifest.json": {
+          "sha256": "271a93e605b09f689fb4b05af1f73f5080e0876fc247635e4fe9e2c2d88ada96",
+          "size": 367
+        }
+      }
+    },
+    "templater-obsidian": {
       "id": "templater-obsidian",
       "name": "Templater",
       "version": "2.25.1",
-      "author": "SilentVoid"
+      "minAppVersion": "1.13.0",
+      "description": "Advanced templating and automation using handlebars-like syntax.",
+      "author": "SilentVoid",
+      "files": {
+        "data.json": {
+          "sha256": "658a66f972cb59913dfc008adbcbd320c636d66d3470427cf7a92a700d457b6d",
+          "size": 216
+        },
+        "main.js": {
+          "sha256": "eb86d9282694ce1f099154c320286fdd89473e60dc2441ee310f3ac331333e94",
+          "size": 453498
+        },
+        "manifest.json": {
+          "sha256": "b99280d2c4ab2cd22ad010c12faeedf255bcf385d127d973b89f85deb27d23fd",
+          "size": 756
+        },
+        "styles.css": {
+          "sha256": "67a6dd2d1d6dedca1287c334ca884ec4196433f71ca47388a0bd3eac14cf8b5f",
+          "size": 4201
+        }
+      }
+    },
+    "typewriter-mode": {
+      "id": "typewriter-mode",
+      "name": "Typewriter Mode",
+      "version": "1.5.0",
+      "minAppVersion": "1.11.0",
+      "description": "Typewriter scroll, highlight current line, dim unfocused paragraphs and sentences, writing focus, restore cursor position and more.",
+      "author": "Davis Riedel",
+      "files": {
+        "data.json": {
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "size": 2
+        },
+        "main.js": {
+          "sha256": "132eb3b6a3572284b57f84132447ea85eda43146787b9c6b918db89f1e1e18da",
+          "size": 70178
+        },
+        "manifest.json": {
+          "sha256": "dda413bdf1d921c476fb278a32ccdf083241383fd5d940e427bfd2dd4c70ad54",
+          "size": 525
+        },
+        "styles.css": {
+          "sha256": "b55472c6ed81f0333656b6f743f7a26db67eb09f541b8263a80f8d39ed4b7fef",
+          "size": 4139847
+        }
+      }
+    },
+    "valeon": {
+      "id": "valeon",
+      "name": "Valeon",
+      "version": "1.7.0",
+      "minAppVersion": "1.5.0",
+      "description": "Publish, edit, and sync posts with the Valeon author dashboard. Lints frontmatter against the live schema, handles inline images and assets, and reconciles the vault with remote state.",
+      "author": "Sayed Hamid Fatimi",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "b45c373a412f4c6c2da33ec2755a6f3646a5410bb901c0fe1989401e7131a838",
+          "size": 49870
+        },
+        "manifest.json": {
+          "sha256": "4b6b53a06cd03e25b6732cfca8b332b171b50a7cebdf4b51b96ecf268d45d4f1",
+          "size": 386
+        },
+        "styles.css": {
+          "sha256": "d05e783c2a67f6b748901db01d761437c69f1f330b98a2bcd5f7d2aaf4568899",
+          "size": 894
+        }
+      }
+    },
+    "write-good": {
+      "id": "write-good",
+      "name": "Write Good",
+      "version": "1.2.1",
+      "minAppVersion": "0.15.0",
+      "description": "Linter for English prose and improving writing style",
+      "author": "Mark Hesketh",
+      "files": {
+        "data.json": {
+          "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+          "size": 4
+        },
+        "main.js": {
+          "sha256": "de021e69b3216d739d2eb319aac5ef2789c632ace36e6f5c6dc7310dbf449e41",
+          "size": 158425
+        },
+        "manifest.json": {
+          "sha256": "4a8fb0355b9589d2d50757592042631a98044298e91be9bee6d2969a7e786b4e",
+          "size": 265
+        },
+        "styles.css": {
+          "sha256": "3edeb9ed6b6500d0db87901ac712f74e8494b7305fb4f8cb746d22f7eb0192bb",
+          "size": 194
+        }
+      }
+    },
+    "writing-goals": {
+      "id": "writing-goals",
+      "name": "Writing Goals",
+      "version": "0.10.11",
+      "minAppVersion": "1.1.6",
+      "description": "Set dynamic writing goals for notes and folders in Obsidian.",
+      "author": "",
+      "files": {
+        "data.json": {
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "size": 2
+        },
+        "main.js": {
+          "sha256": "f6d778f6b264ece7add8fc398a70b94a9b63ec3ce2c3c8241f18ee3d7832699a",
+          "size": 2553166
+        },
+        "manifest.json": {
+          "sha256": "1ca70aa6359d9682c797779cf68b0909df0532bbdb1e3b8e6f9281281599f9a3",
+          "size": 262
+        },
+        "styles.css": {
+          "sha256": "2487cc118bd32584e7fe2fff011c10893a8f8d20f148858ecaf35222b3926700",
+          "size": 445
+        }
+      }
     }
   }
 }

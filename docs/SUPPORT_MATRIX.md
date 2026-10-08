@@ -18,7 +18,7 @@ This document defines the formal compatibility, architecture tiers, and display 
 | **openSUSE** | Tumbleweed / Leap | Any | x86_64 | **Tier 2** | Supported via Zypper |
 
 ### Tier Definitions
-- **Tier 1 (Target Reference & Cross-Platform Python Core)**: Fully verified through automated test suites (871 tests), packaging builds (`pip install .`), Studio Hub, Zen Studio, Story Canvas, Windows 1-click installer (`setup_arcanum.ps1`), and all 47 craft engines. Linux provides native GTK3 desktop menus, system launchers, and shell wrappers (`scripts/arcanum`).
+- **Tier 1 (Target Reference & Cross-Platform Python Core)**: Fully verified through automated test suites (958 tests), packaging builds (`pip install .`), Studio Hub, Zen Studio, Story Canvas, Windows 1-click installer (`setup_arcanum.ps1`), and all 47 craft engines. Linux provides native GTK3 desktop menus, system launchers, and shell wrappers (`scripts/arcanum`).
 - **Tier 2 (Compatible Distributions)**: Supported via distro package specs and `--force` flag in shell setup scripts. Package manager variations are handled gracefully by fallback routines.
 
 ---

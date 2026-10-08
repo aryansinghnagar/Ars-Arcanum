@@ -21,7 +21,7 @@
 | **Desktop GUI (Linux)** | PyGObject (`GTK 3.0`, `Gdk`, `GLib`, `Pango`) | Native Linux desktop Control Center application | [`scripts/arcanum_app.py#L1-L50`](file:///scripts/arcanum_app.py#L1-L50), [`scripts/lib/ui_gtk3/window.py#L1-L100`](file:///scripts/lib/ui_gtk3/window.py#L1-L100) |
 | **Studio Hub & Zen Studio** | Standalone Offline HTML5/CSS3/ES6 with Strict CSP | Browser-based interactive cockpits, corkboards, and distraction-free typewriter studios | [`scripts/lib/studio_hub_template.py#L1-L50`](file:///scripts/lib/studio_hub_template.py#L1-L50), [`scripts/lib/zen_studio_template.py#L1-L50`](file:///scripts/lib/zen_studio_template.py#L1-L50) |
 | **Publishing Pipeline** | Typst CLI (`>=0.11.0`), Pandoc (`>=2.19.x`), Calibre (`ebook-convert`) | Commercial PDF typesetting with genre presets, EPUB3 compilation, and DOCX AST translation | [`scripts/lib/typeset.py#L1-L120`](file:///scripts/lib/typeset.py#L1-L120), [`docs/COMPATIBILITY.md#L1-L30`](file:///docs/COMPATIBILITY.md#L1-L30) |
-| **External Integrations** | Obsidian (Vendored plugins), novelWriter, LibreOffice | Markdown World Bible vault interface and distraction-free novel project drafting | [`templates/world-bible/.obsidian/plugins/manifest.json`](file:///templates/world-bible/.obsidian/plugins/manifest.json), [`templates/manuscript/nwProject.nwx#L1-L15`](file:///templates/manuscript/nwProject.nwx#L1-L15) |
+| **External Integrations** | Obsidian (32 pre-configured offline plugins), PolyGlot, Gramps, Wonderdraft, Celestia, Pandoc, Typst, novelWriter | Full external creative toolchain, Markdown World Bible vault interface, and distraction-free novel project drafting | [`templates/world-bible/.obsidian/plugins/manifest.json`](file:///templates/world-bible/.obsidian/plugins/manifest.json), [`docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md`](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md) |
 
 ### 1.3 Entry Points
 
@@ -39,10 +39,10 @@
 
 | Command | Purpose | Verification Evidence | CI Enforcement Status |
 |---|---|---|---|
-| `python -m unittest discover tests` | Run complete unit and regression test suite (960 tests) | [`tests/test_*.py`](file:///tests/) | **Enforced in CI** ([`.github/workflows/ci.yml#L36`](file:///.github/workflows/ci.yml#L36)) |
+| `python -m unittest discover tests` | Run complete unit and regression test suite (958 tests) | [`tests/test_*.py`](file:///tests/) | **Enforced in CI** ([`.github/workflows/ci.yml#L36`](file:///.github/workflows/ci.yml#L36)) |
 | `python scripts/test_parallel.py` | Run parallel multi-core test suite across CPU workers (~20s execution) | [`scripts/test_parallel.py`](file:///scripts/test_parallel.py) | Local Developer / Fast CI |
 | `ruff check .` | Strict linting across 9 rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | [`pyproject.toml#L15-L35`](file:///pyproject.toml#L15-L35) | **Enforced in CI** ([`.github/workflows/ci.yml#L33`](file:///.github/workflows/ci.yml#L33)) |
-| `mypy --explicit-package-bases scripts tests` | Static type checking with `check_untyped_defs = True` (217 source files) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25) | **Enforced in CI** ([`.github/workflows/ci.yml#L34`](file:///.github/workflows/ci.yml#L34)) |
+| `mypy --explicit-package-bases scripts tests` | Static type checking with `check_untyped_defs = True` (211 source files) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25) | **Enforced in CI** ([`.github/workflows/ci.yml#L34`](file:///.github/workflows/ci.yml#L34)) |
 | `coverage run -m unittest discover tests; coverage report --fail-under=80` | Measure and enforce aggregate test coverage threshold ($\ge 80\%$) | [`pyproject.toml#L35-L45`](file:///pyproject.toml#L35-L45) | **Enforced in CI** ([`.github/workflows/ci.yml#L38`](file:///.github/workflows/ci.yml#L38)) |
 | `bash scripts/verify.sh` | Canonical 7-stage master integration and packaging verification harness | [`scripts/verify.sh#L1-L150`](file:///scripts/verify.sh#L1-L150) | **Enforced in CI** ([`.github/workflows/ci.yml#L39`](file:///.github/workflows/ci.yml#L39)) |
 | `bash scripts/setup_arcanum.sh` | Automated POSIX system installer (packages, fonts, Typst, launchers) | [`scripts/setup_arcanum.sh#L1-L100`](file:///scripts/setup_arcanum.sh#L1-L100) | Local Developer / User Script |
@@ -59,7 +59,7 @@
 ├── configs/                   # Systemd units, LeechBlock distraction rules, and linter configs
 ├── docs/                      # Comprehensive system documentation and domain engine manuals
 │   ├── codebase/              # Architectural blueprints, tech stack, testing, and conventions
-│   └── guides/                # Author operational guides (backup, distraction control, typography)
+│   └── guides/                # Author operational guides (backup, distraction control, typography, plugins)
 ├── launchers/                 # XDG desktop application entry points (.desktop files)
 ├── scripts/                   # Core application codebase and command executables
 │   ├── arcanum                # POSIX shell entrypoint wrapper
@@ -80,7 +80,7 @@
 │       ├── economy.py         # Macroeconomic PPP validator & tech anachronism auditor
 │       └── [Craft Engines]    # Astrophysics, climate, genealogy, conlang, causality, magic...
 ├── templates/                 # Scaffolding templates for World Bibles, manuscripts, and universes
-└── tests/                     # Comprehensive unittest suite across all domain engines (960 tests)
+└── tests/                     # Comprehensive unittest suite across all domain engines (958 tests)
 ```
 
 ---
@@ -92,7 +92,7 @@
 | **Python** | `3.10`, `3.11`, `3.12`, `3.13`, `3.14` | [`pyproject.toml#L10-L15`](file:///pyproject.toml#L10-L15), [`.github/workflows/ci.yml#L18`](file:///.github/workflows/ci.yml#L18) | Matrix test discovery |
 | **Typst CLI** | `0.14.2` (Pinned musl binary + SHA-256) | [`scripts/setup_arcanum.sh#L317-L320`](file:///scripts/setup_arcanum.sh#L317-L320) | Hardcoded digest verification |
 | **Pandoc** | `>=2.19.x` (Tested up to `3.7.x`) | [`docs/COMPATIBILITY.md#L9-L16`](file:///docs/COMPATIBILITY.md#L9-L16) | `pandoc --version` check |
-| **Obsidian Plugins** | 10 Vendored Plugins (Pinned SHA-256) | [`templates/world-bible/.obsidian/plugins/manifest.json`](file:///templates/world-bible/.obsidian/plugins/manifest.json) | Hash manifest validation |
+| **Obsidian Plugins** | 32 Pre-Configured Plugins (Pinned SHA-256) | [`templates/world-bible/.obsidian/plugins/manifest.json`](file:///templates/world-bible/.obsidian/plugins/manifest.json) | Hash manifest validation |
 | **CI Runner OS** | `ubuntu-24.04`, `macos-latest`, `windows-latest` | [`.github/workflows/ci.yml#L17`](file:///.github/workflows/ci.yml#L17) | Multi-platform GitHub Actions matrix |
 
 ---

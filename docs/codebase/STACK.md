@@ -20,7 +20,8 @@
 | Typst | `>= 0.11.0` (musl static binary) | Print-on-demand & PDF rendering engine | [`scripts/arcanum#L180-L240`](file:///scripts/arcanum#L180-L240), [`docs/TYPOGRAPHY.md`](file:///docs/TYPOGRAPHY.md) |
 | Pandoc | `>= 2.19.x` (tested on `3.1.x`) | Document AST converter (Markdown $\to$ Typst/DOCX/HTML) | [`docs/COMPATIBILITY.md#L9-L16`](file:///docs/COMPATIBILITY.md#L9-L16), [`scripts/arcanum#L180-L240`](file:///scripts/arcanum#L180-L240) |
 | Calibre | System package (`ebook-convert`) | EPUB3 book compilation engine | [`scripts/setup_arcanum.sh#L142-L209`](file:///scripts/setup_arcanum.sh#L142-L209) |
-| Obsidian | `md.obsidian.Obsidian` (desktop app) | Worldbuilding vault interface (10 vendored plugins with SHA-256 manifest) | [`templates/world-bible/.obsidian/plugins/manifest.json`](file:///templates/world-bible/.obsidian/plugins/manifest.json) |
+| Obsidian | `md.obsidian.Obsidian` (desktop app) | Worldbuilding vault interface (32 pre-configured offline plugins with SHA-256 manifest) | [`templates/world-bible/.obsidian/plugins/manifest.json`](file:///templates/world-bible/.obsidian/plugins/manifest.json), [`docs/guides/OBSIDIAN_PLUGINS.md`](file:///docs/guides/OBSIDIAN_PLUGINS.md) |
+| External Toolchain | PolyGlot, Gramps, Wonderdraft, Celestia | Dedicated craft tools for conlangs, genealogy trees, cartography, and astrophysics | [`docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md`](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md), [`docs/guides/SOFTWARE_CATALOG.md`](file:///docs/guides/SOFTWARE_CATALOG.md) |
 | novelWriter | `io.gitlab.novelwriter.novelWriter` | Manuscript project management & drafting tool | [`templates/manuscript/nwProject.nwx#L1-L15`](file:///templates/manuscript/nwProject.nwx#L1-L15) |
 
 ### 3) Development Toolchain
@@ -28,8 +29,8 @@
 | Tool | Purpose | Evidence |
 |------|---------|----------|
 | Ruff | Strict linting across rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | [`pyproject.toml#L15-L35`](file:///pyproject.toml#L15-L35), [`.github/workflows/ci.yml#L25-L35`](file:///.github/workflows/ci.yml#L25-L35) |
-| Mypy | Strict static type checking with `check_untyped_defs = True` (217 source files clean) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py#L1-L40`](file:///tests/test_type_safety.py#L1-L40) |
-| Unittest | Automated test discovery & regression test execution (960 tests, 100% pass) | [`tests/test_*.py`](file:///tests/), [`.github/workflows/ci.yml#L30-L40`](file:///.github/workflows/ci.yml#L30-L40) |
+| Mypy | Strict static type checking with `check_untyped_defs = True` (211 source files clean) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py#L1-L40`](file:///tests/test_type_safety.py#L1-L40) |
+| Unittest | Automated test discovery & regression test execution (958 tests, 100% pass) | [`tests/test_*.py`](file:///tests/), [`.github/workflows/ci.yml#L30-L40`](file:///.github/workflows/ci.yml#L30-L40) |
 | Coverage | Test coverage enforcement and reporting (`fail_under = 80`) | [`pyproject.toml#L35-L45`](file:///pyproject.toml#L35-L45) |
 
 ### 4) Key Commands
@@ -38,7 +39,7 @@
 # Standard package installation
 pip install -e .
 
-# Full test discovery suite (960 tests)
+# Full test discovery suite (958 tests)
 python -m unittest discover tests
 
 # High-performance parallel test runner (~20s execution)

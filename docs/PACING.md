@@ -1,9 +1,12 @@
-# Author Craft Masterclass: Narrative Pacing, Prose Rhythm & Tension Modulation (`docs/PACING.md`)
-> **Craft Discipline: Narrative Dynamics, Pacing, Prose Cadence & Dramatic Waveforms**
+# Master Craft Reference: Narrative Pacing, Prose Rhythm & Tension Modulation (`docs/PACING.md`)
+> **Craft Discipline: Narrative Dynamics, Pacing, Prose Cadence & Dramatic Waveforms** | **Master Craft Reference Manual**
+> **Primary Active Toolchain:** [Sentence Rhythm](file:///templates/world-bible/.obsidian/plugins/sentence-rhythm) + [Write Good](file:///templates/world-bible/.obsidian/plugins/write-good) + [Readability Score](file:///templates/world-bible/.obsidian/plugins/readability-score) + [Vale CLI](https://vale.sh/) + [LanguageTool](https://languagetool.org/) | **Reference CLI:** `arcanum pacing`
 
 ---
 
 ## 1. Overview & Theoretical Rationale
+
+This document serves as the **Master Craft Reference Manual** for prose rhythm, Gary Provost sentence waveforms, scene dilation/compression, and narrative velocity modulation. Active in-vault prose telemetry is powered by **Sentence Rhythm**, **Write Good**, **Readability Score**, and **Valeon / LanguageTool** (see [Master External Tools Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md)).
 
 Pacing is the temporal velocity at which a story moves through dramatic information, cognitive tension, and prose cadence. A 120,000-word novel can feel sluggish and bloated or electric and propulsive depending not merely on what events occur, but on the micro-level **syntactic waveforms**, the **syllabic compression ratios**, and the macro-level **dialogue-to-exposition density**.
 
@@ -210,6 +213,9 @@ zeigarnik_hook:
   description: "Protagonist opens the recovery pod to find the target is already a cybernetic sleeper agent."
 ---
 ```
+
+### 5.1 In-Vault Real-Time Cadence Telemetry: Obsidian Sentence Rhythm
+Inside Obsidian, the pre-bundled [`sentence-rhythm`](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#2-sentence-rhythm) plugin implements Gary Provost's syntactic waveform analysis in real time. It visually color-codes sentences by word length as you draft, immediately exposing monotone runs of similar sentence lengths. See [Sentence Rhythm Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#2-sentence-rhythm).
 
 ---
 

@@ -164,6 +164,11 @@ timeline:
      - Did Detective find the will in Ch 01? Yes ($t = \text{Day 3, 09:30}$).
      - **Result**: Valid. Causal chain preserved. Zero causal inversions.
 
+### 6.1 In-Vault Timeline & Sequence Tooling: Obsidian Longform, Calendarium & April's Timelines
+- **Obsidian Longform**: Reorder atomic scene notes between narrative reading sequence (*sjuzhet*) and chronological story time (*fabula*) using drag-and-drop corkboards. See [Longform Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#5-longform).
+- **Obsidian Calendarium**: Pin historical events and chapter scenes directly onto interactive planetary calendar grids with custom eras and multi-moon phases. See [Calendarium Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#16-calendarium-fantasy-calendar).
+- **April's Automatic Timelines**: Automatically aggregate tagged scene notes into dynamic horizontal or vertical chronological timeline feeds (`aat-vertical`). See [April's Timelines Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#17-aprils-automatic-timelines).
+
 ---
 
 ## 7. Recommended Reading, References & Media

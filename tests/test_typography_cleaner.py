@@ -238,8 +238,55 @@ class TestTypographyCleanerEngine(unittest.TestCase):
                     main()
                 self.assertEqual(cm.exception.code, 1)
 
+    # ------------------------------------------------------------------ #
+    # 12. Scene Break & Horizontal Rule Preservation (DATA-01)          #
+    # ------------------------------------------------------------------ #
+    def test_horizontal_rules_preservation(self):
+        sample_md = """# Chapter 1
+
+The hero stood upon the precipice.
+
+---
+
+Meanwhile, in the valley below:
+
+***
+
+The battle raged on.
+
+* * *
+
+Night fell across the realm.
+
+- - -
+
+Silence followed.
+
+___
+
+The end of the chapter.
+"""
+        cleaned, _stats = normalize_typography_text(sample_md)
+
+        # Standalone scene breaks must remain intact as Markdown thematic breaks
+        self.assertIn("\n---\n", cleaned)
+        self.assertIn("\n***\n", cleaned)
+        self.assertIn("\n* * *\n", cleaned)
+        self.assertIn("\n- - -\n", cleaned)
+        self.assertIn("\n___\n", cleaned)
+
+        # Make sure they weren't converted to em-dashes
+        self.assertNotIn("\n—\n", cleaned)
+
+    def test_inline_em_dash_conversion_preserved(self):
+        sample = "He paused---wondering if the door was locked--and turned back."
+        cleaned, stats = normalize_typography_text(sample)
+        self.assertEqual(cleaned, "He paused—wondering if the door was locked—and turned back.")
+        self.assertEqual(stats["em_dashes"], 2)
+
 
 if __name__ == "__main__":
     unittest.main()
+
 
 

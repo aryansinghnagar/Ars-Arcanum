@@ -5,7 +5,7 @@
 
 [![Release: v0.1.0](https://img.shields.io/badge/Release-v0.1.0-blue.svg)](CHANGELOG.md)
 [![Status: Sovereign Craft Studio](https://img.shields.io/badge/Status-Sovereign%20Studio-brightgreen.svg)](#)
-[![Tests: 970](https://img.shields.io/badge/Tests-970%2F970%20Passing%20(100%25)-brightgreen.svg)](#)
+[![Tests: 958](https://img.shields.io/badge/Tests-958%2F958%20Passing%20(100%25)-brightgreen.svg)](#)
 [![Coverage: 80%+](https://img.shields.io/badge/Coverage-80%25%2B-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
@@ -28,9 +28,9 @@ All manuscripts and lore vaults are stored in **standard CommonMark Markdown** (
 |:--|:--|
 | **🖥️ Studio Hub & Scope Cockpit** | Standalone GTK3 desktop app (Linux) & hardened browser Studio Hub (Cross-Platform) with real-time altitude scoping and live modal engine dispatch. |
 | **🎯 Altitude-Aware Scoping** | Execute craft engines on exact slices: scenes (`--scene 1-3`), chapters (`-c 1-5`, `ch01..ch05`), books (`-b 1-2`), lore categories, or worlds without whole-vault overhead. |
-| **🪐 World Bible Ecosystem** | Obsidian-compatible vault architecture with structured schemas for characters, cultures, pantheons, genealogies, and magic systems. |
+| **🪐 World Bible Ecosystem** | Obsidian-compatible vault architecture with 32 pre-configured offline community plugins and structured schemas for characters, cultures, pantheons, genealogies, and magic systems. |
 | **✍️ Zen Drafting & Bidirectional Sync** | Standalone distraction-free Zen drafting studio, plus seamless bidirectional Markdown ↔ DOCX synchronization. |
-| **🔮 53 Sovereign Craft Engines** | Comprehensive domain engines across 5 domains: Astrophysics, Climate, Conlang, Factions, Genealogy, Magic Systems, Resonance, Tactical Sim, Pacing, and Scene Mechanics. |
+| **🔮 Sovereign Craft Engines & Toolchain** | Comprehensive domain engines alongside an integrated toolchain (PolyGlot, Gramps, Wonderdraft, Celestia, Typst) across Linguistics, Genealogy, Cartography, Astrophysics, Pacing, Economy, and Narrative Geometry. |
 | **📚 Sub-Second Typesetting** | Single-command compilation to print-ready PDF (Typst presets), clean EPUB (Pandoc), submission DOCX (william shunn), and offline TTS acoustic proofing. |
 | **🔒 Immutable Safety & Cryptography** | POSIX/Windows atomic file writes (`atomic_write`), cross-platform file locking (`ArcanumLock`), SHA-256 backup verification, and GPG encryption. |
 | **🧠 Local Semantic Search & Codex** | Offline hybrid TF-IDF and SQLite FTS5 semantic search across lore bibles. Zero API keys, zero external networks. |
@@ -199,13 +199,13 @@ powershell -ExecutionPolicy Bypass -File scripts\setup_arcanum.ps1
 Ars Arcanum enforces strict deterministic quality gates across POSIX and Windows:
 
 ```bash
-# 1. Full 95-module parallel test discovery (970 tests, 0 failures)
+# 1. Full 88-module parallel test discovery (958 tests, 0 failures)
 python scripts/test_parallel.py
 
 # 2. Strict Ruff linter pass (0 violations)
 ruff check .
 
-# 3. Strict Mypy static type checking across all 218 source files
+# 3. Strict Mypy static type checking across all 211 source files
 mypy --explicit-package-bases scripts tests
 
 # 4. Canonical POSIX Integration Verification Harness
@@ -217,8 +217,11 @@ bash scripts/verify.sh
 ## 📖 Documentation Index
 
 - **[📖 Author's Craft Manual](docs/AUTHOR_MANUAL.md)** — Exhaustive guide to sovereign worldbuilding and narrative drafting.
-- **[🏛️ System Architecture Blueprint](docs/ARCHITECTURE.md)** — C4 diagrams, Three Subsystem breakdown, and engine topology.
-- **[📚 Craft Logic Encyclopedia](docs/ENGINE_LOGIC_ENCYCLOPEDIA.md)** — Historical lineages, mathematical models, and tradeoffs for all 53 engines.
+- **[🔌 External Tools & 32-Plugin Suite](docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md)** — Complete guide to all integrated external software and pre-configured Obsidian plugins.
+- **[🧩 Obsidian Plugin Catalog](docs/guides/OBSIDIAN_PLUGINS.md)** — Exhaustive directory of the 32 pre-installed Obsidian plugins.
+- **[💻 Software Catalog](docs/guides/SOFTWARE_CATALOG.md)** — Comprehensive software directory, installation vectors, and license matrix.
+- **[🏛️ System Architecture Blueprint](docs/codebase/ARCHITECTURE.md)** — C4 diagrams, Three Subsystem breakdown, and engine topology.
+- **[📚 Craft Logic Encyclopedia](docs/ENGINE_LOGIC_ENCYCLOPEDIA.md)** — Historical lineages, mathematical models, and tradeoffs for sovereign engines.
 - **[⚡ Complete Setup & Installation Guide](docs/SETUP_GUIDE.md)** — Step-by-step installation instructions for Linux, macOS, and Windows.
 - **[🔒 Security & Threat Model](docs/THREAT_MODEL.md)** — Air-gapped CSP policies, path traversal defense, and cryptographic guarantees.
 - **[📚 Master Academic & Craft References](REFERENCES.md)** — 340+ verified academic and literary citations.

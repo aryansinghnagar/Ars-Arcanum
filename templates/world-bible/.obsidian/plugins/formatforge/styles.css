@@ -1,0 +1,1723 @@
+/* ── formatForge styles ── */
+
+/* ── Embedded custom fonts ──────────────────────────────────────────────
+ * Static @font-face rules pointing straight at the real files bundled in
+ * this plugin's fonts/ folder (relative URLs resolve against the plugin's
+ * own directory, same as any other plugin asset). This is the primary,
+ * always-available desktop+mobile path: plain authored CSS, no runtime
+ * <style> injection and no JS FontFace() indirection required for these
+ * fonts to be usable in ordinary DOM layout (canvas text and
+ * document.fonts bookkeeping both already worked before this — actual
+ * heading/paragraph rendering needs a real stylesheet rule like this one).
+ * fonts.ts's base64-embedded copies + FontFace API registration still run
+ * alongside this as a belt-and-suspenders path for any runtime (e.g. a
+ * future non-file-URL sandbox) where a relative fonts/ URL doesn't resolve
+ * — harmless to keep registered twice under the same family name. */
+@font-face {
+	font-family: "storyForge Alan Sans";
+	src: url("fonts/AlanSans-VariableFont_wght.woff2") format("woff2");
+	font-weight: 300 900;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Caveat";
+	src: url("fonts/Caveat-VariableFont_wght.woff2") format("woff2");
+	font-weight: 400 700;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Courier Prime";
+	src: url("fonts/CourierPrime-Regular.woff2") format("woff2");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Courier Prime";
+	src: url("fonts/CourierPrime-Bold.woff2") format("woff2");
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Courier Prime";
+	src: url("fonts/CourierPrime-Italic.woff2") format("woff2");
+	font-weight: 400;
+	font-style: italic;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Courier Prime";
+	src: url("fonts/CourierPrime-BoldItalic.woff2") format("woff2");
+	font-weight: 700;
+	font-style: italic;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Exo 2";
+	src: url("fonts/Exo2-VariableFont_wght.woff2") format("woff2");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Exo 2";
+	src: url("fonts/Exo2-Italic-VariableFont_wght.woff2") format("woff2");
+	font-weight: 100 900;
+	font-style: italic;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Fredoka";
+	src: url("fonts/Fredoka-VariableFont_wdth,wght.woff2") format("woff2");
+	font-weight: 300 700;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Grenze";
+	src: url("fonts/Grenze-VariableFont_wght.woff2") format("woff2");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Grenze";
+	src: url("fonts/Grenze-Italic-VariableFont_wght.woff2") format("woff2");
+	font-weight: 100 900;
+	font-style: italic;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge IBM Plex Sans Var";
+	src: url("fonts/IBM Plex Sans Var-Roman.woff2") format("woff2");
+	font-weight: 100 700;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge IBM Plex Sans Var";
+	src: url("fonts/IBM Plex Sans Var-Italic.woff2") format("woff2");
+	font-weight: 100 700;
+	font-style: italic;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Libre Baskerville";
+	src: url("fonts/LibreBaskerville-VariableFont_wght.woff2") format("woff2");
+	font-weight: 400 700;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Libre Baskerville";
+	src: url("fonts/LibreBaskerville-Italic-VariableFont_wght.woff2") format("woff2");
+	font-weight: 400 700;
+	font-style: italic;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Nunito";
+	src: url("fonts/Nunito-VariableFont_wght.woff2") format("woff2");
+	font-weight: 200 900;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Nunito";
+	src: url("fonts/Nunito-Italic-VariableFont_wght.woff2") format("woff2");
+	font-weight: 200 900;
+	font-style: italic;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge Playpen Sans";
+	src: url("fonts/PlaypenSans-VariableFont_wght.woff2") format("woff2");
+	font-weight: 100 800;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge SN Pro";
+	src: url("fonts/SNPro-VariableFont_wght.woff2") format("woff2");
+	font-weight: 200 900;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "storyForge SN Pro";
+	src: url("fonts/SNPro-Italic-VariableFont_wght.woff2") format("woff2");
+	font-weight: 200 900;
+	font-style: italic;
+	font-display: swap;
+}
+
+/* Needed for small-caps labels in font settings */
+.sf-small-caps-label {
+	font-variant: small-caps;
+}
+
+/* ── Shared row/swatch primitives ──────────────────────────────────────── */
+
+.sf-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 6px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.sf-row:hover {
+	background: var(--background-modifier-hover);
+}
+
+/* ── Colour swatch button ────────────────────────────────────────────── */
+
+.sf-color-swatch-btn {
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border-radius: 4px;
+	border: 1px solid var(--background-modifier-border);
+}
+
+/* Sitting at "Theme default" — no fixed hex to show, so a dashed placeholder instead of a fill. */
+.sf-color-swatch-btn--theme-default {
+	border-style: dashed;
+	background-image: linear-gradient(45deg, var(--background-modifier-border) 25%, transparent 25%, transparent 50%, var(--background-modifier-border) 50%, var(--background-modifier-border) 75%, transparent 75%, transparent);
+	background-size: 6px 6px;
+}
+
+/* ── Visibility helpers ────────────────────────────────────────────────── */
+
+.sf-settings-hidden:not(#storyforge-specificity-boost) {
+	display: none;
+}
+
+.sf-font-row .setting-item-control {
+	flex-wrap: nowrap;
+	gap: 8px;
+}
+
+/* ── Settings tab spacing ──────────────────────────────────────────────── */
+
+.sf-settings-tab > .setting-item + .setting-group,
+.sf-settings-tab > .setting-item + .setting-item {
+	margin-top: var(--size-4-6);
+}
+
+/* ── Palette picker modal ──────────────────────────────────────────────── */
+
+.sf-palette-picker-modal {
+	padding: 16px;
+}
+
+.sf-palette-picker-modal h2 {
+	margin: 0 0 12px;
+}
+
+.sf-palette-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	max-height: 60vh;
+	overflow-y: auto;
+}
+
+.sf-palette-row {
+	cursor: pointer;
+}
+
+.sf-palette-swatch {
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+	border-radius: 4px;
+	border: 1px solid var(--background-modifier-border);
+}
+
+.sf-palette-name {
+	flex: 1;
+}
+
+.sf-palette-hex {
+	flex-shrink: 0;
+	font-family: var(--font-monospace);
+	font-size: var(--font-ui-smaller);
+	color: var(--text-faint);
+}
+
+/* Always the last row — a divider sets it apart from the real palette colours above it. */
+.sf-palette-row.sf-palette-theme-default {
+	margin-top: 4px;
+	padding-top: 6px;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.sf-palette-row.sf-palette-theme-default .sf-palette-name {
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+.sf-palette-row.sf-palette-theme-default.is-selected {
+	background: var(--background-modifier-hover);
+}
+
+/* Always the first extra row — a small but distinct gap above the real palette colours. */
+.sf-palette-row.sf-palette-muted {
+	margin-bottom: 8px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.sf-palette-row.sf-palette-muted .sf-palette-name {
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+.sf-palette-row.sf-palette-muted.is-selected {
+	background: var(--background-modifier-hover);
+}
+
+/* No fixed hex to show — a diagonal "empty" pattern instead of a solid fill. */
+.sf-palette-swatch.is-theme-default {
+	background-image: linear-gradient(45deg, var(--background-modifier-border) 25%, transparent 25%, transparent 50%, var(--background-modifier-border) 50%, var(--background-modifier-border) 75%, transparent 75%, transparent);
+	background-size: 6px 6px;
+}
+
+/* ── Formatting export modal ───────────────────────────────────────────── */
+
+.modal.ff-formatting-export-modal {
+	width: min(90vw, 780px);
+	height: min(90vh, 640px);
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+}
+
+.ff-formatting-export-modal {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	padding: 16px;
+	min-height: 0;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.modal.ff-formatting-export-modal .sf-text-style-tab-bar {
+	padding: 0;
+}
+
+.modal.ff-formatting-export-modal .sf-text-style-tab-btn {
+	flex: 1 1 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	text-transform: none;
+}
+
+.modal.ff-formatting-export-modal .setting-item-name,
+.modal.ff-formatting-export-modal .setting-item-description {
+	text-transform: none;
+}
+
+.modal.ff-formatting-export-modal .sf-text-style-tab-body-wrapper {
+	padding-top: var(--size-4-4);
+}
+
+.modal.ff-formatting-export-modal .sf-text-style-tab-body {
+	gap: var(--size-4-3);
+}
+
+.modal.ff-formatting-export-modal .sf-text-style-tab-body > .setting-item + .setting-item,
+.modal.ff-formatting-export-modal .sf-text-style-tab-body > .setting-item + .setting-group {
+	margin-top: 0;
+}
+
+.ff-formatting-box {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	background: var(--background-secondary);
+	padding: var(--size-4-3);
+	box-sizing: border-box;
+}
+
+.ff-formatting-box > .setting-item {
+	border: none;
+	padding-top: var(--size-4-2);
+	padding-bottom: var(--size-4-2);
+}
+
+.ff-formatting-box > .setting-item:first-child {
+	padding-top: 0;
+}
+
+.ff-formatting-box > .setting-item:last-child {
+	padding-bottom: 0;
+}
+
+.ff-formatting-toggle-row {
+	display: flex;
+	width: 100%;
+	gap: var(--size-4-3);
+}
+
+.modal.ff-formatting-export-modal .ff-formatting-toggle-row > .setting-item {
+	flex: 1 1 0;
+	min-width: 0;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	border: none;
+	border-top: none;
+	padding: 0;
+	gap: var(--size-4-2);
+}
+
+.ff-formatting-toggle-row > .setting-item .setting-item-info {
+	width: 100%;
+	margin: 0;
+	text-align: center;
+}
+
+.ff-formatting-toggle-row > .setting-item .setting-item-name {
+	text-align: center;
+	white-space: normal;
+}
+
+.ff-formatting-toggle-row > .setting-item .setting-item-description {
+	display: none;
+}
+
+.ff-formatting-box .setting-item-control {
+	gap: 2px;
+}
+
+.ff-formatting-save-box {
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
+	gap: 0;
+	padding: 0;
+}
+
+.ff-formatting-save-fields {
+	flex: 1 1 0;
+	min-width: 0;
+	padding: var(--size-4-3);
+}
+
+.ff-formatting-save-fields > .setting-item {
+	border: none;
+	padding-top: var(--size-4-2);
+	padding-bottom: var(--size-4-2);
+}
+
+.ff-formatting-save-fields > .setting-item:first-child {
+	padding-top: 0;
+}
+
+.ff-formatting-save-fields > .setting-item:last-child {
+	padding-bottom: 0;
+}
+
+.ff-formatting-save-action {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 56px;
+}
+
+.ff-formatting-hover-icon {
+	--icon-size: 26px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 36px;
+	height: 36px;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+
+.ff-formatting-hover-icon svg,
+.ff-formatting-hover-icon svg.svg-icon {
+	width: 26px;
+	height: 26px;
+	flex-shrink: 0;
+}
+
+.ff-formatting-hover-icon:hover {
+	color: var(--text-normal);
+}
+
+.ff-formatting-hover-icon--stroke svg {
+	fill: none;
+}
+
+.ff-formatting-hover-icon:focus-visible {
+	outline: 2px solid var(--text-accent);
+	outline-offset: 2px;
+}
+
+.modal.ff-formatting-export-modal .setting-item-control select {
+	min-width: 220px;
+}
+
+.ff-formatting-export-text,
+.ff-formatting-import-text {
+	display: block;
+	width: 100%;
+	resize: none;
+	padding: var(--size-4-3);
+	box-sizing: border-box;
+	font-family: var(--font-monospace);
+	font-size: var(--font-ui-smaller);
+	line-height: 1.45;
+	white-space: pre;
+	tab-size: 2;
+}
+
+.ff-formatting-export-text {
+	height: min(28vh, 220px);
+	margin-top: var(--size-4-3);
+}
+
+.ff-formatting-import-text {
+	height: min(24vh, 240px);
+}
+
+.ff-formatting-preview-box {
+	flex: 0 0 auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.ff-formatting-preview-copy {
+	/* One 1.2em title line + one description line + their bottom gaps. */
+	flex: 0 0 auto;
+	min-height: calc(1.2em * 1.3 + 1.5em + var(--size-4-2) * 2);
+}
+
+.ff-formatting-preview-title {
+	font-size: 1.2em;
+	line-height: 1.3;
+	min-width: 0;
+	display: block;
+	margin: 0 0 var(--size-4-2);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ff-formatting-preview-description {
+	min-height: 1.5em;
+	line-height: 1.5;
+	margin: 0 0 var(--size-4-2);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ff-formatting-preview-controls {
+	flex: 0 0 auto;
+}
+
+.ff-formatting-preview-box .ff-formatting-import-preview {
+	border: none;
+	background: transparent;
+	padding: 0;
+	margin: 0;
+	flex: 0 0 auto;
+}
+
+.modal.ff-json-import-modal {
+	width: min(90vw, 560px);
+	height: min(80vh, 520px);
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+}
+
+.ff-json-import-modal {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	padding: 16px;
+	gap: var(--size-4-3);
+	min-height: 0;
+	overflow: hidden;
+}
+
+.ff-json-import-fields {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	gap: var(--size-4-4);
+}
+
+.modal.ff-json-import-modal .ff-json-import-fields > .setting-item,
+.modal.ff-edit-theme-modal .ff-json-import-fields > .setting-item {
+	flex: 1 1 0;
+	min-width: 0;
+	flex-direction: column-reverse;
+	align-items: stretch;
+	justify-content: flex-start;
+	border: none;
+	border-top: none;
+	padding: 0;
+	gap: var(--size-4-2);
+}
+
+.ff-json-import-fields > .setting-item .setting-item-info {
+	width: 100%;
+	margin: 0;
+	text-align: left;
+}
+
+.ff-json-import-fields > .setting-item .setting-item-name {
+	text-align: left;
+}
+
+.modal.ff-edit-theme-modal .ff-json-import-fields > .setting-item input {
+	padding-inline: var(--size-4-2);
+}
+
+.modal.ff-edit-theme-modal .ff-json-import-fields > .setting-item .setting-item-info,
+.modal.ff-edit-theme-modal .ff-json-import-fields > .setting-item .setting-item-name {
+	padding-inline: var(--size-4-2);
+	margin-inline: 0;
+}
+
+.ff-json-import-fields > .setting-item .setting-item-description {
+	display: none;
+}
+
+.ff-json-import-fields > .setting-item .setting-item-control {
+	justify-content: stretch;
+	padding: 0;
+	width: 100%;
+}
+
+.ff-json-import-fields > .setting-item input {
+	width: 100%;
+}
+
+.ff-json-import-paste {
+	flex: 1 1 auto;
+	min-height: 0;
+	display: flex;
+}
+
+.ff-json-import-modal .ff-formatting-import-text {
+	flex: 1;
+	height: auto;
+	min-height: 160px;
+}
+
+.ff-json-import-save {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--size-4-3);
+	width: 100%;
+	flex-shrink: 0;
+}
+
+.modal.ff-edit-theme-modal .ff-json-import-save .ff-formatting-hover-icon {
+	--icon-size: 26px;
+	width: 36px;
+	height: 36px;
+}
+
+.modal.ff-edit-theme-modal .ff-json-import-save .ff-formatting-hover-icon svg,
+.modal.ff-edit-theme-modal .ff-json-import-save .ff-formatting-hover-icon svg.svg-icon {
+	width: 26px;
+	height: 26px;
+}
+
+.modal.ff-edit-theme-modal {
+	width: min(90vw, 560px);
+}
+
+.ff-edit-theme-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-4-3);
+}
+
+.ff-formatting-preview-apply {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.ff-formatting-preview-actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 4px;
+	flex-shrink: 0;
+}
+
+.ff-formatting-preview-actions .ff-formatting-hover-icon {
+	--icon-size: 26px;
+	width: 36px;
+	height: 36px;
+}
+
+.ff-formatting-preview-actions .ff-formatting-hover-icon svg,
+.ff-formatting-preview-actions .ff-formatting-hover-icon svg.svg-icon {
+	width: 26px;
+	height: 26px;
+}
+
+.ff-formatting-section-labels,
+.ff-formatting-import-meta {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	margin: 0 0 var(--size-4-3);
+}
+
+.ff-formatting-import-preview {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	background: var(--background-secondary);
+	padding: var(--size-4-3);
+	margin: var(--size-4-3) 0;
+}
+
+.ff-formatting-import-preview.is-empty {
+	color: var(--text-muted);
+}
+
+/* ── Text Style / UI Formatting modal (tabbed) ─────────────────────────── */
+
+/* Wide enough for controls | live preview.
+ * Extra class on the UI modal beats storyForge's shared 560px rule regardless of CSS load order. */
+.modal.sf-text-style-modal {
+	width: min(92vw, 1120px);
+	height: min(90vh, 760px);
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+}
+
+.modal.sf-ui-formatting-modal.ff-ui-formatting-modal {
+	width: min(96vw, 1240px);
+	height: min(90vh, 780px);
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+}
+
+.sf-text-style-modal,
+.sf-ui-formatting-modal {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	padding: 16px;
+	min-height: 0;
+	min-width: 0;
+}
+
+/* Text styling: controls | live preview */
+.ff-text-style-layout {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	gap: 16px;
+	min-height: 0;
+	min-width: 0;
+}
+
+.ff-text-style-controls {
+	flex: 1 1 0;
+	min-width: 280px;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Text format modal: icon-breadcrumb row + scrolling leaf (copied from storyForge interface crumbs
+ * so this modal looks right even when storyForge isn't loaded). */
+.sf-ui-format-crumb-row {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 6px 2px 10px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	box-sizing: border-box;
+}
+
+.sf-ui-format-crumb-phase {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.sf-ui-format-crumb-spacer {
+	width: 1px;
+	height: 18px;
+	margin-inline: 8px;
+	background: var(--background-modifier-border);
+	flex-shrink: 0;
+}
+
+.sf-ui-format-crumb-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+
+.sf-ui-format-crumb-icon svg,
+.sf-ui-format-crumb-icon svg.svg-icon {
+	width: 24px;
+	height: 24px;
+	flex-shrink: 0;
+}
+
+.sf-ui-format-crumb-icon:hover,
+.sf-ui-format-crumb-icon.is-active {
+	color: var(--text-accent);
+}
+
+.sf-ui-format-crumb-icon:focus-visible {
+	outline: 2px solid var(--text-accent);
+	outline-offset: 2px;
+}
+
+.sf-ui-format-crumb-icon--dual {
+	width: auto;
+	gap: 2px;
+	padding: 0 4px;
+}
+
+.sf-ui-format-crumb-icon--dual svg,
+.sf-ui-format-crumb-icon--dual svg.svg-icon {
+	width: 18px;
+	height: 18px;
+}
+
+.sf-ui-format-crumb-body {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.sf-ui-format-crumb-leaf {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-4-6);
+	box-sizing: border-box;
+}
+
+.sf-ui-format-crumb-leaf > .setting-item,
+.sf-ui-format-crumb-leaf > .setting-group {
+	margin-bottom: 0;
+}
+
+.sf-ui-format-crumb-leaf > .setting-item + .setting-group,
+.sf-ui-format-crumb-leaf > .setting-item + .setting-item {
+	margin-top: var(--size-4-6);
+}
+
+.ff-style-preview-pane {
+	flex: 1 1 0;
+	min-width: 280px;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	overflow: hidden;
+	background: var(--background-primary);
+}
+
+/* storyForge interface: reserve the preview column so settings cannot push it off-screen */
+.modal.ff-ui-formatting-modal .ff-text-style-layout {
+	gap: 12px;
+}
+
+.modal.ff-ui-formatting-modal .ff-text-style-controls {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.modal.ff-ui-formatting-modal .ff-style-preview-pane {
+	flex: 0 0 clamp(300px, 40%, 420px);
+	width: clamp(300px, 40%, 420px);
+	min-width: 300px;
+	max-width: 44%;
+}
+
+.ff-style-preview-label {
+	flex-shrink: 0;
+	padding: 8px 12px;
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-medium);
+	color: var(--text-muted);
+	border-bottom: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+}
+
+.ff-style-preview {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+	padding: 16px 20px 24px;
+	box-sizing: border-box;
+}
+
+.ff-style-preview h1,
+.ff-style-preview h2,
+.ff-style-preview h3,
+.ff-style-preview h4,
+.ff-style-preview h5,
+.ff-style-preview h6 {
+	margin-block: 0.6em 0.35em;
+	line-height: 1.25;
+}
+
+.ff-style-preview h1:first-child {
+	margin-block-start: 0;
+}
+
+.ff-style-preview p {
+	margin-block: 0 0.85em;
+	line-height: 1.55;
+}
+
+/* Live preview mirrors editor CSS variables.
+ * High specificity so Obsidian modal/heading rules do not win on font-family. */
+.modal.sf-text-style-modal .ff-style-preview p {
+	font-size: var(--sf-body-size, inherit);
+	color: var(--sf-body-color, var(--text-normal));
+	font-weight: var(--sf-body-weight, inherit);
+	font-family: var(--sf-body-family, inherit);
+	font-variation-settings: var(--sf-body-variation, normal);
+}
+.modal.sf-text-style-modal .ff-style-preview strong:not(#formatforge-specificity-boost) {
+	color: var(--sf-body-bold-color, inherit);
+	font-family: inherit;
+	font-weight: bold;
+	/* Parent pins "wght" for variable fonts; inheriting it cancels UA bold. */
+	font-variation-settings: normal;
+}
+.modal.sf-text-style-modal .ff-style-preview em:not(#formatforge-specificity-boost) {
+	color: var(--sf-body-italic-color, inherit);
+	font-family: inherit;
+	font-variation-settings: inherit;
+}
+.modal.sf-text-style-modal .ff-style-preview a:not(#formatforge-specificity-boost) {
+	color: var(--sf-body-link-color, var(--link-color));
+	text-decoration: var(--sf-body-link-decoration, var(--link-decoration));
+}
+.modal.sf-text-style-modal .ff-style-preview a:hover:not(#formatforge-specificity-boost) {
+	color: var(--sf-body-link-color-hover, var(--link-color-hover));
+	text-decoration: var(--sf-body-link-decoration, var(--link-decoration-hover));
+}
+.modal.sf-text-style-modal .ff-style-preview h1 a:not(#formatforge-specificity-boost) {
+	color: var(--sf-h1-link-color, var(--link-color));
+	text-decoration: var(--sf-h1-link-decoration, var(--link-decoration));
+}
+.modal.sf-text-style-modal .ff-style-preview h1 a:hover:not(#formatforge-specificity-boost) {
+	color: var(--sf-h1-link-color, var(--link-color-hover));
+	text-decoration: var(--sf-h1-link-decoration, var(--link-decoration-hover));
+}
+.modal.sf-text-style-modal .ff-style-preview mark:not(#formatforge-specificity-boost) {
+	background-color: var(--sf-body-highlight-bg, var(--text-highlight-bg));
+	color: var(--sf-body-highlight-color, inherit);
+}
+
+.modal.sf-text-style-modal .ff-style-preview h1 {
+	font-size: var(--sf-h1-size, 1.8em);
+	font-weight: var(--sf-h1-weight, inherit);
+	border-top: var(--sf-h1-border-top, none);
+	border-bottom: var(--sf-h1-border-bottom, none);
+	font-family: var(--sf-h1-family, inherit);
+	font-variation-settings: var(--sf-h1-variation, normal);
+	color: var(--sf-h1-color, var(--text-normal));
+	font-variant: var(--sf-h1-variant, normal);
+}
+.modal.sf-text-style-modal .ff-style-preview h2 {
+	font-size: var(--sf-h2-size, 1.5em);
+	font-weight: var(--sf-h2-weight, inherit);
+	border-top: var(--sf-h2-border-top, none);
+	border-bottom: var(--sf-h2-border-bottom, none);
+	font-family: var(--sf-h2-family, inherit);
+	font-variation-settings: var(--sf-h2-variation, normal);
+	color: var(--sf-h2-color, var(--text-normal));
+	font-variant: var(--sf-h2-variant, normal);
+}
+.modal.sf-text-style-modal .ff-style-preview h3 {
+	font-size: var(--sf-h3-size, 1.35em);
+	font-weight: var(--sf-h3-weight, inherit);
+	border-top: var(--sf-h3-border-top, none);
+	border-bottom: var(--sf-h3-border-bottom, none);
+	font-family: var(--sf-h3-family, inherit);
+	font-variation-settings: var(--sf-h3-variation, normal);
+	color: var(--sf-h3-color, var(--text-normal));
+	font-variant: var(--sf-h3-variant, normal);
+}
+.modal.sf-text-style-modal .ff-style-preview h4 {
+	font-size: var(--sf-h4-size, 1.2em);
+	font-weight: var(--sf-h4-weight, inherit);
+	border-top: var(--sf-h4-border-top, none);
+	border-bottom: var(--sf-h4-border-bottom, none);
+	font-family: var(--sf-h4-family, inherit);
+	font-variation-settings: var(--sf-h4-variation, normal);
+	color: var(--sf-h4-color, var(--text-normal));
+	font-variant: var(--sf-h4-variant, normal);
+}
+.modal.sf-text-style-modal .ff-style-preview h5 {
+	font-size: var(--sf-h5-size, 1.1em);
+	font-weight: var(--sf-h5-weight, inherit);
+	border-top: var(--sf-h5-border-top, none);
+	border-bottom: var(--sf-h5-border-bottom, none);
+	font-family: var(--sf-h5-family, inherit);
+	font-variation-settings: var(--sf-h5-variation, normal);
+	color: var(--sf-h5-color, var(--text-normal));
+	font-variant: var(--sf-h5-variant, normal);
+}
+.modal.sf-text-style-modal .ff-style-preview h6 {
+	font-size: var(--sf-h6-size, 1em);
+	font-weight: var(--sf-h6-weight, inherit);
+	border-top: var(--sf-h6-border-top, none);
+	border-bottom: var(--sf-h6-border-bottom, none);
+	font-family: var(--sf-h6-family, inherit);
+	font-variation-settings: var(--sf-h6-variation, normal);
+	color: var(--sf-h6-color, var(--text-normal));
+	font-variant: var(--sf-h6-variant, normal);
+}
+
+.modal.sf-text-style-modal .ff-style-preview :is(code, pre) {
+	font-size: var(--sf-code-size, inherit);
+	color: var(--sf-code-color, inherit);
+	font-weight: var(--sf-code-weight, inherit);
+	font-family: var(--sf-code-family, var(--font-monospace));
+	font-variation-settings: var(--sf-code-variation, normal);
+	background-color: var(--sf-code-bg, transparent);
+}
+
+.modal.sf-text-style-modal .ff-style-preview pre {
+	padding: 0.45em 0.7em;
+	border-radius: 4px;
+}
+
+.modal.sf-text-style-modal .ff-style-preview pre code {
+	background-color: transparent;
+}
+
+.modal.sf-text-style-modal .ff-style-preview blockquote {
+	font-size: var(--sf-quote-size, var(--sf-body-size, inherit));
+	color: var(--sf-quote-color, var(--sf-body-color, var(--text-normal)));
+	font-weight: var(--sf-quote-weight, var(--sf-body-weight, inherit));
+	font-family: var(--sf-quote-family, var(--sf-body-family, inherit));
+	font-variation-settings: var(--sf-quote-variation, var(--sf-body-variation, normal));
+	background-color: var(--sf-quote-bg, transparent);
+	margin-inline: 0;
+	padding: 0.4em 0.8em;
+	border-inline-start: 3px solid var(--sf-quote-border, var(--blockquote-border-color, var(--background-modifier-border)));
+}
+
+.modal.sf-text-style-modal .ff-style-preview ol {
+	margin-block: 0 0.85em;
+	padding-inline-start: 1.5em;
+}
+
+.modal.sf-text-style-modal .ff-style-preview ul {
+	margin-block: 0 0.85em;
+	padding-inline-start: 1.5em;
+}
+
+.modal.sf-text-style-modal .ff-style-preview ol > li::marker {
+	color: var(--sf-ol-marker, revert);
+}
+
+.modal.sf-text-style-modal .ff-style-preview ul > li::marker {
+	color: var(--sf-ul-marker, revert);
+}
+
+@media (max-width: 900px) {
+	.ff-text-style-layout {
+		flex-direction: column;
+	}
+
+	.ff-text-style-controls {
+		flex: 1 1 55%;
+		min-width: 0;
+	}
+
+	.ff-style-preview-pane {
+		flex: 0 1 40%;
+		min-width: 0;
+		max-height: 40%;
+	}
+
+	/* Keep storyForge interface preview beside controls even on shorter viewports */
+	.modal.ff-ui-formatting-modal .ff-text-style-layout {
+		flex-direction: row;
+	}
+
+	.modal.ff-ui-formatting-modal .ff-style-preview-pane {
+		flex: 0 0 280px;
+		width: 280px;
+		min-width: 260px;
+		max-width: 42%;
+		max-height: none;
+	}
+}
+
+/* storyForge interface preview: host the real panel chrome classes */
+.ff-ui-style-preview {
+	padding: 0;
+	background: var(--background-primary);
+}
+
+.ff-ui-style-preview .ff-ui-preview-host.storyforge-view {
+	display: grid;
+	grid-template-rows: 3fr 2fr;
+	height: 100%;
+	min-height: 100%;
+	pointer-events: none;
+	user-select: none;
+}
+
+.ff-ui-style-preview .ff-ui-preview-host.storyforge-storytelling-view {
+	display: grid;
+	grid-template-rows: auto 1fr auto;
+	height: 100%;
+	min-height: 100%;
+	pointer-events: none;
+	user-select: none;
+}
+
+.ff-ui-style-preview .sf-right-rail-preview {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 12px;
+	pointer-events: none;
+	user-select: none;
+}
+
+.ff-ui-style-preview .sf-right-rail-preview .sf-forge-view {
+	min-height: 0;
+	height: auto;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	padding: 8px;
+}
+
+.ff-ui-style-preview .sf-right-rail-preview .sf-forge-view__panel {
+	display: none;
+}
+
+.ff-ui-style-preview .sf-right-rail-preview .sf-recommend-view,
+.ff-ui-style-preview .sf-right-rail-preview .sf-archive-view {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	padding: 10px;
+	min-height: 180px;
+	display: flex;
+	flex-direction: column;
+}
+
+.ff-ui-style-preview .sf-right-rail-preview-caption {
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-medium);
+	color: var(--text-muted);
+	margin-bottom: -8px;
+}
+
+.ff-ui-style-preview .sf-right-rail-preview--stacked .sf-recommend-view {
+	min-height: 140px;
+}
+
+.ff-ui-style-preview .sf-recommend-tabs {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+.ff-ui-style-preview .sf-recommend-tab {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: calc(var(--font-ui-medium) * 1.4);
+	color: var(--sf-recommend-tabs-color, var(--text-muted));
+	padding: 5px 6px;
+}
+
+.ff-ui-style-preview .sf-recommend-tab svg {
+	width: 1em;
+	height: 1em;
+}
+
+.ff-ui-style-preview .sf-recommend-tab:hover,
+.ff-ui-style-preview .sf-recommend-tab.is-active {
+	color: var(--sf-recommend-tabs-active-color, var(--text-accent));
+}
+
+.ff-ui-style-preview .sf-recommend-view__forge-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 4px;
+	margin-bottom: 10px;
+}
+
+.ff-ui-style-preview .sf-recommend-view__forge-row--focus {
+	margin-top: auto;
+	margin-bottom: 0;
+	justify-content: flex-end;
+}
+
+.ff-ui-style-preview .sf-recommend-view__forge-family,
+.ff-ui-style-preview .sf-recommend-view__forge-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 5px 6px;
+	color: var(--sf-recommend-tabs-color, var(--text-muted));
+	font-size: calc(var(--font-ui-medium) * 1.4);
+}
+
+.ff-ui-style-preview .sf-recommend-view__forge-family {
+	color: var(--sf-recommend-focus-mode-icon-color, var(--text-muted));
+}
+
+.ff-ui-style-preview .sf-recommend-view__forge-icon:hover,
+.ff-ui-style-preview .sf-recommend-view__forge-icon.is-active {
+	color: var(--sf-recommend-tabs-active-color, var(--text-accent));
+}
+
+.ff-ui-style-preview .sf-recommend-view__forge-family svg,
+.ff-ui-style-preview .sf-recommend-view__forge-icon svg {
+	width: 1em;
+	height: 1em;
+}
+
+/* Nested tabs: the wrapper holding the deepest visible tab bar owns the scrolling,
+ * so no tab strip — outer, panel, or context — scrolls out of view.
+ * `is-tab-host` is set by renderTabbedBody on the wrapper and on bodies with nested tabs. */
+.sf-text-style-tab-body-wrapper.is-tab-host {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.sf-text-style-tab-body.is-tab-host {
+	flex: 1 1 auto;
+	min-height: 0;
+	gap: 0;
+}
+
+.sf-text-style-tab-body > .sf-text-style-tab-body-wrapper {
+	flex: 1 1 auto;
+	min-height: 0;
+	height: auto;
+	padding-top: var(--size-4-4);
+}
+
+/* Text styling preview: cycling guide mid-manuscript (uses storyForge --sf-cg-* vars) */
+.ff-style-preview .ff-style-preview-cg {
+	position: relative;
+	margin: 0.35em 0 1.5em;
+	min-height: 1.1em;
+}
+
+.ff-style-preview .ff-style-preview-cg-spacer {
+	opacity: 0;
+	font-size: var(--font-ui-smaller);
+	line-height: 1.2;
+	pointer-events: none;
+}
+
+/* Fallbacks when storyForge's cycling-guide rules aren't present yet */
+.ff-style-preview .ff-style-preview-cg.sf-cycling-guide-line::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 100%;
+	height: var(--sf-cg-height, 2px);
+	background-color: var(--sf-cg-color, var(--text-accent));
+	pointer-events: none;
+	border-radius: var(--sf-cg-radius, 0);
+}
+
+.ff-style-preview .ff-style-preview-cg .sf-cycling-guide-badge {
+	position: absolute;
+	top: calc(100% + var(--sf-cg-height, 2px));
+	right: 0;
+	width: var(--sf-cg-badge-size, 18px);
+	height: var(--sf-cg-badge-inner-height, 15px);
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	background-color: var(--sf-cg-color, var(--text-accent));
+	border-bottom-left-radius: 3px;
+	border-bottom-right-radius: 3px;
+	pointer-events: none;
+}
+
+.ff-style-preview .ff-style-preview-cg .sf-cycling-guide-badge-icon {
+	position: absolute;
+	top: -1px;
+	left: 0;
+	right: 0;
+	color: var(--background-primary);
+	font-size: var(--sf-cg-flag-size, 0.75em);
+	line-height: 0;
+	text-align: center;
+}
+
+.ff-style-preview .ff-style-preview-cg .sf-cycling-guide-badge-icon svg {
+	width: 1em;
+	height: 1em;
+}
+
+.sf-text-style-tab-bar {
+	display: flex;
+	flex-direction: row;
+	gap: 0;
+	border-bottom: 1px solid var(--background-modifier-border);
+	flex-shrink: 0;
+	box-sizing: border-box;
+}
+
+.sf-text-style-tab-btn {
+	appearance: none;
+	border: none;
+	background: transparent;
+	padding: var(--size-4-3) var(--size-4-4);
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-medium);
+	color: var(--text-muted);
+	cursor: pointer;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -1px;
+}
+
+.sf-text-style-tab-btn:hover {
+	color: var(--text-normal);
+	background: var(--background-modifier-hover);
+}
+
+.sf-text-style-tab-btn.is-active {
+	color: var(--text-accent);
+	border-bottom-color: var(--interactive-accent);
+}
+
+.sf-text-style-tab-body-wrapper {
+	flex: 1;
+	min-height: 0;
+	height: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+	box-sizing: border-box;
+}
+
+.sf-text-style-tab-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-4-6);
+	box-sizing: border-box;
+}
+
+.sf-text-style-tab-body > .setting-item,
+.sf-text-style-tab-body > .setting-group {
+	margin-bottom: 0;
+}
+
+.sf-text-style-tab-body > .setting-item + .setting-group,
+.sf-text-style-tab-body > .setting-item + .setting-item {
+	margin-top: var(--size-4-6);
+}
+
+/* ── Settings tab notices ──────────────────────────────────────────────── */
+
+.ff-settings-description {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	margin-top: 0;
+	margin-bottom: var(--size-4-4);
+}
+
+/* ── Editor typography (standalone + Forge hosts) ──────────────────────── */
+
+.markdown-reading-view h1 a:not(#formatforge-specificity-boost),
+.HyperMD-header-1 .cm-hmd-internal-link:not(#formatforge-specificity-boost),
+.HyperMD-header-1 .cm-link:not(#formatforge-specificity-boost),
+.HyperMD-header-1 .cm-hmd-internal-link .cm-underline:not(#formatforge-specificity-boost),
+.HyperMD-header-1 .cm-link .cm-underline:not(#formatforge-specificity-boost),
+.cm-header-1.cm-hmd-internal-link:not(#formatforge-specificity-boost),
+.cm-header-1.cm-link:not(#formatforge-specificity-boost),
+.cm-header-1.cm-hmd-internal-link .cm-underline:not(#formatforge-specificity-boost),
+.cm-header-1.cm-link .cm-underline:not(#formatforge-specificity-boost) {
+	color: var(--sf-h1-link-color, revert);
+	text-decoration: var(--sf-h1-link-decoration, revert);
+}
+
+.markdown-reading-view p,
+.cm-line:not(.HyperMD-header) {
+	font-size: var(--sf-body-size, revert);
+	color: var(--sf-body-color, revert);
+	font-weight: var(--sf-body-weight, revert);
+	font-family: var(--sf-body-family, revert);
+	font-variation-settings: var(--sf-body-variation, revert);
+}
+.markdown-reading-view :is(strong, b):not(#formatforge-specificity-boost),
+.cm-line .cm-strong:not(#formatforge-specificity-boost) {
+	color: var(--sf-body-bold-color, revert);
+	font-weight: bold;
+	/* Body/quote lines pin "wght" for variable fonts; that inherits onto
+	   strong and overrides the UA font-weight: bold. Reset so bold can drive
+	   the axis (variable fonts) or select the bold face (static fonts). */
+	font-variation-settings: normal;
+}
+.markdown-reading-view em:not(#formatforge-specificity-boost),
+.cm-em:not(#formatforge-specificity-boost) {
+	color: var(--sf-body-italic-color, revert);
+}
+
+.markdown-reading-view :is(p, li, blockquote, td, th) a:not(#formatforge-specificity-boost),
+.markdown-reading-view .callout a:not(#formatforge-specificity-boost),
+.cm-line:not(.HyperMD-header) .cm-link:not(#formatforge-specificity-boost),
+.cm-line:not(.HyperMD-header) .cm-hmd-internal-link:not(#formatforge-specificity-boost),
+.cm-line:not(.HyperMD-header) .cm-url:not(#formatforge-specificity-boost),
+.cm-line:not(.HyperMD-header) .cm-underline:not(#formatforge-specificity-boost) {
+	color: var(--sf-body-link-color, revert);
+	text-decoration: var(--sf-body-link-decoration, revert);
+}
+
+.markdown-reading-view :is(p, li, blockquote, td, th) a:hover:not(#formatforge-specificity-boost),
+.markdown-reading-view .callout a:hover:not(#formatforge-specificity-boost),
+.cm-line:not(.HyperMD-header) .cm-link:hover:not(#formatforge-specificity-boost),
+.cm-line:not(.HyperMD-header) .cm-hmd-internal-link:hover:not(#formatforge-specificity-boost),
+.cm-line:not(.HyperMD-header) .cm-url:hover:not(#formatforge-specificity-boost),
+.cm-line:not(.HyperMD-header) .cm-underline:hover:not(#formatforge-specificity-boost) {
+	color: var(--sf-body-link-color-hover, revert);
+}
+
+.markdown-reading-view mark:not(#formatforge-specificity-boost),
+.cm-highlight:not(#formatforge-specificity-boost) {
+	background-color: var(--sf-body-highlight-bg, revert);
+	color: var(--sf-body-highlight-color, revert);
+}
+
+.markdown-reading-view h1, .HyperMD-header-1 {
+	font-size: var(--sf-h1-size, revert);
+	font-weight: var(--sf-h1-weight, revert);
+	border-top: var(--sf-h1-border-top, revert);
+	border-bottom: var(--sf-h1-border-bottom, revert);
+	font-family: var(--sf-h1-family, revert);
+	font-variation-settings: var(--sf-h1-variation, revert);
+}
+.markdown-reading-view h1:not(#formatforge-specificity-boost),
+.cm-header-1:not(#formatforge-specificity-boost) {
+	color: var(--sf-h1-color, revert);
+}
+.markdown-reading-view h1:not(#formatforge-specificity-boost),
+.HyperMD-header-1:not(#formatforge-specificity-boost),
+.cm-header-1:not(#formatforge-specificity-boost) {
+	font-variant: var(--sf-h1-variant, revert);
+}
+
+.markdown-reading-view h2, .HyperMD-header-2 {
+	font-size: var(--sf-h2-size, revert);
+	font-weight: var(--sf-h2-weight, revert);
+	border-top: var(--sf-h2-border-top, revert);
+	border-bottom: var(--sf-h2-border-bottom, revert);
+	font-family: var(--sf-h2-family, revert);
+	font-variation-settings: var(--sf-h2-variation, revert);
+}
+.markdown-reading-view h2:not(#formatforge-specificity-boost),
+.cm-header-2:not(#formatforge-specificity-boost) {
+	color: var(--sf-h2-color, revert);
+}
+.markdown-reading-view h2:not(#formatforge-specificity-boost),
+.HyperMD-header-2:not(#formatforge-specificity-boost),
+.cm-header-2:not(#formatforge-specificity-boost) {
+	font-variant: var(--sf-h2-variant, revert);
+}
+
+.markdown-reading-view h3, .HyperMD-header-3 {
+	font-size: var(--sf-h3-size, revert);
+	font-weight: var(--sf-h3-weight, revert);
+	border-top: var(--sf-h3-border-top, revert);
+	border-bottom: var(--sf-h3-border-bottom, revert);
+	font-family: var(--sf-h3-family, revert);
+	font-variation-settings: var(--sf-h3-variation, revert);
+}
+.markdown-reading-view h3:not(#formatforge-specificity-boost),
+.cm-header-3:not(#formatforge-specificity-boost) {
+	color: var(--sf-h3-color, revert);
+}
+.markdown-reading-view h3:not(#formatforge-specificity-boost),
+.HyperMD-header-3:not(#formatforge-specificity-boost),
+.cm-header-3:not(#formatforge-specificity-boost) {
+	font-variant: var(--sf-h3-variant, revert);
+}
+
+.markdown-reading-view h4, .HyperMD-header-4 {
+	font-size: var(--sf-h4-size, revert);
+	font-weight: var(--sf-h4-weight, revert);
+	border-top: var(--sf-h4-border-top, revert);
+	border-bottom: var(--sf-h4-border-bottom, revert);
+	font-family: var(--sf-h4-family, revert);
+	font-variation-settings: var(--sf-h4-variation, revert);
+}
+.markdown-reading-view h4:not(#formatforge-specificity-boost),
+.cm-header-4:not(#formatforge-specificity-boost) {
+	color: var(--sf-h4-color, revert);
+}
+.markdown-reading-view h4:not(#formatforge-specificity-boost),
+.HyperMD-header-4:not(#formatforge-specificity-boost),
+.cm-header-4:not(#formatforge-specificity-boost) {
+	font-variant: var(--sf-h4-variant, revert);
+}
+
+.markdown-reading-view h5, .HyperMD-header-5 {
+	font-size: var(--sf-h5-size, revert);
+	font-weight: var(--sf-h5-weight, revert);
+	border-top: var(--sf-h5-border-top, revert);
+	border-bottom: var(--sf-h5-border-bottom, revert);
+	font-family: var(--sf-h5-family, revert);
+	font-variation-settings: var(--sf-h5-variation, revert);
+}
+.markdown-reading-view h5:not(#formatforge-specificity-boost),
+.cm-header-5:not(#formatforge-specificity-boost) {
+	color: var(--sf-h5-color, revert);
+}
+.markdown-reading-view h5:not(#formatforge-specificity-boost),
+.HyperMD-header-5:not(#formatforge-specificity-boost),
+.cm-header-5:not(#formatforge-specificity-boost) {
+	font-variant: var(--sf-h5-variant, revert);
+}
+
+.markdown-reading-view h6, .HyperMD-header-6 {
+	font-size: var(--sf-h6-size, revert);
+	font-weight: var(--sf-h6-weight, revert);
+	border-top: var(--sf-h6-border-top, revert);
+	border-bottom: var(--sf-h6-border-bottom, revert);
+	font-family: var(--sf-h6-family, revert);
+	font-variation-settings: var(--sf-h6-variation, revert);
+}
+.markdown-reading-view h6:not(#formatforge-specificity-boost),
+.cm-header-6:not(#formatforge-specificity-boost) {
+	color: var(--sf-h6-color, revert);
+}
+.markdown-reading-view h6:not(#formatforge-specificity-boost),
+.HyperMD-header-6:not(#formatforge-specificity-boost),
+.cm-header-6:not(#formatforge-specificity-boost) {
+	font-variant: var(--sf-h6-variant, revert);
+}
+
+/* Code (inline + fenced): theme default, not body, so monospace is preserved. */
+.markdown-reading-view :is(code, pre):not(#formatforge-specificity-boost),
+.cm-inline-code:not(#formatforge-specificity-boost),
+.HyperMD-codeblock:not(#formatforge-specificity-boost) {
+	font-size: var(--sf-code-size, revert);
+	color: var(--sf-code-color, revert);
+	font-weight: var(--sf-code-weight, revert);
+	font-family: var(--sf-code-family, revert);
+	font-variation-settings: var(--sf-code-variation, revert);
+	background-color: var(--sf-code-bg, revert);
+}
+
+.markdown-reading-view pre code:not(#formatforge-specificity-boost) {
+	background-color: transparent;
+}
+
+/* Block quote: text follows body when not overridden; background and side bar are independent. */
+.markdown-reading-view blockquote:not(#formatforge-specificity-boost),
+.HyperMD-quote:not(#formatforge-specificity-boost),
+.cm-quote:not(#formatforge-specificity-boost) {
+	font-size: var(--sf-quote-size, var(--sf-body-size, revert));
+	color: var(--sf-quote-color, var(--sf-body-color, revert));
+	font-weight: var(--sf-quote-weight, var(--sf-body-weight, revert));
+	font-family: var(--sf-quote-family, var(--sf-body-family, revert));
+	font-variation-settings: var(--sf-quote-variation, var(--sf-body-variation, revert));
+}
+
+.markdown-reading-view blockquote:not(#formatforge-specificity-boost),
+.HyperMD-quote:not(#formatforge-specificity-boost) {
+	background-color: var(--sf-quote-bg, revert);
+	border-inline-start-color: var(--sf-quote-border, revert);
+	border-left-color: var(--sf-quote-border, revert);
+}
+
+.HyperMD-quote:not(#formatforge-specificity-boost)::before {
+	border-left-color: var(--sf-quote-border, revert);
+	border-inline-start-color: var(--sf-quote-border, revert);
+}
+
+/* List markers only — list body text stays on the Body text styles. */
+.markdown-reading-view ol > li:not(#formatforge-specificity-boost)::marker,
+.cm-formatting-list-ol:not(#formatforge-specificity-boost) {
+	color: var(--sf-ol-marker, revert);
+}
+
+.markdown-reading-view ul > li:not(#formatforge-specificity-boost)::marker,
+.cm-formatting-list-ul:not(#formatforge-specificity-boost) {
+	color: var(--sf-ul-marker, revert);
+}
+
+/* ── Font picker modal ─────────────────────────────────────────────────── */
+
+.modal.ff-font-picker-modal {
+	width: min(720px, 94vw);
+	max-height: 80vh;
+}
+
+.modal.ff-font-picker-modal .modal-close-button {
+	display: none;
+}
+
+.ff-font-picker-modal {
+	padding: 20px 24px;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.ff-font-picker-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	overflow-y: auto;
+	min-height: 0;
+	max-height: 70vh;
+}
+
+.ff-font-picker-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	align-items: baseline;
+	gap: 1.25em;
+	padding: 12px 10px;
+	border-radius: 6px;
+	cursor: pointer;
+	line-height: 1.6;
+	box-sizing: border-box;
+}
+
+.ff-font-picker-row:hover {
+	background: var(--background-modifier-hover);
+}
+
+.ff-font-picker-row.is-selected {
+	background: var(--background-modifier-hover);
+	box-shadow: inset 0 0 0 1px var(--interactive-accent);
+}
+
+.ff-font-picker-list.is-small-caps .ff-font-picker-sample {
+	font-variant: small-caps;
+}
+
+.ff-font-picker-toolbar {
+	flex-shrink: 0;
+}
+
+.ff-font-picker-toolbar .setting-item {
+	border: none;
+	padding: 0 10px 12px;
+}
+
+/* Always the last row — a divider sets it apart from the real font catalogue above it. */
+.ff-font-picker-row.ff-font-picker-theme-default {
+	margin-top: 6px;
+	border-top: 1px solid var(--background-modifier-border);
+	border-radius: 0;
+}
+
+.ff-font-picker-cell {
+	min-width: 0;
+}
+
+.ff-font-picker-sample {
+	display: block;
+	white-space: nowrap;
+	overflow: visible;
+	color: var(--text-normal);
+	/* Script faces (e.g. Caveat) overhang their advance — keep stems/swashes inside the cell. */
+	padding-inline: 0.15em;
+	padding-block: 0.12em;
+}
+
+.ff-font-picker-sample.is-min {
+	text-align: end;
+	padding-inline-start: 0.35em;
+}
+
+.ff-font-picker-sample.is-normal {
+	text-align: start;
+}
+
+.ff-font-picker-sample.is-max {
+	text-align: start;
+	padding-inline-end: 0.35em;
+}
+
+/* Manuscript editor scrollbars.
+ * Width/colour from --sf-editor-scrollbar-* set in applyEditorScrollbarStyles().
+ * Obsidian thumbs also read --scrollbar-thumb-bg / --scrollbar-active-thumb-bg.
+ * Editor: thumb transparent at rest; colour on scroller hover.
+ * Preview (Text styling modal): always show chosen thumb colour. */
+body.sf-editor-scrollbar .markdown-source-view .cm-scroller::-webkit-scrollbar,
+body.sf-editor-scrollbar .markdown-preview-view::-webkit-scrollbar,
+body.sf-editor-scrollbar .ff-style-preview::-webkit-scrollbar,
+.ff-style-preview.sf-editor-scrollbar::-webkit-scrollbar {
+	width: var(--sf-editor-scrollbar-width, 12px);
+	height: var(--sf-editor-scrollbar-width, 12px);
+}
+
+body.sf-editor-scrollbar .markdown-source-view .cm-scroller::-webkit-scrollbar-thumb,
+body.sf-editor-scrollbar .markdown-preview-view::-webkit-scrollbar-thumb,
+body.sf-editor-scrollbar .ff-style-preview::-webkit-scrollbar-thumb,
+.ff-style-preview.sf-editor-scrollbar::-webkit-scrollbar-thumb {
+	background-color: transparent;
+	border-radius: 999px;
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+
+/* Preview: always paint the chosen thumb colour */
+.modal.sf-text-style-modal .ff-style-preview.sf-editor-scrollbar::-webkit-scrollbar-thumb {
+	background-color: var(--sf-editor-scrollbar-thumb, var(--scrollbar-thumb-bg, #6b7280));
+}
+
+/* Editor: reveal on hovering the scroller */
+body.sf-editor-scrollbar .markdown-source-view .cm-scroller:hover::-webkit-scrollbar-thumb,
+body.sf-editor-scrollbar .markdown-source-view .cm-scroller:active::-webkit-scrollbar-thumb,
+body.sf-editor-scrollbar .markdown-preview-view:hover::-webkit-scrollbar-thumb,
+body.sf-editor-scrollbar .markdown-preview-view:active::-webkit-scrollbar-thumb {
+	background-color: var(--sf-editor-scrollbar-thumb, var(--scrollbar-active-thumb-bg, #6b7280));
+}
+

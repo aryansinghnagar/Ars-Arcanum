@@ -1,11 +1,12 @@
-# Planetary Astrophysics, Stellar Mechanics & Celestial Orbital Dynamics (`docs/ASTROPHYSICS.md`)
-> **Domain A: Astrophysics, Climate, Cartography & Celestial Mechanics** | **CLI:** `arcanum astrophysics` / `arcanum orbit`
+# Master Craft Reference: Planetary Astrophysics, Stellar Mechanics & Celestial Dynamics (`docs/ASTROPHYSICS.md`)
+> **Domain A: Astrophysics, Climate, Cartography & Celestial Mechanics** | **Master Craft Reference Manual**
+> **Primary Active Toolchain:** [Celestia](https://celestiaproject.space/) + [StarGen](https://www.projectrho.com/public_html/rocket/worldbuilding.php) + [SpinCalc](http://www.artificial-gravity.com/sw/SpinCalc/) + [Atomic Rockets](https://www.projectrho.com/public_html/rocket/) | **Reference CLI:** `arcanum calc astro`
 
 ---
 
 ## 1. Executive Summary & Epistemological Architecture
 
-The **Ars Arcanum Astrophysics & Celestial Mechanics Engine** (`scripts/lib/astrophysics.py`) is an offline, mathematically exact stellar and orbital simulator designed for hard science fiction authors, speculative worldbuilders, and astrophysicists.
+This document serves as the **Master Craft Reference Manual** for hard science fiction astrophysics, stellar thermodynamics, relativistic kinematics, Keplerian orbital mechanics, and habitable zone calculations. Fictional solar systems and orbital habitats are visualized in 3D using **Celestia**, generated via **StarGen**, and calculated using **SpinCalc** and **Atomic Rockets** (see [Master External Tools Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md)).
 
 Worldbuilding on an astronomical scale requires strict adherence to physical conservation laws:
 1. **Thermodynamic Radiation Balance**: Stellar classification, blackbody effective temperature, and circumstellar habitable zone (HZ) boundaries must align with the Stefan-Boltzmann law and radiative transfer models.

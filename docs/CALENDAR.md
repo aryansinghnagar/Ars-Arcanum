@@ -219,6 +219,9 @@ arcanum epoch --daylight --tilt 26.0 --latitude 45.0
 arcanum calendar --calendar World/Chronology/imperial_calendar.yaml --html reports/calendar_dossier.html
 ```
 
+### 9.1 In-Vault Interactive Calendar & Timelines: Calendarium & April's Timelines
+Inside Obsidian, the pre-bundled [`calendarium`](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#16-calendarium-fantasy-calendar) and [`aprils-automatic-timelines`](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#17-aprils-automatic-timelines) plugins provide an interactive UI for your custom planetary calendars and automated chronological event ordering. Calendarium tracks custom month lengths, multi-moon orbital cycles, and leap day rules, while April's Timelines automatically compiles story events into chronological visual cards. See the [Master External Tools Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md).
+
 ---
 
 ## 10. Recommended Reading, References & Media

@@ -1,13 +1,14 @@
-# Plate Tectonics, Geomorphology, Hydrology & Map Projections (`docs/CARTOGRAPHY.md`)
-> **Domain A: Astrophysics, Climate, Cartography & Celestial Mechanics** | **CLI:** `arcanum map` / `arcanum cartography`
+# Master Craft Reference: Plate Tectonics, Geomorphology, Hydrology & Map Projections (`docs/CARTOGRAPHY.md`)
+> **Domain A: Astrophysics, Climate, Cartography & Celestial Mechanics** | **Master Craft Reference Manual**
+> **Primary Active Toolchain:** [Wonderdraft](https://www.wonderdraft.net/) (Vector Map Studio) + [Obsidian Leaflet](file:///templates/world-bible/.obsidian/plugins/obsidian-leaflet-plugin) + [Storyteller Suite](file:///templates/world-bible/.obsidian/plugins/storyteller-suite) | **Reference CLI:** `arcanum map`
 
 ---
 
 ## 1. Executive Summary & Epistemological Architecture
 
-The **Ars Arcanum Cartography Engine** (`scripts/lib/cartography.py`) is an offline vector map compiler, geomorphological tectonic simulator, river drainage network validator, and spherical geodesic engine engineered for worldbuilders, fantasy cartographers, and speculative geographers.
+This document serves as the **Master Craft Reference Manual** for physical geography, tectonic orogeny, hydrological drainage networks, and map projections in speculative fiction worldbuilding. Active in-vault map viewing, coordinate pinning, and distance measurement are powered by **Obsidian Leaflet** and **Storyteller Suite**, while publication-ready vector map creation is designed in **Wonderdraft** (see [Master External Tools Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md)).
 
-Creating geographic maps without understanding planetary physics results in glaring geological anomalies:
+Creating geographic maps without understanding planetary physics results in four glaring geological anomalies:
 1. **River Splitting Paradoxes**: Rivers drawn splitting into multiple branches as they flow downstream toward the ocean (violating Playfair's Law and gravity, except in rare depositional delta wetlands).
 2. **Ignored Tectonic Orogeny**: High mountain ranges placed in the center of stable continental cratons without an active or fossil tectonic collision suture.
 3. **Severe Projection Distortions**: Flat Euclidean grid measurements applied to high-latitude polar regions without spherical Haversine or geodesic corrections.
@@ -287,6 +288,9 @@ arcanum cartography --audit-rivers World/Geography/rivers.yaml
 # Generate standalone SVG map and interactive HTML5 pan/zoom viewer
 arcanum map --render World/Geography/map.yaml --svg out/map.svg --html reports/world_map.html
 ```
+
+### 8.1 In-Vault Interactive Maps: Obsidian Storyteller Suite
+For interactive pin mapping directly inside Obsidian, the pre-bundled [`storyteller-suite`](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#13-storyteller-suite) plugin allows you to load custom high-resolution image maps, place interactive POI markers with custom icons, and link locations directly to your World Bible location notes. See the [Storyteller Suite Documentation](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#13-storyteller-suite).
 
 ---
 

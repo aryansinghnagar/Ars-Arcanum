@@ -32,6 +32,7 @@ When you launch for the first time, the **Onboarding Wizard** appears:
 
 ### Studio 1: 🪐 Cosmos & Worlds (Lore Bible)
 - **Open World Bible**: Launches your lore vault with full support for Obsidian wikilinks and structured frontmatter dossiers.
+- **32 Bundled & Activated Plugins**: Pre-configured suite with pinned SHA-256 manifests including `rootweave`, `languageforge`, `charted-roots` (Canvas Roots), `obsidian-leaflet-plugin`, `obsidian-outliner`, `formatforge`, `valeon`, `write-good`, `languagetool`, `readability-score`, `longform`, `noveler-a-storyline-expansion`, `commentator` (CriticMarkup), `sentence-rhythm`, `calendarium`, `aprils-automatic-timelines`, `metadata-menu`, `tag-wrangler`, `typewriter-mode`, `writing-goals`, `global-search-and-replace`, and `obsidian-smart-typography`. See the [Master Reference Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md) and [Obsidian Plugins Guide](file:///docs/guides/OBSIDIAN_PLUGINS.md).
 - **Taxonomy Register**: View instant counts of characters, factions, magic systems, languages, and historical events registered across your world.
 
 ### Studio 2: ✍️ Manuscripts & Drafting

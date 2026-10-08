@@ -164,6 +164,15 @@ Configure active DOCX presets via CLI:
 arcanum config docx-preset modern-manuscript
 ```
 
+### 6.1 Automated In-Editor Micro-Typography
+In Obsidian, the pre-bundled [`obsidian-smart-typography`](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#4-smart-typography) plugin automates micro-typography in real time as you type:
+- `--` is instantly converted to an em-dash (`—`).
+- Straight quotes (`"`, `'`) are converted to typographic curly quotes (`“ ”`, `‘ ’`).
+- `...` is converted to a typographic ellipsis (`…`).
+- `(c)`, `(tm)`, `(r)` are converted to copyright/trademark symbols (`©`, `™`, `®`).
+
+For full details, see the [Master External Tools & Obsidian Plugins Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md).
+
 ---
 
 ## 7. Recommended Reading, References & Media

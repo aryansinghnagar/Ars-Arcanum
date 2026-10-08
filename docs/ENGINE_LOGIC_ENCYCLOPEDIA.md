@@ -77,16 +77,17 @@
 
 ## 1. Architectural Philosophy & Creative Sovereignty
 
-Ars Arcanum (Scriptorium) is built upon five foundational engineering tenets:
+Ars Arcanum (Scriptorium) is built upon six foundational engineering tenets:
 
-1. **Absolute Creative Sovereignty (Zero Cloud / Zero Telemetry)**: All algorithms operate locally on standard-library Python primitives. No API keys, no telemetry pings, and no cloud dependencies touch creative intellectual property.
-2. **The Sovereignty Principle**: *"Measure everything that helps the author think; prescribe nothing unless the author explicitly asks for a prescription."* Narrative frameworks, pacing equations, and worldbuilding models are instruments of measurement, not normative dogma.
-3. **The Three Subsystems Architecture**:
+1. **External Tool & Plugin-First Architecture**: Whenever an authoring, worldbuilding, editing, or compiling workflow is supported by a battle-tested external tool or Obsidian community plugin (e.g. **Commentator**, **Dataview**, **Calendarium**, **Longform**, **Writing Goals**, **Sentence Rhythm**, **Typst**, **Pandoc**), the system delegates directly to that tool. See [`docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md`](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md).
+2. **Absolute Creative Sovereignty (Zero Cloud / Zero Telemetry)**: All algorithms and plugins operate 100% locally and offline. No API keys, no telemetry pings, and no cloud dependencies touch creative intellectual property.
+3. **The Sovereignty Principle**: *"Measure everything that helps the author think; prescribe nothing unless the author explicitly asks for a prescription."* Narrative frameworks, pacing equations, and worldbuilding models are instruments of measurement, not normative dogma.
+4. **The Three Subsystems Architecture**:
    - **Subsystem 1 (Invariant Consistency Engine)**: Enforces objective data safety, atomic locks, SHA-256 verification, and hard author-declared rules. Fails builds (`exit 1`) in strict mode.
-   - **Subsystem 2 (Advisory Craft Lenses)**: Models narrative structure, sentence cadence, and worldbuilding dynamics using established craft traditions. Always advisory (`exit 0` by default), respects `@intent: deliberate`, and skips suppressed rules.
+   - **Subsystem 2 (Advisory Craft Lenses & Sovereign References)**: Models narrative structure, sentence cadence, and worldbuilding dynamics using established craft traditions and scientific equations.
    - **Subsystem 3 (Creative Ideation & Sparks)**: Proposes combinatorial analogies and "what-if" prompts clearly tagged with `[SPECULATION]`.
-4. **6-Tier Diagnostic Severity Taxonomy**: Findings are strictly classified into `CANON_ERROR` (5), `RULE_CONFLICT` (4), `OBSERVATION` (3), `LENS_NOTE` (2), `SUGGESTION` (1), and `EXPERIMENT` (0).
-5. **Epistemic Decoupling & Historical Lineage**: Every mathematical formula and structural milestone is explicitly attributed to its historical and literary origin (e.g. Dwight Swain 1965, Gary Provost 1985, Syd Field 1979, Irving Fisher 1911, Köppen 1884), providing transparent context without gatekeeping.
+5. **6-Tier Diagnostic Severity Taxonomy**: Findings are strictly classified into `CANON_ERROR` (5), `RULE_CONFLICT` (4), `OBSERVATION` (3), `LENS_NOTE` (2), `SUGGESTION` (1), and `EXPERIMENT` (0).
+6. **Epistemic Decoupling & Historical Lineage**: Every mathematical formula and structural milestone in this encyclopedia is explicitly attributed to its historical and literary origin (e.g. Dwight Swain 1965, Gary Provost 1985, Syd Field 1979, Irving Fisher 1911, Köppen 1884), providing transparent craft context without gatekeeping.
 
 ---
 

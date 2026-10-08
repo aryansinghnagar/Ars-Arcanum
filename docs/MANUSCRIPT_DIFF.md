@@ -169,6 +169,10 @@ flowchart TD
 - **Path C (Authorial Sovereignty)**:
   - Acknowledge the high churn as a successful aggressive line edit and update word count milestones accordingly.
 
+### 5.1 In-Vault Revision Tooling: Obsidian Commentator & Global Search & Replace
+- **Obsidian Commentator (CriticMarkup)**: For inline line editing, track-changes suggestions, and marginal comments directly inside Obsidian notes using `{++additions++}`, `{--deletions--}`, and `{~~substitutions~>new~~}` syntax. See [Commentator Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#1-commentator-criticmarkup-track-changes).
+- **Obsidian Global Search and Replace**: For vault-wide entity refactoring with side-by-side diff previews. See [Global Search & Replace Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#3-global-search-and-replace).
+
 ---
 
 ## 6. Recommended Reading, References & Media

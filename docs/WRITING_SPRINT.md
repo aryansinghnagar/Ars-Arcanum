@@ -166,6 +166,10 @@ arcanum-sprint report --html reports/sprint_analytics.html
    - Morning sessions ($08:00\text{--}10:30$) yield $+42\%$ higher velocity than evening sessions ($20:00\text{--}22:00$).
    - 30-minute durations maintain a $15\%$ higher average WPM than 60-minute marathons due to zero fatigue degradation.
 
+### 6.1 In-Vault Sprint & Drafting Tooling: Obsidian Writing Goals & Typewriter Mode
+- **Obsidian Writing Goals**: Visual progress rings, daily sprint targets, and folder-level word velocity tracking directly in Obsidian's side pane. See [Writing Goals Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#7-writing-goals).
+- **Obsidian Typewriter Mode**: Centered-screen drafting focus and active-line highlighting to eliminate distraction and silence the internal editor. See [Typewriter Mode Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md#6-typewriter-mode).
+
 ---
 
 ## 7. Recommended Reading, References & Media

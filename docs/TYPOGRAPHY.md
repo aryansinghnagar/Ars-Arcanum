@@ -1,9 +1,12 @@
-# Author Craft Masterclass: Book Typography, Page Geometry & Typesetting Standards (`docs/TYPOGRAPHY.md`)
-> **Domain B: Linguistics, Conlang, Idioms & Stylistics** | **Category:** Author Craft & Narrative Doctrine | **Status:** Theoretical Framework & Writing Rubric
+# Master Craft Reference: Book Typography, Page Geometry & Typesetting Standards (`docs/TYPOGRAPHY.md`)
+> **Domain B: Linguistics, Conlang, Idioms & Stylistics** | **Master Craft Reference Manual**
+> **Primary Active Toolchain:** [Smart Typography](file:///templates/world-bible/.obsidian/plugins/obsidian-smart-typography) + [formatForge](file:///templates/world-bible/.obsidian/plugins/formatforge) + [Style Settings](file:///templates/world-bible/.obsidian/plugins/obsidian-style-settings) + [Typst CLI](https://typst.app/) | **Reference CLI:** `arcanum clean`
 
 ---
 
 ## 1. Overview & Theoretical Rationale
+
+This document serves as the **Master Craft Reference Manual** for book typography, micro-typographic punctuation, optical kerning rules, and page block geometry in speculative fiction. Active in-vault punctuation conversion is handled automatically by **Smart Typography**, page formatting by **formatForge** and **Style Settings**, and final print typesetting by **Typst** (see [Master External Tools Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md)).
 
 Drafting across multiple text editors, operating systems, and note-taking applications inevitably introduces subtle typographic artifacts that degrade visual hierarchy and reader immersion:
 

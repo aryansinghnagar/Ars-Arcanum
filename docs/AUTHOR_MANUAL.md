@@ -257,7 +257,15 @@ The Ars Arcanum desktop application is organized into **6 dedicated workflow stu
 
 ## 4. Worldbuilding in Obsidian (The 9 Core Lore Vaults)
 
-Your World Lore Vault (`~/Universes/<Universe>/<World>`) comes pre-configured with the premier worldbuilding and writing plugins enabled out of the box: **Dataview**, **Metadata Menu**, **Calendarium**, **Storyteller Suite**, **Storyline**, **Novel Word Count**, and **Obsidian Git**.
+Your World Lore Vault (`~/Universes/<Universe>/<World>`) comes pre-configured with **32 premier worldbuilding, drafting, and editorial plugins** enabled out of the box with pinned SHA-256 manifests:
+- **Linguistics, Conlangs & Relational Lore**: **Rootweave**, **LanguageForge**, **Dataview**, **Metadata Menu**, **Templater**, **Tag Wrangler**, **Obsidian Footnotes**, **Copy Block Link**.
+- **Genealogy & Character Arcs**: **Canvas Roots (Charted Roots)**, **StoryLine**.
+- **Drafting & Focus Ergonomics**: **Longform**, **Noveler (Page Mode & Manuscript Editor)**, **Obsidian Outliner**, **Typewriter Mode**, **Writing Goals**, **Novel Word Count**.
+- **Editorial, Revision, Prose Cadence & Style**: **Commentator (CriticMarkup)**, **Sentence Rhythm (Provost Variation)**, **Obsidian Smart Typography**, **Write Good**, **Readability Score**, **Valeon (Vale CLI)**, **LanguageTool (Offline Server)**, **Global Search & Replace**.
+- **Time, Calendars & Spatial Mapping**: **Calendarium (Fantasy Calendar)**, **April's Automatic Timelines (Visual Chronology)**, **Obsidian Leaflet (Interactive Maps)**, **Storyteller Suite**.
+- **System, Publishing, Formatting & Styling**: **Obsidian Git (10-min offline backups)**, **Obsidian Pandoc (Export Bridge)**, **formatForge (Novel Typography & Dividers)**, **Style Settings**.
+
+For comprehensive documentation, syntax examples, and tutorials for every plugin, see the [Master External Tools & Obsidian Plugins Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md) and the [Obsidian Plugins Overview](file:///docs/guides/OBSIDIAN_PLUGINS.md).
 
 ### The Minimum Viable World Bible (Zero Overwhelm)
 If you are just getting started, open **`00_START_HERE.md`** inside your World Bible. You do **not** need to populate all 9 categories at once.

@@ -5,23 +5,30 @@
 
 ## 1. Overview & Tooling Philosophy
 
-Ars Arcanum maintains a lean, zero-dependency core architecture that runs completely offline with standard Python and SQLite. However, when specialized artistic, cartographic, genealogical, or linguistic needs arise, the open-source software ecosystem offers world-class companion applications that integrate directly into your local workspaces.
+Ars Arcanum maintains a lean, zero-dependency core architecture that runs completely offline with standard Python and SQLite. However, when specialized artistic, cartographic, genealogical, or linguistic needs arise, the open-source software ecosystem offers world-class companion applications that integrate directly into your local workspaces. For the complete reference of bundled Obsidian plugins and publishing compilers, see the [Master External Tools & Obsidian Plugins Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md).
 
 ```
 +-------------------------------------------------------------------------------+
 |                    ARS ARCANUM COMPANION TOOLING ECOSYSTEM                    |
 |                                                                               |
-|  [Cartography & Art]       --> Azgaar (Procedural), Krita, Inkscape (Sigils)  |
+|  [Cartography & Maps]      --> Wonderdraft, Azgaar, Inkscape, Krita           |
 |                                                                               |
-|  [Dynasties & Conlangs]    --> Gramps (Lineages), PolyGlot (Phonology)        |
+|  [Dynasties & Conlangs]    --> Gramps (Lineages), PolyGlot, Condict           |
+|                                                                               |
+|  [Astrophysics & Orbits]   --> Celestia, StarGen, SpinCalc                    |
 |                                                                               |
 |  [Air-Gapped Research]     --> Kiwix (Offline Wikipedia / ZIM Snapshot Dumps) |
 |                                                                               |
-|  [Post-Production E-Book]  --> Sigil (EPUB CSS & Typography Fine-Tuning)      |
+|  [Prose & Post-Production] --> Vale, LanguageTool, Typst, Pandoc, Sigil       |
 |                                                                               |
 |  [Guarantee: 100% Free, Open-Source, Zero Telemetry, Air-Gapped Capable]      |
 +-------------------------------------------------------------------------------+
 ```
+
+For complete setup guides, workflow integrations, and software catalogs, see:
+- [🔌 Master External Tools & Obsidian Plugins Guide](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md)
+- [🧩 Obsidian 32-Plugin Catalog](file:///docs/guides/OBSIDIAN_PLUGINS.md)
+- [💻 Software Directory & Capability Matrix](file:///docs/guides/SOFTWARE_CATALOG.md)
 
 ---
 
