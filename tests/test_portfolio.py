@@ -204,6 +204,48 @@ class TestPortfolioDashboard(unittest.TestCase):
         self.assertEqual(report["total_projects"], 1)
         self.assertEqual(report["projects"][0]["title"], "Book Alpha")
 
+    def test_analyze_manuscript_multiple_drafts_isolation(self):
+        """Word count must only reflect the latest active draft, not older drafts."""
+        ms_multi = self.root_dir / "MultiDraft_MS"
+        ms_multi.mkdir()
+        (ms_multi / "manuscript.yaml").write_text('title: "Multi Book"\nauthor: "Writer Multi"\ntarget_words: 50000\n', encoding="utf-8")
+        (ms_multi / "Book-01" / "Draft-01").mkdir(parents=True)
+        (ms_multi / "Book-01" / "Draft-02").mkdir(parents=True)
+        (ms_multi / "Book-01" / "Draft-01" / "01_Ch1.md").write_text("# Ch 1\n\n" + "OldWord " * 500, encoding="utf-8")
+        (ms_multi / "Book-01" / "Draft-02" / "01_Ch1.md").write_text("# Ch 1\n\n" + "NewWord " * 600, encoding="utf-8")
+
+        data = analyze_manuscript_project(ms_multi)
+        self.assertEqual(data["chapter_count"], 1)
+        self.assertEqual(data["word_count"], 602)
+
+    def test_analyze_manuscript_nested_01_manuscript(self):
+        """Manuscripts with 01-Manuscript subfolder must be analyzed properly without multi-draft overcounting."""
+        ms_nested = self.root_dir / "Nested_MS"
+        ms_nested.mkdir()
+        (ms_nested / "manuscript.yaml").write_text('title: "Nested Book"\nauthor: "Writer Nested"\n', encoding="utf-8")
+        (ms_nested / "01-Manuscript" / "Book-01" / "Draft-01").mkdir(parents=True)
+        (ms_nested / "01-Manuscript" / "Book-01" / "Draft-02").mkdir(parents=True)
+        (ms_nested / "01-Manuscript" / "Book-01" / "Draft-01" / "01_Ch1.md").write_text("# Ch 1\n\n" + "Draft1 " * 400, encoding="utf-8")
+        (ms_nested / "01-Manuscript" / "Book-01" / "Draft-02" / "01_Ch1.md").write_text("# Ch 1\n\n" + "Draft2 " * 750, encoding="utf-8")
+
+        data = analyze_manuscript_project(ms_nested)
+        self.assertEqual(data["chapter_count"], 1)
+        self.assertEqual(data["word_count"], 752)
+
+    def test_analyze_manuscript_explicit_active_draft(self):
+        """When manuscript.yaml specifies active_draft, portfolio metrics honor that selection over latest."""
+        ms_draft = self.root_dir / "ExplicitDraft_MS"
+        ms_draft.mkdir()
+        (ms_draft / "manuscript.yaml").write_text('title: "Pinned Draft Book"\nactive_draft: "Draft-01"\n', encoding="utf-8")
+        (ms_draft / "Book-01" / "Draft-01").mkdir(parents=True)
+        (ms_draft / "Book-01" / "Draft-02").mkdir(parents=True)
+        (ms_draft / "Book-01" / "Draft-01" / "01_Ch1.md").write_text("# Ch 1\n\n" + "PinnedWord " * 300, encoding="utf-8")
+        (ms_draft / "Book-01" / "Draft-02" / "01_Ch1.md").write_text("# Ch 1\n\n" + "NewerWord " * 800, encoding="utf-8")
+
+        data = analyze_manuscript_project(ms_draft)
+        self.assertEqual(data["chapter_count"], 1)
+        self.assertEqual(data["word_count"], 302)
+
 
 if __name__ == "__main__":
     unittest.main()

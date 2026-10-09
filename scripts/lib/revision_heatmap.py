@@ -203,11 +203,13 @@ def scan_manuscript_snapshots(
         has_snapshot = snapshot_path is not None
         if has_snapshot:
             insertions, deletions = diff_line_counts(current_text, snapshot_text)
+            churn_score = insertions + deletions
+            churn_ratio = churn_score / max(wc, 1)
         else:
-            insertions = wc
+            insertions = 0
             deletions = 0
-        churn_score = insertions + deletions
-        churn_ratio = churn_score / max(wc, 1)
+            churn_score = 0
+            churn_ratio = 0.0
         results.append(
             ChapterRevisionStats(
                 chapter=p_ms.name,
@@ -243,11 +245,13 @@ def scan_manuscript_snapshots(
                 has_snapshot = snapshot_path is not None
                 if has_snapshot:
                     insertions, deletions = diff_line_counts(current_text, snapshot_text)
+                    churn_score = insertions + deletions
+                    churn_ratio = churn_score / max(wc, 1)
                 else:
-                    insertions = wc
+                    insertions = 0
                     deletions = 0
-                churn_score = insertions + deletions
-                churn_ratio = churn_score / max(wc, 1)
+                    churn_score = 0
+                    churn_ratio = 0.0
                 try:
                     rel = s.chapter_file.relative_to(p_ms)
                 except ValueError:
@@ -276,11 +280,13 @@ def scan_manuscript_snapshots(
                 has_snapshot = snapshot_path is not None
                 if has_snapshot:
                     insertions, deletions = diff_line_counts(current_text, snapshot_text)
+                    churn_score = insertions + deletions
+                    churn_ratio = churn_score / max(wc, 1)
                 else:
-                    insertions = wc
+                    insertions = 0
                     deletions = 0
-                churn_score = insertions + deletions
-                churn_ratio = churn_score / max(wc, 1)
+                    churn_score = 0
+                    churn_ratio = 0.0
                 try:
                     rel = c.file_path.relative_to(p_ms)
                 except ValueError:
@@ -343,12 +349,13 @@ def scan_manuscript_snapshots(
 
         if has_snapshot:
             insertions, deletions = diff_line_counts(current_text, snapshot_text)
+            churn_score = insertions + deletions
+            churn_ratio = churn_score / max(wc, 1)
         else:
-            insertions = wc
+            insertions = 0
             deletions = 0
-
-        churn_score = insertions + deletions
-        churn_ratio = churn_score / max(wc, 1)
+            churn_score = 0
+            churn_ratio = 0.0
 
         results.append(
             ChapterRevisionStats(

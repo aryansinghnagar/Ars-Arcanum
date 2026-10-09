@@ -15,16 +15,18 @@ import logging
 import os
 import re
 import sys
-import xml.etree.ElementTree as ET
 import xml.sax.saxutils as saxutils
-import zipfile
 from pathlib import Path
 from typing import Any
 
 try:
     from lib._bootstrap import atomic_write, sanitize_identifier
+    from lib.docx_sync import convert_docx_to_markdown
+    from lib.frontmatter import FRONTMATTER_REGEX
 except ImportError:
     from _bootstrap import atomic_write, sanitize_identifier
+    from docx_sync import convert_docx_to_markdown
+    from frontmatter import FRONTMATTER_REGEX
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger("arcanum.importer")
@@ -40,57 +42,8 @@ NWX_TEMPLATE = """<?xml version="1.0" encoding="utf-8"?>
 
 
 def extract_docx_text(docx_path: Path) -> str:
-    """Extracts clean markdown paragraphs from an OpenXML .docx file using native zip/xml parsing."""
-    if not zipfile.is_zipfile(docx_path):
-        raise ValueError(f"File is not a valid zip/docx archive: {docx_path}")
-
-    MAX_DOCX_XML_BYTES = 50 * 1024 * 1024
-    with zipfile.ZipFile(docx_path, "r") as zf:
-        if "word/document.xml" not in zf.namelist():
-            raise ValueError(f"word/document.xml missing in docx: {docx_path}")
-        with zf.open("word/document.xml") as f:
-            doc_xml_bytes = f.read(MAX_DOCX_XML_BYTES + 1)
-        if len(doc_xml_bytes) > MAX_DOCX_XML_BYTES:
-            raise ValueError(f"DOCX document.xml exceeds maximum safety limit ({MAX_DOCX_XML_BYTES // (1024*1024)} MB)")
-
-    # Guard against XML bomb / entity expansion across multiple encodings
-    for sample in (
-        doc_xml_bytes.decode("utf-8", errors="ignore").lower(),
-        doc_xml_bytes.decode("utf-16le", errors="ignore").lower(),
-        doc_xml_bytes.decode("utf-16be", errors="ignore").lower(),
-    ):
-        if "<!entity" in sample or "<!doctype" in sample:
-            raise ValueError(f"Unsafe DOCTYPE/ENTITY detected in {docx_path.name}")
-
-    root = ET.fromstring(doc_xml_bytes)  # nosec B314 # noqa: S314
-    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
-
-    paragraphs = []
-    for p in root.iter(f"{{{ns['w']}}}p"):
-        pPr = p.find(f"{{{ns['w']}}}pPr")
-        pStyle = pPr.find(f"{{{ns['w']}}}pStyle") if pPr is not None else None
-        style_val = pStyle.attrib.get(f"{{{ns['w']}}}val", "") if pStyle is not None else ""
-
-        p_texts = []
-        for r in p.iter(f"{{{ns['w']}}}r"):
-            t = r.find(f"{{{ns['w']}}}t")
-            if t is not None and t.text:
-                p_texts.append(t.text)
-
-        full_p = "".join(p_texts).strip()
-        if not full_p:
-            continue
-
-        if "heading 1" in style_val.lower() or "title" in style_val.lower():
-            paragraphs.append(f"# {full_p}")
-        elif "heading 2" in style_val.lower():
-            paragraphs.append(f"## {full_p}")
-        elif "heading 3" in style_val.lower():
-            paragraphs.append(f"### {full_p}")
-        else:
-            paragraphs.append(full_p)
-
-    return "\n\n".join(paragraphs) + "\n"
+    """Extracts clean markdown paragraphs from an OpenXML .docx file using docx_sync."""
+    return convert_docx_to_markdown(docx_path)
 
 
 def import_manuscript_batch(
@@ -144,10 +97,18 @@ def import_manuscript_batch(
         else:
             content = fpath.read_text(encoding="utf-8", errors="replace")
 
-        # Ensure chapter header exists if missing
-        if not re.match(r"^\s*#\s+", content):
-            header = f"# Chapter {idx}: {clean_stem.replace('_', ' ').replace('-', ' ')}\n\n"
-            content = header + content
+        # Ensure chapter header exists if missing, preserving YAML frontmatter at line 0
+        fm_match = FRONTMATTER_REGEX.match(content)
+        if fm_match:
+            fm_block = fm_match.group(0)
+            body = content[fm_match.end():]
+            if not re.match(r"^\s*#\s+", body.strip()):
+                header = f"# Chapter {idx}: {clean_stem.replace('_', ' ').replace('-', ' ')}\n\n"
+                content = fm_block.rstrip("\r\n") + "\n\n" + header + body.lstrip("\r\n")
+        else:
+            if not re.match(r"^\s*#\s+", content.strip()):
+                header = f"# Chapter {idx}: {clean_stem.replace('_', ' ').replace('-', ' ')}\n\n"
+                content = header + content.lstrip("\r\n")
 
         atomic_write(target_file, content)
         imported_chapters.append(chapter_filename)

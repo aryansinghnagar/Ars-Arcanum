@@ -123,6 +123,28 @@ class TestScopeResolver(unittest.TestCase):
             self.assertIsNone(resolve_universe_path("UnknownVerse"))
             self.assertEqual(resolve_universe_dir("UnknownVerse"), "")
 
+    def test_resolve_from_cwd(self):
+        ms_local = self.root / "LocalMS"
+        ms_local.mkdir()
+        (ms_local / "manuscript.yaml").write_text("title: Local\n", encoding="utf-8")
+
+        with patch("pathlib.Path.cwd", return_value=ms_local):
+            self.assertEqual(get_active_manuscript(), ms_local)
+
+        w_local = self.root / "LocalWorld"
+        w_local.mkdir()
+        (w_local / "world.yaml").write_text("name: LocalWorld\n", encoding="utf-8")
+
+        with patch("pathlib.Path.cwd", return_value=w_local):
+            self.assertEqual(get_active_world(), w_local)
+
+        u_local = self.root / "LocalUniverse"
+        u_local.mkdir()
+        (u_local / "universe.yaml").write_text("name: LocalUniverse\n", encoding="utf-8")
+
+        with patch("pathlib.Path.cwd", return_value=u_local):
+            self.assertEqual(get_active_universe(), u_local)
+
 
 if __name__ == "__main__":
     unittest.main()

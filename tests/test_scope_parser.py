@@ -24,7 +24,12 @@ class TestScopeParser(unittest.TestCase):
 
     def test_parse_number_ranges_edge_cases(self):
         self.assertEqual(parse_number_ranges(None), [])
-        self.assertEqual(parse_number_ranges(0), [])
+        self.assertEqual(parse_number_ranges(0), [0])
+        self.assertEqual(parse_number_ranges("0"), [0])
+        self.assertEqual(parse_number_ranges("0, 1, 2"), [0, 1, 2])
+        self.assertEqual(parse_number_ranges("0-3"), [0, 1, 2, 3])
+        self.assertEqual(parse_number_ranges("ch0..ch2"), [0, 1, 2])
+        self.assertEqual(parse_number_ranges(["0", 1, "2-3"]), [0, 1, 2, 3])
         self.assertEqual(parse_number_ranges(-10), [])
         self.assertEqual(parse_number_ranges(42), [42])
         self.assertEqual(parse_number_ranges("all"), [])

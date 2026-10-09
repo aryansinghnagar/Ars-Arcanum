@@ -33,7 +33,7 @@ class TestRangeAndIdentifierParsers(unittest.TestCase):
 
     def test_parse_number_ranges_integers(self):
         self.assertEqual(parse_number_ranges(5), [5])
-        self.assertEqual(parse_number_ranges(0), [])
+        self.assertEqual(parse_number_ranges(0), [0])
         self.assertEqual(parse_number_ranges(-3), [])
         self.assertEqual(parse_number_ranges(None), [])
 

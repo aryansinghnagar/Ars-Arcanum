@@ -1807,7 +1807,7 @@ case "${COMMAND}" in
                 exec xdg-open "${RESOLVED}"
             fi
         fi
-        exec python3 "${PROJECT_ROOT}/scripts/arcanum_app.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" doctor "$@"
         ;;
 
     # --- Core Universe, World Lore & Series Continuity ---
@@ -1818,37 +1818,37 @@ case "${COMMAND}" in
         cmd_world "$@"
         ;;
     map|cartography)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/cartography.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" map "$@"
         ;;
     codex|wiki)
         exec python3 "${PROJECT_ROOT}/scripts/lib/codex_export.py" "$@"
         ;;
     series|series-continuity)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/series_continuity.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" series "$@"
         ;;
     cast|dramatis-personae|dramatis|characters-cast)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/dramatis_personae.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" cast "$@"
         ;;
     concordance|glossary)
         exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" concordance "$@"
         ;;
     continuity|check-continuity)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/continuity.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" continuity "$@"
         ;;
     faction|factions|geopolitics)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/factions.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" faction "$@"
         ;;
     economy|economies|ppp)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/economy.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" economy "$@"
         ;;
     causality|causal|timeline-dag)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/causality.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" causality "$@"
         ;;
     ecology|trophic|food-web)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/ecology.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" ecology "$@"
         ;;
     climate|weather)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/climate.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" climate "$@"
         ;;
     idioms|idiom|eponyms|immersion)
         exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" idioms "$@"
@@ -1857,79 +1857,45 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" senses "$@"
         ;;
     prophecy|prophecies|oracle)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/prophecy.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" prophecy "$@"
         ;;
     world-doctor|lore-doctor)
-        cmd_world_doctor "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" doctor "$@"
         ;;
     magic-check)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/magic_system.py" check "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" magic-check "$@"
         ;;
     magic-report)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/magic_system.py" report "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" magic-report "$@"
         ;;
     magic|magic-system)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/magic_system.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" magic "$@"
         ;;
     genealogy|tree)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/genealogy.py" tree "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" genealogy "$@"
         ;;
     lineage|dynasty|succession)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/genealogy.py" lineage "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" lineage "$@"
         ;;
     conlang|language-engine)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/conlang.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" conlang "$@"
         ;;
     calendar|phases|syzygy)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/calendar.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" calendar "$@"
         ;;
 
     # --- Calculations & Mechanics ---
     calc|calculator)
-        if [ $# -eq 0 ]; then
-            echo "Usage: arcanum calc <transit|time-dilation|orbit|comms|habitability|journey|battle|logistics|climate|system-dossier> [args...]" >&2
-            exit 2
-        fi
-        CALC_SUB="$1"
-        shift
-        case "${CALC_SUB}" in
-            journey|travel|overland)
-                exec python3 "${PROJECT_ROOT}/scripts/lib/journey.py" "$@" ;;
-            battle|lanchester|siege)
-                exec python3 "${PROJECT_ROOT}/scripts/lib/factions.py" battle "$@" ;;
-            logistics|supply|wagon)
-                exec python3 "${PROJECT_ROOT}/scripts/lib/factions.py" logistics "$@" ;;
-            climate|insolation|weather)
-                exec python3 "${PROJECT_ROOT}/scripts/lib/climate.py" "$@" ;;
-            trade|ppp|currency)
-                exec python3 "${PROJECT_ROOT}/scripts/lib/economy.py" trade "$@" ;;
-            transit|flight|brachistochrone)
-                exec python3 "${PROJECT_ROOT}/scripts/lib/astrophysics.py" transit "$@" ;;
-            time-dilation|dilation|lorentz)
-                exec python3 "${PROJECT_ROOT}/scripts/lib/astrophysics.py" time-dilation "$@" ;;
-            orbit|hohmann|transfer)
-                exec python3 "${PROJECT_ROOT}/scripts/lib/astrophysics.py" orbit "$@" ;;
-            comms|communication|latency)
-                exec python3 "${PROJECT_ROOT}/scripts/lib/astrophysics.py" comms "$@" ;;
-            habitability|gravity|hab)
-                exec python3 "${PROJECT_ROOT}/scripts/lib/astrophysics.py" habitability "$@" ;;
-            system-dossier|dossier)
-                exec python3 "${PROJECT_ROOT}/scripts/lib/astrophysics.py" system-dossier "$@" ;;
-            *)
-                exec python3 "${PROJECT_ROOT}/scripts/lib/astrophysics.py" "${CALC_SUB}" "$@" ;;
-        esac
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" calc "$@"
         ;;
     sim|simulate)
-        if [ $# -gt 0 ] && [ "$1" = "battle" ]; then
-            shift
-        fi
-        exec python3 "${PROJECT_ROOT}/scripts/lib/tactical_sim.py" plan "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" sim "$@"
         ;;
     ambient|soundscape|noise)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/ambient.py" generate "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" ambient "$@"
         ;;
     journey|expedition)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/journey.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" journey "$@"
         ;;
 
     # --- Manuscripts & Drafting ---
@@ -1937,13 +1903,13 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" doc "$@"
         ;;
     studio|zen|zen-studio|editor)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/zen_studio.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" studio "$@"
         ;;
     resonance|mesh|cascade|spark|bridge|ecosystem|synergy)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/resonance.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" resonance "$@"
         ;;
     tip|tips|craft-tip|wisdom|hint|hints)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/tips.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" tip "$@"
         ;;
     import|importer|import-manuscript)
         exec python3 "${PROJECT_ROOT}/scripts/lib/importer.py" "$@"
@@ -1982,46 +1948,43 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/init_query.py" "$@"
         ;;
     polish|typography|clean-typography)
-        if [ $# -gt 0 ] && [ "$1" = "typography" ]; then
-            shift
-        fi
-        exec python3 "${PROJECT_ROOT}/scripts/lib/typography_cleaner.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" polish "$@"
         ;;
     plot|plot-matrix|subplot)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/plot_matrix.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" plot "$@"
         ;;
     structure|paradigm)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/structure.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" structure "$@"
         ;;
     scaffold|scaffold-volume|structure-presets|presets)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/manuscript_scaffold.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" scaffold "$@"
         ;;
     portfolio|catalog)
         exec python3 "${PROJECT_ROOT}/scripts/lib/portfolio.py" "$@"
         ;;
     rag|query-lore|semantic-search|lore-query|search|vault-search)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/vault_search.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" rag "$@"
         ;;
     branch|branching|narrative-threads|subway-map)
         exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" branch "$@"
         ;;
     hub|gui-web|studio-hub|web-hub)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/studio_hub.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" hub "$@"
         ;;
     canvas|corkboard)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/story_canvas.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" canvas "$@"
         ;;
     timeline|timeline-sync)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/timeline_sync.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" timeline "$@"
         ;;
     omnibus)
         exec python3 "${PROJECT_ROOT}/scripts/lib/omnibus.py" "$@"
         ;;
     corpus|corpus-export|corpus-restore)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/corpus_export.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" corpus "$@"
         ;;
     sprint|writing-sprint|pomodoro|session)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/writing_sprint.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" sprint "$@"
         ;;
     revision-heatmap|churn|revision-density|draft-churn)
         exec python3 "${PROJECT_ROOT}/scripts/lib/revision_heatmap.py" "$@"
@@ -2079,9 +2042,6 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" audit "$@"
         ;;
     doctor|check)
-        if [ $# -gt 0 ] && [ -d "$1" ]; then
-            exec python3 "${PROJECT_ROOT}/scripts/lib/world_doctor.py" "$@"
-        fi
         exec python3 "${PROJECT_ROOT}/scripts/lib/diagnostics.py" "$@"
         ;;
     engines|plugins)
@@ -2092,7 +2052,7 @@ case "${COMMAND}" in
         exit 0
         ;;
     control-center|dashboard|gui|app|ui)
-        exec python3 "${PROJECT_ROOT}/scripts/arcanum_app.py" "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/diagnostics.py" "$@"
         ;;
     verify|test|tests)
         exec bash "${PROJECT_ROOT}/scripts/verify.sh" "$@"

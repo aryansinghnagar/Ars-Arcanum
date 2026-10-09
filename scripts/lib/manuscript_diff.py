@@ -52,14 +52,9 @@ _FM = re.compile(r"^---\s*\r?\n(.*?)\r?\n---\s*(?:\r?\n|$)", re.DOTALL)
 _CODEBLOCK_REGEX = re.compile(r"```.*?```", re.DOTALL)
 
 try:
-    from cache import count_words
+    from lib._bootstrap import count_prose_words as count_words
 except ImportError:
-    def count_words(text: str) -> int:
-        clean = _FM.sub("", text)
-        clean = _CODEBLOCK_REGEX.sub("", clean)
-        kept = [ln for ln in clean.splitlines()
-                if ln.strip() and not (ln.strip().startswith("@") and NW_TAG_REGEX.match(ln.strip())) and not ln.strip().startswith("%")]
-        return len(WORD_REGEX.findall("\n".join(kept)))
+    from _bootstrap import count_prose_words as count_words
 
 
 def strip_nw_metadata(text: str) -> str:

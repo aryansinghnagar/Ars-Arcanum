@@ -221,6 +221,34 @@ synopsis: |
         self.assertEqual(fm["synopsis"], "Line 1 of synopsis.\nLine 2 of synopsis.")
         self.assertIn("# Body content", body)
 
+    def test_inline_dicts_and_folded_scalars(self):
+        content = """---
+inline_map: {a: 1, b: "hello world", c: true}
+folded_text: >
+  This is line one.
+  This is line two.
+sci_val: 1.5e-3
+---
+"""
+        fm = parse_yaml_frontmatter(content)
+        self.assertIsInstance(fm["inline_map"], dict)
+        self.assertEqual(fm["inline_map"]["a"], 1)
+        self.assertEqual(fm["inline_map"]["b"], "hello world")
+        self.assertIs(fm["inline_map"]["c"], True)
+        self.assertEqual(fm["sci_val"], 0.0015)
+
+    def test_unclosed_and_invalid_frontmatter(self):
+        # Unclosed frontmatter
+        unclosed = "---\ntitle: Unclosed\n"
+        fm, success = parse_frontmatter(unclosed)
+        self.assertFalse(success)
+        self.assertEqual(fm, {})
+
+        # Invalid syntax in frontmatter
+        invalid = "---\nnot a valid key value line\n---\n"
+        _fm_inv, success_inv = parse_frontmatter(invalid)
+        self.assertFalse(success_inv)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -40,7 +40,7 @@ def parse_number_ranges(expr: str | int | Sequence[Any] | None) -> list[int]:
     if expr is None:
         return []
     if isinstance(expr, int):
-        return [expr] if expr > 0 else []
+        return [expr] if expr >= 0 else []
 
     if isinstance(expr, (list, tuple, set)):
         collected: set[int] = set()
@@ -70,7 +70,7 @@ def parse_number_ranges(expr: str | int | Sequence[Any] | None) -> list[int]:
         )
         cleaned = cleaned.replace("#", "").strip()
 
-        # Match range e.g. "1-5", "1..5", "1 to 5"
+        # Match range e.g. "0-5", "1-5", "1..5", "1 to 5"
         range_match = re.match(r"^(\d+)\s*(?:-|[.]{2,}|to)\s*(\d+)$", cleaned, re.IGNORECASE)
         if range_match:
             start_num = int(range_match.group(1))
@@ -81,11 +81,11 @@ def parse_number_ranges(expr: str | int | Sequence[Any] | None) -> list[int]:
                 results.update(range(end_num, start_num + 1))
             continue
 
-        # Match single integer e.g. "4"
+        # Match single integer e.g. "0" or "4"
         single_match = re.match(r"^(\d+)$", cleaned)
         if single_match:
             val = int(single_match.group(1))
-            if val > 0:
+            if val >= 0:
                 results.add(val)
             continue
 
@@ -95,7 +95,7 @@ def parse_number_ranges(expr: str | int | Sequence[Any] | None) -> list[int]:
             lo, hi = min(nums), max(nums)
             results.update(range(lo, hi + 1))
         elif nums:
-            results.update(n for n in nums if n > 0)
+            results.update(n for n in nums if n >= 0)
 
     return sorted(results)
 

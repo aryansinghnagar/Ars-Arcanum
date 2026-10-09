@@ -74,23 +74,26 @@ def _md_to_basic_html(md_text: str) -> tuple[str, dict]:
         body_lines.append(line)
 
     raw_body = "\n".join(body_lines)
+    escaped_body = html.escape(raw_body)
 
     # Convert wikilinks: [[Target|Label]] -> <a href="#Target">Label</a>
-    def _sub_wikilink(m):
+    def _sub_wikilink(m: re.Match) -> str:
         target = m.group(1).strip()
         label = m.group(2).strip() if m.group(2) else target
-        clean_id = re.sub(r'[^\w\-]', '', target.replace(" ", "_"))
+        clean_target = html.unescape(target).replace(" ", "_")
+        clean_id = re.sub(r'[^\w\-]', '', clean_target)
         return f'<a href="#{clean_id}" class="wikilink">{label}</a>'
 
-    body_html = re.sub(r'\[\[([^\|\]]+)(?:\|([^\]]+))?\]\]', _sub_wikilink, raw_body)
+    body_html = re.sub(r'\[\[([^\|\]]+)(?:\|([^\]]+))?\]\]', _sub_wikilink, escaped_body)
 
     # Basic markdown elements
     # Headings
-    body_html = re.sub(r'^### (.*)$', r'<h3>\1</h3>', body_html, flags=re.MULTILINE)
-    body_html = re.sub(r'^## (.*)$', r'<h2>\1</h2>', body_html, flags=re.MULTILINE)
-    body_html = re.sub(r'^# (.*)$', r'<h1>\1</h1>', body_html, flags=re.MULTILINE)
+    body_html = re.sub(r'^###\s+(.*)$', r'<h3>\1</h3>', body_html, flags=re.MULTILINE)
+    body_html = re.sub(r'^##\s+(.*)$', r'<h2>\1</h2>', body_html, flags=re.MULTILINE)
+    body_html = re.sub(r'^#\s+(.*)$', r'<h1>\1</h1>', body_html, flags=re.MULTILINE)
 
     # Bold and italics
+    body_html = re.sub(r'\*\*\*(.*?)\*\*\*', r'<strong><em>\1</em></strong>', body_html)
     body_html = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', body_html)
     body_html = re.sub(r'\*(.*?)\*', r'<em>\1</em>', body_html)
 

@@ -23,15 +23,8 @@ try:
     from lib._bootstrap import count_prose_words
     from lib.frontmatter import extract_frontmatter_and_body
 except ImportError:
-    try:
-        from _bootstrap import count_prose_words
-        from frontmatter import extract_frontmatter_and_body
-    except ImportError:
-        def count_prose_words(text: str) -> int:
-            return len(text.split())
-
-        def extract_frontmatter_and_body(content: str) -> tuple[dict[str, Any], str]:
-            return {}, content
+    from _bootstrap import count_prose_words
+    from frontmatter import extract_frontmatter_and_body
 
 logger = logging.getLogger("arcanum.data_access")
 

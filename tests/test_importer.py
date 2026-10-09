@@ -122,6 +122,50 @@ class TestManuscriptImporter(unittest.TestCase):
         res = import_manuscript_batch(single_doc, dest_solo, title="Solo Manuscript")
         self.assertEqual(res["chapters_imported"], 1)
 
+    def test_import_manuscript_preserves_frontmatter_at_line_zero(self):
+        source_dir = self.work_path / "frontmatter_src"
+        source_dir.mkdir()
+        doc_content = "---\ntitle: \"Existing Note\"\npov: \"Kaelen\"\n---\n\nProse begins here without header."
+        (source_dir / "01_Story.md").write_text(doc_content, encoding="utf-8")
+
+        dest_dir = self.work_path / "Target_FM_Manuscript"
+        res = import_manuscript_batch(source_dir, dest_dir, title="FM Book")
+        self.assertEqual(res["chapters_imported"], 1)
+
+        target_file = dest_dir / "Book-01" / "Draft-01" / "01_Story.md"
+        result_text = target_file.read_text(encoding="utf-8")
+        self.assertTrue(result_text.startswith("---\n"))
+        self.assertIn("# Chapter 1: Story", result_text)
+        # Ensure frontmatter is at line 0 before the header
+        lines = result_text.splitlines()
+        self.assertEqual(lines[0], "---")
+        self.assertEqual(lines[1], 'title: "Existing Note"')
+        self.assertEqual(lines[2], 'pov: "Kaelen"')
+        self.assertEqual(lines[3], "---")
+        self.assertEqual(lines[4], "")
+        self.assertEqual(lines[5], "# Chapter 1: Story")
+
+    def test_extract_docx_track_changes_and_formatting(self):
+        docx_file = self.work_path / "formatted.docx"
+        doc_xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p>
+      <w:r><w:rPr><w:b/></w:rPr><w:t>Bold Text</w:t></w:r>
+      <w:r><w:t> </w:t></w:r>
+      <w:r><w:rPr><w:i/></w:rPr><w:t>Italic Text</w:t></w:r>
+      <w:del><w:r><w:t> Deleted Text</w:t></w:r></w:del>
+    </w:p>
+  </w:body>
+</w:document>"""
+        with zipfile.ZipFile(docx_file, "w") as zf:
+            zf.writestr("word/document.xml", doc_xml)
+
+        text = extract_docx_text(docx_file)
+        self.assertIn("**Bold Text**", text)
+        self.assertIn("*Italic Text*", text)
+        self.assertNotIn("Deleted Text", text)
+
     def test_cli_main(self):
         source_dir = self.work_path / "cli_src"
         source_dir.mkdir()

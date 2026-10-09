@@ -66,15 +66,19 @@ def render_manuscript_diff_html(
             tag = chunk["tag"]
             raw_txt = chunk["text"]
             esc_txt = html.escape(raw_txt)
-            # Convert newlines to breaks or paragraph splits
-            esc_txt = esc_txt.replace("\n\n", "</p><p>").replace("\n", "<br/>")
 
             if tag == "insert":
-                inline_html.append(f'<ins class="diff-ins" title="Added in {esc_label_b}">{esc_txt}</ins>')
+                paragraphs = esc_txt.split("\n\n")
+                ins_paras = [f'<ins class="diff-ins" title="Added in {esc_label_b}">{p.replace(chr(10), "<br/>")}</ins>' for p in paragraphs]
+                inline_html.append("</p><p>".join(ins_paras))
             elif tag == "delete":
-                inline_html.append(f'<del class="diff-del" title="Cut from {esc_label_a}">{esc_txt}</del>')
+                paragraphs = esc_txt.split("\n\n")
+                del_paras = [f'<del class="diff-del" title="Cut from {esc_label_a}">{p.replace(chr(10), "<br/>")}</del>' for p in paragraphs]
+                inline_html.append("</p><p>".join(del_paras))
             else:
-                inline_html.append(f'<span class="diff-eq">{esc_txt}</span>')
+                paragraphs = esc_txt.split("\n\n")
+                eq_paras = [f'<span class="diff-eq">{p.replace(chr(10), "<br/>")}</span>' for p in paragraphs]
+                inline_html.append("</p><p>".join(eq_paras))
 
         body_prose = "".join(inline_html)
         # Wrap in paragraphs

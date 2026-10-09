@@ -118,6 +118,14 @@ def get_active_universe() -> Path | None:
     except Exception:
         pass
 
+    # Check cwd
+    cwd = Path.cwd()
+    if (cwd / "universe.yaml").is_file():
+        return cwd
+    for parent in [cwd, *cwd.parents]:
+        if (parent / "universe.yaml").is_file():
+            return parent
+
     home = Path.home()
     universes = sorted((home / "Universes").glob("*"), key=lambda p: str(p))
     universes = [p for p in universes if p.is_dir() and not p.name.startswith(".")]

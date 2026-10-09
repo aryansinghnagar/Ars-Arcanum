@@ -283,6 +283,33 @@ def compile_omnibus_manuscript(
     }
 
 
+def _format_markdown_prose(md_text: str) -> str:
+    """Converts markdown chapter body to styled HTML paragraphs, headings, bold, and italics with proper escaping."""
+    esc = html.escape(md_text)
+    # Headings
+    esc = re.sub(r"^###\s+(.*)$", r"<h4>\1</h4>", esc, flags=re.MULTILINE)
+    esc = re.sub(r"^##\s+(.*)$", r"<h3>\1</h3>", esc, flags=re.MULTILINE)
+    esc = re.sub(r"^#\s+(.*)$", r"<h2>\1</h2>", esc, flags=re.MULTILINE)
+    # Bold and italics
+    esc = re.sub(r"\*\*\*(.*?)\*\*\*", r"<strong><em>\1</em></strong>", esc)
+    esc = re.sub(r"\*\*(.*?)\*\*", r"<strong>\1</strong>", esc)
+    esc = re.sub(r"\*(.*?)\*", r"<em>\1</em>", esc)
+    # Paragraphs
+    paragraphs = esc.split("\n\n")
+    p_tags = []
+    for p in paragraphs:
+        p_clean = p.strip()
+        if not p_clean:
+            continue
+        if p_clean.startswith("<h"):
+            p_tags.append(p_clean)
+        elif p_clean in ("* * *", "***", "---"):
+            p_tags.append("<hr class='scene-break'>")
+        else:
+            p_tags.append(f"<p>{p_clean.replace(chr(10), '<br>')}</p>")
+    return "\n".join(p_tags)
+
+
 def generate_omnibus_html_reader(omnibus_report: dict[str, Any], output_path: Path) -> Path:
     """Generates an offline HTML5 Omnibus Reader."""
     title = omnibus_report["title"]
@@ -301,7 +328,7 @@ def generate_omnibus_html_reader(omnibus_report: dict[str, Any], output_path: Pa
             <article class="chapter">
               <h3>Chapter {ch_idx}: {html.escape(ch['title'])}</h3>
               <div class="meta-tag">POV: {html.escape(ch['pov'])} | {ch['words']:,} words</div>
-              <div class="prose">{html.escape(ch['body']).replace(chr(10), '<br>')}</div>
+              <div class="prose">{_format_markdown_prose(ch['body'])}</div>
             </article>
             """)
 

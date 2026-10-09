@@ -133,70 +133,61 @@ class TestConfig(unittest.TestCase):
         target = str(self.work_dir / "safe_backups")
         with patch.object(sys, "argv", ["config.py", "backup-dest", "set", target]):
             with patch("sys.stdout", new_callable=io.StringIO):
-                with self.assertRaises(SystemExit) as cm:
-                    main()
-                self.assertEqual(cm.exception.code, 0)
+                rc = main()
+                self.assertEqual(rc, 0)
 
         # Get
         with patch.object(sys, "argv", ["config.py", "backup-dest", "get"]):
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
-                with self.assertRaises(SystemExit) as cm:
-                    main()
-                self.assertEqual(cm.exception.code, 0)
+                rc = main()
+                self.assertEqual(rc, 0)
                 self.assertIn("safe_backups", mock_stdout.getvalue())
 
         # Clear
         with patch.object(sys, "argv", ["config.py", "backup-dest", "clear"]):
             with patch("sys.stdout", new_callable=io.StringIO):
-                with self.assertRaises(SystemExit) as cm:
-                    main()
-                self.assertEqual(cm.exception.code, 0)
+                rc = main()
+                self.assertEqual(rc, 0)
 
     def test_cli_docx_commands(self):
         # Presets list
         with patch.object(sys, "argv", ["config.py", "docx-presets"]):
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
-                with self.assertRaises(SystemExit) as cm:
-                    main()
-                self.assertEqual(cm.exception.code, 0)
+                rc = main()
+                self.assertEqual(rc, 0)
                 self.assertIn("standard-submission", mock_stdout.getvalue())
 
         # Set preset
         with patch.object(sys, "argv", ["config.py", "docx-preset", "classic-trade"]):
             with patch("sys.stdout", new_callable=io.StringIO):
-                with self.assertRaises(SystemExit) as cm:
-                    main()
-                self.assertEqual(cm.exception.code, 0)
+                rc = main()
+                self.assertEqual(rc, 0)
 
         # Get active preset
         with patch.object(sys, "argv", ["config.py", "docx-preset"]):
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
-                with self.assertRaises(SystemExit) as cm:
-                    main()
-                self.assertEqual(cm.exception.code, 0)
+                rc = main()
+                self.assertEqual(rc, 0)
                 self.assertEqual(mock_stdout.getvalue().strip(), "classic-trade")
 
         # Set option
         with patch.object(sys, "argv", ["config.py", "docx-config", "line_spacing", "1.75"]):
             with patch("sys.stdout", new_callable=io.StringIO):
-                with self.assertRaises(SystemExit) as cm:
-                    main()
-                self.assertEqual(cm.exception.code, 0)
+                rc = main()
+                self.assertEqual(rc, 0)
 
         # Get option
         with patch.object(sys, "argv", ["config.py", "docx-config", "line_spacing"]):
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
-                with self.assertRaises(SystemExit) as cm:
-                    main()
-                self.assertEqual(cm.exception.code, 0)
+                rc = main()
+                self.assertEqual(rc, 0)
                 self.assertEqual(mock_stdout.getvalue().strip(), "1.75")
 
         # Dump full config
         with patch.object(sys, "argv", ["config.py", "docx-config"]):
             with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
-                with self.assertRaises(SystemExit) as cm:
-                    main()
-                self.assertEqual(cm.exception.code, 0)
+                rc = main()
+                self.assertEqual(rc, 0)
                 data = json.loads(mock_stdout.getvalue())
                 self.assertEqual(data["line_spacing"], 1.75)
 
@@ -252,6 +243,67 @@ class TestConfig(unittest.TestCase):
         pol = get_authorial_policy()
         self.assertEqual(pol.get("default_mode"), "observational")
 
+        # Test list merging (e.g. suppressed_rules extending without overwriting)
+        world_dir = self.work_dir / "TestWorld"
+        world_dir.mkdir()
+        (world_dir / "constitution.json").write_text(
+            json.dumps({"diagnostics": {"suppressed_rules": ["PAC-101", "FAC-102"]}}),
+            encoding="utf-8",
+        )
+        const_merged = get_authorial_constitution(world_path=world_dir)
+        self.assertTrue(is_rule_suppressed("PAC-101", const_merged))
+        self.assertTrue(is_rule_suppressed("FAC-102", const_merged))
+        self.assertFalse(is_rule_suppressed("OTHER-999", const_merged))
+
+        # Manuscript constitution in YAML
+        ms_dir = self.work_dir / "TestMS"
+        ms_dir.mkdir()
+        (ms_dir / "constitution.yaml").write_text(
+            "diagnostics:\n  suppressed_rules:\n    - PAC-202\n",
+            encoding="utf-8",
+        )
+        const_ms = get_authorial_constitution(manuscript_path=ms_dir)
+        self.assertTrue(is_rule_suppressed("PAC-202", const_ms))
+
+    def test_world_axioms_and_engine_toggles(self):
+        from lib.config import (
+            get_world_axioms,
+            get_disabled_engines,
+            set_engine_enabled,
+        )
+        axioms = get_world_axioms()
+        self.assertIn("magic_modality", axioms)
+
+        # Engine toggles
+        self.assertEqual(get_disabled_engines(), [])
+        set_engine_enabled("eco_sim", False)
+        self.assertIn("eco_sim", get_disabled_engines())
+        set_engine_enabled("eco_sim", True)
+        self.assertNotIn("eco_sim", get_disabled_engines())
+
+    def test_cli_additional_commands(self):
+        # config docx-presets
+        with patch.object(sys, "argv", ["config.py", "docx-presets"]):
+            with patch("sys.stdout", new_callable=io.StringIO):
+                rc = main()
+                self.assertEqual(rc, 0)
+
+        # config active-manuscript get/set/clear
+        with patch.object(sys, "argv", ["config.py", "active-manuscript", "set", "MyBook"]):
+            with patch("sys.stdout", new_callable=io.StringIO):
+                rc = main()
+                self.assertEqual(rc, 0)
+
+        with patch.object(sys, "argv", ["config.py", "active-manuscript", "get"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+                rc = main()
+                self.assertEqual(rc, 0)
+                self.assertIn("MyBook", mock_out.getvalue())
+
+        with patch.object(sys, "argv", ["config.py", "active-manuscript", "clear"]):
+            with patch("sys.stdout", new_callable=io.StringIO):
+                rc = main()
+                self.assertEqual(rc, 0)
 
 
 if __name__ == "__main__":

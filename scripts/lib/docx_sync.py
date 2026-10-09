@@ -49,24 +49,8 @@ logger = logging.getLogger("arcanum.docx_sync")
 
 try:
     from lib.config import get_active_docx_preset_name, get_docx_config
-except Exception:
-    try:
-        from config import get_active_docx_preset_name, get_docx_config
-    except Exception:
-        def get_docx_config():
-            return {
-                "name": "Standard Submission (Shunn / Industry)",
-                "font_family": "Times New Roman",
-                "font_size_pt": 12.0,
-                "line_spacing": 2.0,
-                "margin_inches": 1.0,
-                "first_line_indent_inches": 0.5,
-                "scene_break_symbol": "#",
-                "page_break_chapters": True,
-                "include_header_slug": True,
-            }
-        def get_active_docx_preset_name():
-            return "standard-submission"
+except ImportError:
+    from config import get_active_docx_preset_name, get_docx_config
 
 
 try:
@@ -215,11 +199,13 @@ def convert_docx_to_markdown(docx_path: Path) -> str:
     if not docx_path.is_file():
         raise FileNotFoundError(f"DOCX file not found: {docx_path}")
 
-    if docx_path.stat().st_size > MAX_DOCX_FILE_BYTES:
-        raise ValueError(f"DOCX file exceeds maximum allowed size ({MAX_DOCX_FILE_BYTES // (1024*1024)} MB): {docx_path}")
+    if not zipfile.is_zipfile(docx_path):
+        raise ValueError(f"File is not a valid zip/docx archive: {docx_path}")
 
     try:
         with zipfile.ZipFile(docx_path, "r") as zf:
+            if "word/document.xml" not in zf.namelist():
+                raise ValueError(f"word/document.xml missing in docx: {docx_path}")
             total_uncompressed = sum(info.file_size for info in zf.infolist())
             if total_uncompressed > MAX_DOCX_UNCOMPRESSED_BYTES:
                 raise ValueError(f"DOCX uncompressed payload exceeds safety threshold ({MAX_DOCX_UNCOMPRESSED_BYTES // (1024*1024)} MB)")
@@ -234,7 +220,7 @@ def convert_docx_to_markdown(docx_path: Path) -> str:
             doc_xml_bytes.decode("utf-16be", errors="ignore").lower(),
         ):
             if "<!entity" in sample or "<!doctype" in sample:
-                raise ValueError("Unsafe XML entity/DOCTYPE declaration detected in DOCX document.xml")
+                raise ValueError("Unsafe DOCTYPE/ENTITY and Unsafe XML entity declaration detected in DOCX document.xml")
 
         root = ET.fromstring(doc_xml_bytes)  # nosec B314 # noqa: S314
         ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}

@@ -35,43 +35,7 @@ if str(LIB_DIR) not in sys.path:
 try:
     from lib.fs_utils import atomic_write
 except ImportError:
-    try:
-        from fs_utils import atomic_write  # type: ignore[no-redef]
-    except ImportError:
-        def atomic_write(path: Path | str, data: str | bytes, encoding: str = "utf-8") -> None:
-            import os as _os
-            import tempfile as _tf
-            p = Path(path).resolve()
-            p.parent.mkdir(parents=True, exist_ok=True)
-            fd, tmp = _tf.mkstemp(dir=p.parent, prefix=f".{p.name}.", suffix=".tmp")
-            fd_closed = False
-            try:
-                try:
-                    if isinstance(data, (bytes, bytearray)):
-                        with _os.fdopen(fd, "wb") as f:
-                            fd_closed = True
-                            f.write(data)
-                            f.flush()
-                            _os.fsync(f.fileno())
-                    else:
-                        with _os.fdopen(fd, "w", encoding=encoding, newline="") as f:
-                            fd_closed = True
-                            f.write(data)
-                            f.flush()
-                            _os.fsync(f.fileno())
-                finally:
-                    if not fd_closed:
-                        try:
-                            _os.close(fd)
-                        except OSError:
-                            pass
-                _os.replace(tmp, p)
-            except BaseException:
-                try:
-                    Path(tmp).unlink(missing_ok=True)
-                except OSError:
-                    pass
-                raise
+    from fs_utils import atomic_write  # type: ignore[no-redef]
 
 
 # 4. Volume and identifier validation helpers (Path Traversal Defense)
@@ -107,10 +71,16 @@ def validate_volume_name(vol: str) -> str:
 
 def sanitize_identifier(name: str, fallback: str = "item") -> str:
     """Sanitize a name to a safe filesystem identifier token [A-Za-z0-9_-]."""
+    if not name:
+        return fallback
     import re
 
-    safe = re.sub(r"[^A-Za-z0-9_-]", "", name or "")
-    if not safe or safe.split(".")[0].upper() in WINDOWS_RESERVED_NAMES:
+    base = str(name).split(".")[0].upper()
+    if base in WINDOWS_RESERVED_NAMES:
+        return fallback
+
+    safe = re.sub(r"[^A-Za-z0-9_-]", "", str(name))
+    if not safe or safe.split(".")[0].upper() in WINDOWS_RESERVED_NAMES or safe.upper() in WINDOWS_RESERVED_NAMES:
         return fallback
     return safe
 

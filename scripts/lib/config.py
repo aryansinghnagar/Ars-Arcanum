@@ -361,10 +361,17 @@ DEFAULT_AUTHORIAL_POLICY: dict[str, Any] = {
 
 
 def _deep_merge_dict(target: dict[str, Any], source: dict[str, Any]) -> None:
-    """Recursively merges source dict into target dict in-place."""
+    """Recursively merges source dict into target dict in-place, extending lists without duplicates."""
+    import copy
     for k, v in source.items():
         if isinstance(v, dict) and isinstance(target.get(k), dict):
             _deep_merge_dict(target[k], v)
+        elif isinstance(v, list) and isinstance(target.get(k), list):
+            for item in v:
+                if item not in target[k]:
+                    target[k].append(copy.deepcopy(item) if isinstance(item, (dict, list)) else item)
+        elif isinstance(v, (dict, list)):
+            target[k] = copy.deepcopy(v)
         else:
             target[k] = v
 
@@ -394,15 +401,12 @@ def get_authorial_constitution(
     manuscript_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Returns the resolved Authorial Constitution merging global policy with local vault/manuscript declarations."""
+    import copy
     base = get_authorial_policy()
-    res = dict(base)
+    res = copy.deepcopy(base)
 
     def _merge_dict(target: dict[str, Any], source: dict[str, Any]) -> None:
-        for k, v in source.items():
-            if isinstance(v, dict) and isinstance(target.get(k), dict):
-                _merge_dict(target[k], v)
-            else:
-                target[k] = v
+        _deep_merge_dict(target, source)
 
     # Check world-level config or constitution
     if world_path:
@@ -607,35 +611,30 @@ def main(argv: list[str] | None = None) -> int:
             dest = get_backup_dest()
             if dest:
                 print(dest)
-                sys.exit(0)
-            else:
-                sys.exit(1)
-        elif args.action == "set":
+                return 0
+            return 1
+        if args.action == "set":
             if set_backup_dest(args.path):
                 print(f"[CONFIG] Secure backup destination set to: {get_backup_dest()}")
-                sys.exit(0)
-            else:
-                print("[!] Error saving configuration.", file=sys.stderr)
-                sys.exit(1)
-        elif args.action == "clear":
+                return 0
+            print("[!] Error saving configuration.", file=sys.stderr)
+            return 1
+        if args.action == "clear":
             if clear_backup_dest():
                 print("[CONFIG] Secure backup destination cleared.")
-                sys.exit(0)
-            else:
-                print("[!] Error updating configuration.", file=sys.stderr)
-                sys.exit(1)
+                return 0
+            print("[!] Error updating configuration.", file=sys.stderr)
+            return 1
 
     elif args.subcommand == "docx-preset":
         if args.preset:
             if set_docx_preset(args.preset):
                 print(f"[CONFIG] Active DOCX preset set to: {args.preset}")
-                sys.exit(0)
-            else:
-                print(f"[!] Error: Invalid preset '{args.preset}'. Available: {', '.join(DOCX_PRESETS.keys())}", file=sys.stderr)
-                sys.exit(1)
-        else:
-            print(get_active_docx_preset_name())
-            sys.exit(0)
+                return 0
+            print(f"[!] Error: Invalid preset '{args.preset}'. Available: {', '.join(DOCX_PRESETS.keys())}", file=sys.stderr)
+            return 1
+        print(get_active_docx_preset_name())
+        return 0
 
     elif args.subcommand == "docx-presets":
         active = get_active_docx_preset_name()
@@ -645,7 +644,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"- {pid}{mark}: {info['name']}")
             print(f"    Font: {info['font_family']} {info['font_size_pt']}pt | Spacing: {info['line_spacing']}x | Margins: {info['margin_inches']}\"")
             print(f"    Description: {info['description']}")
-        sys.exit(0)
+        return 0
 
     elif args.subcommand == "docx-config":
         if args.key and args.value is not None:
@@ -660,21 +659,18 @@ def main(argv: list[str] | None = None) -> int:
                     val = False
             if set_docx_option(args.key, val):
                 print(f"[CONFIG] DOCX option '{args.key}' set to: {val}")
-                sys.exit(0)
-            else:
-                print("[!] Error updating DOCX option.", file=sys.stderr)
-                sys.exit(1)
-        elif args.key:
+                return 0
+            print("[!] Error updating DOCX option.", file=sys.stderr)
+            return 1
+        if args.key:
             cfg = get_docx_config()
             if args.key in cfg:
                 print(cfg[args.key])
-                sys.exit(0)
-            else:
-                print(f"[!] Key '{args.key}' not found in DOCX configuration.", file=sys.stderr)
-                sys.exit(1)
-        else:
-            print(json.dumps(get_docx_config(), indent=2))
-            sys.exit(0)
+                return 0
+            print(f"[!] Key '{args.key}' not found in DOCX configuration.", file=sys.stderr)
+            return 1
+        print(json.dumps(get_docx_config(), indent=2))
+        return 0
 
     elif args.subcommand == "tips":
         action = getattr(args, "action", None)

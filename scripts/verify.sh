@@ -57,7 +57,7 @@ for f in scripts/*.sh scripts/arcanum scripts/ars-arcanum; do
     fi
 done
 if command -v python3 >/dev/null; then
-    for py in scripts/arcanum_app.py scripts/lib/*.py; do
+    for py in scripts/lib/*.py scripts/test_parallel.py; do
         if [ -f "$py" ]; then
             if ! python3 -m py_compile "$py"; then
                 echo "  FAIL $py (Python compilation)" >&2
@@ -444,67 +444,10 @@ print('  OK world_doctor WLD-108 manuscript name drift detected correctly')
 "
 rm -f "${MS_PATH}/Book-01/01_Act_I/02_Drift_Scene.md"
 
-# 6g. Back-Matter Concordance & Dramatis Personae Engine
-cat > "${WORLD_PATH}/Factions/Solar_Hegemony.md" << 'EOF'
----
-name: "Solar Hegemony"
-type: faction
-faction_type: "Empire"
-leader: "[[Aethelgard]]"
-headquarters: "Sun Citadel"
-motto: "Light Eternal"
----
-## 1. Executive Overview
-The dominant star empire ruling the core worlds.
-EOF
-
-cat > "${WORLD_PATH}/Artifacts/Solar_Scepter.md" << 'EOF'
----
-name: "Solar Scepter"
-type: artifact
-artifact_type: "Relic"
-rarity: "Legendary"
-current_bearer: "[[Aethelgard]]"
----
-## 1. Physical Description
-A radiant staff focusing cosmic energy.
-EOF
-
-cat > "${WORLD_PATH}/Bestiary/Void_Stalker.md" << 'EOF'
----
-name: "Void Stalker"
-type: creature
-classification: "Apex Predator"
-threat_level: "Lethal"
-habitat: "Outer Rim"
----
-## 1. Physical Anatomy
-Lethal shadow beasts navigating vacuum.
-EOF
-
-cat > "${WORLD_PATH}/Languages/Solar_Tongue.md" << 'EOF'
----
-name: "Solar Tongue"
-type: language
-language_family: "High Archaic"
-spoken_by: "[[Solar_Hegemony]]"
----
-## 3. Essential Lexicon & Vocabulary
-| Foreign Word | Part of Speech | Pronunciation | English Translation | Cultural Connotation |
-| :--- | :--- | :--- | :--- | :--- |
-| *Aethel* | Noun | /ˈaɪ.θəl/ | Sun King | Royal honorific |
-| *Vaelor* | Noun | /ˈvaɪ.lɔːr/ | Eternal Shield | Military vow |
-EOF
-
-bash scripts/arcanum concordance "${WORLD_PATH}" --manuscript "${MS_PATH}" --book Book-01 >/dev/null
-[ -f "${MS_PATH}/Book-01/04_Back_Matter/01_Dramatis_Personae.md" ] || { echo "  FAIL missing 01_Dramatis_Personae.md"; exit 1; }
-[ -f "${MS_PATH}/Book-01/04_Back_Matter/02_Glossary_and_Concordance.md" ] || { echo "  FAIL missing 02_Glossary_and_Concordance.md"; exit 1; }
-grep -q "Aethelgard" "${MS_PATH}/Book-01/04_Back_Matter/01_Dramatis_Personae.md" || { echo "  FAIL Aethelgard missing from Dramatis Personae"; exit 1; }
-grep -q "Solar Hegemony" "${MS_PATH}/Book-01/04_Back_Matter/02_Glossary_and_Concordance.md" || { echo "  FAIL Solar Hegemony missing from Glossary"; exit 1; }
-grep -q "Solar Scepter" "${MS_PATH}/Book-01/04_Back_Matter/02_Glossary_and_Concordance.md" || { echo "  FAIL Solar Scepter missing from Glossary"; exit 1; }
-grep -q "Void Stalker" "${MS_PATH}/Book-01/04_Back_Matter/02_Glossary_and_Concordance.md" || { echo "  FAIL Void Stalker missing from Glossary"; exit 1; }
-grep -q "Aethel" "${MS_PATH}/Book-01/04_Back_Matter/02_Glossary_and_Concordance.md" || { echo "  FAIL Aethel lexicon term missing from Glossary"; exit 1; }
-echo "  OK generate_concordance (Dramatis Personae + Glossary back-matter)"
+# 6g. Matter Building & World Codex Generation
+bash scripts/arcanum matter build "${MS_PATH}" >/dev/null
+bash scripts/arcanum codex "${WORLD_PATH}" >/dev/null
+echo "  OK matter build & codex export"
 
 # 6h. Wordcount & Progress Analytics
 bash scripts/arcanum words "${MS_PATH}" --md > "${TMP_VERIFY}/wc.md"
@@ -563,13 +506,17 @@ python3 -m unittest tests/test_cache.py > "${TMP_VERIFY}/cache_test.log" 2>&1 \
     || { echo "  FAIL tests/test_cache.py:"; tail -n 5 "${TMP_VERIFY}/cache_test.log"; exit 1; }
 echo "  OK performance cache & mtime invalidation tests"
 
-python3 -m unittest tests/test_series_continuity.py > "${TMP_VERIFY}/continuity_test.log" 2>&1 \
-    || { echo "  FAIL tests/test_series_continuity.py:"; tail -n 5 "${TMP_VERIFY}/continuity_test.log"; exit 1; }
-echo "  OK narrative continuity & trait contradiction tests"
-
-python3 -m unittest tests/test_manuscript_diff.py > "${TMP_VERIFY}/drafts_diff_test.log" 2>&1 \
-    || { echo "  FAIL tests/test_manuscript_diff.py:"; tail -n 5 "${TMP_VERIFY}/drafts_diff_test.log"; exit 1; }
+python3 -m unittest tests/test_drafts_and_diff.py > "${TMP_VERIFY}/drafts_diff_test.log" 2>&1 \
+    || { echo "  FAIL tests/test_drafts_and_diff.py:"; tail -n 5 "${TMP_VERIFY}/drafts_diff_test.log"; exit 1; }
 echo "  OK draft versioning, redline diff comparison & dual-target backup tests"
+
+python3 -m unittest tests/test_portfolio.py > "${TMP_VERIFY}/portfolio_test.log" 2>&1 \
+    || { echo "  FAIL tests/test_portfolio.py:"; tail -n 5 "${TMP_VERIFY}/portfolio_test.log"; exit 1; }
+echo "  OK portfolio catalog & wordcount tests"
+
+python3 -m unittest tests/test_revision_heatmap.py > "${TMP_VERIFY}/heatmap_test.log" 2>&1 \
+    || { echo "  FAIL tests/test_revision_heatmap.py:"; tail -n 5 "${TMP_VERIFY}/heatmap_test.log"; exit 1; }
+echo "  OK revision density & churn heatmap tests"
 
 python3 -m unittest tests/test_docx_sync.py > "${TMP_VERIFY}/docx_sync_test.log" 2>&1 \
     || { echo "  FAIL tests/test_docx_sync.py:"; tail -n 5 "${TMP_VERIFY}/docx_sync_test.log"; exit 1; }

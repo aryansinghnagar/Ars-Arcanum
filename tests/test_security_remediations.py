@@ -24,9 +24,10 @@ class TestSecurityRemediations(unittest.TestCase):
     def test_sec02_codex_export_csp_and_xss_defense(self):
         """Validates that codex export generates strict CSP and escapes HTML injections."""
         notes_dir = self.root / "World"
-        notes_dir.mkdir()
-        (notes_dir / "bad.md").write_text(
-            '---\ntitle: "Bad </script><script>alert(1)</script>"\ncategory: "Characters"\n---\n<script>alert(2)</script>',
+        chars_dir = notes_dir / "Characters"
+        chars_dir.mkdir(parents=True)
+        (chars_dir / "bad.md").write_text(
+            '---\nname: "Bad </script><script>alert(1)</script>"\nrole: "Villain"\n---\n<script>alert(2)</script>',
             encoding="utf-8"
         )
         html_out = self.root / "codex.html"
@@ -41,6 +42,11 @@ class TestSecurityRemediations(unittest.TestCase):
         # Content Security Policy must be present
         self.assertIn("Content-Security-Policy", content)
         self.assertIn("default-src 'none'", content)
+        # Raw injected script tags must not be rendered into HTML
+        self.assertNotIn("<script>alert(1)</script>", content)
+        self.assertNotIn("<script>alert(2)</script>", content)
+        self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", content)
+        self.assertIn("&lt;script&gt;alert(2)&lt;/script&gt;", content)
 
     def test_sec03_docx_and_importer_xxe_buffer_full_scan(self):
         """Validates that XML buffers larger than 4KB with <!ENTITY at the end are flagged."""

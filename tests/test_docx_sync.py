@@ -487,6 +487,19 @@ Updated prose from word editor.
         self.assertTrue(sidecar_file.is_file())
         self.assertIn("Beta Reader", sidecar_file.read_text(encoding="utf-8"))
 
+    def test_corrupted_and_missing_docx_handling(self):
+        """Test resilience when encountering invalid or corrupted docx files."""
+        corrupted_docx = self.root / "corrupted.docx"
+        corrupted_docx.write_text("Not a real zip archive", encoding="utf-8")
+
+        # convert_docx_to_markdown should raise ValueError
+        with self.assertRaises(ValueError):
+            convert_docx_to_markdown(corrupted_docx)
+
+        # extract_docx_comments should return empty list on corrupted
+        comments = extract_docx_comments(corrupted_docx)
+        self.assertEqual(comments, [])
+
 
 if __name__ == "__main__":
     unittest.main()

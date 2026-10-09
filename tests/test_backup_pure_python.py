@@ -194,6 +194,23 @@ class TestPurePythonBackupRestore(unittest.TestCase):
         res_corrupt = verify_backup_integrity(archive_path)
         self.assertFalse(res_corrupt["valid"])
 
+    def test_restore_checksum_mismatch_error(self):
+        backup_out_dir = self.root / "BackupsMismatch"
+        res_backup = create_backup(self.project_dir, output_dir=backup_out_dir)
+        archive_path = Path(res_backup["archive_path"])
+        sha_file = archive_path.with_name(f"{archive_path.name}.sha256")
+        sha_file.write_text("1111111111111111111111111111111111111111111111111111111111111111  bad\n", encoding="utf-8")
+
+        restore_target = self.root / "MismatchRestore"
+        with self.assertRaises(ValueError) as cm:
+            restore_archive(archive_path, target_dir=restore_target)
+        self.assertIn("checksum mismatch", str(cm.exception).lower())
+
+    def test_restore_missing_archive_error(self):
+        missing_tar = self.root / "does_not_exist.tar.gz"
+        with self.assertRaises(FileNotFoundError):
+            restore_archive(missing_tar, target_dir=self.root / "out")
+
     def test_cli_main_entry_points(self):
         from lib.backup import main as backup_main
         from lib.restore import main as restore_main
@@ -203,7 +220,10 @@ class TestPurePythonBackupRestore(unittest.TestCase):
         ret = backup_main([str(self.project_dir), "-o", str(backup_dir), "--json", "-t", "test-tag"])
         self.assertEqual(ret, 0)
 
-        # List backups
+        # Test backup error branch
+        ret_err = backup_main(["nonexistent_dir_123", "--json"])
+        self.assertEqual(ret_err, 1)
+
         backups = list_backups(backup_dir)
         self.assertEqual(len(backups), 1)
 
@@ -211,6 +231,10 @@ class TestPurePythonBackupRestore(unittest.TestCase):
         restore_dir = self.root / "CliRestored"
         ret_restore = restore_main([backups[0]["path"], "-d", str(restore_dir), "--json", "-f"])
         self.assertEqual(ret_restore, 0)
+
+        # Restore CLI error branch
+        ret_restore_err = restore_main(["nonexistent.tar.gz", "--json"])
+        self.assertEqual(ret_restore_err, 1)
 
         # Snapshot CLI
         ret_snap = snapshot_main([str(self.project_dir), "-m", "CLI snapshot", "--json"])

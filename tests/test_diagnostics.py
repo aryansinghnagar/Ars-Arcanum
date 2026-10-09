@@ -135,6 +135,21 @@ class TestDiagnostics(unittest.TestCase):
                 rc = main()
                 self.assertIn(rc, (0, 1))
 
+    def test_get_command_version_and_redact_edge_cases(self):
+        from lib.diagnostics import get_command_version
+        v_py = get_command_version([sys.executable, "--version"])
+        self.assertIsNotNone(v_py)
+
+        v_bad = get_command_version(["nonexistent_binary_xyz_123"])
+        self.assertIsNone(v_bad)
+
+        # Windows backslash redaction
+        win_home = str(Path.home()).replace("/", "\\")
+        text = f"File at {win_home}\\test.md"
+        redacted = redact_sensitive_paths(text)
+        self.assertNotIn(win_home, redacted)
+        self.assertIn("~\\test.md", redacted)
+
 
 if __name__ == "__main__":
     unittest.main()

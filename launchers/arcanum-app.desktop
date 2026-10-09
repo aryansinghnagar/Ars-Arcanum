@@ -2,8 +2,9 @@
 Version=1.0
 Type=Application
 Name=Ars Arcanum Desktop Control Center
-Comment=Desktop GTK3 Sovereign Writing Studio
-Exec=python3 __PROJECT_ROOT__/scripts/arcanum_app.py
+Comment=Sovereign Writing Studio & Craft Diagnostics
+TryExec=bash
+Exec=arcanum doctor
 Icon=preferences-desktop
 Terminal=false
 Categories=Office;Development;

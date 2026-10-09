@@ -27,39 +27,78 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from lib._bootstrap import atomic_write, count_prose_words
+    from lib._bootstrap import PROJECT_ROOT, atomic_write, count_prose_words
+    from lib.frontmatter import parse_yaml_document
     from lib.scope import add_scope_arguments, parse_scope_args, resolve_manuscript_dir
 except ImportError:
-    from _bootstrap import atomic_write, count_prose_words
-    try:
-        from scope import add_scope_arguments, parse_scope_args, resolve_manuscript_dir
-    except ImportError:
-        pass
+    from _bootstrap import PROJECT_ROOT, atomic_write, count_prose_words
+    from frontmatter import parse_yaml_document
+    from scope import add_scope_arguments, parse_scope_args, resolve_manuscript_dir
 
 logger = logging.getLogger("arcanum.portfolio")
+
+
+def _resolve_draft_dir(parent_dir: Path, requested_draft: str | None = None) -> Path:
+    """Finds the active or requested draft directory in a volume or manuscript directory."""
+    draft_dirs = sorted([d for d in parent_dir.glob("Draft-*") if d.is_dir()])
+    if not draft_dirs:
+        return parent_dir
+    if requested_draft:
+        match = [d for d in draft_dirs if d.name.lower() == str(requested_draft).lower()]
+        if match:
+            return match[0]
+    return draft_dirs[-1]
 
 
 def analyze_manuscript_project(ms_dir: Path) -> dict:
     """Analyzes a single manuscript directory for stats, stage, and word counts."""
     manifest_path = ms_dir / "manuscript.yaml"
-    meta = {}
+    meta: dict[str, Any] = {}
     if manifest_path.is_file():
-        for line in manifest_path.read_text(encoding="utf-8", errors="replace").splitlines():
-            line = line.strip()
-            if ":" in line and not line.startswith("#"):
-                k, v = line.split(":", 1)
-                meta[k.strip().lower()] = v.strip().strip('"\'')
+        try:
+            raw_meta = parse_yaml_document(manifest_path.read_text(encoding="utf-8", errors="replace"))
+            if isinstance(raw_meta, dict):
+                meta = {str(k).lower(): v for k, v in raw_meta.items()}
+        except Exception:
+            meta = {}
 
     title = meta.get("title", ms_dir.name.replace("_", " "))
     author = meta.get("author", "Author")
     target_words = int(meta.get("target_words", 80000))
+    active_draft_name = meta.get("active_draft")
 
-    # Chapters and volumes
-    volumes = sorted([d.name for d in ms_dir.glob("Book-*") if d.is_dir()])
-    if not volumes:
-        volumes = ["Book-01"]
+    target_ms_dir = ms_dir / "01-Manuscript" if (ms_dir / "01-Manuscript").is_dir() else ms_dir
 
-    chapter_files = [f for f in ms_dir.rglob("*.md") if not f.name.startswith((".", "_")) and "Backups" not in f.parts and "04_Back_Matter" not in f.parts]
+    # Chapters and volumes: count only from the active/latest draft per volume/manuscript
+    book_dirs = sorted([d for d in target_ms_dir.glob("Book-*") if d.is_dir()])
+    volumes = [d.name for d in book_dirs] if book_dirs else ["Book-01"]
+
+    chapter_files: list[Path] = []
+    if book_dirs:
+        for b in book_dirs:
+            search_dir = _resolve_draft_dir(b, active_draft_name)
+            for f in sorted(search_dir.rglob("*.md")):
+                if (
+                    not f.name.startswith((".", "_"))
+                    and "Backups" not in f.parts
+                    and "04_Back_Matter" not in f.parts
+                    and "Back_Matter" not in f.parts
+                    and "Front_Matter" not in f.parts
+                    and "Exports" not in f.parts
+                ):
+                    chapter_files.append(f)
+    else:
+        search_dir = _resolve_draft_dir(target_ms_dir, active_draft_name)
+        for f in sorted(search_dir.rglob("*.md")):
+            if (
+                not f.name.startswith((".", "_"))
+                and "Backups" not in f.parts
+                and "04_Back_Matter" not in f.parts
+                and "Back_Matter" not in f.parts
+                and "Front_Matter" not in f.parts
+                and "Exports" not in f.parts
+            ):
+                chapter_files.append(f)
 
     total_words = 0
     for cf in chapter_files:
@@ -119,8 +158,8 @@ def scan_portfolio(root_dir: Path | None = None, scope: Any = None) -> dict:
         home = Path.home()
         candidates.extend([
             home / "Manuscripts",
-            home / "Coding Projects" / "7-Scriptorium" / "fixtures",
-            home / "Coding Projects" / "7-Scriptorium" / "templates"
+            PROJECT_ROOT / "fixtures",
+            PROJECT_ROOT / "templates",
         ])
 
     manuscript_dirs = []

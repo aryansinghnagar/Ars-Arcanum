@@ -104,9 +104,15 @@ def save_snapshot(
                 "project_root": str(git_root),
             }
 
-        # 3. Create commit
+        # 3. Create commit with fallback author identity
         commit_proc = subprocess.run(
-            [git_bin, "commit", "-m", commit_msg],
+            [
+                git_bin,
+                "-c", "user.name=Arcanum Snapshot",
+                "-c", "user.email=arcanum@local",
+                "commit",
+                "-m", commit_msg,
+            ],
             cwd=str(git_root),
             capture_output=True,
             text=True,
