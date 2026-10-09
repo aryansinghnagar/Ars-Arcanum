@@ -45,10 +45,10 @@ class TestTypeSafety(unittest.TestCase):
             ("lib.frontmatter", "parse_frontmatter"),
             ("lib.fs_utils", "atomic_write"),
             ("lib._bootstrap", "validate_volume_name"),
-            ("lib.vault_search", "synthesize_llm_context"),
-            ("lib.structure", "scan_manuscript_structure"),
             ("lib.importer", "extract_docx_text"),
             ("lib.importer", "import_manuscript_batch"),
+            ("lib.docx_sync", "convert_docx_to_markdown"),
+            ("lib.preflight", "run_preflight_linter"),
         ]
 
         for mod_name, func_name in modules_to_check:
@@ -65,4 +65,3 @@ class TestTypeSafety(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

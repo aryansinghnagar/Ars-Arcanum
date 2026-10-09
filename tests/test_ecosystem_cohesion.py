@@ -4,10 +4,9 @@ Unit and Integration Tests for Ars Arcanum Ecosystem Cohesion & Cross-Engine Int
 (tests/test_ecosystem_cohesion.py)
 ================================================================================
 Comprehensive test suite verifying:
-- 100% CLI command and alias dispatch coverage across all 53 registered engines
-- Elimination of engine isolation and conflicts
+- 100% CLI command and alias dispatch coverage across all 14 registered sovereign engines
 - FS Utils atomic storage and filesystem diagnostics
-- Cross-engine multi-stage authoring pipelines (Scaffold -> Canvas -> Timeline -> Structure -> Corpus -> RAG)
+- Cross-engine multi-stage authoring pipelines (Matter -> Import -> Diff -> Preflight -> Codex)
 - Zero-conflict command topology across CLI and registry surfaces
 """
 
@@ -26,29 +25,26 @@ if str(SCRIPTS_DIR) not in sys.path:
 
 from lib import (
     cli,
-    corpus_export,
+    codex_export,
+    diagnostics,
+    frontmatter_builder,
     fs_utils,
-    manuscript_scaffold,
+    manuscript_diff,
+    preflight,
     registry,
-    resonance,
-    story_canvas,
-    structure,
-    timeline_sync,
-    vault_search,
-    world_doctor,
 )
 
 
 class TestEcosystemCliDispatch(unittest.TestCase):
-    """Verifies that all 47 registered engines and all aliases route cleanly in CLI."""
+    """Verifies that all 14 registered engines and all aliases route cleanly in CLI."""
 
     def setUp(self) -> None:
         self.reg = registry.get_registry()
 
     def test_registered_engines_count(self) -> None:
-        self.assertEqual(len(self.reg), 47)
+        self.assertEqual(len(self.reg), 14)
 
-    def test_all_53_primary_commands_dispatch(self) -> None:
+    def test_all_primary_commands_dispatch(self) -> None:
         unrouted = []
         for name, spec in self.reg.items():
             cmd_tokens = spec.cli_command.split()
@@ -110,85 +106,59 @@ class TestFsUtilsDiagnostics(unittest.TestCase):
 
 
 class TestCrossEnginePipeline(unittest.TestCase):
-    """Tests end-to-end integration across multiple interacting craft engines."""
+    """Tests end-to-end integration across multiple interacting sovereign engines."""
 
-    def test_full_authoring_and_lore_pipeline(self) -> None:
+    def test_full_authoring_and_publishing_pipeline(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             ms_dir = root / "Manuscript"
             ms_dir.mkdir()
             world_dir = root / "World"
-            world_dir.mkdir()
+            char_dir = world_dir / "Characters"
+            char_dir.mkdir(parents=True, exist_ok=True)
 
-            # 1. Scaffold manuscript structure
-            divisions = manuscript_scaffold.scaffold_volume(
-                target_dir=ms_dir,
-                structure_key="save_the_cat",
-                create_starter_chapter=True,
-            )
-            self.assertEqual(len(divisions), 3)
+            # 1. Generate Publishing Front Matter
+            (ms_dir / "manuscript.yaml").write_text("""---
+title: The Obsidian Crown
+author: Aurelia Vance
+language: en
+copyright: 2026
+---
+""", encoding="utf-8")
+            matter_files = frontmatter_builder.generate_frontmatter_modules({
+                "title": "The Obsidian Crown",
+                "author": "Aurelia Vance",
+            })
+            self.assertTrue(len(matter_files) > 0)
 
-            # 2. Add rich world bible lore
-            (world_dir / "Solaris_Faction.md").write_text(
-                "---\ntitle: Solaris Guild\ntype: faction\nleader: High Archon\n---\n# Solaris Guild\nA powerful mercantile faction controlling solar leylines.",
+            # 2. Add chapters and world lore
+            (char_dir / "Solaris_Hero.md").write_text(
+                "---\nname: Solaris Hero\ncategory: Characters\n---\n# Solaris Hero\nA master swordsman of the high citadel.",
                 encoding="utf-8",
             )
+            (ms_dir / "01_Chapter.md").write_text("# Chapter 1\n\nDawn broke over the high parapets. The leylines flared.", encoding="utf-8")
 
-            # 3. Extract scene cards via Story Canvas
-            cards = story_canvas.extract_scene_cards(ms_dir)
-            self.assertEqual(len(cards), 1)
-            canvas_html = story_canvas.generate_story_canvas_html(target_path=ms_dir, cards=cards)
-            self.assertIn("<!DOCTYPE html>", canvas_html)
-            self.assertIn("Content-Security-Policy", canvas_html)
+            # 3. Diff and Revision Heatmap
+            old_prose = "Dawn broke over the walls."
+            new_prose = "Dawn broke over the high parapets. The leylines flared."
+            diff_tokens_a = manuscript_diff.tokenize_words(old_prose)
+            diff_tokens_b = manuscript_diff.tokenize_words(new_prose)
+            _, added, _deleted = manuscript_diff.compute_word_diff(diff_tokens_a, diff_tokens_b)
+            self.assertGreater(added, 0)
 
-            # 4. Extract and analyze timeline events
-            events = timeline_sync.extract_timeline_events(ms_dir)
-            report = timeline_sync.analyze_timeline_synchronization(events)
-            self.assertIn("narrative_events", report)
-            self.assertEqual(report["total_events"], 1)
+            # 4. Preflight typesetting validation
+            preflight_rep = preflight.run_preflight_linter(ms_dir)
+            self.assertIn("readiness_status", preflight_rep)
 
-            # 5. Analyze story pacing structure
-            struct_res = structure.scan_manuscript_structure(ms_dir)
-            self.assertIn("chapters", struct_res)
+            # 5. Static World Wiki Codex Export
+            cats = codex_export.scan_world_vault(world_dir)
+            codex_file = root / "codex.html"
+            codex_export.build_single_file_codex(cats, "TestCosmos", codex_file)
+            self.assertTrue(codex_file.is_file())
 
-            # 6. Corpus Scanner & Export to SQLite
-            scanner = corpus_export.CorpusScanner(target=root)
-            scanner.scan()
-            self.assertGreaterEqual(len(scanner.documents), 2)
-            out_sqlite = root / "corpus.sqlite"
-            corpus_export.export_sqlite(scanner, out_sqlite)
-            self.assertTrue(out_sqlite.exists())
-
-            # 7. Local Sovereign Vault Search Hybrid Retrieval
-            rag = vault_search.VaultSearchEngine()
-            rag.load_from_sqlite(out_sqlite)
-            query_res = rag.query("mercantile solar leylines", top_k=5)
-            self.assertGreaterEqual(len(query_res), 1)
-
-            # 8. World Doctor Vault Consistency Audit
-            violations = world_doctor.check_world(world_dir)
-            self.assertIsInstance(violations, dict)
-            self.assertEqual(violations.get("notes"), 1)
-
-
-class TestResonanceMeshIntegrity(unittest.TestCase):
-    """Verifies that all 47 engines are cohesive nodes with degree >= 2."""
-
-    def test_full_resonance_mesh_connectivity(self) -> None:
-        mesh = resonance.ResonanceMesh()
-        self.assertEqual(len(mesh.nodes), 47)
-        self.assertEqual(len(mesh.edges), 71)
-
-        node_degrees: dict[str, int] = dict.fromkeys(mesh.nodes, 0)
-        for e in mesh.edges:
-            node_degrees[e.source_id] = node_degrees.get(e.source_id, 0) + 1
-            node_degrees[e.target_id] = node_degrees.get(e.target_id, 0) + 1
-
-        isolated = [k for k, v in node_degrees.items() if v == 0]
-        self.assertEqual(isolated, [])
-
-        low_deg = [k for k, v in node_degrees.items() if v < 2]
-        self.assertEqual(low_deg, [])
+            # 6. Diagnostics Audit
+            diag_rep = diagnostics.get_toolchain_diagnostics()
+            self.assertIn("tools", diag_rep)
 
 
 if __name__ == "__main__":

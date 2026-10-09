@@ -34,88 +34,46 @@ if str(SCRIPTS_DIR) not in sys.path:
 
 def print_banner():
     banner = f"""Ars Arcanum Unified CLI — v{VERSION}
-An intuitive, fail-safe Linux writing and worldbuilding studio.
+Sovereign Authoring OS, Revision Tracker & Publishing Pipeline (Zero-Pip Stdlib)
 
 Usage:
   arcanum <command> [arguments...]
   ars-arcanum <command> [arguments...]
 
-✍️  Core Authoring & Editorial Craft:
-  hub [TARGET] [--port PORT]   Launch Sovereign Studio Desktop Hub & Telemetry Dashboard
-  write [TARGET]               Open writing workspace in novelWriter or Obsidian (alias: open)
-  studio [MS] [-w WORLD]       Standalone offline Zen drafting studio & in-situ lore drawer
+🛡️  Sovereign Revision, Portfolio & Word Processing:
+  compare <MS> [D_NEW] [D_OLD] Visual Redline changelog comparison between drafts (alias: diff, redline)
+  revision-heatmap [MS]        Manuscript revision density & prose churn heatmap (alias: churn, heatmap)
+  portfolio [DIR] [--html]     Multi-manuscript catalog dashboard & drafting velocity (alias: author-stats)
   word [MS]                    Open manuscript in Microsoft Word / LibreOffice (alias: writer)
-  docx <build|sync|import|open> Manage Word .docx manuscript synchronization
+  docx <build|sync|import|open> Manage Word .docx manuscript synchronization & comment extraction
   import <SOURCE> [options]    Import Scrivener, Word (.docx), or Markdown into sovereign vault
   new <type> <NAME> [opts]     Scaffold new project (type: manuscript | draft | world | universe | volume)
   draft <MS> [DRAFT_NAME]      Fork next manuscript draft version (alias: new draft, init-draft)
-  compare <MS> [D_NEW] [D_OLD] Visual Redline changelog comparison between drafts (alias: diff, redline)
-  save [TARGET] [-m "note"]    Save an instant Git version milestone (alias: snapshot)
+
+📚 Publishing & Compilation Pipeline:
   publish [MS] [options]       Compile to print PDF, EPUB, or DOCX (alias: export, compile)
-  preflight [MS]               Pre-flight typesetting & compliance validator (PUB-101)
-  matter build [MS]            Generate modular front matter and back matter files (PUB-103)
-  query [MS]                   Scaffold submission package: query letter, synopsis, tracker (PUB-106)
-  polish typography [TARGET]   Normalize smart curly quotes, em-dashes, and ellipses (PRO-104)
-  rag <QUERY> [opts]           Sovereign local semantic retrieval & LLM context synthesis (alias: query-lore)
-  branch <TARGET> [opts]       Multi-POV narrative thread & convergence subway map (PLT-103)
-  words [MS] [--md|--json|--pov] Show live word counts and chapter analytics (alias: report, count)
-  pace [MS] [--pov|--html]     Analyze dialogue/action density & prose rhythm
-  tension [MS] [--html]        Model chapter tension curve & narrative arcs
-  plot [MS] [--html|--matrix]  Multi-track plot grid & subplot pacing matrix (PLT-101)
-  structure [MS] [-p PARADIGM] Story paradigm enforcer: 3-Act, 8-Sequence, Kishotenketsu (PLT-102)
-  scaffold [TARGET] [options]  Pluggable manuscript structure scaffolder across 16 presets (alias: presets)
-  canvas [MS] [--html|--json]  Interactive visual story canvas & corkboard drag-and-drop
-  timeline [MS|WORLD] [--html] Dual-track chronological vs narrative timeline synchronizer
-  omnibus <UNIVERSE> [--html]  Compile multi-volume series omnibus with unified lore
-  corpus <TARGET> [-f FORMAT]  Universal structured JSONL, SQLite & RAG dataset exporter
-  ambient [PROFILE]            Focus soundscape loop player (PLT-106)
-  portfolio [DIR] [--html]     Multi-manuscript catalog dashboard & drafting velocity (OPS-103)
-  package [MS] [-t TARGET]     Multi-platform release packager: Reader, Submission, ARC (OPS-101)
-  sprint [MS]                  Sovereign writing sprint timer & productivity analytics
-  revision-heatmap [MS]        Manuscript revision density & churn heatmap
-  resonance [CMD] [opts]       Universal Knowledge Mesh, Causal Cascade & Creative Spark bridges
-  scope [TARGET] [opts]        Granular manuscript & lore scope targeting & diagnostic
-  tip [opts]                   Dynamic non-obvious craft advice & engine wisdom (aliases: tips, hint)
-  doc [ENGINE]                 Display educational craft logic documentation & advisory resolution guide (alias: guide, explain)
+  preflight [MS]               Pre-flight typesetting & compliance validator (Amazon KDP, IngramSpark)
+  matter build [MS]            Generate modular front matter and back matter files (alias: frontmatter)
+  codex <WORLD> [--html]       Compile static offline World Wiki encyclopedia (alias: wiki)
+  omnibus <UNIVERSE> [--html]  Compile multi-volume series omnibus with unified TOC (alias: anthology)
+  query [MS]                   Scaffold submission package: query letter, synopsis, tracker
 
-🪐 Universe, World Lore & Series Continuity:
-  universe [NAME] [--list]     Create or list narrative universes in ~/Universes/
-  world <NAME> [-u UNIVERSE]   Scaffold an Obsidian World Lore Vault
-  cast [UNIVERSE] [--html|--md] Multi-volume Dramatis Personae & Universe Cast Matrix (alias: dramatis-personae)
-  map <WORLD> [--html|--svg]   Interactive offline vector cartography & map editor (WOR-101)
-  codex <WORLD> [--html]       Compile static offline World Wiki encyclopedia (WOR-102)
-  series [TARGET] [--html]     Multi-book series continuity & character trait ledger (WOR-103)
-  sim battle [options]         High-level tactical battle scenario planner (WOR-104)
-  concordance <TARGET> [-b]    Generate Dramatis Personae & Glossary back-matter
-  continuity [-w W -m MS]      Analyze character traits & narrative consistency (alias: check-continuity)
-  faction [WORLD] [--html]     Geopolitical relationship matrix & diplomatic paradoxes
-  economy [WORLD] [-m MS]      Macroeconomic currencies, commodity baskets & PPP rates
-  causality [WORLD] [MS]       Multi-paradigm causal DAGs & time-travel validator
-  ecology [WORLD] [--html]     Trophic energy pyramids (10% rule) & bestiary food-web
-  magic-check [-w W -m MS]     Verify hard magic system constraints & axioms (advisory)
-  magic-report [-w W]          Export comprehensive arcane constraint report
-  prophecy [WORLD] [-m MS]     Prophecy lifecycle clauses & fulfillment verification
-  genealogy <House|Char>       Compile dynastic lineage trees & Mermaid flowcharts
-  lineage <House>              Display succession rank roster & claimants
-  conlang <gen|mut|lex> <Lang> Conlang phonotactics, sound-law shift & lexicon
-  calendar [WORLD] [--phases]  Multi-calendar/multi-era invariant chronology & arithmetic
-  calc <subcommand>            Astrophysics, climate, battle, logistics & journey calculator
-  audit <subcommand>           Prose audits: dialogue, echoes, voice, scenes, structure, tech, idioms, senses
-
-🔒 Data Protection & Safety:
+🔒 Data Protection, Safety & Infrastructure:
+  save [TARGET] [-m "note"]    Save an instant Git version milestone (alias: snapshot)
   backup <TARGET> [options]    Create a verified, standalone .tar.gz backup archive
-  backup-dest <get|set|clear>  Configure secure secondary backup destination (alias: config backup-dest)
-  restore <ARCHIVE> [options]  Restore a project from a verified backup archive
+  restore <ARCHIVE> [options]  Restore a project from a verified backup archive (with overwrite guards)
+  doctor [options]             Run unified health & toolchain diagnostics (alias: check, diagnostics)
+  config <show|set|get>        Manage global settings, Authorial Constitution & intent directives
+  cache <scan|clear|purge>     Manage mtime-keyed fast performance cache
+  fs [opts]                    Inspect atomic storage safety & lockfile status
+  migrate <VAULT> [opts]       Safely migrate legacy folder schemas to current standards
+  scope [TARGET] [opts]        Granular manuscript & lore scope targeting & diagnostic
+  tool <list|enable|disable>   View and toggle sovereign core engines switchboard
 
-🩺 System Health & Tools:
-  doctor [options]             Run unified health & toolchain diagnostics (alias: check)
-  world-doctor <WORLD> [opts]  Run deep World Bible lore consistency checks
-  cache <scan|wordcounts|clear> Manage mtime-keyed fast performance cache
-  gui [--tab TAB]              Launch desktop Control Center (aliases: app, control-center)
-  menu                         Launch interactive numbered terminal dashboard (alias: interactive)
-  verify                       Run canonical 7-stage test harness
-  setup [--dry-run]            Install core packages, typography fonts, and launchers
-  uninstall [--dry-run]        Revert desktop launchers and system components
+📖 Master Craft References & External Tool Guides:
+  doc [TOPIC]                  Display theoretical craft logic documentation & advisory guidance
+  docs/guides/                 Comprehensive guides for 32 Obsidian plugins & external toolchain
+                               (PolyGlot, Gramps, Wonderdraft, Celestia, Typst, Pandoc, Longform)
 
 Global Options:
   -v, --version                Display Ars Arcanum version

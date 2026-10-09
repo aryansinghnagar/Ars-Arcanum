@@ -8,38 +8,32 @@
 - Assertion/mocking tools: `unittest.TestCase`, `unittest.mock.patch`, `unittest.mock.MagicMock`
 - Commands:
 
+
 ```bash
-# Run all automated unit and integration tests (958 tests)
+# Run all automated unit and integration tests (336+ tests across 48 modules)
 python -m unittest discover tests
 
-# Run high-performance multi-core parallel test runner (~20s)
+# Run high-performance multi-core parallel test runner (~2.5s)
 python scripts/test_parallel.py
 
 # Run specific engine test suite
 python -m unittest tests.test_scope
 python -m unittest tests.test_registry
-python -m unittest tests.test_resonance
-python -m unittest tests.test_economy
-python -m unittest tests.test_climate
-python -m unittest tests.test_tactical_sim
+python -m unittest tests.test_revision_heatmap
+python -m unittest tests.test_portfolio
 python -m unittest tests.test_epistemic_safety
 python -m unittest tests.test_data_access
 python -m unittest tests.test_frontmatter
 python -m unittest tests.test_docx_sync
-python -m unittest tests.test_structure
-python -m unittest tests.test_studio_hub
 python -m unittest tests.test_lockfile
 python -m unittest tests.test_path_traversal_defense
-python -m unittest tests.test_aria_accessibility
-python -m unittest tests.test_vault_search
-python -m unittest tests.test_astrophysics
 python -m unittest tests.test_security_remediations
 python -m unittest tests.test_backup_pure_python
 
 # Run coverage report with threshold enforcement
 coverage run -m unittest discover tests; coverage report --fail-under=80
 
-# Run type safety verification (211 source files clean)
+# Run type safety verification (90 source files clean)
 mypy --explicit-package-bases scripts tests
 ```
 
@@ -53,11 +47,9 @@ mypy --explicit-package-bases scripts tests
 
 | Scope | Covered? | Typical target | Notes |
 |---|---|---|---|
-| Unit | Yes | All 47 domain engines, data access layer, recursive YAML parser, and helper libraries | 100% engine coverage, pure standard library |
-| Integration | Yes | CLI dispatcher, Studio Hub REST API (chapter save), Zen Studio exports, Pure-Python Backups & Restores | Verifies end-to-end data pipelines |
-| E2E | Yes | Grand Tour master lifecycle ([`tests/test_grand_tour_e2e.py`](file:///tests/test_grand_tour_e2e.py)) | Tests full authoring lifecycle across all deterministic domains |
-| Accessibility & ARIA | Yes | [`tests/test_aria_accessibility.py`](file:///tests/test_aria_accessibility.py), [`tests/test_wcag_contrast.py`](file:///tests/test_wcag_contrast.py) | Asserts semantic ARIA landmarks, tab panels, modals, and WCAG AA contrast |
-| Ecosystem Cohesion | Yes | CLI dispatch, alias routing, zero isolated mesh nodes ([`tests/test_ecosystem_cohesion.py`](file:///tests/test_ecosystem_cohesion.py)) | Verifies seamless multi-engine interplay |
+| Unit | Yes | All 14 core domain engines, data access layer, YAML parser, and helper libraries | 100% engine coverage, pure standard library |
+| Integration | Yes | CLI dispatcher, Pure-Python Backups & Restores, DOCX roundtrips, Snapshot milestones | Verifies end-to-end data pipelines |
+| Ecosystem Cohesion | Yes | CLI dispatch, alias routing, retirement doctrine guidance ([`tests/test_ecosystem_cohesion.py`](file:///tests/test_ecosystem_cohesion.py)) | Verifies seamless multi-engine interplay |
 | Security / Invariants | Yes | [`tests/test_security_remediations.py`](file:///tests/test_security_remediations.py), [`tests/test_path_traversal_defense.py`](file:///tests/test_path_traversal_defense.py), [`tests/test_threat_model.py`](file:///tests/test_threat_model.py) | Validates regex sanitization, Windows device name defense, CSP, XML stream scanning, and restore directory protection |
 
 ### 4) Mocking and Isolation Strategy
@@ -69,7 +61,7 @@ mypy --explicit-package-bases scripts tests
 ### 5) Coverage and Quality Signals
 
 - Coverage tool + threshold: 80% aggregate coverage enforced in `pyproject.toml` (`fail_under = 80`); 0 test failures or errors permitted.
-- Current reported coverage: 958 tests collected across 88 test modules (958 passed, 0 failures) with 80%+ aggregate coverage in $\approx 20$ seconds via parallel runner (`scripts/test_parallel.py`).
+- Current reported coverage: 336+ tests collected across 48 test modules (336 passed, 0 failures) with 80%+ aggregate coverage in $\approx 2.5$ seconds via parallel runner (`scripts/test_parallel.py`).
 - Known gaps/flaky areas: None. All tests are 100% deterministic and offline.
 
 ### 6) Evidence
@@ -77,14 +69,12 @@ mypy --explicit-package-bases scripts tests
 - [`tests/test_data_access.py#L1-L60`](file:///tests/test_data_access.py#L1-L60)
 - [`tests/test_frontmatter.py#L1-L80`](file:///tests/test_frontmatter.py#L1-L80)
 - [`tests/test_docx_sync.py#L1-L100`](file:///tests/test_docx_sync.py#L1-L100)
-- [`tests/test_structure.py#L1-L100`](file:///tests/test_structure.py#L1-L100)
-- [`tests/test_studio_hub.py#L1-L80`](file:///tests/test_studio_hub.py#L1-L80)
 - [`tests/test_registry.py#L1-L100`](file:///tests/test_registry.py#L1-L100)
-- [`tests/test_resonance.py#L1-L100`](file:///tests/test_resonance.py#L1-L100)
-- [`tests/test_economy.py#L1-L100`](file:///tests/test_economy.py#L1-L100)
+- [`tests/test_revision_heatmap.py#L1-L100`](file:///tests/test_revision_heatmap.py#L1-L100)
+- [`tests/test_portfolio.py#L1-L100`](file:///tests/test_portfolio.py#L1-L100)
 - [`tests/test_lockfile.py#L1-L100`](file:///tests/test_lockfile.py#L1-L100)
 - [`tests/test_path_traversal_defense.py#L1-L95`](file:///tests/test_path_traversal_defense.py#L1-L95)
 - [`tests/test_backup_pure_python.py#L1-L100`](file:///tests/test_backup_pure_python.py#L1-L100)
-- [`tests/test_grand_tour_e2e.py#L1-L100`](file:///tests/test_grand_tour_e2e.py#L1-L100)
 - [`tests/test_type_safety.py#L1-L40`](file:///tests/test_type_safety.py#L1-L40)
 - [`pyproject.toml#L35-L60`](file:///pyproject.toml#L35-L60)
+

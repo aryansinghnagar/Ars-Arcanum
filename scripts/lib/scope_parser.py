@@ -169,8 +169,9 @@ def parse_unified_scope_string(scope_str: str) -> dict[str, Any]:
     # Check key:value pairs where key is a known scope keyword
     known_keys = r"(?:manuscript|ms|novel|world|vault|universe|cosmos|series|books?|vols?|volumes?|chapters?|ch|scenes?|sc|lore(?:_categor(?:y|ies))?|cat(?:egor(?:y|ies))?)"
     if re.search(r"\b" + known_keys + r"\s*[:=]", s, re.IGNORECASE):
-        pattern = r"\b(" + known_keys + r")\s*[:=]\s*([^:=]+?)(?=(?:[,:]\s*" + known_keys + r"\s*[:=]|$))"
+        pattern = r"\b(" + known_keys + r")\s*[:=]\s*(.+?)(?=(?:[,;\s]+\b" + known_keys + r"\s*[:=]|$))"
         matches = re.findall(pattern, s, re.IGNORECASE)
+
         for k, v in matches:
             k_clean = k.lower().strip()
             v_clean = v.strip().rstrip(",")

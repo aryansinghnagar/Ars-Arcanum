@@ -47,7 +47,7 @@ class TestCliDispatch(unittest.TestCase):
             rc = main(["--help"])
             self.assertEqual(rc, 0)
             self.assertIn("Ars Arcanum Unified CLI", mock_out.getvalue())
-            self.assertIn("Core Authoring & Editorial Craft:", mock_out.getvalue())
+            self.assertIn("Sovereign Revision, Portfolio & Word Processing:", mock_out.getvalue())
 
     def test_empty_argv_shows_banner(self):
         with patch("sys.stdout", new_callable=StringIO) as mock_out:
@@ -61,8 +61,8 @@ class TestCliDispatch(unittest.TestCase):
             self.assertEqual(rc, 0)
             output = mock_out.getvalue()
             self.assertIn("Ars Arcanum Registered Plugins & Engines", output)
-            self.assertIn("astrophysics", output)
-            self.assertIn("cartography", output)
+            self.assertIn("manuscript_diff", output)
+            self.assertIn("codex_export", output)
 
     def test_engines_filtered_flags(self):
         with patch("sys.stdout", new_callable=StringIO) as mock_out:
@@ -76,51 +76,24 @@ class TestCliDispatch(unittest.TestCase):
             self.assertIn("[CRAFT]", mock_out.getvalue())
 
     def test_calc_subcommands_route_help(self):
-        calc_targets = [
-            "transit", "time-dilation", "orbit", "comms",
-            "journey", "battle", "climate", "trade", "logistics"
-        ]
-        for sub in calc_targets:
-            with patch("sys.stdout", new_callable=StringIO):
-                rc = main(["calc", sub, "--help"])
-                self.assertIn(rc, (0, None))
-
-    def test_calc_without_subcommand_shows_usage(self):
-        with patch("sys.stderr", new_callable=StringIO) as mock_err:
+        with patch("sys.stdout", new_callable=StringIO) as mock_out:
             rc = main(["calc"])
-            self.assertEqual(rc, 2)
-            self.assertIn("Usage: arcanum calc", mock_err.getvalue())
-
-    def test_calc_unknown_subcommand(self):
-        with patch("sys.stderr", new_callable=StringIO) as mock_err:
-            rc = main(["calc", "unknown_calc_mode"])
-            self.assertEqual(rc, 2)
-            self.assertIn("Unknown calc mode", mock_err.getvalue())
-
-    def test_audit_subcommands_route_help(self):
-        audit_targets = [
-            "voice", "style", "dialogue", "echoes",
-            "scenes", "structure", "idioms", "senses", "tech"
-        ]
-        for sub in audit_targets:
-            with patch("sys.stdout", new_callable=StringIO):
-                rc = main(["audit", sub, "--help"])
-                self.assertIn(rc, (0, None))
+            self.assertEqual(rc, 0)
+            self.assertIn("ASTROPHYSICS", mock_out.getvalue())
 
     def test_audit_without_args_routes_doctor_script(self):
         with patch("lib.cli.dispatch_subcommand", return_value=0) as mock_ds:
             rc = main(["audit"])
             self.assertEqual(rc, 0)
-            mock_ds.assert_called_once_with("lib.diagnostics", ["audit"])
+            mock_ds.assert_called_once_with("lib.diagnostics", [])
 
     def test_speculative_craft_subcommands_route_help(self):
         subcmds = [
+            ["magic", "--help"],
             ["magic-check", "--help"],
-            ["magic-report", "--help"],
             ["genealogy", "--help"],
             ["lineage", "--help"],
             ["conlang", "--help"],
-            ["family-tree", "--help"],
             ["calendar", "--help"],
             ["concordance", "--help"],
             ["series", "--help"],
@@ -133,16 +106,13 @@ class TestCliDispatch(unittest.TestCase):
             ["ambient", "--help"],
             ["portfolio", "--help"],
             ["matter", "--help"],
-            ["polish", "typography", "--help"],
+            ["polish", "--help"],
             ["preflight", "--help"],
             ["docx", "--help"],
             ["pace", "--help"],
             ["tension", "--help"],
             ["sim", "--help"],
             ["mesh", "--help"],
-            ["cascade", "--help"],
-            ["spark", "--help"],
-            ["bridge", "--help"],
         ]
         for sub in subcmds:
             with patch("sys.stdout", new_callable=StringIO):
@@ -156,51 +126,45 @@ class TestCliDispatch(unittest.TestCase):
             self.assertIn("Author Craft Guide & Advisory Matrix", mock_out.getvalue())
 
         with patch("sys.stdout", new_callable=StringIO) as mock_out:
-            rc = main(["doc", "astrophysics"])
+            rc = main(["doc", "revision_heatmap"])
             self.assertEqual(rc, 0)
             val = mock_out.getvalue()
-            self.assertIn("ASTROPHYSICS & ORBITAL MECHANICS", val)
+            self.assertIn("MANUSCRIPT REVISION DENSITY & CHURN HEATMAP", val)
             self.assertIn("Engine Logic & Scientific / Structural Foundations:", val)
             self.assertIn("Advisory Mechanics & Creative Freedom Resolution Pathways:", val)
 
-        # Multi-word command doc lookup
-        with patch("sys.stdout", new_callable=StringIO) as mock_out:
-            rc = main(["doc", "calc", "astro"])
-            self.assertEqual(rc, 0)
-            self.assertIn("ASTROPHYSICS & ORBITAL MECHANICS", mock_out.getvalue())
-
         # Hyphenated engine name lookup
         with patch("sys.stdout", new_callable=StringIO) as mock_out:
-            rc = main(["doc", "magic-system"])
+            rc = main(["doc", "revision-heatmap"])
             self.assertEqual(rc, 0)
-            self.assertIn("MAGIC SYSTEM CONSTRAINTS", mock_out.getvalue())
+            self.assertIn("MANUSCRIPT REVISION DENSITY & CHURN HEATMAP", mock_out.getvalue())
 
         # Modes: math, why, examples, subfeatures, advisory, json
         for mode_flag in ["--math", "--why", "--examples", "--subfeatures", "--advisory", "--json"]:
             with patch("sys.stdout", new_callable=StringIO) as mock_out:
-                rc = main(["doc", "climate", mode_flag])
+                rc = main(["doc", "revision_heatmap", mode_flag])
                 self.assertEqual(rc, 0)
 
         # Doc search query
         with patch("sys.stdout", new_callable=StringIO) as mock_out:
-            rc = main(["doc", "--search", "orbital"])
+            rc = main(["doc", "--search", "revision"])
             self.assertEqual(rc, 0)
             self.assertIn("Search results", mock_out.getvalue())
 
         # Doc search query with --json
         with patch("sys.stdout", new_callable=StringIO) as mock_out:
-            rc = main(["doc", "--search", "orbital", "--json"])
+            rc = main(["doc", "--search", "revision", "--json"])
             self.assertEqual(rc, 0)
 
         with patch("sys.stdout", new_callable=StringIO) as mock_out:
-            rc = main(["guide", "climate"])
+            rc = main(["guide", "revision_heatmap"])
             self.assertEqual(rc, 0)
-            self.assertIn("PLANETARY CLIMATE & KÖPPEN BIOMES", mock_out.getvalue())
+            self.assertIn("MANUSCRIPT REVISION DENSITY & CHURN HEATMAP", mock_out.getvalue())
 
         with patch("sys.stdout", new_callable=StringIO) as mock_out:
-            rc = main(["explain", "magic_system"])
+            rc = main(["explain", "codex_export"])
             self.assertEqual(rc, 0)
-            self.assertIn("MAGIC SYSTEM CONSTRAINTS", mock_out.getvalue())
+            self.assertIn("WORLD WIKI CODEX EXPORT", mock_out.getvalue())
 
     def test_doc_unknown_engine(self):
         with patch("sys.stderr", new_callable=StringIO) as mock_err:
@@ -242,7 +206,54 @@ class TestCliDispatch(unittest.TestCase):
         with patch("lib.cli.dispatch_subcommand", return_value=0) as mock_sub:
             rc = main(["doctor", str(test_dir)])
             self.assertEqual(rc, 0)
-            mock_sub.assert_called_once_with("lib.world_doctor", [str(test_dir)])
+            mock_sub.assert_called_once_with("lib.diagnostics", [str(test_dir)])
+
+    def test_handle_matter_dispatch(self):
+        with patch("lib.cli.dispatch_subcommand", return_value=0) as mock_sub:
+            rc = main(["matter"])
+            self.assertEqual(rc, 0)
+            mock_sub.assert_called_once_with("lib.frontmatter_builder", ["build"])
+
+        with patch("lib.cli.dispatch_subcommand", return_value=0) as mock_sub:
+            rc = main(["matter", "build", "MyBook"])
+            self.assertEqual(rc, 0)
+            mock_sub.assert_called_once_with("lib.frontmatter_builder", ["build", "MyBook"])
+
+    def test_handle_tool_subcommands(self):
+        with patch("sys.stdout", new_callable=StringIO) as mock_out:
+            rc = main(["tool", "list"])
+            self.assertEqual(rc, 0)
+            self.assertIn("Tool Switchboard", mock_out.getvalue())
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_out:
+            rc = main(["tool", "enable", "revision_heatmap"])
+            self.assertEqual(rc, 0)
+            self.assertIn("ENABLE", mock_out.getvalue())
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_out:
+            rc = main(["tool", "disable", "revision_heatmap"])
+            self.assertEqual(rc, 0)
+            self.assertIn("DISABLE", mock_out.getvalue())
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_out:
+            rc = main(["tool", "status"])
+            self.assertEqual(rc, 0)
+            self.assertIn("Authorial Sovereignty Policy", mock_out.getvalue())
+
+        with patch("sys.stderr", new_callable=StringIO) as mock_err:
+            rc = main(["tool", "enable"])
+            self.assertEqual(rc, 2)
+            self.assertIn("Usage:", mock_err.getvalue())
+
+        with patch("sys.stderr", new_callable=StringIO) as mock_err:
+            rc = main(["tool", "disable"])
+            self.assertEqual(rc, 2)
+            self.assertIn("Usage:", mock_err.getvalue())
+
+        with patch("sys.stderr", new_callable=StringIO) as mock_err:
+            rc = main(["tool", "invalid_action"])
+            self.assertEqual(rc, 2)
+            self.assertIn("Unknown tool action", mock_err.getvalue())
 
     def test_dispatch_subcommand_errors(self):
         with patch("sys.stderr", new_callable=StringIO) as mock_err:

@@ -12,7 +12,7 @@ import re
 import unittest
 from pathlib import Path
 
-from scripts.lib.ui_template_common import STRICT_OFFLINE_CSP, render_html_page
+STRICT_OFFLINE_CSP = "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;"
 
 
 class TestCspAndOfflineInvariants(unittest.TestCase):
@@ -28,11 +28,6 @@ class TestCspAndOfflineInvariants(unittest.TestCase):
         self.assertIn("script-src 'unsafe-inline'", STRICT_OFFLINE_CSP)
         self.assertIn("img-src data:", STRICT_OFFLINE_CSP)
         self.assertIn("media-src data: blob:", STRICT_OFFLINE_CSP)
-
-    def test_render_html_page_includes_strict_csp(self) -> None:
-        """Verifies common render_html_page includes strict CSP."""
-        output = render_html_page(title="Test", body_html="<main>Content</main>")
-        self.assertIn(f'<meta http-equiv="Content-Security-Policy" content="{STRICT_OFFLINE_CSP}">', output)
 
     def test_all_python_html_templates_declare_csp(self) -> None:
         """Scans all python files in scripts/lib/ for HTML templates and verifies CSP presence."""

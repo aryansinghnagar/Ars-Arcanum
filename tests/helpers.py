@@ -14,7 +14,29 @@ if str(REPO_ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from lib._bootstrap import atomic_write
-from lib.manuscript_scaffold import generate_manuscript_manifest, scaffold_volume
+
+
+def scaffold_volume_simple(
+    vol_dir: Path,
+    structure_key: str = "three_act",
+    custom_divisions: list[str] | None = None,
+) -> list[Path]:
+    """Helper to create division directories."""
+    if custom_divisions:
+        div_names = custom_divisions
+    elif structure_key == "three_act":
+        div_names = ["01_Act_I", "02_Act_II", "03_Act_III"]
+    elif structure_key == "five_act":
+        div_names = ["01_Exposition", "02_Rising_Action", "03_Climax", "04_Falling_Action", "05_Denouement"]
+    else:
+        div_names = ["01_Chapters"]
+
+    div_dirs = []
+    for d_name in div_names:
+        d_path = vol_dir / d_name
+        d_path.mkdir(parents=True, exist_ok=True)
+        div_dirs.append(d_path)
+    return div_dirs
 
 
 def create_test_volume(
@@ -30,11 +52,10 @@ def create_test_volume(
     vol_dir.mkdir(parents=True, exist_ok=True)
     (vol_dir / "04_Back_Matter").mkdir(exist_ok=True)
 
-    div_dirs = scaffold_volume(
+    div_dirs = scaffold_volume_simple(
         vol_dir,
         structure_key=structure,
         custom_divisions=custom_divisions,
-        create_starter_chapter=False,
     )
 
     for div_dir in div_dirs:
@@ -66,15 +87,22 @@ def create_test_manuscript(
     (ms_dir / "04-Publishing").mkdir(exist_ok=True)
     (ms_dir / "05-Backups").mkdir(exist_ok=True)
 
-    manifest = generate_manuscript_manifest(
-        title=name,
-        author=author,
-        universe=universe,
-        world=world,
-        structure=structure,
-        custom_divisions=custom_divisions,
-    )
-    atomic_write(ms_dir / "manuscript.yaml", manifest)
+    manifest_lines = [
+        "---",
+        f"title: \"{name}\"",
+        f"author: \"{author}\"",
+        f"universe: \"{universe}\"",
+        f"world: \"{world}\"",
+        f"structure: \"{structure}\"",
+        "language: \"en\"",
+        "---",
+    ]
+    if custom_divisions:
+        manifest_lines.append("custom_divisions:")
+        for div in custom_divisions:
+            manifest_lines.append(f"  - \"{div}\"")
+
+    atomic_write(ms_dir / "manuscript.yaml", "\n".join(manifest_lines) + "\n")
 
     for vol in volumes:
         create_test_volume(

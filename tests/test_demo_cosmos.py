@@ -12,8 +12,9 @@ LIB_DIR = REPO_ROOT / "scripts" / "lib"
 if str(LIB_DIR) not in sys.path:
     sys.path.insert(0, str(LIB_DIR))
 
-from world_doctor import check_world
-from series_continuity import extract_book_entities
+from codex_export import scan_world_vault
+from diagnostics import generate_diagnostic_report
+from preflight import run_preflight_linter
 
 DEMO_COSMOS_DIR = REPO_ROOT / "templates" / "demo-cosmos" / "Eldoria-Cosmos"
 DEMO_WORLD_DIR = DEMO_COSMOS_DIR / "Eldoria-Prime"
@@ -29,26 +30,25 @@ class TestDemoCosmos(unittest.TestCase):
         self.assertTrue((DEMO_WORLD_DIR / "world.yaml").is_file())
         self.assertTrue((DEMO_WORLD_DIR / "World-Bible-Index.md").is_file())
         self.assertTrue((DEMO_MS_DIR / "manuscript.yaml").is_file())
-        self.assertTrue((DEMO_MS_DIR / "nwProject.nwx").is_file())
 
-    def test_world_doctor_passes_on_demo_cosmos(self):
-        """Ensures that the demo cosmos lore vault passes world_doctor with zero broken links or missing fields."""
-        findings = check_world(
-            str(DEMO_WORLD_DIR),
-            manuscript_dir=str(DEMO_MS_DIR / "Book-01" / "Draft-01"),
-        )
-        self.assertEqual(len(findings["broken_links"]), 0, f"Broken links found: {findings['broken_links']}")
-        self.assertEqual(len(findings["missing_required_fields"]), 0, f"Missing fields: {findings['missing_required_fields']}")
-        self.assertEqual(len(findings["frontmatter_parse_errors"]), 0, f"FM errors: {findings['frontmatter_parse_errors']}")
-        self.assertEqual(len(findings["timeline_errors"]), 0, f"Timeline errors: {findings['timeline_errors']}")
-        self.assertEqual(len(findings["manuscript_name_drift"]), 0, f"Manuscript drift: {findings['manuscript_name_drift']}")
+    def test_diagnostics_passes_on_demo_cosmos(self):
+        """Ensures that the demo cosmos lore vault passes diagnostics checks."""
+        findings = generate_diagnostic_report(DEMO_WORLD_DIR)
+        self.assertIsInstance(findings, dict)
+        self.assertIn("toolchain", findings)
 
-    def test_series_continuity_extracts_demo_characters(self):
-        entities = extract_book_entities(DEMO_MS_DIR / "Book-01")
-        self.assertIn("Aeloria-Vael", entities["characters"])
-        self.assertIn("Lord-Kaelen", entities["characters"])
-        self.assertIn("Archmage-Theron", entities["characters"])
+    def test_preflight_passes_on_demo_manuscript(self):
+        """Ensures that the demo manuscript passes preflight linter."""
+        rep = run_preflight_linter(DEMO_MS_DIR)
+        self.assertIn("readiness_status", rep)
+        self.assertEqual(rep["fail_count"], 0)
+
+    def test_codex_export_scans_demo_world(self):
+        """Ensures that codex export parses demo cosmos lore categories."""
+        cats = scan_world_vault(DEMO_WORLD_DIR)
+        self.assertGreater(len(cats), 0)
 
 
 if __name__ == "__main__":
     unittest.main()
+

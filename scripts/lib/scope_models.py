@@ -221,3 +221,23 @@ class ResolvedScope:
 
     def get_total_word_count(self) -> int:
         return sum(c.word_count for c in self.chapters)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serializes ResolvedScope to JSON-compatible dictionary."""
+        return {
+            "manuscript_dir": str(self.manuscript_dir) if self.manuscript_dir else None,
+            "manuscript_dirs": [str(p) for p in self.manuscript_dirs],
+            "world_dir": str(self.world_dir) if self.world_dir else None,
+            "world_dirs": [str(p) for p in self.world_dirs],
+            "universe_dir": str(self.universe_dir) if self.universe_dir else None,
+            "series_names": self.series_names,
+            "volume_names": self.volume_names,
+            "total_chapters": len(self.chapters),
+            "total_scenes": len(self.scenes),
+            "total_lore_items": len(self.lore_items),
+            "total_words": self.get_total_word_count(),
+            "is_scoped": self.is_scoped,
+            "summary": self.summary,
+            "scope_filter": self.scope_filter.to_dict(),
+        }
+

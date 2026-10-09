@@ -218,6 +218,40 @@ class TestScopeResolutionAndArgparse(unittest.TestCase):
             self.assertEqual(res.get_total_chapter_count(), 1)
             self.assertEqual(res.get_total_scene_count(), 2)
 
+    def test_resolve_scope_dict_and_raw(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            ms = root / "NovelB"
+            ms.mkdir()
+            (ms / "01_Ch1.md").write_text("# Chapter 1\n\nScene 1", encoding="utf-8")
+            (ms / "02_Ch2.md").write_text("# Chapter 2\n\nScene 1", encoding="utf-8")
+
+            # Dict input
+            res_dict = resolve_scope({"manuscript": str(ms), "chapters": "1", "raw_scope": "ch:1"})
+            self.assertEqual(len(res_dict.chapters), 1)
+
+            # Raw scope parsing inside resolve_scope
+            scope_raw = EngineScope(raw_scope=f"ms:{ms}, ch:1-2")
+            res_raw = resolve_scope(scope_raw)
+            self.assertEqual(len(res_raw.chapters), 2)
+
+    def test_scope_cli_main(self):
+        from lib.scope import main as scope_main
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            ms = root / "NovelC"
+            ms.mkdir()
+            (ms / "01_Ch1.md").write_text("# Chapter 1\n\nScene 1", encoding="utf-8")
+
+            # Test text output
+            ret = scope_main([str(ms), "--chapters", "1"])
+            self.assertEqual(ret, 0)
+
+            # Test json output
+            ret_json = scope_main([str(ms), "--chapters", "1", "--json"])
+            self.assertEqual(ret_json, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
+

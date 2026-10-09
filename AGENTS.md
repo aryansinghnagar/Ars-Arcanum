@@ -83,43 +83,47 @@ flowchart LR
 
 ## 4. Domain Engine Topology
 
-The codebase separates concerns into three coordinated architectural tiers:
+The codebase separates concerns into a clean, sovereign architecture:
 
 ```
 scripts/
 ├── __init__.py                # Package root for pip install / setuptools entry points
 ├── arcanum                    # POSIX unified CLI bootstrap wrapper
-├── arcanum_app.py             # Desktop GTK3 application entry point
+├── test_parallel.py           # Multi-worker parallel test runner (~2.5s execution)
 ├── lib/
 │   ├── _bootstrap.py          # Atomic write, path resolution & common primitives
 │   ├── cli.py                 # Authoritative Python CLI dispatcher (v0.1.0)
+│   ├── cli_handlers.py        # CLI handler routing with graceful retirement doctrine guidance
 │   ├── config.py              # Configuration & Authorial Constitution loader
-│   ├── scope.py               # Universal granular target scoping & range parsing engine
-│   ├── ui_gtk3/               # Modular presentation package (<800 lines/file)
-│   ├── ui_adw.py              # Modern Libadwaita interface
-│   ├── registry_base.py       # Core EngineSpec dataclasses, DiagnosticSeverity & base classes (<200 lines)
-│   ├── registry_specs/        # Domain engine specifications package across 7 domains (<400 lines/file)
-│   ├── registry.py            # Core vs. Craft engine discovery matrix & doc formatting (<600 lines)
+│   ├── lockfile.py            # Cross-platform file locking (ArcanumLock)
+│   ├── fs_utils.py            # Safe atomic file and path manipulation utilities
+│   ├── cache.py               # Memory/disk AST and frontmatter cache layer
 │   ├── data_access.py         # Centralized cached vault reader & frontmatter AST layer
-│   ├── studio_hub.py          # Hardened browser-based Studio Hub & Scope Cockpit (<550 lines)
-│   ├── studio_hub_template.py # Presentation HTML/CSS/JS template for Studio Hub (<60 lines)
-│   ├── resonance.py           # Universal resonance mesh dispatcher & coherence auditor (<650 lines)
-│   ├── resonance_data.py      # Resonance node/edge catalog & cascade impact engine (<600 lines)
-│   ├── resonance_template.py  # Presentation HTML/CSS/JS template for resonance graph (<680 lines)
-│   ├── economy.py             # Macroeconomic PPP validator & tech anachronism auditor (<780 lines)
-│   ├── economy_data.py        # Tech era dictionaries & normalization primitives (<130 lines)
-│   ├── economy_template.py    # Offline HTML report generator for economic audits (<140 lines)
-│   ├── economy_trade.py       # Trade route freight margins & settlement gravity simulation (<350 lines)
-│   ├── tips.py                # Craft tip retrieval & query engine (<350 lines)
-│   ├── tips_catalog/          # Modularized tip catalog across 6 craft domains (<60 lines/file)
-│   ├── zen_studio.py          # Standalone offline drafting studio & lore drawer
-│   ├── story_canvas.py        # Visual drag-and-drop story corkboard
-│   ├── timeline_sync.py       # Dual-track narrative vs chronological synchronizer
-│   ├── omnibus.py             # Multi-volume series omnibus compiler
-│   ├── restore.py             # Hardened archive restore engine with non-empty directory defense
-│   ├── corpus_export.py       # Universal structured JSONL/SQLite RAG exporter & vault restore
-│   ├── local_rag.py           # Zero-dependency hybrid TF-IDF & SQLite FTS5 semantic retriever
-│   └── [Craft Engines]        # Astrophysics, climate, genealogy, conlang, causality, magic... (<800 lines/file)
+│   ├── frontmatter.py         # Zero-dependency YAML frontmatter parser and serializer
+│   ├── frontmatter_builder.py # Interactive CLI & programmatic YAML frontmatter scaffolding
+│   ├── scope.py               # Universal granular target scoping & range parsing engine
+│   ├── scope_models.py        # Dataclasses for EngineScope, ChapterItem, SceneSlice, ResolvedScope
+│   ├── scope_parser.py        # Expression and range parsers for granular chapter/scene slicing
+│   ├── scope_resolver.py      # Active context resolution heuristics for manuscripts and worlds
+│   ├── manuscript_diff.py     # Structural markdown diff engine with HTML visualizer
+│   ├── manuscript_diff_template.py # Presentation HTML/CSS template for manuscript diffs
+│   ├── revision_heatmap.py    # Revision density and editing churn heatmaps with HTML export
+│   ├── revision_heatmap_template.py # Presentation HTML/CSS template for revision heatmaps
+│   ├── portfolio.py           # Multi-manuscript author portfolio tracker & standalone HTML dashboard
+│   ├── docx_sync.py           # Two-way roundtrip Markdown <-> DOCX synchronizer
+│   ├── docx_builder.py        # Zero-dependency standard submission format DOCX builder
+│   ├── importer.py            # Universal multi-format manuscript & lore importer (MD, TXT, EPUB, DOCX)
+│   ├── diagnostics.py         # Unified system health, toolchain & world vault consistency doctor
+│   ├── migrate.py             # Schema and directory migration engine with automated backup
+│   ├── preflight.py           # Pre-compilation validation & publication gatekeeper
+│   ├── codex_export.py        # Standalone offline HTML world codex static site generator
+│   ├── omnibus.py             # Multi-volume series omnibus compiler (MD, EPUB, PDF)
+│   ├── backup.py              # Pure-Python standalone verified .tar.gz archive engine
+│   ├── restore.py             # Pure-Python verified archive restoration with path traversal defense
+│   ├── snapshot.py            # Pure-Python Git milestone snapshot versioning engine
+│   ├── registry_base.py       # Core EngineSpec dataclasses, DiagnosticSeverity & base classes
+│   ├── registry_specs/        # Domain engine specifications (Editorial, Portfolio, Infrastructure, Publishing)
+│   └── registry.py            # Engine discovery matrix, craft doctrine docs & bibliography formatter
 ```
 
 ---
@@ -129,10 +133,10 @@ scripts/
 Before any milestone or phase is marked complete, the following quality gates must pass with 100% compliance:
 
 ```bash
-# 1. Full Python Test Suite Discovery (958 tests across 88 modules, 0 failures permitted)
+# 1. Full Python Test Suite Discovery (336+ tests across 48 modules, 0 failures permitted)
 python -m unittest discover tests
 
-# High-performance parallel test runner (~20s execution)
+# High-performance parallel test runner (~2.5s execution)
 python scripts/test_parallel.py
 
 # 2. Strict Expanded Ruff Linter Pass (0 violations permitted)
@@ -147,3 +151,4 @@ coverage run -m unittest discover tests; coverage report --fail-under=80
 # 5. Canonical 7-Stage Integration Verification Harness (POSIX)
 bash scripts/verify.sh
 ```
+

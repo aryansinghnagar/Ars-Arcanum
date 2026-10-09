@@ -197,6 +197,14 @@ class TestPortfolioDashboard(unittest.TestCase):
                 data = json.loads(mock_stdout.getvalue())
                 self.assertEqual(data["total_projects"], 2)
 
+    def test_scan_portfolio_with_scope(self):
+        from lib.scope_models import EngineScope
+        scope = EngineScope(manuscript=str(self.ms1))
+        report = scan_portfolio(scope=scope)
+        self.assertEqual(report["total_projects"], 1)
+        self.assertEqual(report["projects"][0]["title"], "Book Alpha")
+
 
 if __name__ == "__main__":
     unittest.main()
+

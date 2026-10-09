@@ -12,8 +12,6 @@ ARCANUM_BASH = REPO_ROOT / "scripts" / "arcanum"
 CLI_PY = REPO_ROOT / "scripts" / "lib" / "cli.py"
 CHANGELOG_MD = REPO_ROOT / "CHANGELOG.md"
 DIAGNOSTICS_PY = REPO_ROOT / "scripts" / "lib" / "diagnostics.py"
-RESONANCE_PY = REPO_ROOT / "scripts" / "lib" / "resonance.py"
-STUDIO_HUB_PY = REPO_ROOT / "scripts" / "lib" / "studio_hub.py"
 
 
 class TestVersionConsistency(unittest.TestCase):
@@ -48,20 +46,6 @@ class TestVersionConsistency(unittest.TestCase):
         self.assertIsNotNone(diag_match, "Could not find VERSION in diagnostics.py")
         diag_version = diag_match.group(1)
 
-        # 5. Resonance
-        self.assertTrue(RESONANCE_PY.is_file())
-        res_text = RESONANCE_PY.read_text(encoding="utf-8")
-        res_match = re.search(r'VERSION\s*=\s*"([^"]+)"', res_text)
-        self.assertIsNotNone(res_match, "Could not find VERSION in resonance.py")
-        res_version = res_match.group(1)
-
-        # 6. Studio Hub
-        self.assertTrue(STUDIO_HUB_PY.is_file())
-        hub_text = STUDIO_HUB_PY.read_text(encoding="utf-8")
-        hub_match = re.search(r'HUB_VERSION\s*=\s*"([^"]+)"', hub_text)
-        self.assertIsNotNone(hub_match, "Could not find HUB_VERSION in studio_hub.py")
-        hub_version = hub_match.group(1)
-
         # Assert all versions match exactly 0.1.0
         expected_version = "0.1.0"
         for label, ver in [
@@ -69,8 +53,6 @@ class TestVersionConsistency(unittest.TestCase):
             ("Python CLI", py_version),
             ("CHANGELOG.md", cl_version),
             ("Diagnostics", diag_version),
-            ("Resonance", res_version),
-            ("Studio Hub", hub_version),
         ]:
             self.assertEqual(
                 ver,

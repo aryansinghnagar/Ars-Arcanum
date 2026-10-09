@@ -147,6 +147,76 @@ class TestPurePythonBackupRestore(unittest.TestCase):
         with lock2:
             pass
 
+    def test_detect_target_type(self):
+        from lib.backup import detect_target_type
+        # Universe
+        u_dir = self.root / "TestUniv"
+        u_dir.mkdir()
+        (u_dir / "universe.yaml").write_text("name: U\n", encoding="utf-8")
+        self.assertEqual(detect_target_type(u_dir), ("universe", "TestUniv"))
+
+        # World
+        w_dir = self.root / "TestW"
+        w_dir.mkdir()
+        (w_dir / "world.yaml").write_text("name: W\n", encoding="utf-8")
+        self.assertEqual(detect_target_type(w_dir), ("world", "TestW"))
+
+        # Manuscript
+        m_dir = self.root / "TestM"
+        m_dir.mkdir()
+        (m_dir / "manuscript.yaml").write_text("name: M\n", encoding="utf-8")
+        self.assertEqual(detect_target_type(m_dir), ("manuscript", "TestM"))
+
+        # Generic Project
+        p_dir = self.root / "TestP"
+        p_dir.mkdir()
+        self.assertEqual(detect_target_type(p_dir), ("project", "TestP"))
+
+    def test_should_exclude(self):
+        from lib.backup import should_exclude
+        self.assertTrue(should_exclude(".git/config"))
+        self.assertTrue(should_exclude("Backups/archive.tar.gz"))
+        self.assertTrue(should_exclude("notes/draft.tmp"))
+        self.assertTrue(should_exclude("notes/draft.bak"))
+        self.assertFalse(should_exclude("01-Manuscript/ch1.md"))
+
+    def test_verify_backup_integrity_edge_cases(self):
+        # Non-existent file
+        res = verify_backup_integrity(self.root / "nonexistent.tar.gz")
+        self.assertFalse(res["valid"])
+
+        # Checksum mismatch
+        backup_out_dir = self.root / "BackupsCorrupt"
+        res_backup = create_backup(self.project_dir, output_dir=backup_out_dir)
+        archive_path = Path(res_backup["archive_path"])
+        sha_file = archive_path.with_name(f"{archive_path.name}.sha256")
+        sha_file.write_text("0000000000000000000000000000000000000000000000000000000000000000  fake\n", encoding="utf-8")
+        res_corrupt = verify_backup_integrity(archive_path)
+        self.assertFalse(res_corrupt["valid"])
+
+    def test_cli_main_entry_points(self):
+        from lib.backup import main as backup_main
+        from lib.restore import main as restore_main
+        from lib.snapshot import main as snapshot_main
+
+        backup_dir = self.root / "CliBackups"
+        ret = backup_main([str(self.project_dir), "-o", str(backup_dir), "--json", "-t", "test-tag"])
+        self.assertEqual(ret, 0)
+
+        # List backups
+        backups = list_backups(backup_dir)
+        self.assertEqual(len(backups), 1)
+
+        # Restore CLI
+        restore_dir = self.root / "CliRestored"
+        ret_restore = restore_main([backups[0]["path"], "-d", str(restore_dir), "--json", "-f"])
+        self.assertEqual(ret_restore, 0)
+
+        # Snapshot CLI
+        ret_snap = snapshot_main([str(self.project_dir), "-m", "CLI snapshot", "--json"])
+        self.assertEqual(ret_snap, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -207,6 +207,53 @@ class TestConfig(unittest.TestCase):
                     rc = main()
                     self.assertEqual(rc, 0)
 
+    def test_active_targets_get_set(self):
+        from lib.config import (
+            get_active_manuscript_name, set_active_manuscript, clear_active_manuscript,
+            get_active_world_name, set_active_world, clear_active_world,
+            get_active_universe_name, set_active_universe, clear_active_universe,
+            get_default_scope, set_default_scope,
+        )
+        self.assertEqual(get_active_manuscript_name(), "")
+        set_active_manuscript("NovelA")
+        self.assertEqual(get_active_manuscript_name(), "NovelA")
+        clear_active_manuscript()
+        self.assertEqual(get_active_manuscript_name(), "")
+
+        set_active_world("WorldB")
+        self.assertEqual(get_active_world_name(), "WorldB")
+        clear_active_world()
+        self.assertEqual(get_active_world_name(), "")
+
+        set_active_universe("UnivC")
+        self.assertEqual(get_active_universe_name(), "UnivC")
+        clear_active_universe()
+        self.assertEqual(get_active_universe_name(), "")
+
+        self.assertEqual(get_default_scope(), {})
+        set_default_scope({"chapters": [1, 2]})
+        self.assertEqual(get_default_scope(), {"chapters": [1, 2]})
+
+    def test_authorial_constitution(self):
+        from lib.config import (
+            get_authorial_constitution,
+            is_rule_suppressed,
+            get_authorial_policy,
+        )
+        # Empty dir defaults
+        const = get_authorial_constitution(self.work_dir)
+        self.assertIn("canon", const)
+
+        # Suppressed rule
+        self.assertFalse(is_rule_suppressed("RULE-001", const))
+        self.assertFalse(is_rule_suppressed("RULE-001"))
+
+        # Authorial policy
+        pol = get_authorial_policy()
+        self.assertEqual(pol.get("default_mode"), "observational")
+
+
 
 if __name__ == "__main__":
     unittest.main()
+

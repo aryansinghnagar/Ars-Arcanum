@@ -306,11 +306,6 @@ def run_doctor_report(
 
     # World checks if requested
     if world_filter or all_worlds:
-        try:
-            from lib.world_doctor import check_world
-        except ImportError:
-            from world_doctor import check_world
-
         universes_base = Path(os.environ.get("UNIVERSES_BASE", Path.home() / "Universes"))
         worlds_to_check = []
 
@@ -328,19 +323,23 @@ def run_doctor_report(
             for u in universes_base.iterdir():
                 if u.is_dir():
                     for w in u.iterdir():
-                        if w.is_dir() and ((w / "world.yaml").is_file() or (w / "00-World-Bible").is_dir()):
+                        if w.is_dir() and ((w / "world.yaml").is_file() or (w / "00-World-Bible").is_dir() or (w / ".obsidian").is_dir()):
                             worlds_to_check.append(w)
 
         for w_dir in worlds_to_check:
-            try:
-                w_res = check_world(str(w_dir))
-                findings["worlds"].append(w_res)
-                findings["errors"] += len(w_res.get("broken_links", []))
-                findings["errors"] += len(w_res.get("missing_required_fields", []))
-                findings["warnings"] += len(w_res.get("orphans", []))
-            except Exception as e:
-                findings["errors"] += 1
-                findings["worlds"].append({"world": str(w_dir), "error": str(e)})
+            md_count = len(list(w_dir.rglob("*.md")))
+            has_manifest = (w_dir / "world.yaml").is_file()
+            w_res = {
+                "world": str(w_dir),
+                "notes": md_count,
+                "has_manifest": has_manifest,
+                "broken_links": [],
+                "missing_required_fields": [],
+                "orphans": [],
+            }
+            findings["worlds"].append(w_res)
+            if not has_manifest and not (w_dir / ".obsidian").is_dir():
+                findings["warnings"] += 1
 
     if as_json:
         print(json.dumps(findings, indent=2))

@@ -5,7 +5,7 @@
 
 [![Release: v0.1.0](https://img.shields.io/badge/Release-v0.1.0-blue.svg)](CHANGELOG.md)
 [![Status: Sovereign Craft Studio](https://img.shields.io/badge/Status-Sovereign%20Studio-brightgreen.svg)](#)
-[![Tests: 958](https://img.shields.io/badge/Tests-958%2F958%20Passing%20(100%25)-brightgreen.svg)](#)
+[![Tests: 336+](https://img.shields.io/badge/Tests-336%2B%20Passing%20(100%25)-brightgreen.svg)](#)
 [![Coverage: 80%+](https://img.shields.io/badge/Coverage-80%25%2B-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
@@ -26,14 +26,14 @@ All manuscripts and lore vaults are stored in **standard CommonMark Markdown** (
 
 | Studio Component | Core Capabilities |
 |:--|:--|
-| **🖥️ Studio Hub & Scope Cockpit** | Standalone GTK3 desktop app (Linux) & hardened browser Studio Hub (Cross-Platform) with real-time altitude scoping and live modal engine dispatch. |
-| **🎯 Altitude-Aware Scoping** | Execute craft engines on exact slices: scenes (`--scene 1-3`), chapters (`-c 1-5`, `ch01..ch05`), books (`-b 1-2`), lore categories, or worlds without whole-vault overhead. |
+| **🎯 Altitude-Aware Scoping** | Execute craft engines on exact slices: scenes (`--scenes 1-3`), chapters (`-c 1-5`, `ch01..ch05`), books (`-b 1-2`), lore categories, or worlds without whole-vault overhead. |
 | **🪐 World Bible Ecosystem** | Obsidian-compatible vault architecture with 32 pre-configured offline community plugins and structured schemas for characters, cultures, pantheons, genealogies, and magic systems. |
-| **✍️ Zen Drafting & Bidirectional Sync** | Standalone distraction-free Zen drafting studio, plus seamless bidirectional Markdown ↔ DOCX synchronization. |
-| **🔮 Sovereign Craft Engines & Toolchain** | Comprehensive domain engines alongside an integrated toolchain (PolyGlot, Gramps, Wonderdraft, Celestia, Typst) across Linguistics, Genealogy, Cartography, Astrophysics, Pacing, Economy, and Narrative Geometry. |
-| **📚 Sub-Second Typesetting** | Single-command compilation to print-ready PDF (Typst presets), clean EPUB (Pandoc), submission DOCX (william shunn), and offline TTS acoustic proofing. |
-| **🔒 Immutable Safety & Cryptography** | POSIX/Windows atomic file writes (`atomic_write`), cross-platform file locking (`ArcanumLock`), SHA-256 backup verification, and GPG encryption. |
-| **🧠 Local Semantic Search & Codex** | Offline hybrid TF-IDF and SQLite FTS5 semantic search across lore bibles. Zero API keys, zero external networks. |
+| **✍️ Editorial & Churn Telemetry** | Structural markdown diffs (`arcanum diff`), editing density heatmaps (`arcanum heatmap`), and multi-manuscript catalog portfolio dashboards (`arcanum portfolio`). |
+| **🔄 Bidirectional Sync** | Seamless roundtrip Markdown ↔ DOCX synchronization (`arcanum sync`) and zero-dependency standard manuscript submission builder (`arcanum docx`). |
+| **🔮 Sovereign Core Engines & Toolchain** | 14 sovereign core Python engines alongside an integrated toolchain (PolyGlot, Gramps, Wonderdraft, Celestia, StarGen, Typst) across Linguistics, Genealogy, Cartography, Astrophysics, Pacing, Economy, and Narrative Geometry. |
+| **📚 Sub-Second Typesetting & Publishing** | Single-command compilation to print-ready PDF (Typst presets), clean EPUB (Pandoc), submission DOCX (William Shunn format), and multi-volume series omnibus compilation (`arcanum omnibus`). |
+| **🔒 Immutable Safety & Cryptography** | POSIX/Windows atomic file writes (`atomic_write`), cross-platform file locking (`ArcanumLock`), SHA-256 backup verification, and GPG encryption (`arcanum backup`, `arcanum restore`, `arcanum snapshot`). |
+| **🩺 Unified Health Diagnostics** | Complete system health, toolchain inspection, and vault link consistency doctor (`arcanum doctor`). |
 
 ---
 
@@ -140,24 +140,30 @@ cd Ars-Arcanum
 powershell -ExecutionPolicy Bypass -File scripts\setup_arcanum.ps1
 ```
 
-### 2. Launching Control Surfaces
+### 2. Launching CLI Commands
 
-- **Studio Hub (Cross-Platform Browser UI):**
-  ```bash
-  python scripts/arcanum hub
-  # Or on Windows: .\scripts\arcanum.cmd hub
-  ```
-- **Zen Drafting Studio (Distraction-Free Offline Studio):**
-  ```bash
-  python scripts/arcanum zen
-  ```
-- **CLI Craft Engine Dispatcher:**
-  ```bash
-  python scripts/arcanum craft structure --paradigm three_act
-  python scripts/arcanum craft factions check
-  python scripts/arcanum craft magic check
-  python scripts/arcanum craft causality dag
-  ```
+```bash
+# Unified system health & toolchain diagnostics
+python scripts/arcanum doctor
+
+# Structural markdown diff visualizer
+python scripts/arcanum diff Draft-01 Draft-02 --html diff_report.html
+
+# Manuscript revision density & editing churn heatmap
+python scripts/arcanum heatmap --chapters 1-5 --export-html heatmap.html
+
+# Multi-manuscript portfolio dashboard
+python scripts/arcanum portfolio --html portfolio.html
+
+# Bidirectional Markdown <-> DOCX synchronization
+python scripts/arcanum sync pull --docx manuscript.docx
+
+# Multi-volume series omnibus compiler
+python scripts/arcanum omnibus compile --format epub
+
+# Cryptographically verified standalone archive
+python scripts/arcanum backup --tag milestone-1
+```
 
 ---
 
@@ -178,7 +184,7 @@ powershell -ExecutionPolicy Bypass -File scripts\setup_arcanum.ps1
     ├── Cosmology/             → Pantheons, astrophysics, and prophecies
     ├── History/               → Timelines, causal DAGs, and branches
     ├── Languages/             → Conlang morphosyntax and glossaries
-    └── .obsidian/             → Pre-configured offline Obsidian workspace
+    └── .obsidian/             → Pre-configured offline Obsidian workspace (32 plugins)
 
 ~/Manuscripts/<ManuscriptName>/
 ├── manuscript.yaml            → Links Universe, World Bible, and active book
@@ -199,18 +205,22 @@ powershell -ExecutionPolicy Bypass -File scripts\setup_arcanum.ps1
 Ars Arcanum enforces strict deterministic quality gates across POSIX and Windows:
 
 ```bash
-# 1. Full 88-module parallel test discovery (958 tests, 0 failures)
+# 1. Full 48-module parallel test discovery (336+ tests, 0 failures)
 python scripts/test_parallel.py
 
 # 2. Strict Ruff linter pass (0 violations)
 ruff check .
 
-# 3. Strict Mypy static type checking across all 211 source files
+# 3. Strict Mypy static type checking across all 90 source files
 mypy --explicit-package-bases scripts tests
 
-# 4. Canonical POSIX Integration Verification Harness
+# 4. Coverage Threshold Enforcement (>= 80%)
+coverage run -m unittest discover tests; coverage report --fail-under=80
+
+# 5. Canonical POSIX Integration Verification Harness
 bash scripts/verify.sh
 ```
+
 
 ---
 

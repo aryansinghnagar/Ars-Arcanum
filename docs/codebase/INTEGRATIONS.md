@@ -21,7 +21,6 @@
 | Store | Role | Access layer | Key risk | Evidence |
 |-------|------|--------------|----------|----------|
 | Plain Markdown / YAML Files | Primary persistent storage for lore & prose | `fs_utils.py` & `_bootstrap.py` (atomic writes) | Partial write corruption (mitigated by `atomic_write()`) | [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py) |
-| SQLite3 (In-Memory / File) | FTS5 semantic search & structured export | `sqlite3` standard library | Locking contention (mitigated by read-only FTS queries) | [`scripts/lib/vault_search.py`](file:///scripts/lib/vault_search.py) |
 | JSON Cache (`.arcanum_cache.json`) | Mtime-based accelerated engine cache | `scripts/lib/cache.py` | Stale cache entries (mitigated by mtime invalidation) | [`scripts/lib/cache.py`](file:///scripts/lib/cache.py) |
 
 ### 3) Secrets and Credentials Handling
@@ -33,19 +32,20 @@
 ### 4) Reliability and Failure Behavior
 
 - Retry/backoff behavior: Graceful fallback to default configs and standard conventions on corrupted inputs.
-- Timeout policy: Synchronous sub-second deterministic simulation algorithms.
-- Circuit-breaker or fallback behavior: Pure-Python CLI dispatcher runs identically if GTK3 desktop libraries are absent.
+- Timeout policy: Synchronous sub-second deterministic algorithms.
+- Circuit-breaker or fallback behavior: Pure-Python CLI dispatcher runs with zero pip dependencies across Linux, macOS, and Windows.
 
 ### 5) Observability for Integrations
 
 - Logging around external calls: `subprocess.run` calls captured with stderr logging and exit code validation ([`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py)).
-- Metrics/tracing coverage: Built-in `world_doctor` 8-point diagnostic audit and writing sprint velocity telemetry.
+- Metrics/tracing coverage: Built-in `arcanum doctor` diagnostic audit and toolchain health checks.
 - Missing visibility gaps: None; all operations emit structured JSON logs or stdout summaries.
 
 ### 6) Evidence
 
 - [`scripts/lib/_bootstrap.py#L1-L80`](file:///scripts/lib/_bootstrap.py#L1-L80)
-- [`scripts/lib/vault_search.py#L1-L80`](file:///scripts/lib/vault_search.py#L1-L80)
+- [`scripts/lib/data_access.py#L1-L80`](file:///scripts/lib/data_access.py#L1-L80)
 - [`scripts/lib/cache.py#L1-L60`](file:///scripts/lib/cache.py#L1-L60)
 - [`docs/COMPATIBILITY.md#L1-L40`](file:///docs/COMPATIBILITY.md#L1-L40)
 - [`tests/test_threat_model.py#L1-L50`](file:///tests/test_threat_model.py#L1-L50)
+

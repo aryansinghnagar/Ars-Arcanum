@@ -2,26 +2,20 @@
 """
 Ars Arcanum Domain Engine Specifications Package (scripts/lib/registry_specs)
 =============================================================================
-Aggregates domain-specific EngineSpec definitions across all 7 architectural domains.
+Aggregates domain-specific EngineSpec definitions for the 14 retained core engines.
 """
 from __future__ import annotations
 
-from .domain_a_science import ENGINES as ENGINES_A
-from .domain_b_narrative import ENGINES as ENGINES_B
-from .domain_c_society import ENGINES as ENGINES_C
-from .domain_d_editorial import ENGINES as ENGINES_D
-from .domain_e_studios import ENGINES as ENGINES_E
-from .domain_f_retrieval import ENGINES as ENGINES_F
-from .domain_g_publishing import ENGINES as ENGINES_G
+from .domain_editorial import ENGINES as ENGINES_EDITORIAL
+from .domain_infrastructure import ENGINES as ENGINES_INFRASTRUCTURE
+from .domain_portfolio import ENGINES as ENGINES_PORTFOLIO
+from .domain_publishing import ENGINES as ENGINES_PUBLISHING
 
 ALL_ENGINES = {
-    **ENGINES_A,
-    **ENGINES_B,
-    **ENGINES_C,
-    **ENGINES_D,
-    **ENGINES_E,
-    **ENGINES_F,
-    **ENGINES_G,
+    **ENGINES_EDITORIAL,
+    **ENGINES_PORTFOLIO,
+    **ENGINES_INFRASTRUCTURE,
+    **ENGINES_PUBLISHING,
 }
 
 __all__ = ["ALL_ENGINES"]

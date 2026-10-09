@@ -3,8 +3,8 @@
 Comprehensive Performance Benchmark & Execution Velocity Suite for Ars Arcanum
 (tests/test_benchmark_suite.py)
 ================================================================================
-Benchmarks core craft engines, validation gates, and simulations to ensure
-strictly sub-second execution speeds across all offline tools.
+Benchmarks core craft engines, validation gates, and publishing tools to ensure
+strictly sub-second execution speeds across all sovereign offline tools.
 """
 
 import tempfile
@@ -12,13 +12,11 @@ import time
 import unittest
 from pathlib import Path
 
-from scripts.lib.astrophysics import calc_brachistochrone
-from scripts.lib.conlang import generate_words, mutate_text
-from scripts.lib.economy import (
-    calculate_gravity_trade_flow,
-    simulate_supply_shock,
-)
-from scripts.lib.vault_search import IndexedChunk, VaultSearchEngine
+from scripts.lib.codex_export import build_single_file_codex, scan_world_vault
+from scripts.lib.data_access import get_data_access
+from scripts.lib.manuscript_diff import compute_word_diff, tokenize_words
+from scripts.lib.preflight import run_preflight_linter
+from scripts.lib.revision_heatmap import diff_line_counts
 
 
 class TestBenchmarkSuite(unittest.TestCase):
@@ -37,95 +35,88 @@ class TestBenchmarkSuite(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
 
-    def test_benchmark_vault_search_retrieval(self) -> None:
-        """Benchmarks indexing and retrieval over 1,000 synthetic chunks."""
-        engine = VaultSearchEngine()
-        for i in range(1000):
-            chunk = IndexedChunk(
-                id=f"chunk_{i}",
-                doc_id=f"doc_{i // 10}",
-                doc_title=f"World Lore Chapter {i // 10}",
-                corpus_type="lore",
-                category="Characters" if i % 2 == 0 else "MagicSystems",
-                doc_path=f"Vault/Doc_{i}.md",
-                heading=f"Section {i}",
-                text=f"Aether resonance leyline energy flows through Citadel {i}. Archon Valerius channels solar flame against the void.",
-                word_count=20,
-                token_count_est=25,
-                entities=[f"Entity_{i}", "Valerius", "Citadel"],
+    def test_benchmark_manuscript_diff(self) -> None:
+        """Benchmarks tokenization and word-level diffing over 10,000 words."""
+        text_a = self.sample_text * 2
+        text_b = text_a.replace("Elena", "Aurelia").replace("Citadel", "Fortress")
+
+        t0 = time.perf_counter()
+        tokens_a = tokenize_words(text_a)
+        tokens_b = tokenize_words(text_b)
+        _chunks, added, deleted = compute_word_diff(tokens_a, tokens_b)
+        t_elapsed = time.perf_counter() - t0
+
+        self.assertLess(t_elapsed, 0.50, f"Diffing 10k words took {t_elapsed:.3f}s (must be <0.5s)")
+        self.assertGreater(added, 0)
+        self.assertGreater(deleted, 0)
+
+    def test_benchmark_revision_heatmap(self) -> None:
+        """Benchmarks revision churn computation over multiple chapters."""
+        text_old = self.sample_text
+        text_new = self.sample_text.replace("Elena", "Aurelia").replace("thunder", "lightning")
+
+        t0 = time.perf_counter()
+        for _ in range(50):
+            diff_line_counts(text_new, text_old)
+        t_elapsed = time.perf_counter() - t0
+
+        self.assertLess(t_elapsed, 0.50, f"50 chapter churn calculations took {t_elapsed:.3f}s (must be <0.5s)")
+
+    def test_benchmark_preflight_linter(self) -> None:
+        """Benchmarks preflight typesetting & publishing validation."""
+        ms_dir = self.root / "Manuscript"
+        ms_dir.mkdir(parents=True, exist_ok=True)
+        (ms_dir / "manuscript.yaml").write_text("title: Benchmark\nauthor: Tester\nlanguage: en\n", encoding="utf-8")
+
+        for i in range(20):
+            (ms_dir / f"ch_{i:02d}.md").write_text(f"# Chapter {i}\n\n" + self.sample_text, encoding="utf-8")
+
+        t0 = time.perf_counter()
+        report = run_preflight_linter(ms_dir)
+        t_elapsed = time.perf_counter() - t0
+
+        self.assertLess(t_elapsed, 0.75, f"Preflight validation of 20 chapters took {t_elapsed:.3f}s (must be <0.75s)")
+        self.assertEqual(report["chapter_count"], 20)
+
+    def test_benchmark_codex_export(self) -> None:
+        """Benchmarks static wiki codex building across 100 lore notes."""
+        world_dir = self.root / "World"
+        world_dir.mkdir(parents=True, exist_ok=True)
+
+        for i in range(100):
+            cat = "Characters" if i % 2 == 0 else "Locations"
+            (world_dir / f"entity_{i}.md").write_text(
+                f"---\nname: Entity {i}\ncategory: {cat}\n---\n# Entity {i}\nLore description with [[entity_{max(0, i-1)}]].\n",
+                encoding="utf-8"
             )
-            engine.chunks.append(chunk)
 
         t0 = time.perf_counter()
-        engine._build_vector_index()
-        t_index = time.perf_counter() - t0
-        self.assertLess(t_index, 0.50, f"Indexing 1,000 chunks took {t_index:.3f}s (must be <0.5s)")
-
-        t0 = time.perf_counter()
-        results = engine.query("Valerius aether resonance solar", top_k=10, expand_query=True)
-        t_query = time.perf_counter() - t0
-        self.assertLess(t_query, 0.10, f"Querying 1,000 chunks took {t_query:.3f}s (must be <0.1s)")
-        self.assertEqual(len(results), 10)
-
-    def test_benchmark_astrophysics_transit_calculations(self) -> None:
-        """Benchmarks relativistic transit calculations."""
-        t0 = time.perf_counter()
-        for _ in range(500):
-            calc_brachistochrone(distance_m=4.07e16, acc_mps2=9.81)
-        t_elapsed = time.perf_counter() - t0
-        self.assertLess(t_elapsed, 0.25, f"Astrophysics took {t_elapsed:.3f}s (must be <0.25s)")
-
-    def test_benchmark_conlang_generation_and_mutation(self) -> None:
-        """Benchmarks batch phonotactic generation of 1,000 words and sound shift rules."""
-        profile = {
-            "name": "BenchmarkLang",
-            "consonants": ["p", "t", "k", "b", "d", "g", "s", "m", "n", "l", "r"],
-            "vowels": ["a", "e", "i", "o", "u"],
-            "syllable_structures": ["CV", "CVC", "CCV", "VC"],
-            "forbidden_clusters": ["sr", "tl"],
-            "stress_rule": "penultimate",
-        }
-        rules = ["k > ch / _[e,i]", "p > f / V_V", "s > h / #_"]
-
-        t0 = time.perf_counter()
-        words = generate_words(profile, count=500, num_syllables=3)
-        mutated = [mutate_text(w, rules, profile["vowels"], profile["consonants"]) for w in words]
+        cats = scan_world_vault(world_dir)
+        out_html = self.root / "codex.html"
+        build_single_file_codex(cats, world_name="BenchmarkWorld", output_path=out_html)
         t_elapsed = time.perf_counter() - t0
 
-        self.assertLess(t_elapsed, 0.20, f"Conlang 500-word generation & mutation took {t_elapsed:.3f}s (must be <0.2s)")
-        self.assertEqual(len(mutated), 500)
+        self.assertLess(t_elapsed, 0.40, f"Codex compilation of 100 notes took {t_elapsed:.3f}s (must be <0.4s)")
+        self.assertTrue(out_html.is_file())
 
-    def test_benchmark_economic_gravity_and_cascade(self) -> None:
-        """Benchmarks gravity trade flow and supply shock cascade."""
-        settlements = [
-            {
-                "id": f"City_{i}",
-                "name": f"Settlement {i}",
-                "population": 20000 + i * 1000,
-                "tier": "Major City",
-                "trade_hub": True,
-                "coordinates": (i * 20.0, (i % 5) * 30.0),
-                "export_commodities": ["grain", "iron", "timber"],
-                "import_demands": ["spices", "cloth", "mana"],
-            }
-            for i in range(15)
-        ]
+    def test_benchmark_data_access_caching(self) -> None:
+        """Benchmarks cached DataAccessLayer read performance."""
+        dal = get_data_access()
+        dal.clear()
+
+        world_dir = self.root / "World"
+        t0 = time.perf_counter()
+        entities1 = dal.get_lore_entities(world_dir)
+        _t_first = time.perf_counter() - t0
 
         t0 = time.perf_counter()
-        flows = calculate_gravity_trade_flow(settlements)
-        shock = simulate_supply_shock(
-            settlements=settlements,
-            shock_event="Drought & Siege",
-            target_settlement_id="City_0",
-            affected_commodity="grain",
-            shock_magnitude=0.6,
-        )
-        t_elapsed = time.perf_counter() - t0
+        entities2 = dal.get_lore_entities(world_dir)
+        t_cached = time.perf_counter() - t0
 
-        self.assertLess(t_elapsed, 0.15, f"Economy calculation took {t_elapsed:.3f}s (must be <0.15s)")
-        self.assertGreater(len(flows["routes"]), 10)
-        self.assertEqual(shock["epicenter_id"], "City_0")
+        self.assertEqual(len(entities1), len(entities2))
+        self.assertLess(t_cached, 0.05, f"Cached retrieval took {t_cached:.3f}s (must be <0.05s)")
 
 
 if __name__ == "__main__":
     unittest.main()
+

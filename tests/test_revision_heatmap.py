@@ -247,6 +247,22 @@ The silver blade hummed in the dark.
                 main()
             self.assertEqual(cm.exception.code, 0)
 
+    def test_scan_single_file(self):
+        f = self._write(self.ms_dir, "SingleChap.md", "# Chapter Single\nLine 1\nLine 2\n")
+        stats = scan_manuscript_snapshots(f)
+        self.assertEqual(len(stats), 1)
+        self.assertEqual(stats[0].chapter, "SingleChap.md")
+
+    def test_scan_scoped_scenes(self):
+        from lib.scope_models import EngineScope
+        self._write(self.ms_dir, "Book-01/01_Chapter.md", "# Ch 1\nScene 1 text\n---\nScene 2 text")
+        self._write(self.snapshot_dir, "Book-01/01_Chapter.md", "# Ch 1\nOld scene 1\n---\nOld scene 2")
+        scope = EngineScope(chapters=[1], scenes=[1])
+
+        stats = scan_manuscript_snapshots(self.ms_dir, snapshot_dir=self.snapshot_dir, scope=scope)
+        self.assertTrue(len(stats) >= 1)
+
 
 if __name__ == "__main__":
     unittest.main()
+
