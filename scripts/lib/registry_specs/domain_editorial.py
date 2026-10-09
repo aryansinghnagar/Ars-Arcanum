@@ -70,6 +70,44 @@ arcanum revision-heatmap Manuscript/
             {"pattern": "Chapter flagged with excessive revision churn (>80% word replacement across 5+ drafts)", "option_a": "Perform fresh developmental outline review of the scene's core goal", "option_b": "Lock the chapter and proceed to drafting subsequent chapters", "option_c": "Accept high churn as necessary stylistic exploration"},
         ],
     ),
+
+    "draft_manager": EngineSpec(
+        name="draft_manager",
+        category=EngineCategory.CORE,
+        title="Manuscript Draft & Revision Lineage Manager",
+        description="Full-lifecycle draft versioning, granular chapter scoping, milestone tracking, immutability locking, and offline visual dashboard",
+        module_name="lib.draft_manager",
+        cli_command="draft",
+        aliases=["drafts", "versioning", "draft-manager"],
+        studio_tab="Editor",
+        logic_documentation="Manages linear and experimental draft branching, selective chapter importing, active draft manifest switching, and draft freeze/locking with standalone HTML lineage DAG visualizations.",
+        scientific_logic="""1. Draft Lineage Directed Acyclic Graph (DAG):
+   Models revision history as a tree graph $G = (V, E)$ where vertices $V$ represent discrete draft snapshots (Draft-01, Draft-02, Draft-02-alt) and directed edges $E$ record parentage $(v_{\\text{parent}}, v_{\\text{child}})$.
+2. Granular Chapter Set Inclusion & Exclusion:
+   $$C_{\\text{new}} = (C_{\\text{source}} \\cap I) \\setminus X$$
+   where $I$ is the inclusion range and $X$ is the exclusion range.""",
+        why_this_way="Writers need seamless, risk-free revision branching to explore alternate endings or conduct developmental edits without corrupting current drafts.",
+        worldbuilding_relevance="Enables parallel lore testing across alternate novel drafts.",
+        storytelling_relevance="Allows writers to safely fork developmental edits and track milestone progression (Alpha, Beta, ARC, Line-Edit, Proof).",
+        writing_relevance="Offers visual lineage graphs, active draft indicators, and immutability locks on frozen drafts.",
+        subfeatures=[
+            {"name": "Visual Lineage DAG Exporter", "rule": "Renders standalone offline HTML visual lineage tree and hero dashboard.", "example": "arcanum draft --html dist/drafts.html"},
+            {"name": "Granular Chapter Slicing", "rule": "Forks drafts with selective chapter ranges.", "example": "arcanum draft fork Draft-02 --source Draft-01 --chapters 1-5,8 --exclude 4"},
+            {"name": "Draft Immutability Lock", "rule": "Safeguards finalized/archived drafts against accidental edits.", "example": "arcanum draft lock Draft-01 --notes 'Initial Alpha complete'"},
+        ],
+        extension_guide="""Manage drafts from CLI:
+```bash
+arcanum draft tree
+arcanum draft fork Draft-02 --milestone Beta
+arcanum draft switch Draft-02
+arcanum draft lock Draft-01
+arcanum draft --html dist/drafts_dashboard.html
+```""",
+        advisory_guidance=[
+            {"pattern": "Multiple active workstreams detected without designated active draft", "option_a": "Activate the most recent revision with 'arcanum draft switch'", "option_b": "Lock legacy drafts with 'arcanum draft lock'", "option_c": "Maintain parallel branch for alternate narrative paths"},
+        ],
+    ),
 }
 
 __all__ = ["ENGINES"]
+

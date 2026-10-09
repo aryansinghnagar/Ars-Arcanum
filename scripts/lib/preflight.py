@@ -20,22 +20,24 @@ Capabilities (PUB-101):
    - Calculates industry standard page count estimates (250 w/page standard).
    - Validates standard chapter length bounds.
 5. Standalone HTML Pre-Flight Certificate & Compliance Report.
-
-Zero external dependencies; 100% offline privacy.
 """
 
+from __future__ import annotations
+
 import argparse
-import html
 import json
 import logging
 import math
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 try:
-    from lib._bootstrap import atomic_write, count_prose_words
-    from lib.frontmatter import parse_yaml_frontmatter
+    from lib._bootstrap import count_prose_words
+    from lib.data_access import get_data_access
+    from lib.frontmatter import parse_yaml_document, parse_yaml_frontmatter
+    from lib.preflight_template import render_preflight_html
     from lib.scope import (
         EngineScope,
         add_scope_arguments,
@@ -44,8 +46,10 @@ try:
         resolve_manuscript_path,
     )
 except ImportError:
-    from _bootstrap import atomic_write, count_prose_words
-    from frontmatter import parse_yaml_frontmatter
+    from _bootstrap import count_prose_words
+    from data_access import get_data_access
+    from frontmatter import parse_yaml_document, parse_yaml_frontmatter
+    from preflight_template import render_preflight_html
     from scope import (
         EngineScope,
         add_scope_arguments,
@@ -57,26 +61,22 @@ except ImportError:
 logger = logging.getLogger("arcanum.preflight")
 
 
-def check_metadata(manuscript_dir: Path) -> dict:
-    """Validates manuscript metadata configuration in manuscript.yaml."""
+def check_metadata(manuscript_dir: Path) -> dict[str, Any]:
+    """Validates manuscript metadata configuration in manuscript.yaml using cached DAL."""
     manifest_path = manuscript_dir / "manuscript.yaml"
     issues = []
-    metadata = {}
+    metadata: dict[str, Any] = {}
 
     if not manifest_path.is_file():
         issues.append({"level": "FAIL", "code": "META-01", "message": "Missing 'manuscript.yaml' manifest file."})
         return {"valid": False, "issues": issues, "data": {}}
 
     try:
-        raw_text = manifest_path.read_text(encoding="utf-8", errors="replace")
+        dal = get_data_access()
+        raw_text = dal.read_file(manifest_path)
         metadata = parse_yaml_frontmatter(raw_text)
         if not metadata:
-            lines = raw_text.splitlines()
-            for line in lines:
-                line = line.strip()
-                if ":" in line and not line.startswith("#"):
-                    k, v = line.split(":", 1)
-                    metadata[k.strip()] = v.strip().strip('"\'')
+            metadata = parse_yaml_document(raw_text)
     except Exception as e:
         issues.append({"level": "FAIL", "code": "META-02", "message": f"Failed reading manuscript.yaml: {e}"})
 
@@ -84,21 +84,29 @@ def check_metadata(manuscript_dir: Path) -> dict:
     required = ["title", "author"]
     for req in required:
         if not metadata.get(req):
-            issues.append({"level": "FAIL", "code": f"META-REQ-{req.upper()}", "message": f"Missing required metadata field: '{req}'."})
+            issues.append({
+                "level": "FAIL",
+                "code": f"META-REQ-{req.upper()}",
+                "message": f"Missing required metadata field: '{req}'.",
+            })
 
     recommended = ["isbn", "copyright_year", "language", "paper_size"]
     for rec in recommended:
         if not metadata.get(rec):
-            issues.append({"level": "WARN", "code": f"META-REC-{rec.upper()}", "message": f"Recommended field '{rec}' is not defined in manifest."})
+            issues.append({
+                "level": "WARN",
+                "code": f"META-REC-{rec.upper()}",
+                "message": f"Recommended field '{rec}' is not defined in manifest.",
+            })
 
     return {
         "valid": not any(i["level"] == "FAIL" for i in issues),
         "issues": issues,
-        "data": metadata
+        "data": metadata,
     }
 
 
-def check_cover_and_assets(manuscript_dir: Path) -> dict:
+def check_cover_and_assets(manuscript_dir: Path) -> dict[str, Any]:
     """Verifies cover art and embedded media assets."""
     issues = []
     cover_candidates = [
@@ -106,7 +114,7 @@ def check_cover_and_assets(manuscript_dir: Path) -> dict:
         manuscript_dir / "03-Art" / "cover.jpg",
         manuscript_dir / "cover.png",
         manuscript_dir / "cover.jpg",
-        manuscript_dir / "Art" / "cover.png"
+        manuscript_dir / "Art" / "cover.png",
     ]
     found_cover = None
     for c in cover_candidates:
@@ -115,19 +123,24 @@ def check_cover_and_assets(manuscript_dir: Path) -> dict:
             break
 
     if not found_cover:
-        issues.append({"level": "WARN", "code": "ASSET-COVER-01", "message": "No cover image found (expected 03-Art/cover.png or cover.jpg for EPUB/Print)."})
+        issues.append({
+            "level": "WARN",
+            "code": "ASSET-COVER-01",
+            "message": "No cover image found (expected 03-Art/cover.png or cover.jpg for EPUB/Print).",
+        })
 
     return {
         "has_cover": bool(found_cover),
         "cover_path": str(found_cover) if found_cover else None,
-        "issues": issues
+        "issues": issues,
     }
 
 
-def validate_chapter_formatting(file_path: Path) -> list[dict]:
+def validate_chapter_formatting(file_path: Path) -> list[dict[str, Any]]:
     """Validates markdown syntax, orphan headers, and unescaped markup in a chapter."""
     issues = []
-    content = file_path.read_text(encoding="utf-8", errors="replace")
+    dal = get_data_access()
+    content = dal.read_file(file_path)
     lines = content.splitlines()
 
     # 1. Orphan Heading check (Heading as the last non-empty line)
@@ -138,28 +151,28 @@ def validate_chapter_formatting(file_path: Path) -> list[dict]:
             "file": file_path.name,
             "line": len(lines),
             "code": "TYP-ORPHAN-HEAD",
-            "message": f"Orphan heading at end of chapter without body text: '{non_empty[-1]}'"
+            "message": f"Orphan heading at end of chapter without body text: '{non_empty[-1]}'",
         })
 
     # 2. Unclosed Code Blocks
-    code_ticks = len(re.findall(r'^```', content, flags=re.MULTILINE))
+    code_ticks = len(re.findall(r"^```", content, flags=re.MULTILINE))
     if code_ticks % 2 != 0:
         issues.append({
             "level": "FAIL",
             "file": file_path.name,
             "code": "TYP-UNCLOSED-CODE",
-            "message": "Unclosed markdown code block (``` mismatch)."
+            "message": "Unclosed markdown code block (``` mismatch).",
         })
 
     # 3. Straight Quotation Marks Alert
-    body_without_code = re.sub(r'```[\s\S]*?```', '', content)
+    body_without_code = re.sub(r"```[\s\S]*?```", "", content)
     straight_quotes = body_without_code.count('"')
     if straight_quotes >= 4:
         issues.append({
             "level": "WARN",
             "file": file_path.name,
             "code": "TYP-STRAIGHT-QUOTES",
-            "message": f"{straight_quotes} straight double quotes found. Consider running 'arcanum polish typography'."
+            "message": f"{straight_quotes} straight double quotes found. Consider running 'arcanum polish typography'.",
         })
 
     # 4. Trailing triple dashes (unrendered divider)
@@ -169,13 +182,13 @@ def validate_chapter_formatting(file_path: Path) -> list[dict]:
             "file": file_path.name,
             "line": len(lines),
             "code": "TYP-TRAILING-DIV",
-            "message": "Trailing divider line (---) at end of chapter."
+            "message": "Trailing divider line (---) at end of chapter.",
         })
 
     return issues
 
 
-def run_preflight_linter(manuscript_dir: Path, scope: EngineScope | None = None) -> dict:
+def run_preflight_linter(manuscript_dir: Path, scope: EngineScope | None = None) -> dict[str, Any]:
     """Executes full pre-flight verification on a manuscript repository."""
     if not manuscript_dir.is_dir():
         raise NotADirectoryError(f"Manuscript directory not found: {manuscript_dir}")
@@ -184,7 +197,11 @@ def run_preflight_linter(manuscript_dir: Path, scope: EngineScope | None = None)
     asset_res = check_cover_and_assets(manuscript_dir)
 
     chapter_files = sorted(manuscript_dir.rglob("*.md"))
-    content_files = [f for f in chapter_files if not f.name.startswith((".", "_")) and "Backups" not in f.parts and "04_Back_Matter" not in f.parts]
+    content_files = [
+        f
+        for f in chapter_files
+        if not f.name.startswith((".", "_")) and "Backups" not in f.parts and "04_Back_Matter" not in f.parts
+    ]
 
     if scope:
         scoped_chapters, _, _ = filter_manuscript_scope(manuscript_dir, scope)
@@ -193,12 +210,13 @@ def run_preflight_linter(manuscript_dir: Path, scope: EngineScope | None = None)
 
     formatting_issues = []
     total_words = 0
+    dal = get_data_access()
 
     for f in content_files:
         try:
             f_issues = validate_chapter_formatting(f)
             formatting_issues.extend(f_issues)
-            text = f.read_text(encoding="utf-8", errors="replace")
+            text = dal.read_file(f)
             words = count_prose_words(text)
             total_words += words
         except Exception as e:
@@ -212,7 +230,7 @@ def run_preflight_linter(manuscript_dir: Path, scope: EngineScope | None = None)
     warn_count = sum(1 for i in all_issues if i["level"] == "WARN")
 
     # Export Readiness Evaluation
-    is_ready = (fail_count == 0 and total_words >= 100)
+    is_ready = fail_count == 0 and total_words >= 100
     score = max(0, min(100, 100 - (fail_count * 20) - (warn_count * 5)))
     readiness_status = "READY" if is_ready else "REVIEW_RECOMMENDED"
 
@@ -227,98 +245,13 @@ def run_preflight_linter(manuscript_dir: Path, scope: EngineScope | None = None)
         "fail_count": fail_count,
         "warn_count": warn_count,
         "metadata": meta_res["data"],
-        "issues": all_issues
+        "issues": all_issues,
     }
 
 
-def generate_preflight_html_report(report: dict, output_path: Path) -> Path:
+def generate_preflight_html_report(report: dict[str, Any], output_path: Path | str) -> Path:
     """Generates a publishing compliance certificate HTML report."""
-    issues = report.get("issues", [])
-
-    issue_rows = []
-    for iss in issues:
-        badge = "<span style='background:#ef4444;color:#fff;padding:2px 6px;border-radius:4px;font-size:0.75rem;font-weight:700;'>FAIL</span>" if iss["level"] == "FAIL" else "<span style='background:#f59e0b;color:#000;padding:2px 6px;border-radius:4px;font-size:0.75rem;font-weight:700;'>WARN</span>"
-        loc = f"{iss.get('file', 'manifest')}" + (f":{iss['line']}" if 'line' in iss else "")
-        row = f"""
-        <tr>
-          <td>{badge}</td>
-          <td><code>{html.escape(iss['code'])}</code></td>
-          <td>{html.escape(loc)}</td>
-          <td>{html.escape(iss['message'])}</td>
-        </tr>
-        """
-        issue_rows.append(row)
-
-    html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ars Arcanum — Pre-Flight Export Coverage Map</title>
-<style>
-  :root {{
-    --bg: #0f172a; --panel: #1e293b; --border: #334155;
-    --text: #f8fafc; --muted: #94a3b8; --accent: #38bdf8;
-    --warn: #f59e0b; --danger: #ef4444; --success: #10b981;
-  }}
-  body {{ font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 2rem; }}
-  .container {{ max-width: 950px; margin: 0 auto; }}
-  .header {{ border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 2rem; }}
-  .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }}
-  .card {{ background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }}
-  .card h3 {{ margin-top: 0; color: var(--muted); font-size: 0.875rem; text-transform: uppercase; }}
-  .metric {{ font-size: 2rem; font-weight: 700; color: var(--accent); }}
-  .status-box {{ padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; text-align: center; }}
-  .status-pass {{ background: #064e3b; border: 1px solid #059669; color: #a7f3d0; }}
-  .status-fail {{ background: #1e293b; border: 1px solid var(--border); color: var(--text); }}
-  .table {{ width: 100%; border-collapse: collapse; margin-top: 1rem; }}
-  .table th, .table td {{ text-align: left; padding: 0.75rem 0.5rem; border-bottom: 1px solid var(--border); }}
-</style>
-</head>
-<body>
-<div class="container">
-  <div class="header">
-    <h1>✈️ Pre-Flight Typesetting & Export Coverage Map</h1>
-    <p style="color: var(--muted);">Target: {html.escape(report.get('target', ''))} | Chapters: {report.get('chapter_count', 0)}</p>
-  </div>
-
-  <div class="grid">
-    <div class="card">
-      <h3>Total Words</h3>
-      <div class="metric">{report.get('total_words', 0):,}</div>
-      <p style="color: var(--muted); margin: 0.25rem 0 0 0;">Across {report.get('chapter_count', 0)} chapters</p>
-    </div>
-    <div class="card">
-      <h3>Estimated Pages</h3>
-      <div class="metric">~{report.get('estimated_pages', 0)}</div>
-      <p style="color: var(--muted); margin: 0.25rem 0 0 0;">@ 250 w/page Trade 6x9</p>
-    </div>
-    <div class="card">
-      <h3>Structural Fails</h3>
-      <div class="metric" style="color: {'var(--danger)' if report.get('fail_count', 0) > 0 else 'var(--success)'};">{report.get('fail_count', 0)}</div>
-      <p style="color: var(--muted); margin: 0.25rem 0 0 0;">Blocking format issues</p>
-    </div>
-    <div class="card">
-      <h3>Advisory Notices</h3>
-      <div class="metric" style="color: {'var(--warn)' if report.get('warn_count', 0) > 0 else 'var(--muted)'};">{report.get('warn_count', 0)}</div>
-      <p style="color: var(--muted); margin: 0.25rem 0 0 0;">Author review items</p>
-    </div>
-  </div>
-
-  <h2>📋 Export Coverage & Checklist</h2>
-  <table class="table">
-    <thead><tr><th>Category</th><th>Rule Code</th><th>Location</th><th>Item Description</th></tr></thead>
-    <tbody>
-      {''.join(issue_rows) or '<tr><td colspan="4" style="color:var(--success);">✓ All technical export checks verified with zero warnings or errors.</td></tr>'}
-    </tbody>
-  </table>
-</div>
-</body>
-</html>
-"""
-    atomic_write(output_path, html_content)
-    return output_path
+    return render_preflight_html(report, output_path)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -342,15 +275,19 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     print(f"=== Pre-Flight Typesetting Linter & Export Coverage: {target_path.name} ===")
-    print(f"Total Words: {report['total_words']:,} | Est. Trade Pages: ~{report['estimated_pages']} | Chapters: {report['chapter_count']}")
-    print(f"Readiness Status: [{'READY FOR EXPORT' if report['is_ready_for_publish'] else 'REVIEW RECOMMENDED'}] | Issues: {report['fail_count']} blocking failures, {report['warn_count']} advisory notices")
+    print(
+        f"Total Words: {report['total_words']:,} | Est. Trade Pages: ~{report['estimated_pages']} | Chapters: {report['chapter_count']}"
+    )
+    print(
+        f"Readiness Status: [{'READY FOR EXPORT' if report['is_ready_for_publish'] else 'REVIEW RECOMMENDED'}] | Issues: {report['fail_count']} blocking failures, {report['warn_count']} advisory notices"
+    )
     print("-" * 75)
     if not report["issues"]:
         print("✓ All checks passed cleanly!")
     else:
         for iss in report["issues"]:
             level_tag = "[DATA ISSUE]" if iss["level"] == "FAIL" else "[OBSERVATION]"
-            loc = f" ({iss.get('file', 'manifest')})" if 'file' in iss else ""
+            loc = f" ({iss.get('file', 'manifest')})" if "file" in iss else ""
             print(f"  {level_tag:<14} {iss['code']:<18}{loc}: {iss['message']}")
 
     if args.html:
@@ -359,6 +296,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\nHTML Certificate written to: {out_p}")
     return 0
 
+
+__all__ = [
+    "check_cover_and_assets",
+    "check_metadata",
+    "generate_preflight_html_report",
+    "main",
+    "run_preflight_linter",
+    "validate_chapter_formatting",
+]
 
 if __name__ == "__main__":
     main()

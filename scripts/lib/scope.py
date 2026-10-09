@@ -238,7 +238,7 @@ def extract_scenes_from_text(
 
 def filter_manuscript_scope(
     manuscript_dir: Path,
-    scope: EngineScope,
+    scope: EngineScope | None = None,
 ) -> tuple[list[ChapterItem], list[SceneSlice], list[str]]:
     """
     Discovers, filters, and slices chapters and scenes in a manuscript according to EngineScope.
@@ -247,6 +247,9 @@ def filter_manuscript_scope(
     """
     if not manuscript_dir.exists():
         return [], [], []
+
+    if scope is None:
+        scope = EngineScope()
 
     # Find volume directories
     volume_dirs: list[Path] = []
@@ -359,13 +362,16 @@ def filter_manuscript_scope(
 
 def filter_world_scope(
     world_dir: Path,
-    scope: EngineScope,
+    scope: EngineScope | None = None,
 ) -> list[LoreItem]:
     """
     Discovers and filters lore files in a World Bible according to EngineScope.
     """
     if not world_dir.exists():
         return []
+
+    if scope is None:
+        scope = EngineScope()
 
     items: list[LoreItem] = []
     cat_filters = [c.lower() for c in scope.lore_categories] if scope.lore_categories else []

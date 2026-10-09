@@ -46,7 +46,7 @@ class TestEngineLogicDocumentation(unittest.TestCase):
     def test_engine_catalog_completeness(self):
         """Test that get_engine_catalog exports all engines with logic and subfeatures."""
         catalog = get_engine_catalog()
-        self.assertEqual(len(catalog), 14)
+        self.assertEqual(len(catalog), 17)
         for entry in catalog:
             self.assertIn("scientific_logic", entry)
             self.assertIn("why_this_way", entry)
@@ -55,9 +55,10 @@ class TestEngineLogicDocumentation(unittest.TestCase):
             self.assertIn("advisory_guidance", entry)
 
     def test_all_14_engines_have_exhaustive_documentation(self):
-        """Ensure all 14 engines contain non-empty scientific and architectural metadata."""
+        """Ensure all engines contain non-empty scientific and architectural metadata."""
         engines = list_engines(enabled_only=False)
-        self.assertEqual(len(engines), 14)
+        self.assertEqual(len(engines), 17)
+
 
         for eng in engines:
             with self.subTest(engine=eng.name):

@@ -185,20 +185,30 @@ class TestCliDispatch(unittest.TestCase):
             self.assertIn("Error: Unknown command 'xyzabc123nonexistent'", mock_err.getvalue())
 
     def test_handle_new_dispatches(self):
-        with patch("sys.stderr", new_callable=StringIO) as mock_err:
-            rc_empty = main(["new"])
-            self.assertEqual(rc_empty, 2)
-            self.assertIn("Usage: arcanum new", mock_err.getvalue())
-
-        with patch("lib.cli.dispatch_script", return_value=0) as mock_ds:
+        with patch("lib.cli.dispatch_subcommand", return_value=0) as mock_sub:
             rc = main(["new", "manuscript", "TestBook"])
             self.assertEqual(rc, 0)
-            mock_ds.assert_called_once()
+            mock_sub.assert_called_once_with("lib.project_scaffold", ["new", "manuscript", "TestBook"])
 
-        with patch("sys.stderr", new_callable=StringIO) as mock_err:
-            rc_unk = main(["new", "invalid_type", "TestBook"])
-            self.assertEqual(rc_unk, 2)
-            self.assertIn("Unknown project type", mock_err.getvalue())
+        with patch("lib.cli.dispatch_subcommand", return_value=0) as mock_sub:
+            rc = main(["universe", "CosmosX"])
+            self.assertEqual(rc, 0)
+            mock_sub.assert_called_once_with("lib.project_scaffold", ["universe", "CosmosX"])
+
+        with patch("lib.cli.dispatch_subcommand", return_value=0) as mock_sub:
+            rc = main(["draft", "list"])
+            self.assertEqual(rc, 0)
+            mock_sub.assert_called_once_with("lib.draft_manager", ["list"])
+
+        with patch("lib.cli.dispatch_subcommand", return_value=0) as mock_sub:
+            rc = main(["words", "--json"])
+            self.assertEqual(rc, 0)
+            mock_sub.assert_called_once_with("lib.word_counter", ["--json"])
+
+        with patch("lib.cli.dispatch_subcommand", return_value=0) as mock_sub:
+            rc = main(["publish", "--inspect"])
+            self.assertEqual(rc, 0)
+            mock_sub.assert_called_once_with("lib.publisher", ["--inspect"])
 
     def test_handle_doctor_with_directory(self):
         test_dir = self.work_dir / "world_lore"

@@ -176,6 +176,16 @@ class ChapterItem:
         """Convenience property for scoped content."""
         return self.scoped_content
 
+    @property
+    def path(self) -> Path:
+        """Convenience property for file_path."""
+        return self.file_path
+
+    @property
+    def index(self) -> int:
+        """Convenience property for chapter_num."""
+        return self.chapter_num
+
 
 @dataclass
 class LoreItem:

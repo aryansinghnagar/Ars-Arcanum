@@ -95,29 +95,44 @@ scripts/
 │   ├── cli.py                 # Authoritative Python CLI dispatcher (v0.1.0)
 │   ├── cli_handlers.py        # CLI handler routing with graceful retirement doctrine guidance
 │   ├── config.py              # Configuration & Authorial Constitution loader
+│   ├── config_store.py        # Centralized configuration persistence and storage manager
+│   ├── constitution.py        # Authorial Constitution & Intent policy engine
+│   ├── state.py               # Global atomic state storage for active workstreams
 │   ├── lockfile.py            # Cross-platform file locking (ArcanumLock)
 │   ├── fs_utils.py            # Safe atomic file and path manipulation utilities
 │   ├── cache.py               # Memory/disk AST and frontmatter cache layer
 │   ├── data_access.py         # Centralized cached vault reader & frontmatter AST layer
 │   ├── frontmatter.py         # Zero-dependency YAML frontmatter parser and serializer
 │   ├── frontmatter_builder.py # Interactive CLI & programmatic YAML frontmatter scaffolding
+│   ├── project_scaffold.py    # Native pure-Python universe, world, manuscript, volume scaffolding
+│   ├── draft_manager.py       # Multi-draft branching, milestone states, and immutable snapshots
+│   ├── draft_manager_template.py # Interactive visual HTML draft lineage tree visualizer
 │   ├── scope.py               # Universal granular target scoping & range parsing engine
 │   ├── scope_models.py        # Dataclasses for EngineScope, ChapterItem, SceneSlice, ResolvedScope
 │   ├── scope_parser.py        # Expression and range parsers for granular chapter/scene slicing
 │   ├── scope_resolver.py      # Active context resolution heuristics for manuscripts and worlds
+│   ├── word_counter.py        # Unicode prose tokenization, CriticMarkup stripping, POV & dialogue ratio
+│   ├── writing_sprint.py      # Stateful sprint timer lifecycle, hybrid velocity derivation, streaks
+│   ├── velocity_template.py   # Standalone offline HTML5 Velocity Studio & interactive Pomodoro timer
 │   ├── manuscript_diff.py     # Structural markdown diff engine with HTML visualizer
 │   ├── manuscript_diff_template.py # Presentation HTML/CSS template for manuscript diffs
 │   ├── revision_heatmap.py    # Revision density and editing churn heatmaps with HTML export
 │   ├── revision_heatmap_template.py # Presentation HTML/CSS template for revision heatmaps
 │   ├── portfolio.py           # Multi-manuscript author portfolio tracker & standalone HTML dashboard
+│   ├── portfolio_template.py  # Presentation HTML/CSS template for portfolio catalog
 │   ├── docx_sync.py           # Two-way roundtrip Markdown <-> DOCX synchronizer
 │   ├── docx_builder.py        # Zero-dependency standard submission format DOCX builder
+│   ├── docx_presets.py        # Typography and styling presets for DOCX manuscript builds
 │   ├── importer.py            # Universal multi-format manuscript & lore importer (MD, TXT, EPUB, DOCX)
 │   ├── diagnostics.py         # Unified system health, toolchain & world vault consistency doctor
-│   ├── migrate.py             # Schema and directory migration engine with automated backup
 │   ├── preflight.py           # Pre-compilation validation & publication gatekeeper
+│   ├── preflight_template.py  # Presentation HTML/CSS template for preflight validation
+│   ├── publisher.py           # Native manuscript compiler & multi-format publication exporter
 │   ├── codex_export.py        # Standalone offline HTML world codex static site generator
+│   ├── codex_export_template.py # Presentation HTML/CSS template for static codex site
 │   ├── omnibus.py             # Multi-volume series omnibus compiler (MD, EPUB, PDF)
+│   ├── omnibus_template.py    # Presentation HTML/CSS template for omnibus reader
+│   ├── migrate.py             # Schema and directory migration engine with automated backup
 │   ├── backup.py              # Pure-Python standalone verified .tar.gz archive engine
 │   ├── restore.py             # Pure-Python verified archive restoration with path traversal defense
 │   ├── snapshot.py            # Pure-Python Git milestone snapshot versioning engine
@@ -133,19 +148,19 @@ scripts/
 Before any milestone or phase is marked complete, the following quality gates must pass with 100% compliance:
 
 ```bash
-# 1. Full Python Test Suite Discovery (353+ tests across 48 modules, 0 failures permitted)
+# 1. Full Python Test Suite Discovery (404 tests across 55 modules, 0 failures permitted)
 python -m unittest discover tests
 
-# High-performance parallel test runner (~2.49s execution)
+# High-performance parallel test runner (~2.5s-7s execution)
 python scripts/test_parallel.py
 
 # 2. Strict Expanded Ruff Linter Pass (0 violations permitted)
 ruff check .
 
-# 3. Strict Mypy Static Type Checking across all source files
+# 3. Strict Mypy Static Type Checking across all source files (112 source files)
 mypy --explicit-package-bases scripts tests
 
-# 4. Coverage Threshold Enforcement (fail_under = 80)
+# 4. Coverage Threshold Enforcement (fail_under = 80, currently 81%)
 coverage run -m unittest discover tests; coverage report --fail-under=80
 
 # 5. Canonical 7-Stage Integration Verification Harness (POSIX)

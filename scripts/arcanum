@@ -1756,23 +1756,7 @@ shift
 case "${COMMAND}" in
     # --- New Scaffolder Dispatcher ---
     new|create)
-        if [ $# -eq 0 ]; then
-            echo "Usage: arcanum new <manuscript|draft|world|universe|volume> <name> [options]" >&2
-            exit 2
-        fi
-        SUBTYPE="$1"
-        shift
-        case "${SUBTYPE}" in
-            manuscript|novel|book) cmd_manuscript "$@" ;;
-            draft|new-draft|revision) cmd_draft "$@" ;;
-            world|lore|vault) cmd_world "$@" ;;
-            universe|cosmos|multiverse) cmd_universe "$@" ;;
-            volume|add-volume|add-book|new-book) cmd_volume "$@" ;;
-            *)
-                echo "Error: Unknown project type '${SUBTYPE}' for 'arcanum new'." >&2
-                exit 2
-                ;;
-        esac
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" new "$@"
         ;;
 
     # --- Write / Open Workspace ---
@@ -1812,10 +1796,10 @@ case "${COMMAND}" in
 
     # --- Core Universe, World Lore & Series Continuity ---
     universe|multiverse|init-universe)
-        cmd_universe "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" universe "$@"
         ;;
     world|init-world|init)
-        cmd_world "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" world "$@"
         ;;
     map|cartography)
         exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" map "$@"
@@ -1915,7 +1899,7 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/importer.py" "$@"
         ;;
     manuscript|init-manuscript|novel)
-        cmd_manuscript "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" manuscript "$@"
         ;;
     docx|docx-sync|sync-docx)
         exec python3 "${PROJECT_ROOT}/scripts/lib/docx_sync.py" "$@"
@@ -1924,16 +1908,16 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/docx_sync.py" open "$@"
         ;;
     draft|drafts|init-draft|new-draft|revision)
-        cmd_draft "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" draft "$@"
         ;;
     compare|diff|redline|changelog)
         exec python3 "${PROJECT_ROOT}/scripts/lib/manuscript_diff.py" "$@"
         ;;
     add-volume|add-book|new-book|volume)
-        cmd_volume "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" volume "$@"
         ;;
     export|publish|build|compile)
-        cmd_export "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" publish "$@"
         ;;
     preflight|pre-flight)
         exec python3 "${PROJECT_ROOT}/scripts/lib/preflight.py" "$@"

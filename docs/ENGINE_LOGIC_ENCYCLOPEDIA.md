@@ -27,6 +27,7 @@
    - [Dual-Track Timeline Synchronizer (`timeline_sync`)](#dual-track-timeline-synchronizer-timeline_sync)
    - [Prophecy & Inevitability Tracker (`prophecy`)](#prophecy--inevitability-tracker-prophecy)
    - [Writing Sprint & Velocity Engine (`writing_sprint`)](#writing-sprint--velocity-engine-writing_sprint)
+   - [Word Counter & Multi-Metric Prose Analyzer (`word_counter`)](#word-counter--multi-metric-prose-analyzer-word_counter)
 4. [Domain C: Characters, Society, Conlangs & Magic](#4-domain-c-characters-society-conlangs--magic)
    - [Dramatis Personae & Psychology Tracker (`dramatis_personae`)](#dramatis-personae--psychology-tracker-dramatis_personae)
    - [Dialogue Voice & Idiolect Matrix (`voice`)](#dialogue-voice--idiolect-matrix-voice)
@@ -412,6 +413,24 @@ Ars Arcanum (Scriptorium) is built upon six foundational engineering tenets:
 - **Subfeatures**:
   - Sprint timer and milestone celebration.
   - Historic drafting velocity heatmap.
+
+---
+
+### Word Counter & Multi-Metric Prose Analyzer (`word_counter`)
+- **Scientific & Mathematical Logic**:
+  - **Unicode Word Segmentation & CriticMarkup Elimination**:
+    $$W_{\text{net}} = |\{w \in \text{Tokens}(\text{Scrub}(T))\}| + \sum_{c \in T} \mathbb{I}(c \in \text{CJK})$$
+  - **Dialogue vs Narrative Ratio**:
+    $$R_{\text{dialogue}} = \frac{W_{\text{dialogue}}}{W_{\text{total}}}, \quad R_{\text{narrative}} = 1.0 - R_{\text{dialogue}}$$
+  - **Reading & Narration Duration Estimates**:
+    $$T_{\text{reading}} = \frac{W_{\text{total}}}{225} \quad [\text{min}], \quad T_{\text{narration}} = \frac{W_{\text{total}}}{150} \quad [\text{min}]$$
+  - **POV Balance & Starvation Alerts**:
+    $$\omega_{\text{pov}}(c) = \frac{W_c}{W_{\text{total}}}, \quad \text{Starvation}(c) \iff \text{ChapterGap}(c) \ge 4 \land \omega_{\text{pov}}(c) \ge 0.15$$
+- **Why This Way**: Provides precise, distraction-free prose metrics, POV distribution tracking, and audio/reading estimations without cloud dependencies.
+- **Subfeatures**:
+  - Multi-metric prose extraction (words, characters, sentences, paragraphs, reading time, audio time).
+  - POV screen-time balance analysis with starvation and dominance alerts.
+  - JSON and formatted CLI outputs with CriticMarkup sanitization.
 
 ---
 

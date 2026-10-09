@@ -17,14 +17,13 @@ Capabilities:
    - Computes series-wide POV distribution and pacing metrics.
 3. Master Omnibus Assembly:
    - Produces clean, unified Markdown master document (`*_Omnibus.md`).
-   - Generates standalone, offline interactive HTML5 Omnibus Reader.
+   - Generates standalone, offline interactive HTML5 Omnibus Reader via omnibus_template.
    - Outputs machine-readable series manifest (`omnibus_manifest.json`).
-
-Zero external dependencies; 100% offline privacy.
 """
 
+from __future__ import annotations
+
 import argparse
-import html
 import json
 import logging
 import re
@@ -35,7 +34,9 @@ from typing import Any
 
 try:
     from lib._bootstrap import atomic_write, count_prose_words
+    from lib.data_access import get_data_access
     from lib.frontmatter import parse_yaml_frontmatter
+    from lib.omnibus_template import render_omnibus_html
     from lib.scope import (
         EngineScope,
         add_scope_arguments,
@@ -47,7 +48,9 @@ try:
     )
 except ImportError:
     from _bootstrap import atomic_write, count_prose_words
+    from data_access import get_data_access
     from frontmatter import parse_yaml_frontmatter
+    from omnibus_template import render_omnibus_html
     from scope import (
         EngineScope,
         add_scope_arguments,
@@ -81,6 +84,7 @@ class VolumeData:
 
 def discover_series_volumes(target_path: Path, scope: EngineScope | None = None) -> list[VolumeData]:
     """Discovers all volumes/books within a universe, cosmos, or manuscript directory."""
+    dal = get_data_access()
     volumes: list[VolumeData] = []
 
     # Check if target is a universe containing Manuscripts/
@@ -127,6 +131,7 @@ def discover_series_volumes(target_path: Path, scope: EngineScope | None = None)
                 continue
             if any(b_name in v_name_lower for b_name in book_names):
                 filtered_unique.append(b_dir)
+                continue
         if filtered_unique:
             unique_books = filtered_unique
 
@@ -140,7 +145,11 @@ def discover_series_volumes(target_path: Path, scope: EngineScope | None = None)
         vol_povs = set()
 
         raw_ch_files = sorted(active_draft.rglob("*.md"))
-        ch_files = [f for f in raw_ch_files if not f.name.startswith((".", "_")) and "Backups" not in f.parts and "04_Back_Matter" not in f.parts]
+        ch_files = [
+            f
+            for f in raw_ch_files
+            if not f.name.startswith((".", "_")) and "Backups" not in f.parts and "04_Back_Matter" not in f.parts
+        ]
 
         if scope:
             scoped_chaps, _, _ = filter_manuscript_scope(active_draft, scope)
@@ -149,7 +158,7 @@ def discover_series_volumes(target_path: Path, scope: EngineScope | None = None)
                 ch_files = [f for f in ch_files if f in scoped_paths]
 
         for ch_file in ch_files:
-            content = ch_file.read_text(encoding="utf-8", errors="replace")
+            content = dal.read_file(ch_file)
             words = count_prose_words(content)
             vol_words += words
 
@@ -182,16 +191,18 @@ def discover_series_volumes(target_path: Path, scope: EngineScope | None = None)
         vol_name = b_dir.name
         vol_title = vol_name.replace("_", " ").replace("-", " ").title()
 
-        volumes.append(VolumeData(
-            index=idx,
-            name=vol_name,
-            title=vol_title,
-            draft_name=active_draft.name,
-            path=str(b_dir),
-            chapters=chapters,
-            word_count=vol_words,
-            povs=sorted(vol_povs),
-        ))
+        volumes.append(
+            VolumeData(
+                index=idx,
+                name=vol_name,
+                title=vol_title,
+                draft_name=active_draft.name,
+                path=str(b_dir),
+                chapters=chapters,
+                word_count=vol_words,
+                povs=sorted(vol_povs),
+            )
+        )
 
     return volumes
 
@@ -283,118 +294,9 @@ def compile_omnibus_manuscript(
     }
 
 
-def _format_markdown_prose(md_text: str) -> str:
-    """Converts markdown chapter body to styled HTML paragraphs, headings, bold, and italics with proper escaping."""
-    esc = html.escape(md_text)
-    # Headings
-    esc = re.sub(r"^###\s+(.*)$", r"<h4>\1</h4>", esc, flags=re.MULTILINE)
-    esc = re.sub(r"^##\s+(.*)$", r"<h3>\1</h3>", esc, flags=re.MULTILINE)
-    esc = re.sub(r"^#\s+(.*)$", r"<h2>\1</h2>", esc, flags=re.MULTILINE)
-    # Bold and italics
-    esc = re.sub(r"\*\*\*(.*?)\*\*\*", r"<strong><em>\1</em></strong>", esc)
-    esc = re.sub(r"\*\*(.*?)\*\*", r"<strong>\1</strong>", esc)
-    esc = re.sub(r"\*(.*?)\*", r"<em>\1</em>", esc)
-    # Paragraphs
-    paragraphs = esc.split("\n\n")
-    p_tags = []
-    for p in paragraphs:
-        p_clean = p.strip()
-        if not p_clean:
-            continue
-        if p_clean.startswith("<h"):
-            p_tags.append(p_clean)
-        elif p_clean in ("* * *", "***", "---"):
-            p_tags.append("<hr class='scene-break'>")
-        else:
-            p_tags.append(f"<p>{p_clean.replace(chr(10), '<br>')}</p>")
-    return "\n".join(p_tags)
-
-
-def generate_omnibus_html_reader(omnibus_report: dict[str, Any], output_path: Path) -> Path:
+def generate_omnibus_html_reader(omnibus_report: dict[str, Any], output_path: Path | str) -> Path:
     """Generates an offline HTML5 Omnibus Reader."""
-    title = omnibus_report["title"]
-    author = omnibus_report["author"]
-    volumes = omnibus_report["volumes"]
-    dp = omnibus_report["dramatis_personae"]
-
-    toc_items = []
-    volume_sections = []
-
-    for v in volumes:
-        toc_items.append(f"<li><strong>Volume {v['index']}: {html.escape(v['title'])}</strong> ({v['word_count']:,} words)</li>")
-        ch_blocks = []
-        for ch_idx, ch in enumerate(v["chapters"], 1):
-            ch_blocks.append(f"""
-            <article class="chapter">
-              <h3>Chapter {ch_idx}: {html.escape(ch['title'])}</h3>
-              <div class="meta-tag">POV: {html.escape(ch['pov'])} | {ch['words']:,} words</div>
-              <div class="prose">{_format_markdown_prose(ch['body'])}</div>
-            </article>
-            """)
-
-        volume_sections.append(f"""
-        <section class="volume-block">
-          <h2>Volume {v['index']}: {html.escape(v['title'])}</h2>
-          {''.join(ch_blocks)}
-        </section>
-        """)
-
-    dp_items = "".join(f"<li><strong>{html.escape(char)}</strong> &mdash; <em>{html.escape(', '.join(vols))}</em></li>" for char, vols in sorted(dp.items()))
-
-    html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{html.escape(title)} — Ars Arcanum Omnibus Reader</title>
-<style>
-  :root {{
-    --bg: #0f172a; --panel: #1e293b; --border: #334155;
-    --text: #f8fafc; --muted: #94a3b8; --accent: #38bdf8;
-    --gold: #f59e0b;
-  }}
-  body {{
-    font-family: Georgia, Cambria, serif; background: var(--bg); color: var(--text);
-    margin: 0; padding: 2rem 1rem; line-height: 1.7;
-  }}
-  .container {{ max-width: 800px; margin: 0 auto; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 3rem 2.5rem; }}
-  h1, h2, h3 {{ font-family: system-ui, -apple-system, sans-serif; color: var(--accent); }}
-  .title-header {{ text-align: center; border-bottom: 2px solid var(--border); padding-bottom: 2rem; margin-bottom: 3rem; }}
-  .author {{ font-size: 1.25rem; color: var(--muted); margin-top: 0.5rem; }}
-  .meta-tag {{ font-family: system-ui, sans-serif; font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem; }}
-  .prose {{ margin-top: 1rem; font-size: 1.05rem; }}
-  .volume-block {{ margin-top: 4rem; border-top: 1px solid var(--border); padding-top: 2rem; }}
-  .chapter {{ margin-bottom: 3rem; }}
-  .toc-box {{ background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem; margin-bottom: 3rem; font-family: system-ui, sans-serif; }}
-</style>
-</head>
-<body>
-<div class="container">
-  <div class="title-header">
-    <h1>{html.escape(title)}</h1>
-    <div class="author">By {html.escape(author)}</div>
-    <div class="meta-tag" style="margin-top:1rem;">Omnibus Edition &bull; {omnibus_report['total_volumes']} Volumes &bull; {omnibus_report['total_words']:,} Total Words</div>
-  </div>
-
-  <div class="toc-box">
-    <h3 style="margin-top:0;">Table of Contents</h3>
-    <ul>
-      {''.join(toc_items)}
-    </ul>
-    <h3>Dramatis Personae</h3>
-    <ul>
-      {dp_items or '<li>No POV characters registered.</li>'}
-    </ul>
-  </div>
-
-  {''.join(volume_sections)}
-</div>
-</body>
-</html>
-"""
-    atomic_write(output_path, html_content)
-    return output_path
+    return render_omnibus_html(omnibus_report, output_path)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -443,7 +345,13 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
+__all__ = [
+    "VolumeData",
+    "compile_omnibus_manuscript",
+    "discover_series_volumes",
+    "generate_omnibus_html_reader",
+    "main",
+]
+
 if __name__ == "__main__":
     main()
-
-

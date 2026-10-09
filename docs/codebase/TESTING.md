@@ -10,7 +10,7 @@
 
 
 ```bash
-# Run all automated unit and integration tests (353+ tests across 48 modules)
+# Run all automated unit and integration tests (404+ tests across 55 modules)
 python -m unittest discover tests
 
 # Run high-performance multi-core parallel test runner (~2.49s)
@@ -19,6 +19,8 @@ python scripts/test_parallel.py
 # Run specific engine test suite
 python -m unittest tests.test_scope
 python -m unittest tests.test_registry
+python -m unittest tests.test_word_counter
+python -m unittest tests.test_writing_sprint
 python -m unittest tests.test_revision_heatmap
 python -m unittest tests.test_portfolio
 python -m unittest tests.test_epistemic_safety
@@ -33,7 +35,7 @@ python -m unittest tests.test_backup_pure_python
 # Run coverage report with threshold enforcement
 coverage run -m unittest discover tests; coverage report --fail-under=80
 
-# Run type safety verification (90 source files clean)
+# Run type safety verification (112 source files clean)
 mypy --explicit-package-bases scripts tests
 ```
 
@@ -47,8 +49,8 @@ mypy --explicit-package-bases scripts tests
 
 | Scope | Covered? | Typical target | Notes |
 |---|---|---|---|
-| Unit | Yes | All 14 core domain engines, data access layer, YAML parser, and helper libraries | 100% engine coverage, pure standard library |
-| Integration | Yes | CLI dispatcher, Pure-Python Backups & Restores, DOCX roundtrips, Snapshot milestones | Verifies end-to-end data pipelines |
+| Unit | Yes | All 17 core domain engines, data access layer, YAML parser, and helper libraries | 100% engine coverage, pure standard library |
+| Integration | Yes | CLI dispatcher, Pure-Python Backups & Restores, DOCX roundtrips, Snapshot milestones, Writing Sprint sessions | Verifies end-to-end data pipelines |
 | Ecosystem Cohesion | Yes | CLI dispatch, alias routing, retirement doctrine guidance ([`tests/test_ecosystem_cohesion.py`](file:///tests/test_ecosystem_cohesion.py)) | Verifies seamless multi-engine interplay |
 | Security / Invariants | Yes | [`tests/test_security_remediations.py`](file:///tests/test_security_remediations.py), [`tests/test_path_traversal_defense.py`](file:///tests/test_path_traversal_defense.py), [`tests/test_threat_model.py`](file:///tests/test_threat_model.py) | Validates regex sanitization, Windows device name defense, CSP, XML stream scanning, and restore directory protection |
 
@@ -61,7 +63,7 @@ mypy --explicit-package-bases scripts tests
 ### 5) Coverage and Quality Signals
 
 - Coverage tool + threshold: 80% aggregate coverage enforced in `pyproject.toml` (`fail_under = 80`); 0 test failures or errors permitted.
-- Current reported coverage: 353+ tests collected across 48 test modules (353 passed, 0 failures) with 82%+ aggregate coverage in $\approx 2.49$ seconds via parallel runner (`scripts/test_parallel.py`).
+- Current reported coverage: 404+ tests collected across 55 test modules (404 passed, 0 failures) with 81%+ aggregate coverage in $\approx 2.49$ seconds via parallel runner (`scripts/test_parallel.py`).
 - Known gaps/flaky areas: None. All tests are 100% deterministic and offline.
 
 ### 6) Evidence

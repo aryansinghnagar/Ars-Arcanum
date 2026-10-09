@@ -12,37 +12,6 @@ import sys
 from collections.abc import Callable
 
 
-def _handle_new(dispatch_script_fn: Callable[[str, list[str]], int], rest: list[str]) -> int:
-    """Handle 'arcanum new <type> <NAME>' sub-dispatch."""
-    if not rest:
-        print(
-            "Usage: arcanum new <manuscript|draft|world|universe|volume> <NAME> [options]",
-            file=sys.stderr,
-        )
-        return 2
-    sub_type = rest[0].lower()
-    sub_args = rest[1:]
-    _new_dispatch: dict[str, tuple[str, list[str]]] = {
-        "manuscript": ("arcanum", ["new", "manuscript"]),
-        "novel": ("arcanum", ["new", "manuscript"]),
-        "book": ("arcanum", ["new", "manuscript"]),
-        "draft": ("arcanum", ["draft"]),
-        "revision": ("arcanum", ["draft"]),
-        "world": ("arcanum", ["new", "world"]),
-        "lore": ("arcanum", ["new", "world"]),
-        "vault": ("arcanum", ["new", "world"]),
-        "universe": ("arcanum", ["new", "universe"]),
-        "cosmos": ("arcanum", ["new", "universe"]),
-        "volume": ("arcanum", ["add-volume"]),
-        "book-volume": ("arcanum", ["add-volume"]),
-    }
-    entry = _new_dispatch.get(sub_type)
-    if entry:
-        return dispatch_script_fn(entry[0], [*entry[1], *sub_args])
-    print(f"Unknown project type '{sub_type}'. Choose: manuscript, draft, world, universe, volume.", file=sys.stderr)
-    return 2
-
-
 def _handle_matter(dispatch_sub_fn: Callable[[str, list[str]], int], rest: list[str]) -> int:
     """Handle 'arcanum matter [build]' default sub-dispatch."""
     if rest and rest[0] == "build":
@@ -125,7 +94,21 @@ DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "switchboard": ("handler", "tool"), "plugins": ("handler", "tool"),
     "doc": ("handler", "doc"), "docs": ("handler", "doc"), "explain": ("handler", "doc"),
     "guide": ("handler", "doc"), "craft-docs": ("handler", "doc"),
-    "new": ("handler", "new"), "create": ("handler", "new"),
+
+    # --- Project Lifecycle & Scaffolding (Native Pure-Python) ---
+    "new": ("module", "lib.project_scaffold", "new"), "create": ("module", "lib.project_scaffold", "new"),
+    "scaffold": ("module", "lib.project_scaffold", "new"), "manuscript-scaffold": ("module", "lib.project_scaffold", "new"),
+    "universe": ("module", "lib.project_scaffold", "universe"), "cosmos": ("module", "lib.project_scaffold", "universe"),
+    "world": ("module", "lib.project_scaffold", "world"), "init-world": ("module", "lib.project_scaffold", "world"),
+    "manuscript": ("module", "lib.project_scaffold", "manuscript"), "novel": ("module", "lib.project_scaffold", "manuscript"),
+    "novella": ("module", "lib.project_scaffold", "novella"), "short-story": ("module", "lib.project_scaffold", "novella"),
+    "serial": ("module", "lib.project_scaffold", "serial"), "webserial": ("module", "lib.project_scaffold", "serial"),
+    "volume": ("module", "lib.project_scaffold", "volume"), "add-volume": ("module", "lib.project_scaffold", "volume"),
+    "draft": ("module", "lib.draft_manager"), "drafts": ("module", "lib.draft_manager"),
+    "words": ("module", "lib.word_counter"), "wordcount": ("module", "lib.word_counter"),
+    "report": ("module", "lib.word_counter"), "count": ("module", "lib.word_counter"),
+    "sprint": ("module", "lib.writing_sprint"), "writing-sprint": ("module", "lib.writing_sprint"),
+    "velocity": ("module", "lib.writing_sprint", "stats"),
 
     # --- Retained Core Engines: Revision & Editorial ---
     "compare": ("module", "lib.manuscript_diff"), "diff": ("module", "lib.manuscript_diff"),
@@ -145,7 +128,9 @@ DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "import": ("module", "lib.importer"), "importer": ("module", "lib.importer"),
     "import-manuscript": ("module", "lib.importer"), "scrivener-import": ("module", "lib.importer"),
 
-    # --- Retained Core Engines: Publishing Pipeline ---
+    # --- Retained Core Engines: Publishing Pipeline (Native Pure-Python) ---
+    "publish": ("module", "lib.publisher"), "export": ("module", "lib.publisher"),
+    "compile": ("module", "lib.publisher"),
     "preflight": ("module", "lib.preflight"), "pre-flight": ("module", "lib.preflight"),
     "prepress": ("module", "lib.preflight"),
     "matter": ("handler", "matter"), "frontmatter": ("handler", "matter"),
@@ -173,15 +158,7 @@ DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "scope": ("module", "lib.scope"), "target-scope": ("module", "lib.scope"),
     "engine-scope": ("module", "lib.scope"),
 
-    # --- Script Shell Entry Points ---
-    "draft": ("script", "arcanum", "draft"), "drafts": ("script", "arcanum", "draft"),
-    "publish": ("script", "arcanum", "export"), "export": ("script", "arcanum", "export"),
-    "compile": ("script", "arcanum", "export"),
-    "universe": ("script", "arcanum", "universe"), "cosmos": ("script", "arcanum", "universe"),
-    "world": ("script", "arcanum", "world"), "init-world": ("script", "arcanum", "world"),
-    "manuscript": ("script", "arcanum", "manuscript"), "novel": ("script", "arcanum", "manuscript"),
-    "volume": ("script", "arcanum", "add-volume"), "add-volume": ("script", "arcanum", "add-volume"),
-    "words": ("script", "arcanum", "words"), "wordcount": ("script", "arcanum", "words"),
+    # --- Standalone Python/Shell Scripts ---
     "query": ("script", "init_query.py"), "synopsis": ("script", "init_query.py"),
     "verify": ("script", "verify.sh"), "test": ("script", "verify.sh"),
     "setup": ("script", "setup_arcanum.sh"),
@@ -203,7 +180,6 @@ DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "theology": ("handler", "pruned_cosmology"), "heresy": ("handler", "pruned_cosmology"),
     "structure": ("handler", "pruned_structure"), "beats": ("handler", "pruned_structure"),
     "paradigm": ("handler", "pruned_structure"), "paradigms": ("handler", "pruned_structure"),
-    "scaffold": ("handler", "pruned_structure"), "manuscript-scaffold": ("handler", "pruned_structure"),
     "plot": ("handler", "pruned_plot"), "plot-matrix": ("handler", "pruned_plot"),
     "subplot": ("handler", "pruned_plot"), "matrix": ("handler", "pruned_plot"),
     "canvas": ("handler", "pruned_canvas"), "corkboard": ("handler", "pruned_canvas"),
@@ -212,7 +188,6 @@ DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "time-travel": ("handler", "pruned_causality"), "paradox": ("handler", "pruned_causality"),
     "timeline": ("handler", "pruned_timeline"), "timeline-sync": ("handler", "pruned_timeline"),
     "prophecy": ("handler", "pruned_prophecy"), "oracle": ("handler", "pruned_prophecy"),
-    "sprint": ("handler", "pruned_sprint"), "writing-sprint": ("handler", "pruned_sprint"),
     "dramatis_personae": ("handler", "pruned_cast"), "cast": ("handler", "pruned_cast"),
     "dramatis": ("handler", "pruned_cast"),
     "conlang": ("handler", "pruned_conlang"), "lexicon": ("handler", "pruned_conlang"),
@@ -257,7 +232,6 @@ def build_handlers_map(
     return {
         "tool": _handle_tool,
         "doc": handle_doc_fn,
-        "new": lambda rest: _handle_new(dispatch_script_fn, rest),
         "matter": lambda rest: _handle_matter(dispatch_sub_fn, rest),
         "doctor": lambda rest: _handle_doctor(dispatch_sub_fn, rest),
         "engines": handle_engines_fn,
@@ -310,7 +284,6 @@ __all__ = [
     "DISPATCH_TABLE",
     "_handle_doctor",
     "_handle_matter",
-    "_handle_new",
     "_handle_pruned",
     "_handle_tool",
     "build_handlers_map",

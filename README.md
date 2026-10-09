@@ -5,8 +5,8 @@
 
 [![Release: v0.1.0](https://img.shields.io/badge/Release-v0.1.0-blue.svg)](CHANGELOG.md)
 [![Status: Sovereign Craft Studio](https://img.shields.io/badge/Status-Sovereign%20Studio-brightgreen.svg)](#)
-[![Tests: 353+](https://img.shields.io/badge/Tests-353%2B%20Passing%20(100%25)-brightgreen.svg)](#)
-[![Coverage: 80%+](https://img.shields.io/badge/Coverage-80%25%2B-brightgreen.svg)](#)
+[![Tests: 404](https://img.shields.io/badge/Tests-404%20Passing%20(100%25)-brightgreen.svg)](#)
+[![Coverage: 81%](https://img.shields.io/badge/Coverage-81%25-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
 
@@ -28,10 +28,12 @@ All manuscripts and lore vaults are stored in **standard CommonMark Markdown** (
 |:--|:--|
 | **🎯 Altitude-Aware Scoping** | Execute craft engines on exact slices: scenes (`--scenes 1-3`), chapters (`-c 1-5`, `ch01..ch05`), books (`-b 1-2`), lore categories, or worlds without whole-vault overhead. |
 | **🪐 World Bible Ecosystem** | Obsidian-compatible vault architecture with 32 pre-configured offline community plugins and structured schemas for characters, cultures, pantheons, genealogies, and magic systems. |
+| **⚡ Word Count & Velocity Studio** | Unicode prose tokenization with CriticMarkup removal, spoken dialogue vs. narrative ratio, reading times, stateful Pomodoro sprint timers, rolling WPM velocity meters, and standalone offline HTML5 Velocity Studio (`arcanum words`, `arcanum sprint`). |
+| **🌿 Draft Branching & Lineage** | Multi-draft branching, immutable milestone snapshots, and interactive visual HTML draft lineage tree visualizer (`arcanum draft`). |
 | **✍️ Editorial & Churn Telemetry** | Structural markdown diffs (`arcanum diff`), editing density heatmaps (`arcanum heatmap`), and multi-manuscript catalog portfolio dashboards (`arcanum portfolio`). |
 | **🔄 Bidirectional Sync** | Seamless roundtrip Markdown ↔ DOCX synchronization (`arcanum sync`) and zero-dependency standard manuscript submission builder (`arcanum docx`). |
-| **🔮 Sovereign Core Engines & Toolchain** | 14 sovereign core Python engines alongside an integrated toolchain (PolyGlot, Gramps, Wonderdraft, Celestia, StarGen, Typst) across Linguistics, Genealogy, Cartography, Astrophysics, Pacing, Economy, and Narrative Geometry. |
-| **📚 Sub-Second Typesetting & Publishing** | Single-command compilation to print-ready PDF (Typst presets), clean EPUB (Pandoc), submission DOCX (William Shunn format), and multi-volume series omnibus compilation (`arcanum omnibus`). |
+| **🔮 Sovereign Core Engines & Toolchain** | 17 sovereign core Python engines alongside an integrated toolchain (PolyGlot, Gramps, Wonderdraft, Celestia, StarGen, Typst) across Linguistics, Genealogy, Cartography, Astrophysics, Pacing, Economy, and Narrative Geometry. |
+| **📚 Sub-Second Typesetting & Publishing** | Single-command compilation to print-ready PDF (Typst presets), clean EPUB (Pandoc), submission DOCX (William Shunn format), and multi-volume series omnibus compilation (`arcanum omnibus`, `arcanum publish`). |
 | **🔒 Immutable Safety & Cryptography** | POSIX/Windows atomic file writes (`atomic_write`), cross-platform file locking (`ArcanumLock`), SHA-256 backup verification, and GPG encryption (`arcanum backup`, `arcanum restore`, `arcanum snapshot`). |
 | **🩺 Unified Health Diagnostics** | Complete system health, toolchain inspection, and vault link consistency doctor (`arcanum doctor`). |
 
@@ -143,25 +145,39 @@ powershell -ExecutionPolicy Bypass -File scripts\setup_arcanum.ps1
 ### 2. Launching CLI Commands
 
 ```bash
-# Unified system health & toolchain diagnostics
+# 1. Unified system health & toolchain diagnostics
 python scripts/arcanum doctor
 
-# Structural markdown diff visualizer
+# 2. Manuscript prose word count, dialogue ratio & velocity studio
+python scripts/arcanum words Manuscript/ --pov --dialogue --html dist/velocity_studio.html
+
+# 3. Stateful Pomodoro drafting sprint & habit telemetry
+python scripts/arcanum sprint start Manuscript/ --target 500 --minutes 25
+python scripts/arcanum sprint status Manuscript/
+python scripts/arcanum sprint stop Manuscript/
+python scripts/arcanum sprint stats Manuscript/
+
+# 4. Multi-draft branching, immutable milestones & visual lineage
+python scripts/arcanum draft new Manuscript/ Draft-02 --parent Draft-01 --milestone "Revision"
+python scripts/arcanum draft tree Manuscript/ --html dist/draft_lineage.html
+
+# 5. Structural markdown diff visualizer
 python scripts/arcanum diff Draft-01 Draft-02 --html diff_report.html
 
-# Manuscript revision density & editing churn heatmap
+# 6. Manuscript revision density & editing churn heatmap
 python scripts/arcanum heatmap --chapters 1-5 --export-html heatmap.html
 
-# Multi-manuscript portfolio dashboard
+# 7. Multi-manuscript portfolio catalog dashboard
 python scripts/arcanum portfolio --html portfolio.html
 
-# Bidirectional Markdown <-> DOCX synchronization
+# 8. Bidirectional Markdown <-> DOCX synchronization
 python scripts/arcanum sync pull --docx manuscript.docx
 
-# Multi-volume series omnibus compiler
+# 9. Multi-volume series omnibus & publication compiler
 python scripts/arcanum omnibus compile --format epub
+python scripts/arcanum publish Manuscript/ --format all
 
-# Cryptographically verified standalone archive
+# 10. Cryptographically verified standalone archive
 python scripts/arcanum backup --tag milestone-1
 ```
 
@@ -205,16 +221,16 @@ python scripts/arcanum backup --tag milestone-1
 Ars Arcanum enforces strict deterministic quality gates across POSIX and Windows:
 
 ```bash
-# 1. Full 48-module parallel test discovery (353+ tests, 0 failures)
+# 1. Full 55-module parallel test discovery (404 tests, 0 failures)
 python scripts/test_parallel.py
 
 # 2. Strict Ruff linter pass (0 violations)
 ruff check .
 
-# 3. Strict Mypy static type checking across all 90 source files
+# 3. Strict Mypy static type checking across all 112 source files
 mypy --explicit-package-bases scripts tests
 
-# 4. Coverage Threshold Enforcement (>= 80%)
+# 4. Coverage Threshold Enforcement (>= 80%, currently 81%)
 coverage run -m unittest discover tests; coverage report --fail-under=80
 
 # 5. Canonical POSIX Integration Verification Harness

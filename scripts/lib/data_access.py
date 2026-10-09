@@ -21,10 +21,10 @@ from typing import Any
 
 try:
     from lib._bootstrap import count_prose_words
-    from lib.frontmatter import extract_frontmatter_and_body
+    from lib.frontmatter import extract_frontmatter_and_body, parse_yaml_document
 except ImportError:
     from _bootstrap import count_prose_words
-    from frontmatter import extract_frontmatter_and_body
+    from frontmatter import extract_frontmatter_and_body, parse_yaml_document
 
 logger = logging.getLogger("arcanum.data_access")
 
@@ -170,6 +170,19 @@ class DataAccessLayer:
 
     # Backward-compatibility alias
     parse_frontmatter_and_body = parse_frontmatter
+
+    def read_manifest(self, manifest_path: Path | str) -> dict[str, Any]:
+        """Reads and parses a YAML/JSON manifest file (e.g. manuscript.yaml, world.yaml) using cache."""
+        p = Path(manifest_path).resolve()
+        content = self.read_file(p)
+        if not content:
+            return {}
+        try:
+            res = parse_yaml_document(content)
+            return res if isinstance(res, dict) else {}
+        except Exception as e:
+            logger.debug("Failed parsing manifest at %s: %s", p, e)
+            return {}
 
     def get_word_count(self, file_path: Path | str) -> int:
         """Returns cached canonical prose word count for a file."""

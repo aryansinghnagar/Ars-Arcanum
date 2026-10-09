@@ -10,6 +10,7 @@ all World Bibles, world vaults, and manuscript files.
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 
@@ -371,6 +372,75 @@ def parse_frontmatter(text: str) -> tuple[dict[str, Any], bool]:
         return {}, False
 
 
+def _serialize_scalar(val: Any) -> str:
+    """Serializes a Python scalar into a standard YAML representation."""
+    if val is None:
+        return "null"
+    if isinstance(val, bool):
+        return "true" if val else "false"
+    if isinstance(val, (int, float)):
+        return str(val)
+    s = str(val)
+    if not s:
+        return '""'
+    # Check if quotes are required
+    if any(c in s for c in (':', '#', '{', '}', '[', ']', ',', '&', '*', '?', '|', '-', '<', '>', '=', '!', '%', '@', '\\', '"', "'", '\n')):
+        escaped = s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
+        return f'"{escaped}"'
+    # Numeric lookalikes or boolean strings should be quoted
+    if s.lower() in ("true", "false", "yes", "no", "null", "none", "~") or re.match(r"^[+-]?\d+(?:\.\d+)?$", s):
+        return f'"{s}"'
+    return s
+
+
+def serialize_yaml_document(data: dict[str, Any], indent: int = 0) -> str:
+    """Serializes a Python dictionary into a pure YAML document."""
+    lines: list[str] = []
+    prefix = "  " * indent
+
+    for key, val in data.items():
+        k_str = str(key)
+        if isinstance(val, dict):
+            if not val:
+                lines.append(f"{prefix}{k_str}: {{}}")
+            else:
+                lines.append(f"{prefix}{k_str}:")
+                nested = serialize_yaml_document(val, indent=indent + 1)
+                lines.append(nested)
+        elif isinstance(val, list):
+            if not val:
+                lines.append(f"{prefix}{k_str}: []")
+            else:
+                lines.append(f"{prefix}{k_str}:")
+                for item in val:
+                    if isinstance(item, dict):
+                        # First key of dict on same line as hyphen
+                        dict_lines = serialize_yaml_document(item, indent=indent + 2).splitlines()
+                        if dict_lines:
+                            first = dict_lines[0].lstrip()
+                            lines.append(f"{prefix}  - {first}")
+                            for rem in dict_lines[1:]:
+                                lines.append(rem)
+                        else:
+                            lines.append(f"{prefix}  - {{}}")
+                    elif isinstance(item, list):
+                        lines.append(f"{prefix}  - {json.dumps(item)}")
+                    else:
+                        lines.append(f"{prefix}  - {_serialize_scalar(item)}")
+        else:
+            lines.append(f"{prefix}{k_str}: {_serialize_scalar(val)}")
+
+    return "\n".join(lines)
+
+
+def serialize_yaml_frontmatter(data: dict[str, Any], body: str = "") -> str:
+    """Serializes metadata into fenced YAML frontmatter with markdown body."""
+    yaml_str = serialize_yaml_document(data)
+    if body:
+        return f"---\n{yaml_str}\n---\n\n{body.lstrip()}"
+    return f"---\n{yaml_str}\n---\n"
+
+
 def extract_frontmatter_and_body(content: str) -> tuple[dict[str, Any], str]:
     """Splits markdown content into frontmatter metadata dictionary and body text."""
     fm_match = FRONTMATTER_REGEX.match(content)
@@ -387,8 +457,11 @@ __all__ = [
     "FRONTMATTER_REGEX",
     "_coerce_scalar",
     "_parse_yaml_lines",
+    "_serialize_scalar",
     "extract_frontmatter_and_body",
     "parse_frontmatter",
     "parse_yaml_document",
     "parse_yaml_frontmatter",
+    "serialize_yaml_document",
+    "serialize_yaml_frontmatter",
 ]

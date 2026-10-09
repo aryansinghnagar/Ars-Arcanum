@@ -15,7 +15,7 @@
 
 | Dependency | Version | Role in system | Evidence |
 |------------|---------|----------------|----------|
-| Python Standard Library (`sqlite3`, `math`, `json`, `dataclasses`, `enum`, `pathlib`, `urllib.parse`, `tarfile`, `hashlib`) | 3.10+ | Primary execution runtime for 14 core engines: diff, heatmap, portfolio, sync, docx, importer, diagnostics, config, cache, fs_utils, migrate, preflight, codex_export, omnibus | [`scripts/lib/_bootstrap.py#L1-L50`](file:///scripts/lib/_bootstrap.py#L1-L50), [`scripts/lib/cli.py#L1-L50`](file:///scripts/lib/cli.py#L1-L50) |
+| Python Standard Library (`sqlite3`, `math`, `json`, `dataclasses`, `enum`, `pathlib`, `urllib.parse`, `tarfile`, `hashlib`) | 3.10+ | Primary execution runtime for 17 core engines: diff, heatmap, portfolio, sync, docx, importer, diagnostics, config, cache, fs_utils, migrate, preflight, codex_export, omnibus, snapshot, word_counter, writing_sprint | [`scripts/lib/_bootstrap.py#L1-L50`](file:///scripts/lib/_bootstrap.py#L1-L50), [`scripts/lib/cli.py#L1-L50`](file:///scripts/lib/cli.py#L1-L50) |
 | Typst | `>= 0.11.0` (musl static binary) | Print-on-demand & PDF rendering engine | [`scripts/arcanum#L180-L240`](file:///scripts/arcanum#L180-L240), [`docs/TYPOGRAPHY.md`](file:///docs/TYPOGRAPHY.md) |
 | Pandoc | `>= 2.19.x` (tested on `3.1.x`) | Document AST converter (Markdown $\to$ Typst/DOCX/HTML) | [`docs/COMPATIBILITY.md#L9-L16`](file:///docs/COMPATIBILITY.md#L9-L16), [`scripts/arcanum#L180-L240`](file:///scripts/arcanum#L180-L240) |
 | Obsidian | `md.obsidian.Obsidian` (desktop app) | Worldbuilding vault interface (32 pre-configured offline plugins with SHA-256 manifest) | [`templates/world-bible/.obsidian/plugins/manifest.json`](file:///templates/world-bible/.obsidian/plugins/manifest.json), [`docs/guides/OBSIDIAN_PLUGINS.md`](file:///docs/guides/OBSIDIAN_PLUGINS.md) |
@@ -27,9 +27,9 @@
 | Tool | Purpose | Evidence |
 |------|---------|----------|
 | Ruff | Strict linting across rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | [`pyproject.toml#L15-L35`](file:///pyproject.toml#L15-L35), [`.github/workflows/ci.yml#L25-L35`](file:///.github/workflows/ci.yml#L25-L35) |
-| Mypy | Strict static type checking with `check_untyped_defs = True` (90 source files clean) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py#L1-L40`](file:///tests/test_type_safety.py#L1-L40) |
-| Unittest | Automated test discovery & regression test execution (353+ tests, 100% pass) | [`tests/test_*.py`](file:///tests/), [`.github/workflows/ci.yml#L30-L40`](file:///.github/workflows/ci.yml#L30-L40) |
-| Coverage | Test coverage enforcement and reporting (`fail_under = 80`) | [`pyproject.toml#L35-L45`](file:///pyproject.toml#L35-L45) |
+| Mypy | Strict static type checking with `check_untyped_defs = True` (112 source files clean) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py#L1-L40`](file:///tests/test_type_safety.py#L1-L40) |
+| Unittest | Automated test discovery & regression test execution (404+ tests across 55 modules, 100% pass) | [`tests/test_*.py`](file:///tests/), [`.github/workflows/ci.yml#L30-L40`](file:///.github/workflows/ci.yml#L30-L40) |
+| Coverage | Test coverage enforcement and reporting (`fail_under = 80`, achieving 81%+) | [`pyproject.toml#L35-L45`](file:///pyproject.toml#L35-L45) |
 
 ### 4) Key Commands
 
@@ -37,19 +37,19 @@
 # Standard package installation
 pip install -e .
 
-# Full test discovery suite (353+ tests across 48 modules)
+# Full test discovery suite (404+ tests across 55 modules)
 python -m unittest discover tests
 
 # High-performance parallel test runner (~2.49s execution)
 python scripts/test_parallel.py
 
-# Coverage report enforcement (80%+ aggregate coverage)
+# Coverage report enforcement (81%+ aggregate coverage)
 coverage run -m unittest discover tests; coverage report --fail-under=80
 
 # Strict linter pass (0 violations)
 ruff check .
 
-# Static type checker pass across all source files (0 errors)
+# Static type checker pass across all source files (0 errors across 112 files)
 mypy --explicit-package-bases scripts tests
 
 # Master verification run (POSIX)

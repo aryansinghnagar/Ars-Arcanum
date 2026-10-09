@@ -29,7 +29,7 @@ class TestRegistry(unittest.TestCase):
 
     def test_registry_contains_core_and_craft_engines(self):
         reg = get_registry()
-        self.assertEqual(len(reg), 14)
+        self.assertEqual(len(reg), 17)
 
         # Check core engines present
         core = get_core_engines()
@@ -42,10 +42,14 @@ class TestRegistry(unittest.TestCase):
         self.assertIn("diagnostics", core_names)
         self.assertIn("manuscript_diff", core_names)
         self.assertIn("portfolio", core_names)
+        self.assertIn("word_counter", core_names)
+        self.assertIn("writing_sprint", core_names)
         self.assertIn("importer", core_names)
         self.assertIn("preflight", core_names)
         self.assertIn("frontmatter_builder", core_names)
         self.assertIn("omnibus", core_names)
+        self.assertIn("draft_manager", core_names)
+
 
         # Check craft engines present
         craft = get_craft_engines()
@@ -127,7 +131,8 @@ class TestRegistry(unittest.TestCase):
 
     def test_get_all_engine_docs(self):
         all_docs = get_all_engine_docs()
-        self.assertEqual(len(all_docs), 14)
+        self.assertEqual(len(all_docs), 17)
+
         for d in all_docs:
             self.assertIn("name", d)
             self.assertIn("title", d)
