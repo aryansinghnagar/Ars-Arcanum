@@ -1,4 +1,5 @@
 ---
+fileClass: Cosmology
 type: cosmology
 name: "<% tp.file.title %>"
 aliases:
@@ -45,7 +46,7 @@ moons:
 - **Theological Heresy Detector**: `cosmology` (`arcanum cosmology --heresies`) — Flags doctrinal contradictions, schisms, and theological paradoxes.
 - **Ritual Catalyst Validation**: `cosmology` (`arcanum cosmology --rituals`) — Validates sacred component requirements, divine covenants, and astronomical alignments.
 - **Calendar & Timekeeping Synchronizer**: `calendar` (`arcanum calendar`) — Directly configures planetary day lengths, month divisions, weekday cycles, and moon periods for in-universe date tracking.
-- **Ecclesiastical Faction Alliances**: Links religious dogmas with political power structures in `factions` and holy relics in `artifacts`.
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/Cosmology.md`.
 
 ### How to Use for Your Projects:
 1. Define the metaphysical domain and whether the deity is an active living entity, an abstract ideal, or an ancient cosmic construct.

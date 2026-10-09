@@ -43,18 +43,20 @@ flowchart TD
 
 ---
 
-## 🔍 The 6-Channel Sensory Immersion Matrix
+## 🔍 The 8-Channel Sensory Immersion Matrix
 
-To ensure deep immersion, every chapter should touch at least 4 of the 6 sensory channels:
+To ensure deep immersion, every chapter should ground the reader across multiple modalities from the 8 sensory channels:
 
 | Sensory Channel | Somatic Prompt | Concrete In-World Prose Example |
 | :--- | :--- | :--- |
-| **1. Visual** | Light angle, contrasting textures, motion. | *"Silver moonlight sliced through the shattered leaded glass, illuminating floating dust motes above the pool of ink."* |
-| **2. Auditory** | Background drone, sudden timbre changes. | *"The hollow groan of iron hinges broke the rhythmic patter of rain against the roof tiles."* |
-| **3. Olfactory** | Atmospheric scent markers, weather odors. | *"The sharp bite of ozone and bitter pine resin overpowered the familiar mustiness of rotting vellum."* |
-| **4. Gustatory** | Somatic mouthfeel, stress tastes. | *"The coppery tang of adrenaline coated the roof of his mouth as his teeth clamped down."* |
-| **5. Tactile** | Surface textures, temperature gradients. | *"The damp limestone balustrade sucked the heat from his palms through worn leather gloves."* |
-| **6. Kinesthetic** | Acceleration, balance, vertigo, exhaustion. | *"His center of gravity slipped on the rain-greased slate; gravity lurched sickeningly in his stomach."* |
+| **1. Visual** | Light angle, contrasting textures, silhouettes, motion. | *"Silver moonlight sliced through the shattered leaded glass, illuminating floating dust motes above the pool of ink."* |
+| **2. Auditory** | Background drone, sudden timbre changes, acoustic reverberation. | *"The hollow groan of iron hinges broke the rhythmic patter of rain against the cedar roof beams."* |
+| **3. Olfactory** | Atmospheric scent markers, weather odors, chemical vapours. | *"The sharp bite of ozone and bitter pine resin overpowered the familiar mustiness of rotting vellum."* |
+| **4. Gustatory** | Somatic mouthfeel, stress tastes, saliva viscosity. | *"The coppery tang of adrenaline coated the roof of his mouth as his teeth clamped down against the shock."* |
+| **5. Tactile** | Surface textures, micro-textures, frictional drag. | *"The damp limestone balustrade sucked the heat from his palms through worn lambskin gloves."* |
+| **6. Proprioceptive / Kinesthetic** | Acceleration, balance, vertigo, limb weight, inertia. | *"His center of gravity slipped on the rain-greased slate; gravity lurched sickeningly in his stomach as the parapet dropped away."* |
+| **7. Thermal / Microclimate** | Temperature gradients, radiant heat, wind chill, humidity. | *"A wave of blistering aetheric heat radiated from the bronze conduit, scorching the fine hairs along his forearms."* |
+| **8. Visceral / Interoceptive** | Heart rate spikes, diaphragmatic spasm, adrenaline surge, gut clench. | *"A sharp knot tightened beneath his sternum; his diaphragm seized as the high warning horn shook the stone floors."* |
 
 ---
 
@@ -64,3 +66,16 @@ To ensure deep immersion, every chapter should touch at least 4 of the 6 sensory
   > *"We have to leave now," Kaelen said urgently. "They're at the gate," he added fearfully.*
 - ✅ **Use Grounded Somatic Action Beats**:
   > *Kaelen slammed the heavy cedar folio shut and jammed the iron key into his belt.* *"We have thirty seconds before those hinges give way."*
+
+---
+
+## 📝 Collaborative Editorial Markup (CriticMarkup / Commentator)
+
+Ars Arcanum integrates natively with the **Commentator** Obsidian plugin using standard CriticMarkup:
+
+- **Addition**: `{++The silver focus flared with blinding intensity.++}`
+- **Deletion**: `{--He felt slightly anxious about the storm.--}`
+- **Substitution**: `{~~He looked at the door~>He kicked the oak timber inward~~}`
+- **Highlight & Editorial Note**: `{==Kaelen held the seal==}{>>Check canon timeline: did he retrieve this before or after Chapter 2?<<}`
+- **Inline Comment**: `{>>Ensure Motivation-Reaction Unit follows Stimulus -> Involuntary -> Action sequence.<<}`
+

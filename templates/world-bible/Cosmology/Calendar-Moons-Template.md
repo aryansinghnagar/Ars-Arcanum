@@ -1,4 +1,5 @@
 ---
+fileClass: CalendarSystem
 type: calendar_system
 name: "<% tp.file.title %>"
 calendar_name: "Valdorian Solar-Lunar Standard"
@@ -49,6 +50,7 @@ grand_conjunction_cycle_days: 420
 ### Features Demonstrated in This Template:
 - **Synodic Lunar Phase Tracker**: `calendar` (`arcanum calendar --date 1442-08-15 --phases`) — Computes real-time illumination percentages (New, Crescent, Quarter, Gibbous, Full) for all orbiting moons simultaneously.
 - **Multi-Moon Conjunction Auditor**: `calendar` (`arcanum calendar --syzygy-scan 50years`) — Forecasts rare triple/quadruple moon syzygies, solar/lunar eclipses, and extreme tidal surges.
+- **Calendarium Obsidian Plugin Integration**: `calendarium` — Direct compatibility with custom in-vault calendars, custom months, leap rules, and `fc-date` timeline events.
 - **Intercalary Leap Year Rule**: `calendar` (`arcanum calendar --validate-drift`) — Applies custom intercalary festival days and leap algorithms to keep seasonal solstices and equinoxes mathematically synchronized.
 
 ### How to Use for Your Projects:

@@ -16,7 +16,7 @@ Welcome to your central worldbuilding hub. Every note created in this vault is i
 
 ### Features Demonstrated in This Index:
 - **Central Knowledge Hub & Codex Exporter**: `codex_export` (`arcanum codex <WorldDir> --html`) — Compiles this entire index and linked notes into a standalone, searchable offline HTML encyclopedia.
-- **Dynamic Dataview Aggregation**: Real-time structured query tables for characters, locations, factions, battles, astrophysics, conlangs, and writing sprints.
+- **Dynamic Dataview Aggregation**: Real-time structured query tables for characters, locations, factions, battles, councils, idioms, astrophysics, conlangs, and writing sprints.
 - **System Doctor & Integrity Audits**: `world_doctor` (`arcanum doctor`) — Scans all notes indexed here for broken cross-references, orphan files, and frontmatter parse errors.
 - **Offline Semantic Search**: `local_rag` (`arcanum rag "query"`) — Uses TF-IDF and SQLite FTS5 to index all vault markdown content for offline contextual query retrieval.
 
@@ -35,12 +35,12 @@ Welcome to your central worldbuilding hub. Every note created in this vault is i
 | **Getting Started** | 🚀 **[[00_START_HERE\|Minimum Viable World Bible Guide]]** | — |
 | **Characters & Cast**| 👤 **[[Characters/Character-Template\|Character Vault (Detailed)]]** | ⚡ **[[Characters/Character-Quickstart-Template\|Quickstart Character Card]]**<br/>🗣️ **[[Characters/Character-Voice-Profile-Template\|Character Voice Profile]]**<br/>👑 **[[Characters/Genealogy-Dynasty-Template\|Genealogy & Dynasties]]** |
 | **Geography & Travel**| 🗺️ **[[Locations/Location-Template\|World Atlas & Geography]]** | 🌦️ **[[Locations/Climate-Biome-Template\|Climate & Köppen Biomes]]**<br/>🧭 **[[Locations/Cartography-Route-Template\|Cartography & Travel Routes]]** |
-| **Factions & Warfare**| ⚔️ **[[Factions/Faction-Template\|Factions & Diplomatic Matrix]]** | 🛡️ **[[Factions/Tactical-Skirmish-Battle-Template\|Tactical Battle Simulator]]** |
+| **Factions & Politics**| ⚔️ **[[Factions/Faction-Template\|Factions & Diplomatic Matrix]]** | 🛡️ **[[Factions/Tactical-Skirmish-Battle-Template\|Tactical Battle Simulator]]**<br/>🏛️ **[[Factions/Deliberative-Council-Debate-Template\|Council Debates & Dialectics]]** |
 | **Magic & Science** | ⚡ **[[Magic-Technology/Magic-Tech-System-Template\|Magic & Tech Systems]]** | 🗡️ **[[Artifacts/Artifact-Relic-Template\|Relics & Arcane Foci]]** |
 | **Bestiary & Ecology**| 🐾 **[[Bestiary/Creature-Flora-Fauna-Template\|Bestiary & Species]]** | 🌿 **[[Bestiary/Ecology-Food-Web-Template\|Ecology & Trophic Webs]]** |
 | **Cosmology & Time** | ✨ **[[Cosmology/Deity-Cosmology-Template\|Pantheons & Cosmology]]** | 🌌 **[[Cosmology/Astrophysics-System-Template\|Astrophysics & Orbital Mechanics]]**<br/>📅 **[[Cosmology/Calendar-Moons-Template\|Calendars & Lunar Phases]]**<br/>🔮 **[[Cosmology/Prophecy-Template\|Prophecy Lifecycle Tracker]]**<br/>🕸️ **[[Cosmology/Resonance-Mesh-Template\|Universal Resonance Mesh]]** |
 | **History & Causality**| ⏳ **[[History/Timeline-Event-Template\|Historical Chronology]]** | 🔀 **[[History/Causality-Timeline-Branch-Template\|Causality & Multiverse Branches]]** |
-| **Linguistics** | 🗣️ **[[Languages/Glossary-Conlang-Template\|Linguistics & Conlangs]]** | — |
+| **Linguistics & Culture**| 🗣️ **[[Languages/Glossary-Conlang-Template\|Linguistics & Conlangs]]** | 📜 **[[Languages/Idioms-Proverbs-Culture-Template\|Idioms & Cultural Proverbs]]** |
 | **Macroeconomics** | 💰 **[[Economies/Economy-Template\|Macroeconomics & Currencies]]** | — |
 | **Drafting Tools** | 📝 **[[Templates/Daily-Writing-Log\|Writing Sprint Logs]]** | 🎬 **[[Templates/Scene-Note-Template\|Scene & Sequel Worksheets]]** |
 | **System & Ops** | ⚙️ **[[Templates/System-Engineering-and-Ops-Guide\|System & Ops Guide]]** | 🛠️ **[[../manuscript/Outlines/Revision-Diff-and-Diagnostics-Workflow\|Revision & Diff Workflow]]** |
@@ -83,7 +83,7 @@ SORT file.name ASC
 
 ---
 
-## 🗣️ Languages & Dialects
+## 🗣️ Languages, Dialects & Cultural Idioms
 ```dataview
 TABLE language_family as "Family", spoken_by as "Spoken By", status as "Status", writing_system as "Writing System"
 FROM #world/language

@@ -1,4 +1,5 @@
 ---
+fileClass: MagicSystem
 type: magic_tech_system
 name: "<% tp.file.title %>"
 aliases:
@@ -40,6 +41,7 @@ hard_limitations:
 - **Sanderson Three Laws Auditor**: `magic_system` (`arcanum magic audit World-Bible/`) — Evaluates narrative problem-solving viability, costs/limitations over raw power, and systemic world extrapolation according to Sanderson's Three Laws of Magic.
 - **Arcane Cost & Backlash Ledger**: `magic_system` (`arcanum calc magic --tier 3 --cost thermal --duration 120`) — Evaluates thermodynamic energy budgets, metabolic calorie draw, somatic tissue backlash curves, and catalyst durability degradation.
 - **Cross-Domain Resonance**: Links directly with `tactical_sim` (battlefield shield calculations) and `artifacts` (catalyst attunement limits).
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/MagicSystem.md`.
 
 ### How to Use for Your Projects:
 1. Define the exact physical fuel source and thermodynamic cost (energy cannot come from nowhere).
@@ -99,3 +101,13 @@ The human nervous system acts as a living transformer. Any inefficiency in the w
 ## 5. Artifacts, Catalysts & Conductor Metallurgy
 - **Refined Silver (Purity 99.9%)**: Primary thermal sink used in all [[Artifacts/Artifact-Relic-Template|Focus-Pendants]].
 - **Vitriol Quartz**: Solidified aether crystal that can store up to 3 casting charges before fracturing.
+
+---
+
+## 6. Associated Spellcasters & Practitioners
+```dataview
+TABLE role as "Role", magic_tier as "Tier", catalyst as "Focus Catalyst", faction as "Faction"
+FROM #world/character
+WHERE magic_ability = this.file.link OR contains(magic_ability, "Aether")
+SORT magic_tier DESC
+```

@@ -1,9 +1,12 @@
 ---
+fileClass: WritingLog
 type: daily_writing_log
 date: "<% tp.date.now('YYYY-MM-DD') %>"
 words_written: 1250
 writing_time_minutes: 45
 wpm_velocity: 27.8
+goal: 1000
+dailyGoal: 1000
 target_words_daily: 1000
 project: "[[Manuscripts/The-Silver-Chronicles/Book-01|The-Silver-Chronicles]]"
 scene_worked_on: "[[Book-01/01_Act_I/01_Chapter_01|Chapter-01]]"
@@ -26,18 +29,17 @@ tags:
 <summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
 
 ### Features Demonstrated in This Template:
-- **Sprint Interval Timer & Productivity Heatmap**: `writing_sprint` (`arcanum sprint start --target 500 --minutes 25`, `arcanum sprint report`) — Tracks real-time word output velocity, Pomodoro intervals, rolling WPM velocity meters, and exports session progress reports without cloud telemetry.
+- **Writing Goals & Novel Word Count Plugins**: `writing-goals` / `novel-word-count` — Directly interoperates with in-vault word progress rings, daily sprint milestones (`dailyGoal: 1000`), and file explorer word badges.
+- **Sprint Interval Timer & Productivity Heatmap**: `writing_sprint` (`arcanum sprint start --target 500 --minutes 25`, `arcanum sprint report`) — Tracks real-time word output velocity, Pomodoro intervals, and rolling WPM velocity meters without cloud telemetry.
+- **Commentator CriticMarkup Track Changes**: `commentator` — Native support for inline editorial markup (`{++added++}`, `{--cut--}`, `{~~old~>new~~}`, `{==note==}{>>critique<<}`).
 - **Catalog Analytics Overview & Drafting Velocity Forecast**: `portfolio` (`arcanum portfolio`) — Aggregates daily output across multiple active projects into rolling velocity curves, milestone completion forecasts, and Daily Habit Streak Tracker metrics.
-- **Offline White/Pink/Brown Noise Synthesizer & Binaural Beat Synthesizer**: `ambient` (`arcanum ambient --preset rain --binaural 6.0`) — Generates offline procedural soundscapes and binaural frequency layers to lock in deep drafting focus.
+- **Offline Binaural Synthesizer**: `ambient` (`arcanum ambient --preset rain --binaural 6.0`) — Generates offline procedural soundscapes and binaural frequency layers to lock in deep drafting focus.
 - **Distraction-Free Zen Editor & In-Situ Lore Drawer**: `zen_studio` (`arcanum zen Book-01/01_Act_I/01_Chapter_01.md`, `arcanum zen --lore-drawer`) — Provides full-screen drafting with vertical Typewriter Mode centering and an expandable In-Situ Lore Drawer.
-- **Browser-Based Workspace Hub & Live Telemetry Dashboard**: `studio_hub` (`arcanum hub --port 8080`) — Renders a unified workspace with real-time word count telemetry and a built-in Craft Science Encyclopedia Viewer.
-- **Cache Invalidation & Sweeper & mtime AST Indexer**: `cache` (`arcanum cache warm`, `arcanum cache clear`) — In-memory caching for instant word count aggregation and frontmatter hashing.
 
 ### How to Use for Your Projects:
 1. Log your daily writing sprints in `Templates/Daily-Writing-Log.md`.
 2. Launch `arcanum zen` or `arcanum hub` to draft inside dedicated, distraction-free authoring environments.
 3. The central [[Templates/World-Bible-Index|World Bible Index]] automatically aggregates recent writing sessions into a Dataview progress table.
-4. Track your WPM velocity across different scenes to discover your personal peak writing times.
 </details>
 
 ---
@@ -59,9 +61,10 @@ tags:
 
 ---
 
-## 📝 Breakthroughs & Prose Wins
+## 📝 Breakthroughs & Editorial Revisions (CriticMarkup)
 - Paced the arrival of the guards with the acoustic tolling of the Seventh Spire.
 - Grounded the sensory atmosphere with the smell of iron gall ink and damp cedar smoke.
+- *Sample Revision*: {--Kaelen was terrified by the sound.--}{++Cold terror seized Kaelen's throat as iron splintered cedar.++}{>>Sharpened somatic impact.<<}
 
 ---
 

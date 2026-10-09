@@ -1,4 +1,5 @@
 ---
+fileClass: GenealogyHouse
 type: genealogy_house
 name: "<% tp.file.title %>"
 house_name: "House Valdoria"
@@ -7,6 +8,9 @@ tags:
   - world/faction
 seat_of_power: "[[Locations/Location-Template|High-Sanctuary]]"
 founding_year: 840
+fc-date: "0840-01-01"
+fc-calendar: "Valdorian Solar-Lunar Standard"
+fc-category: "Genealogy"
 succession_law: "Agnatic-Cognatic Primogeniture"
 current_head: "[[Characters/Character-Template|Lord-Alden-Valdoria]]"
 heir_apparent: "[[Characters/Character-Template|Protagonist]]"
@@ -25,7 +29,7 @@ heraldry: "A silver falcon clutching a sapphire compass on an obsidian field"
 # <% tp.file.title %> — Dynastic House & Lineage
 
 > [!NOTE] ⚠️ EDUCATIONAL TEMPLATE (AI-GENERATED)
-> **Notice**: This template was AI-generated for educational demonstration and craft guidance within the Ars Arcanum operating system. It is strictly non-commercial and provided solely to demonstrate system features, metadata schemas, and engine capabilities. Authors should replace placeholder values with their original worldbuilding details.
+> **Notice**: This template was AI-generated for educational demonstration and craft guidance within the Ars Arcanum operating system. It is strictly non-commercial and provided solely to demonstrate system features, mechanical schemas, and engine capabilities. Authors should replace placeholder values with their original worldbuilding details.
 
 <details>
 <summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
@@ -33,12 +37,13 @@ heraldry: "A silver falcon clutching a sapphire compass on an obsidian field"
 ### Features Demonstrated in This Template:
 - **Succession Claim Roster**: `genealogy` (`arcanum genealogy --succession 'House Valdoria'`) — Generates legitimate inheritance claim rankings under Agnatic/Cognatic Primogeniture, Tanistry, or Ultimogeniture.
 - **Wright Inbreeding Calculator**: `genealogy` (`arcanum genealogy --inbreeding-check 'Lord-Alden-Valdoria'`) — Calculates Wright's coefficient of relationship and consanguinity to prevent accidental genetic contradictions.
-- **Mermaid Tree Exporter & Ahnentafel Builder**: `genealogy` (`arcanum genealogy --mermaid 'House Valdoria'`) — Renders automatic visual family tree diagrams and pedigree ancestor numbers.
+- **Charted Roots & Canvas Roots Integration**: `charted-roots` — Automatically builds interactive visual family trees on Obsidian Canvas directly from note frontmatter.
+- **Mermaid Pedigree Exporter**: `genealogy` (`arcanum genealogy --mermaid 'House Valdoria'`) — Renders automatic visual family tree diagrams and Ahnentafel ancestor numbers.
 
 ### How to Use for Your Projects:
 1. Define the `succession_law` and list the primary dynastic line.
 2. In each individual character note, set `parents: [...]`, `spouses: [...]`, and `house: "[[House-Name]]"`.
-3. Run `arcanum genealogy` to automatically generate visual pedigree trees (Mermaid / SVG).
+3. Open with **Charted Roots** or run `arcanum genealogy` to generate pedigree lineage charts.
 </details>
 
 ---
@@ -76,3 +81,13 @@ graph TD
 - **Ancestral Blade**: [[Artifacts/Artifact-Relic-Template|The-Silver-Verdict]] (Forged in 920 during the First Cataclysm).
 - **Citadel & Fortifications**: [[Locations/Location-Template|High-Sanctuary]] — Imperial fortress built into the granite spires.
 - **Primary Source of Wealth**: Aether-refining monopolies and toll rights along the Silver River.
+
+---
+
+## 4. Roster of Living Scions & House Members
+```dataview
+TABLE role as "Role", born as "Birth Year", title as "Title", current_location as "Location"
+FROM #world/character
+WHERE house = this.file.link OR contains(house, "Valdoria")
+SORT born ASC
+```

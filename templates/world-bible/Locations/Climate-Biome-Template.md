@@ -1,4 +1,5 @@
 ---
+fileClass: ClimateBiome
 type: climate_biome
 name: "<% tp.file.title %>"
 biome_name: "Highland Cloud Forest"

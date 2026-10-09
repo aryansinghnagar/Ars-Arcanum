@@ -1,4 +1,5 @@
 ---
+fileClass: TimelineEvent
 type: timeline_event
 name: "<% tp.file.title %>"
 aliases:
@@ -13,6 +14,10 @@ start_year: 920
 end_year: 922
 start_date: "0920-04-12"
 end_date: "0922-10-30"
+fc-date: "0920-04-12"
+fc-end: "0922-10-30"
+fc-calendar: "Valdorian Solar-Lunar Standard"
+fc-category: "History"
 primary_location: "[[Locations/Location-Template|High-Sanctuary]]"
 key_participants:
   - "[[Characters/Character-Template|Archmage-Theron]]"
@@ -34,9 +39,11 @@ downstream_consequences:
 <summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
 
 ### Features Demonstrated in This Template:
-- **Historical Chronology & Timeline Validator**: `world_doctor` & `continuity` (`arcanum doctor`) — Validates chronological date ranges (`start_year` $\le$ `end_year`), era ordering (`1e` < `2e` < `3e`), and verifies that characters active in this event were alive during these dates.
+- **Historical Chronology & Timeline Validator**: `world_doctor` & `continuity` (`arcanum doctor World-Bible/`) — Validates chronological date ranges (`start_year` $\le$ `end_year`), era ordering (`1e` < `2e` < `3e`), and verifies that characters active in this event were alive during these dates.
+- **Calendarium & April's Automatic Timelines**: `calendarium` / `aprils-automatic-timelines` — Directly compatible with timeline renders via `fc-date` and `fc-end` metadata.
 - **Dual-Track Timeline Synchronization**: `timeline_sync` (`arcanum timeline sync`) — Synchronizes master historical chronological timestamps with narrative chapter flashback scenes.
 - **Causal Precursor & Dependency Ledger**: Interlocks with `causality` to prevent circular historical causality.
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/TimelineEvent.md`.
 
 ### How to Use for Your Projects:
 1. Use consistent integer years (`920`) or ISO dates (`0920-04-12`) in frontmatter.

@@ -1,4 +1,5 @@
 ---
+fileClass: Creature
 type: creature
 name: "<% tp.file.title %>"
 aliases:
@@ -32,10 +33,11 @@ rarity: Rare
 <summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
 
 ### Features Demonstrated in This Template:
-- **Ecology & Food Web Simulator**: `ecology` (`arcanum calc ecology --trophic 4 --prey "Highland-Rock-Hare"`) — Models Lindeman 10% trophic efficiency cascades, predator-prey Lotka-Volterra population cycles, and biomass carrying capacities.
+- **Ecology & Food Web Simulator**: `ecology` (`arcanum ecology --trophic 4 --prey "Highland-Rock-Hare"`) — Models Lindeman 10% trophic efficiency cascades, predator-prey Lotka-Volterra population cycles, and biomass carrying capacities.
 - **Bioaccumulation & Metabolic Energy Constraints**: Calculates realistic hunting territories based on daily caloric demand and prey density.
-- **Sensory Immersion Heatmap**: `senses` (`arcanum senses`) — Provides sharp auditory and tactile descriptive anchors for wilderness encounters.
+- **8-Channel Sensory Immersion Palette**: `senses` (`arcanum senses`) — Provides sharp auditory and tactile descriptive anchors for wilderness encounters.
 - **Harvestable Reagent Economy**: Interlocks with `economy` and `magic_system` to define material trade values for alchemical catalysts.
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/Creature.md`.
 
 ### How to Use for Your Projects:
 1. Assign the correct `trophic_level` (1 to 5) and list realistic `dietary_prey`.

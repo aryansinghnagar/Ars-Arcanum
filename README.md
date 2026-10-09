@@ -5,7 +5,7 @@
 
 [![Release: v0.1.0](https://img.shields.io/badge/Release-v0.1.0-blue.svg)](CHANGELOG.md)
 [![Status: Sovereign Craft Studio](https://img.shields.io/badge/Status-Sovereign%20Studio-brightgreen.svg)](#)
-[![Tests: 336+](https://img.shields.io/badge/Tests-336%2B%20Passing%20(100%25)-brightgreen.svg)](#)
+[![Tests: 353+](https://img.shields.io/badge/Tests-353%2B%20Passing%20(100%25)-brightgreen.svg)](#)
 [![Coverage: 80%+](https://img.shields.io/badge/Coverage-80%25%2B-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
@@ -205,7 +205,7 @@ python scripts/arcanum backup --tag milestone-1
 Ars Arcanum enforces strict deterministic quality gates across POSIX and Windows:
 
 ```bash
-# 1. Full 48-module parallel test discovery (336+ tests, 0 failures)
+# 1. Full 48-module parallel test discovery (353+ tests, 0 failures)
 python scripts/test_parallel.py
 
 # 2. Strict Ruff linter pass (0 violations)

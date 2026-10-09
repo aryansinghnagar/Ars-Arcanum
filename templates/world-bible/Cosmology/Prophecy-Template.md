@@ -1,4 +1,5 @@
 ---
+fileClass: Prophecy
 type: prophecy
 name: "<% tp.file.title %>"
 aliases:
@@ -9,6 +10,9 @@ tags:
   - status/unfulfilled
 source: "[[Characters/Character-Template|Archmage-Theron]]"
 date_uttered: "940-06-21"
+fc-date: "0940-06-21"
+fc-calendar: "Valdorian Solar-Lunar Standard"
+fc-category: "Prophecy"
 target_entity: "[[Characters/Character-Template|Protagonist]]"
 status: unfulfilled # unfulfilled, partially_fulfilled, fulfilled, subverted, broken, false
 clauses:
@@ -31,6 +35,7 @@ intended_resolution_mode: "Subverted (Fulfills the letter of the verse but subve
 - **Clause Fulfillment Matrix**: `prophecy` (`arcanum prophecy World-Bible/`) — Tracks clause-by-clause fulfillment progression across acts and volumes (Fulfilled, Subverted, Broken, Self-Fulfilling, False).
 - **Delphic Ambiguity Analyzer**: `prophecy` (`arcanum prophecy World-Bible/ --ambiguity`) — Parses double-meanings and linguistic loopholes in oracle utterances to enable organic narrative twists.
 - **Oracle Provenance Tracker**: `prophecy` (`arcanum prophecy World-Bible/ --provenance`) — Traces original utterance records, political alterations, and transmission corruption over centuries.
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/Prophecy.md`.
 
 ### How to Use for Your Projects:
 1. Break your prophecy into discrete, testable poetic clauses.

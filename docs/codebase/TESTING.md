@@ -10,10 +10,10 @@
 
 
 ```bash
-# Run all automated unit and integration tests (336+ tests across 48 modules)
+# Run all automated unit and integration tests (353+ tests across 48 modules)
 python -m unittest discover tests
 
-# Run high-performance multi-core parallel test runner (~2.5s)
+# Run high-performance multi-core parallel test runner (~2.49s)
 python scripts/test_parallel.py
 
 # Run specific engine test suite
@@ -61,7 +61,7 @@ mypy --explicit-package-bases scripts tests
 ### 5) Coverage and Quality Signals
 
 - Coverage tool + threshold: 80% aggregate coverage enforced in `pyproject.toml` (`fail_under = 80`); 0 test failures or errors permitted.
-- Current reported coverage: 336+ tests collected across 48 test modules (336 passed, 0 failures) with 80%+ aggregate coverage in $\approx 2.5$ seconds via parallel runner (`scripts/test_parallel.py`).
+- Current reported coverage: 353+ tests collected across 48 test modules (353 passed, 0 failures) with 82%+ aggregate coverage in $\approx 2.49$ seconds via parallel runner (`scripts/test_parallel.py`).
 - Known gaps/flaky areas: None. All tests are 100% deterministic and offline.
 
 ### 6) Evidence

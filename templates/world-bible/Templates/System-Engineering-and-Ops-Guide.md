@@ -1,4 +1,5 @@
 ---
+fileClass: SystemEngineeringOps
 type: system_engineering_ops
 name: "<% tp.file.title %>"
 tags:
@@ -15,7 +16,7 @@ schema_version: "2.0.0"
 # System Engineering, Diagnostics & Vault Operations Guide
 
 > [!NOTE] ⚠️ EDUCATIONAL TEMPLATE (AI-GENERATED)
-> **Notice**: This template was AI-generated for educational demonstration and craft guidance within the Ars Arcanum operating system. It is strictly non-commercial and provided solely to demonstrate system features, metadata schemas, and engine capabilities. Authors should replace placeholder values with their original vault configuration details.
+> **Notice**: This template was AI-generated for educational demonstration and craft guidance within the Ars Arcanum operating system. It is strictly non-commercial and provided solely to demonstrate system features, mechanical schemas, and engine capabilities. Authors should replace placeholder values with their original vault configuration details.
 
 <details>
 <summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
@@ -33,6 +34,7 @@ schema_version: "2.0.0"
 - **Single-File HTML Wiki Exporter & Interactive Spoiler Slider**: `codex_export` (`arcanum codex World-Bible/ --html dist/codex.html --spoiler-protection`) — Builds a standalone HTML knowledge base with interactive spoiler sliders.
 - **Configuration Getter/Setter & Cascading Resolution Inspector**: `config` (`arcanum config set target_words 95000`, `arcanum config trace target_words`) — Inspects and modifies project preferences.
 - **Dynamic Intelligent Tips Subfeatures**: `tips` (`arcanum tip`) — Includes **Contextual Relevance Filter**, **Non-Obvious Masterclass Database**, **Zero-Stall History Cycling**, **Sovereign Display Configuration**, and **Cross-Platform Ambient Presentation**.
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/SystemEngineeringOps.md`.
 
 ### How to Use for Your Projects:
 1. Run `arcanum doctor` regularly to keep your wikilink network clean and free of dead references.

@@ -1,4 +1,5 @@
 ---
+fileClass: Language
 type: language
 name: "<% tp.file.title %>"
 aliases:
@@ -9,10 +10,11 @@ tags:
   - status/active
 language_family: "Proto-Valdorian"
 spoken_by: "[[Factions/Faction-Template|Order-of-the-Silver-Dawn]], Monastic Scribes of [[Locations/Location-Template|High-Sanctuary]]"
-status: Liturgical
+status: Liturgical # Living, Liturgical, Extinct, Secret Cant
 writing_system: "Linear Silver Runic Script"
-consonants: [p, t, k, b, d, g, s, z, m, n, l, r, v, f, th, sh]
-vowels: [a, e, i, o, u, ae, au]
+phonetic_inventory:
+  consonants: [p, t, k, b, d, g, s, z, m, n, l, r, v, f, th, sh]
+  vowels: [a, e, i, o, u, ae, au]
 syllable_structures: ["CV", "CVC", "CCV", "V", "VC"]
 forbidden_clusters: ["pw", "tl", "sr", "kp", "bn"]
 sonority_hierarchy: "Vowels > Glides (w, j) > Liquids (l, r) > Nasals (m, n) > Fricatives (f, v, s, z) > Stops (p, t, k, b, d, g)"
@@ -21,6 +23,8 @@ sound_changes:
   - "p > f / V_V (Intervocalic lenition)"
   - "k > ch / _[e,i] (Palatalization before front vowels)"
   - "m > n / _# (Word-final nasal neutralization)"
+rootweave_version: "0.2.2"
+languageforge_schema: "1.1.0"
 ---
 
 # <% tp.file.title %> — Conlang Phonology & Lexicon
@@ -33,9 +37,11 @@ sound_changes:
 
 ### Features Demonstrated in This Template:
 - **Phonotactic Syllable Generator**: `conlang` (`arcanum conlang generate --template CVC --count 20`) — Enforces sonority sequencing hierarchies and filters illegal consonant clusters.
+- **Rootweave & LanguageForge Integration**: `rootweave` / `languageforge` — Native Obsidian plugin support for in-vault morpheme inventories, word construction, and naming culture generation.
 - **Historical Sound Shift Simulator**: `conlang` (`arcanum conlang mutate --rules "p>f/V_V"`) — Simulates diachronic sound shifts (Grimm's / Verner's law style mutations) across daughter languages.
 - **Leipzig Gloss Parser**: `conlang` (`arcanum conlang gloss "val-aen ther-a"`) — Standardizes interlinear morphological morpheme annotations and grammatical case markers.
-- **Glossary Compiler & Dramatis Personae Indexer**: `concordance` (`arcanum concordance Manuscripts/Book-01 -w World-Bible/`) — Compiles alphabetized in-world glossaries with chapter citations into publication backmatter.
+- **Glossary Compiler & Concordance**: `concordance` (`arcanum concordance Manuscripts/Book-01 -w World-Bible/`) — Compiles alphabetized in-world glossaries with chapter citations into publication backmatter.
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/Language.md`.
 
 ### How to Use for Your Projects:
 1. Define your language's consonant and vowel inventories, syllable templates, and forbidden consonant clusters.

@@ -1,4 +1,5 @@
 ---
+fileClass: TacticalBattle
 type: tactical_battle
 name: "<% tp.file.title %>"
 battle_name: "The Battle of the Silver Ridge"
@@ -7,6 +8,9 @@ tags:
   - world/history
 location: "[[Locations/Location-Template|Whispering-Vale]]"
 date: "1248-09-14"
+fc-date: "1248-09-14"
+fc-calendar: "Valdorian Solar-Lunar Standard"
+fc-category: "Battle"
 weather: "Heavy Rain & Dense Fog"
 terrain_type: "Narrow Montane Ridge & Choke Defile"
 attacker_faction: "[[Factions/Faction-Template|Order-of-the-Silver-Dawn]]"
@@ -42,6 +46,7 @@ defender_casualties: 2150
 - **Lanchester Battle Resolver**: `tactical_sim` (`arcanum tactical battle --attacker FactionA --defender FactionB --terrain ridge`) — Solves differential Lanchester attrition equations ($dx/dt = -\beta y$, $dy/dt = -\alpha x$) modulated by terrain elevation multipliers, troop frontage, discipline, and weapon lethality.
 - **Choreography Beat Generator**: `tactical_sim` (`arcanum tactical battle --choreography`) — Synthesizes dramatic squad-level turning points, heroic duels, and commander crisis decisions for high-tension chapter drafting.
 - **Morale Breaking Points & Rout Cascades**: Tracks cohesion decay curves and shock breakpoints where retreating units trigger domino panic.
+- **Calendarium & Timeline Integration**: Linked via `fc-date` for automated inclusion in battle chronologies and war agendas.
 
 ### How to Use for Your Projects:
 1. Define unit numbers, commander traits, and tactical terrain modifiers.

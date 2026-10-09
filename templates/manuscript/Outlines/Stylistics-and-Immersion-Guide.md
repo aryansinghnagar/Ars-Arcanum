@@ -54,13 +54,26 @@
 
 ---
 
-## 🎨 Sensory Distribution Balance Across Acts
+## 🎨 8-Channel Sensory Distribution Balance Across Acts
 
 ```mermaid
-pie title Recommended Sensory Channel Distribution in Speculative Prose
-    "Visual (Lighting, Color, Silhouettes)" : 35
-    "Auditory (Echoes, Timbre, Rhythm)" : 25
-    "Tactile & Somatic (Texture, Temp, Viscera)" : 20
-    "Olfactory & Gustatory (Scents, Tastes)" : 15
-    "Kinesthetic (Balance, Inertia, Vertigo)" : 5
+pie title Recommended 8-Channel Sensory Distribution in Speculative Prose
+    "Visual (Lighting, Color, Silhouettes)" : 30
+    "Auditory (Echoes, Timbre, Rhythm)" : 20
+    "Tactile (Surface Textures, Micro-textures)" : 15
+    "Thermal / Microclimate (Heat, Chill, Humidity)" : 10
+    "Visceral / Interoceptive (Pulse, Diaphragm, Adrenaline)" : 10
+    "Olfactory (Atmospheric Scents, Vapours)" : 5
+    "Gustatory (Mouthfeel, Stress Tastes)" : 5
+    "Proprioceptive / Kinesthetic (Balance, Inertia, Vertigo)" : 5
 ```
+
+---
+
+## 🔌 Obsidian Plugin Ecosystem Integration
+
+- **LanguageTool / write-good**: Automated offline linting for cliches, weasel words, and passive constructions in real-time drafting.
+- **Writing Goals Plugin**: Set session word targets (`dailyGoal: 1500`) and track chapter velocity directly from the status bar.
+- **Commentator (CriticMarkup)**: Inline collaborative editing (`{++addition++}`, `{--deletion--}`, `{~~substitution~>replacement~~}`, `{==highlight==}{>>note<<}`).
+- **Dataview**: Query chapter-level readability scores and filter word frequency metrics across the entire manuscript vault.
+

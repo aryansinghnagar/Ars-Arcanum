@@ -1,4 +1,5 @@
 ---
+fileClass: VoiceProfile
 type: voice_profile
 name: "<% tp.file.title %>"
 character: "[[Characters/Character-Template|Character-Name]]"
@@ -10,12 +11,15 @@ lexical_richness: 0.84
 avg_sentence_length_words: 11.2
 dialogue_rhythm: "Staccato-Analytical"
 primary_dialect: "High-Court-Imperial"
+favorite_idioms:
+  - "Measure the wind before cursing the storm"
+  - "The ledger balance must hold"
 ---
 
 # <% tp.file.title %> — Character Voice Profile
 
 > [!NOTE] ⚠️ EDUCATIONAL TEMPLATE (AI-GENERATED)
-> **Notice**: This template was AI-generated for educational demonstration and craft guidance within the Ars Arcanum operating system. It is strictly non-commercial and provided solely to demonstrate system features, metadata schemas, and engine capabilities. Authors should replace placeholder values with their original worldbuilding details.
+> **Notice**: This template was AI-generated for educational demonstration and craft guidance within the Ars Arcanum operating system. It is strictly non-commercial and provided solely to demonstrate system features, mechanical schemas, and engine capabilities. Authors should replace placeholder values with their original worldbuilding details.
 
 <details>
 <summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
@@ -23,7 +27,8 @@ primary_dialect: "High-Court-Imperial"
 ### Features Demonstrated in This Template:
 - **Idiolect Uniqueness Scorer**: `voice` (`arcanum voice Manuscripts/Book-01 --character Kaelen`) — Evaluates vocabulary uniqueness, formality scores (0.0 to 1.0), and lexical richness (Type-Token Ratio) to ensure unmistakable character identity.
 - **Voice Bleed Matrix**: `voice` (`arcanum voice Manuscripts/Book-01 --bleed-matrix`) — Measures cross-character dialogue homogenization and alerts when secondary characters begin sounding identical to the protagonist.
-- **Sentence Length Waveform**: `pacing` (`arcanum pacing`) — Checks dialogue rhythm and average sentence length distribution across high-stakes vs quiet scenes.
+- **Gary Provost Sentence Rhythm**: `sentence-rhythm` / `pacing` (`arcanum pacing Manuscripts/Book-01`) — Color-codes sentence length variations and checks dialogue cadence across high-stakes vs quiet scenes.
+- **Style Linting Integration**: Integrates with `write-good`, `valeon`, and `readability-score` to ensure dialogue matches intended formality without passive voice clutter.
 
 ### How to Use for Your Projects:
 1. Create a voice profile note for each primary POV and major secondary character.

@@ -1,4 +1,5 @@
 ---
+fileClass: TimelineBranch
 type: timeline_branch
 name: "<% tp.file.title %>"
 branch_id: "Timeline-Branch-Alpha-920"
@@ -31,6 +32,7 @@ reconciliation_pathway: "Reconverges at the Second Cataclysm in Year 1300"
 - **Multiverse Branch Visualizer**: `causality` (`arcanum causality branch Alpha-920 --divergence-point 920`) — Renders interactive branching multiverse trees comparing world state deltas across timelines.
 - **Bilocation Conflict Detector**: `timeline_sync` (`arcanum timeline sync`) — Validates that characters and relics cannot exist simultaneously in separate geographic or temporal coordinates without explicit branching mechanisms.
 - **Anachrony Visualizer**: `timeline_sync` (`arcanum timeline sync --anachrony`) — Maps historical flashbacks and framing chronologies against linear narrative time.
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/TimelineBranch.md`.
 
 ### How to Use for Your Projects:
 1. Specify the exact historical event and year where the branch diverges from the prime canon.

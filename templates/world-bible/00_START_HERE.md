@@ -16,11 +16,12 @@ Welcome to your **Ars Arcanum World Bible**! This sovereign lore vault is design
 <summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
 
 ### Features Demonstrated in This Ecosystem:
-- **Core Lore Validation**: `world_doctor` (`arcanum doctor`) — Audits your vault for broken wikilinks, orphan notes, timeline contradictions, and missing frontmatter schemas.
+- **Core Lore Validation**: `world_doctor` (`arcanum doctor World-Bible/`) — Audits your vault for broken wikilinks, orphan notes, timeline contradictions, and missing frontmatter schemas.
 - **Dynamic Craft Wisdom**: `tips` (`arcanum tip`) — Ambiently provides non-obvious masterclass craft advice tailored to your active worldbuilding domain.
 - **Local Semantic Retrieval**: `local_rag` & `corpus_export` (`arcanum rag`, `arcanum corpus`) — Index your lore notes into offline TF-IDF and SQLite FTS5 vectors for sovereign search and local LLM context feeding.
 - **Single-File Wiki Publishing**: `codex_export` (`arcanum codex <WorldDir> --html`) — Compiles your entire world into a standalone offline HTML encyclopedia with interactive spoiler shields.
 - **Cross-Domain Knowledge Mesh**: `resonance` (`arcanum resonance mesh`) — Maps connections between your celestial physics, languages, factions, magic systems, and manuscript scenes.
+- **Obsidian Community Plugins (32 Plugins Pre-Configured)**: Seamless integration with Dataview, Calendarium, Leaflet, Metadata Menu, Charted Roots, Rootweave, LanguageForge, Commentator, Sentence Rhythm, Longform, Noveler, Writing Goals, Typewriter Mode, and more.
 
 ### How to Use the Templates for Your Projects:
 1. **Never worldbuild to procrastinate**: Start with the 3-Step Quickstart below. Only flesh out lore categories as your story demands them.
@@ -61,31 +62,33 @@ As your narrative unfolds, create new lore notes when they appear in your draft 
 
 | Lore Domain | Target Folder | Dedicated Template | Underlying Craft Engines & Functions |
 | :--- | :--- | :--- | :--- |
-| **Characters & Cast** | `Characters/` | [[Characters/Character-Template\|Character-Template]] | `continuity`, `dramatis_personae`, `series_continuity` |
+| **Characters & Cast** | `Characters/` | [[Characters/Character-Template\|Character-Template]] | `continuity`, `dramatis_personae`, `series_continuity`, `Charted Roots` |
 | **Character Quickstart** | `Characters/` | [[Characters/Character-Quickstart-Template\|Character-Quickstart-Template]] | `world_doctor`, `dramatis_personae` |
-| **Dialogue & Voice** | `Characters/` | [[Characters/Character-Voice-Profile-Template\|Character-Voice-Profile-Template]] | `voice` (formality, lexical richness, rhythm) |
-| **Dynasties & Lineages** | `Characters/` | [[Characters/Genealogy-Dynasty-Template\|Genealogy-Dynasty-Template]] | `genealogy` (pedigrees, succession rules, houses) |
-| **Locations & Atlas** | `Locations/` | [[Locations/Location-Template\|Location-Template]] | `cartography`, `senses`, `continuity` |
+| **Dialogue & Voice** | `Characters/` | [[Characters/Character-Voice-Profile-Template\|Character-Voice-Profile-Template]] | `voice` (formality, lexical richness, rhythm, `Sentence Rhythm`) |
+| **Dynasties & Lineages** | `Characters/` | [[Characters/Genealogy-Dynasty-Template\|Genealogy-Dynasty-Template]] | `genealogy` (pedigrees, succession rules, `Charted Roots`) |
+| **Locations & Atlas** | `Locations/` | [[Locations/Location-Template\|Location-Template]] | `cartography`, `senses`, `continuity`, `Obsidian Leaflet` |
 | **Climate & Biomes** | `Locations/` | [[Locations/Climate-Biome-Template\|Climate-Biome-Template]] | `climate` (Köppen biomes, rain shadows, insolation) |
-| **Routes & Logistics** | `Locations/` | [[Locations/Cartography-Route-Template\|Cartography-Route-Template]] | `journey` (travel march times, rations, water, baggage) |
-| **Factions & Guilds** | `Factions/` | [[Factions/Faction-Template\|Faction-Template]] | `factions` (diplomacy matrix, alliances, treaties) |
-| **Tactics & Battles** | `Factions/` | [[Factions/Tactical-Skirmish-Battle-Template\|Tactical-Skirmish-Battle-Template]] | `tactical_sim` (troop frontage, morale, Lanchester attrition) |
-| **Magic & Tech Systems** | `Magic-Technology/`| [[Magic-Technology/Magic-Tech-System-Template\|Magic-Tech-System-Template]] | `magic_system` (energy costs, backlash, spell tiers) |
+| **Routes & Logistics** | `Locations/` | [[Locations/Cartography-Route-Template\|Cartography-Route-Template]] | `journey` (travel march times, rations, water, baggage, `Leaflet`) |
+| **Factions & Guilds** | `Factions/` | [[Factions/Faction-Template\|Faction-Template]] | `factions` (diplomacy matrix, alliances, treaties, `Dataview`) |
+| **Tactics & Battles** | `Factions/` | [[Factions/Tactical-Skirmish-Battle-Template\|Tactical-Skirmish-Battle-Template]] | `tactical_sim` (troop frontage, morale, Lanchester attrition, `Calendarium`) |
+| **Council Debates** | `Factions/` | [[Factions/Deliberative-Council-Debate-Template\|Deliberative-Council-Debate-Template]] | `council` (narrative dialectics, voting blocs, Hegelian synthesis) |
+| **Magic & Tech Systems** | `Magic-Technology/`| [[Magic-Technology/Magic-Tech-System-Template\|Magic-Tech-System-Template]] | `magic_system` (energy costs, backlash, spell tiers, Sanderson laws) |
 | **Relics & Artifacts** | `Artifacts/` | [[Artifacts/Artifact-Relic-Template\|Artifact-Relic-Template]] | `magic_system`, `continuity`, `history` |
 | **Bestiary & Wildlife** | `Bestiary/` | [[Bestiary/Creature-Flora-Fauna-Template\|Creature-Flora-Fauna-Template]] | `ecology`, `senses`, `continuity` |
-| **Food Webs & Ecology**| `Bestiary/` | [[Bestiary/Ecology-Food-Web-Template\|Ecology-Food-Web-Template]] | `ecology` (trophic cascades, biomass transfer) |
+| **Food Webs & Ecology**| `Bestiary/` | [[Bestiary/Ecology-Food-Web-Template\|Ecology-Food-Web-Template]] | `ecology` (trophic cascades, biomass transfer, Lindeman 10%) |
 | **Pantheons & Deities** | `Cosmology/` | [[Cosmology/Deity-Cosmology-Template\|Deity-Cosmology-Template]] | `cosmology`, `magic_system`, `factions` |
 | **Astrophysics & Orbits**| `Cosmology/` | [[Cosmology/Astrophysics-System-Template\|Astrophysics-System-Template]] | `astrophysics` (Keplerian orbits, Roche limits, dilation) |
-| **Planetary Calendars** | `Cosmology/` | [[Cosmology/Calendar-Moons-Template\|Calendar-Moons-Template]] | `calendar` (synodic moons, conjunctions, leap cycles) |
+| **Planetary Calendars** | `Cosmology/` | [[Cosmology/Calendar-Moons-Template\|Calendar-Moons-Template]] | `calendar` (synodic moons, conjunctions, leap cycles, `Calendarium`) |
 | **Prophecies & Fate** | `Cosmology/` | [[Cosmology/Prophecy-Template\|Prophecy-Template]] | `prophecy` (fulfillment conditions, subversions, oracle) |
-| **Resonance & Themes** | `Cosmology/` | [[Cosmology/Resonance-Mesh-Template\|Resonance-Mesh-Template]] | `resonance` (cross-domain knowledge mesh, cascades) |
-| **Historical Events** | `History/` | [[History/Timeline-Event-Template\|Timeline-Event-Template]] | `history`, `timeline_sync`, `continuity` |
+| **Resonance & Themes** | `Cosmology/` | [[Cosmology/Resonance-Mesh-Template\|Resonance-Mesh-Template]] | `resonance` (cross-domain knowledge mesh, causal cascades) |
+| **Historical Events** | `History/` | [[History/Timeline-Event-Template\|Timeline-Event-Template]] | `history`, `timeline_sync`, `continuity`, `Calendarium` |
 | **Timeline Branches** | `History/` | [[History/Causality-Timeline-Branch-Template\|Causality-Timeline-Branch-Template]] | `causality` (divergence points, paradox indices) |
-| **Linguistics & Conlangs**| `Languages/` | [[Languages/Glossary-Conlang-Template\|Glossary-Conlang-Template]] | `conlang` (phonotactics, syllable templates, lexicon) |
+| **Linguistics & Conlangs**| `Languages/` | [[Languages/Glossary-Conlang-Template\|Glossary-Conlang-Template]] | `conlang` (phonotactics, syllable templates, `Rootweave`, `LanguageForge`) |
+| **Idioms & Proverbs** | `Languages/` | [[Languages/Idioms-Proverbs-Culture-Template\|Idioms-Proverbs-Culture-Template]] | `idioms` (cultural worldviews, somatic oaths, speculative curses) |
 | **Macroeconomics** | `Economies/` | [[Economies/Economy-Template\|Economy-Template]] | `economy` (currencies, trade routes, inflation, guilds) |
-| **Writing Logs & Sprints**| `Templates/` | [[Templates/Daily-Writing-Log\|Daily-Writing-Log]] | `writing_sprint`, `portfolio`, `ambient`, `zen_studio`, `studio_hub`, `cache` |
-| **Scene Note & Sequel** | `Templates/` | [[Templates/Scene-Note-Template\|Scene-Note-Template]] | `scene_mechanics`, `pacing`, `senses`, `timeline_sync` |
-| **System Ops & Engine Diagnostics** | `Templates/` | [[Templates/System-Engineering-and-Ops-Guide\|System-Engineering-and-Ops-Guide]] | `world_doctor`, `diagnostics`, `cache`, `fs_utils`, `migrate`, `config`, `local_rag`, `corpus_export`, `codex_export`, `resonance`, `tips` |
+| **Writing Logs & Sprints**| `Templates/` | [[Templates/Daily-Writing-Log\|Daily-Writing-Log]] | `writing_sprint`, `portfolio`, `ambient`, `zen_studio`, `Writing Goals`, `Commentator` |
+| **Scene Note & Sequel** | `Templates/` | [[Templates/Scene-Note-Template\|Scene-Note-Template]] | `scene_mechanics`, `pacing`, `senses`, `timeline_sync`, `Commentator` |
+| **System Ops & Diagnostics** | `Templates/` | [[Templates/System-Engineering-and-Ops-Guide\|System-Engineering-and-Ops-Guide]] | `world_doctor`, `diagnostics`, `cache`, `fs_utils`, `migrate`, `config`, `local_rag`, `codex_export` |
 
 ---
 
@@ -93,7 +96,7 @@ As your narrative unfolds, create new lore notes when they appear in your draft 
 
 - **Wikilinks**: Type `[[Character-Name]]` anywhere in notes or draft scenes to create a living link.
 - **Auto-Rosters**: When you set `faction: "[[Faction-Name]]"` in a character note, that character automatically appears in that faction's member table on the [[Templates/World-Bible-Index|World Bible Index]].
-- **Consistency Checking**: Run `arcanum doctor` or click **Doctor Diagnostics** in the Control Center anytime to check for broken links or typos in character names.
+- **Consistency Checking**: Run `arcanum doctor World-Bible/` or click **Doctor Diagnostics** in the Control Center anytime to check for broken links or typos in character names.
 - **Dynamic Craft Advice**: Run `arcanum tip` or `arcanum tip <engine>` to get context-aware worldbuilding advice straight from the engine wisdom registry.
 
 ---
@@ -102,4 +105,4 @@ As your narrative unfolds, create new lore notes when they appear in your draft 
 
 When opening this vault for the first time in Obsidian:
 1. When prompted about **Restricted Mode**, click **"Turn on community plugins"**.
-2. All plugin configurations (`dataview`, `storyline`, `calendarium`, `obsidian-git`, `metadata-menu`, `longform`, `novel-word-count`, `storyteller-suite`, `templater-obsidian`) are already pre-configured in `.obsidian/plugins/` to work seamlessly offline.
+2. All 32 plugin configurations (`dataview`, `storyline`, `calendarium`, `obsidian-git`, `metadata-menu`, `longform`, `novel-word-count`, `storyteller-suite`, `templater-obsidian`, `rootweave`, `languageforge`, `charted-roots`, `commentator`, `sentence-rhythm`, etc.) are already pre-configured in `.obsidian/plugins/` to work seamlessly offline.

@@ -1,4 +1,5 @@
 ---
+fileClass: AstrophysicsSystem
 type: astrophysics_system
 name: "<% tp.file.title %>"
 system_name: "Valdoria Star System"
@@ -40,6 +41,7 @@ lorentz_gamma_at_point_95c: 3.20
 - **Keplerian Ephemeris**: `astrophysics` (`arcanum calc astro orbit --star-mass 1.05 --semi-major 1.04`) — Solves Kepler's Third Law ($T^2 = a^3 / M_*$), stellar insolation flux ($S = L_*/d^2$), and Hill sphere envelope ($r_H \approx a (1-e) (m_p/3M_*)^{1/3}$).
 - **Roche Limit & Rings**: `astrophysics` (`arcanum calc astro roche --planet-radius 6480 --density-ratio 1.2`) — Calculates rigid ($d_R = R_M (2 \rho_M/\rho_m)^{1/3}$) and fluid Roche limits ($d_f \approx 2.44 R_M (\rho_M/\rho_m)^{1/3}$), validating moon stability and planetary ring boundaries.
 - **Time Dilation Converter**: `astrophysics` (`arcanum calc astro dilation --velocity 0.95c --proper-years 2.0`) — Translates ship proper time to coordinate time via Lorentz factor ($\gamma = 1/\sqrt{1 - v^2/c^2}$).
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/AstrophysicsSystem.md`.
 
 ### How to Use for Your Projects:
 1. Specify your primary star's mass and luminosity to automatically compute the habitable zone bounds ($d_{\text{HZ}} = \sqrt{L_*/S}$).

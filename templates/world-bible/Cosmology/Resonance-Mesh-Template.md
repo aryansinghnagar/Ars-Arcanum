@@ -1,4 +1,5 @@
 ---
+fileClass: ResonanceNode
 type: resonance_node
 name: "<% tp.file.title %>"
 resonance_concept: "The Principle of Thermal & Ethical Conservation"
@@ -33,7 +34,7 @@ thematic_leitmotif: "Every illumination demands a commensurate shadow"
 - **Deterministic Causal Cascade**: `resonance` (`arcanum resonance cascade astrophysics --param axial_tilt --val 38.5`) — Simulates downstream repercussions of parameter changes across disparate fields.
 - **Creative Spark Synthesizer**: `resonance` (`arcanum resonance spark astrophysics conlang economy`) — Generates multidisciplinary analogies and plot premises connecting disparate domains.
 - **Multi-Hop Conceptual Bridge**: `resonance` (`arcanum resonance bridge astrophysics voice`) — Finds conceptual pathways connecting two arbitrary craft domains.
-- **Cross-Domain Coherence Audit**: `resonance` (`arcanum resonance audit`) — Validates mutual mathematical and narrative consistency across all engine files.
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/ResonanceNode.md`.
 
 ### How to Use for Your Projects:
 1. Identify your story's central thematic question or foundational physical principle.

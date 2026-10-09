@@ -1,4 +1,5 @@
 ---
+fileClass: Economy
 type: economy
 name: "<% tp.file.title %>"
 aliases:
@@ -39,6 +40,7 @@ primary_trade_route: "[[Locations/Cartography-Route-Template|High-Pass-Road]]"
 - **Commodity Price Calculator**: `economy` (`arcanum calc economy --tech medieval --basket standard`) — Computes realistic commodity basket price distributions, purchasing power parity, and unskilled daily labor wages.
 - **Coinage Debasement Simulator**: `economy` (`arcanum calc economy --debase-silver 0.35`) — Models Gresham's Law, debasement inflation, and specie hoard runs when silver bullion purity drops.
 - **Trade Route Friction & Tariffs**: `economy` — Calculates transportation surcharges and customs tolls along primary trade corridors like [[Locations/Cartography-Route-Template|High-Pass-Road]].
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/Economy.md`.
 
 ### How to Use for Your Projects:
 1. Choose your world's `tech_era` and set the `base_currency`.

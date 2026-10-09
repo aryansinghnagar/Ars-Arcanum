@@ -56,8 +56,8 @@ All prose manuscripts, character dossiers, lore bibles, and timelines are stored
 | Command | Purpose | Verification Source / Evidence | Trigger / CI Enforcement Status |
 |:---|:---|:---|:---|
 | `pip install -e .` | Standard development package installation and entry point registration (`arcanum`, `ars-arcanum`) | [`pyproject.toml#L1-L20`](file:///pyproject.toml#L1-L20) | **Enforced in CI** ([`.github/workflows/ci.yml#L100-L108`](file:///.github/workflows/ci.yml#L100-L108)) |
-| `python -m unittest discover tests` | Full repository Python unit & integration test suite (351 tests across 48 modules, 0 failures) | [`tests/test_*.py`](file:///tests/) | **Enforced in CI** ([`.github/workflows/ci.yml#L76-L81`](file:///.github/workflows/ci.yml#L76-L81)) |
-| `python scripts/test_parallel.py` | High-speed multi-core parallel test runner (~2.2s execution across worker processes) | [`scripts/test_parallel.py`](file:///scripts/test_parallel.py) | Local Developer / Fast Test Loop |
+| `python -m unittest discover tests` | Full repository Python unit & integration test suite (353 tests across 48 modules, 0 failures) | [`tests/test_*.py`](file:///tests/) | **Enforced in CI** ([`.github/workflows/ci.yml#L76-L81`](file:///.github/workflows/ci.yml#L76-L81)) |
+| `python scripts/test_parallel.py` | High-speed multi-core parallel test runner (~2.49s execution across worker processes) | [`scripts/test_parallel.py`](file:///scripts/test_parallel.py) | Local Developer / Fast Test Loop |
 | `python -m unittest tests/test_<module>.py` | Isolated single module unit test execution (e.g. `tests/test_docx_sync.py`) | [`tests/`](file:///tests/) | Developer Rapid Feedback Loop |
 | `ruff check .` | Strict linting across 15 rule sets (`E`, `W`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`, `C4`, `PIE`, `RET`, `RSE`, `FLY`) | [`pyproject.toml#L20-L49`](file:///pyproject.toml#L20-L49) | **Enforced in CI** ([`.github/workflows/ci.yml#L56-L60`](file:///.github/workflows/ci.yml#L56-L60)) |
 | `mypy --config-file mypy.ini --explicit-package-bases scripts tests` | Strict static type checking with `check_untyped_defs = True` (90 source files clean) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25) | **Enforced in CI** ([`.github/workflows/ci.yml#L61-L65`](file:///.github/workflows/ci.yml#L61-L65)) |
@@ -128,10 +128,11 @@ All prose manuscripts, character dossiers, lore bibles, and timelines are stored
 │       ├── registry_specs/    # Domain engine specifications (Editorial, Portfolio, Infrastructure, Publishing)
 │       └── registry.py        # Engine discovery matrix, craft doctrine docs & bibliography formatter
 ├── templates/                 # Scaffolding templates for World Bibles, manuscripts, and universes
-│   ├── world-bible/           # Obsidian lore bible template with 32 pre-configured offline plugins
-│   ├── manuscript/            # Multi-volume book manuscript template with standard acts and chapters
-│   └── typst/                 # Print-ready Typst typesetting templates and genre presets
-└── tests/                     # Comprehensive unittest suite across all domain engines (351 tests in 48 modules)
+│   ├── world-bible/           # Obsidian lore bible (29 templates, 27 Metadata Menu fileClasses, 32 plugins)
+│   ├── manuscript/            # Multi-volume book manuscript & craft blueprints (18 templates & chapter files)
+│   ├── typst/                 # Print-ready Typst typesetting templates and 5 genre presets
+│   └── demo-cosmos/           # Fully hydrated multi-volume universe reference (Eldoria-Cosmos)
+└── tests/                     # Comprehensive unittest suite across all domain engines (353 tests in 48 modules)
 ```
 
 ---
@@ -172,7 +173,7 @@ All prose manuscripts, character dossiers, lore bibles, and timelines are stored
 |:---|:---|:---|
 | **Repository Remote** | `https://github.com/aryansinghnagar/Ars-Arcanum.git` | `git remote -v` |
 | **Active Branch** | `main` | `git branch --show-current` |
-| **HEAD Commit** | `3928e50f06ddd83c08cca8111d72563306c87cb6` | `git log -1` |
+| **HEAD Commit** | `bea611a3a85e6fe9a68ae630bbe941e548545656` | `git log -1` |
 | **Software Version** | `0.1.0` (Beta Release) | [`pyproject.toml#L7`](file:///pyproject.toml#L7), [`scripts/lib/_bootstrap.py#L20`](file:///scripts/lib/_bootstrap.py#L20) |
 | **License** | MIT License | [`LICENSE`](file:///LICENSE), [`pyproject.toml`](file:///pyproject.toml) |
 | **Dependency Model** | Zero-Pip Guarantee (100% Python Standard Library for Core Engines) | [`AGENTS.md#L28-L30`](file:///AGENTS.md#L28-L30) |
@@ -560,7 +561,7 @@ flowchart TD
 
 | Architectural Domain | Confidence Rating | Verification Method & Justification |
 |:---|:---|:---|
-| **Zero-Pip Guarantee & Stdlib Execution** | **High** | 100% verified via 351 unit tests running in clean Python standard library environments without pip packages. |
+| **Zero-Pip Guarantee & Stdlib Execution** | **High** | 100% verified via 353 unit tests running in clean Python standard library environments without pip packages. |
 | **Atomic File Safety & Locking** | **High** | Verified across Linux and Windows in `tests/test_atomic_write.py`, `tests/test_lockfile.py`, and `tests/test_path_traversal_defense.py`. |
 | **Granular Target Scoping** | **High** | Verified in `tests/test_scope.py`, `tests/test_scope_parser.py`, and `tests/test_scope_resolver.py`. |
 | **Content Security Policy & Offline Air-Gap** | **High** | Verified in `tests/test_csp_and_offline_invariants.py` with regex scanning across all generated HTML templates. |

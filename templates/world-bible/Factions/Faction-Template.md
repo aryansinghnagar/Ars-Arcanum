@@ -1,4 +1,5 @@
 ---
+fileClass: Faction
 type: faction
 name: "<% tp.file.title %>"
 aliases:
@@ -42,6 +43,7 @@ motto: "Light without Shadow, Steel without Fear"
 - **Alliance Matrix Exporter**: `factions` (`arcanum factions --matrix --html dist/diplomacy_matrix.html`) — Generates an interactive diplomacy matrix, alliance webs, and rivalry tension graphs.
 - **Macroeconomic Leverage & Upkeep**: `economy` — Models state treasuries, guild embargoes, and military upkeep costs.
 - **Tactical Roster Synthesis**: Automatically integrates with `tactical_sim` to supply standing troop counts and unit compositions for simulated field battles.
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/Faction.md`.
 
 ### How to Use for Your Projects:
 1. List all `allies`, `rivals`, `vassals`, and `treaties` using exact `[[Faction-Name]]` wikilinks.
@@ -97,4 +99,5 @@ graph LR
 TABLE role as "Role", title as "Title", current_location as "Location"
 FROM #world/character
 WHERE faction = this.file.link
+SORT file.name ASC
 ```

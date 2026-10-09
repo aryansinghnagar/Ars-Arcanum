@@ -1,4 +1,5 @@
 ---
+fileClass: Character
 type: character
 name: "<% tp.file.title %>"
 aliases:
@@ -16,6 +17,12 @@ current_location: "[[Locations/Location-Template|Whispering-Vale]]"
 species_race: Human
 born: "1240-04-15"
 died: ""
+fc-date: "1240-04-15"
+fc-calendar: "Valdorian Solar-Lunar Standard"
+fc-category: "Character"
+father: "[[Characters/Character-Template|Lord-Alden-Valdoria]]"
+mother: "[[Characters/Character-Template|Lady-Elena-Valdoria]]"
+spouse: ""
 parents:
   - "[[Characters/Character-Template|Lord-Alden-Valdoria]]"
   - "[[Characters/Character-Template|Lady-Elena-Valdoria]]"
@@ -40,14 +47,15 @@ first_appearance: "Book 1, Chapter 1"
 <summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
 
 ### Features Demonstrated in This Template:
-- **Trait Inconsistency Auditor & Inventory & Relic Tracker**: `continuity` (`arcanum audit continuity`) — Validates eye/hair color, physical age, injury persistence, and item/relic possessions across scene appearances.
-- **Cross-Volume Trait Ledger & Timeskip Aging Validator**: `series_continuity` (`arcanum audit series`) — Tracks character state drift, status transitions, and multi-year aging across multi-volume book series in `universe.yaml`.
+- **Trait Inconsistency Auditor & Inventory & Relic Tracker**: `continuity` (`arcanum continuity Manuscripts/Book-01`) — Validates eye/hair color, physical age, injury persistence, and item/relic possessions across scene appearances.
+- **Cross-Volume Trait Ledger & Timeskip Aging Validator**: `series_continuity` (`arcanum series audit ~/Universes/MyUniverse`) — Tracks character state drift, status transitions, and multi-year aging across multi-volume book series in `universe.yaml`.
 - **Phonetic Name Collision Auditor & POV Screen-Time Balancer & HTML Cast Gallery Exporter**: `dramatis_personae` (`arcanum cast --check-collisions`, `arcanum cast --gallery --html dist/cast.html`) — Detects name collisions, balances chapter presence, and exports standalone HTML visual cast galleries.
-- **Dynastic Lineage & Pedigree**: `genealogy` (`arcanum genealogy`) — Parses `parents`, `spouses`, `children`, and `house` into mathematical family trees, succession charts, and consanguinity matrices.
+- **Dynastic Lineage & Pedigree**: `genealogy` (`arcanum genealogy`) — Parses `father`, `mother`, `parents`, `spouses`, `children`, and `house` into mathematical family trees, succession charts, and consanguinity matrices via **Charted Roots** / **Canvas Roots**.
+- **Metadata Menu & Calendarium Integration**: Validated against `Templates/fileClasses/Character.md` and indexed by in-world birth date via `fc-date`.
 
 ### How to Use for Your Projects:
 1. Keep the YAML frontmatter intact. When referencing other notes, use exact `[[Note-Name]]` wikilinks.
-2. For dates, use standard ISO `YYYY-MM-DD` or numeric years (`1240`) so `timeline_sync` and `world_doctor` can validate chronological consistency (e.g. death date after birth date).
+2. For dates, use standard ISO `YYYY-MM-DD` or numeric years (`1240`) so `timeline_sync`, `calendarium`, and `world_doctor` can validate chronological consistency (e.g. death date after birth date).
 3. Connect the character's `magic_ability` to your magic system note to enforce thermodynamic casting costs and backlash constraints in scene audits.
 </details>
 
@@ -60,14 +68,15 @@ A high-level 2–3 sentence overview of who this character is, what central dram
 
 ---
 
-## 2. Appearance & Sensory Cues
-- **Physical Build & Height**: Tall, wiry frame hardened by mountain patrols; 182 cm.
-- **Face & Eyes**: Sharp jawline, piercing hazel eyes with flecks of amber; weathered skin.
-- **Hair**: Ash-brown, cropped short at the nape.
-- **Distinguishing Marks / Scars**: Faint lightning-pattern scar running along the right forearm from an aether-burn.
-- **Clothing Style & Wardrobe**: High-collared charcoal gambeson reinforced with silver thread; worn leather vambraces.
-- **Voice & Mannerisms**: Low baritone with crisp northern consonants; habitual finger-tapping when assessing tactical odds.
-- **Scent / Aura**: Crisp ozone, damp parchment, and cedar smoke.
+## 2. 8-Channel Sensory Cues & Appearance Palette
+- **1. Visual**: Tall, wiry frame hardened by mountain patrols (182 cm); sharp jawline; piercing hazel eyes with amber flecks; ash-brown hair cropped at the nape; faint lightning-pattern scar along the right forearm.
+- **2. Auditory**: Low baritone voice with crisp northern consonants; rhythmic finger-tapping against sword scabbard when calculating tactical odds.
+- **3. Olfactory**: Crisp ozone from high-voltage conduit exposure, damp cedar smoke, and iron gall ink.
+- **4. Gustatory**: Dry, bitter mouthfeel of steeped mountain chicory; metallic copper tang of adrenaline under threat.
+- **5. Tactile**: Calloused fingertips from vellum handling; high-collared charcoal wool gambeson reinforced with silver thread.
+- **6. Proprioceptive / Kinesthetic**: Low center of gravity with light, balanced footwork adapted to wet slate switchbacks.
+- **7. Thermal / Microclimate**: Radiates body heat rapidly during Tier 3 aether weaves; shivering chill in left shoulder from old frostbite.
+- **8. Visceral / Interoceptive**: Tight constriction in upper chest when giving retreat orders; sudden pulse spike before arcane activation.
 
 ---
 

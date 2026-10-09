@@ -28,7 +28,7 @@
 |------|---------|----------|
 | Ruff | Strict linting across rule families (`E`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`) | [`pyproject.toml#L15-L35`](file:///pyproject.toml#L15-L35), [`.github/workflows/ci.yml#L25-L35`](file:///.github/workflows/ci.yml#L25-L35) |
 | Mypy | Strict static type checking with `check_untyped_defs = True` (90 source files clean) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25), [`tests/test_type_safety.py#L1-L40`](file:///tests/test_type_safety.py#L1-L40) |
-| Unittest | Automated test discovery & regression test execution (336+ tests, 100% pass) | [`tests/test_*.py`](file:///tests/), [`.github/workflows/ci.yml#L30-L40`](file:///.github/workflows/ci.yml#L30-L40) |
+| Unittest | Automated test discovery & regression test execution (353+ tests, 100% pass) | [`tests/test_*.py`](file:///tests/), [`.github/workflows/ci.yml#L30-L40`](file:///.github/workflows/ci.yml#L30-L40) |
 | Coverage | Test coverage enforcement and reporting (`fail_under = 80`) | [`pyproject.toml#L35-L45`](file:///pyproject.toml#L35-L45) |
 
 ### 4) Key Commands
@@ -37,10 +37,10 @@
 # Standard package installation
 pip install -e .
 
-# Full test discovery suite (336+ tests across 48 modules)
+# Full test discovery suite (353+ tests across 48 modules)
 python -m unittest discover tests
 
-# High-performance parallel test runner (~2.5s execution)
+# High-performance parallel test runner (~2.49s execution)
 python scripts/test_parallel.py
 
 # Coverage report enforcement (80%+ aggregate coverage)

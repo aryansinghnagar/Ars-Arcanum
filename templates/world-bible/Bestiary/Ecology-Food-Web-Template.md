@@ -1,4 +1,5 @@
 ---
+fileClass: EcologyFoodWeb
 type: ecology_food_web
 name: "<% tp.file.title %>"
 ecosystem_name: "Highland Montane Karst Biome"
@@ -30,6 +31,7 @@ environmental_stability_index: 0.82
 - **Trophic Energy Pyramid**: `ecology` (`arcanum ecology --biome temperate-forest --producers 15000000kg`) — Audits biomass ratios across producers, primary herbivores, mesopredators, and apex predators using Lindeman's 10% thermodynamic efficiency rule.
 - **Kleiber Metabolic Sizer**: `ecology` (`arcanum ecology --beast-mass 65kg --diet carnivore`) — Calculates basal metabolic rate ($BMR \propto M^{0.75}$) and required daily prey consumption.
 - **Square-Cube Skeletal Stress**: `ecology` (`arcanum ecology --creature-length 3.2m --terrestrial`) — Validates skeletal load-bearing cross-sections and flight feasibility for large speculative beasts.
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/EcologyFoodWeb.md`.
 
 ### How to Use for Your Projects:
 1. Define the primary producer baseline biomass (grasses, lichens, algae).

@@ -1,4 +1,5 @@
 ---
+fileClass: JourneyRoute
 type: journey_route
 name: "<% tp.file.title %>"
 route_name: "High Pass Road"
@@ -32,11 +33,11 @@ cavalry_scout_speed_km_day: 42
 <summary>💡 <b>Ars Arcanum Engine Guidance & Feature Breakdown (Click to Expand)</b></summary>
 
 ### Features Demonstrated in This Template:
-- **Dijkstra Journey Router**: `cartography` (`arcanum map --route 'High-Sanctuary' 'Whispering-Vale'`) — Finds lowest-friction travel path across rivers, roads, and mountain passes using Tobler's Hiking Function.
-- **Voronoi Realm Border Generator**: `cartography` (`arcanum map --realm-borders`) — Computes organic territorial influence boundaries from castle and capital coordinates.
-- **Hydrology Drainage Sweep**: `cartography` (`arcanum map --audit-rivers`) — Ensures realistic river networks flow downhill without impossible climbs.
-- **March Duration Calculator**: `journey` (`arcanum calc journey --distance-km 185 --terrain mountain --cavalry`) — Computes realistic travel durations based on troop count, encumbrance, elevation changes, and weather.
-- **Supply & Feed Burn Auditor**: `journey` (`arcanum calc journey --party-size 12 --horses 8 --days 14`) — Calculates water and grain wagon consumption curves per soldier and mount, identifying supply exhaustion checkpoints.
+- **Dijkstra Journey Router**: `cartography` (`arcanum cartography --route 'High-Sanctuary' 'Whispering-Vale'`) — Finds lowest-friction travel path across rivers, roads, and mountain passes using Tobler's Hiking Function.
+- **Obsidian Leaflet Route Overlay**: `obsidian-leaflet-plugin` — Direct polyline route rendering with milestone pins and distance rulers.
+- **Voronoi Realm Border Generator**: `cartography` (`arcanum cartography --realm-borders`) — Computes organic territorial influence boundaries from castle and capital coordinates.
+- **March Duration Calculator**: `journey` (`arcanum journey --distance-km 185 --terrain mountain --cavalry`) — Computes realistic travel durations based on troop count, encumbrance, elevation changes, and weather.
+- **Supply & Feed Burn Auditor**: `journey` (`arcanum journey --party-size 12 --horses 8 --days 14`) — Calculates water and grain wagon consumption curves per soldier and mount, identifying supply exhaustion checkpoints.
 
 ### How to Use for Your Projects:
 1. Specify the `origin_node` and `destination_node` along with intermediate waypoints.
@@ -62,6 +63,20 @@ cavalry_scout_speed_km_day: 42
         |
         v  (50 km, Friction: 1.0 — Valley Highway)
 [Whispering-Vale] (Elev: 250m) Hex 37-23
+```
+
+```leaflet
+id: high-pass-route-map
+image: [[Aethelgard_Regional_Map.png]]
+lat: 50.4
+long: 34.2
+minZoom: 1
+maxZoom: 6
+defaultZoom: 3
+unit: leagues
+scale: 1
+marker: default, 50.4, 34.2, [[Locations/Location-Template|High-Sanctuary]]
+marker: default, 48.8, 37.1, [[Locations/Location-Template|Whispering-Vale]]
 ```
 
 ---

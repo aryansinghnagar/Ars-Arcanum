@@ -1,4 +1,5 @@
 ---
+fileClass: Artifact
 type: artifact
 name: "<% tp.file.title %>"
 aliases:
@@ -30,8 +31,9 @@ durability_integrity_pct: 92
 
 ### Features Demonstrated in This Template:
 - **Relic Attunement & Charge Degradation**: `magic_system` (`arcanum calc magic --artifact`) — Models finite charge capacities, dissipation rates, and mechanical wear on crystal matrices.
-- **Cross-Volume Entity Tracking**: `continuity` & `series_continuity` (`arcanum audit continuity`) — Ensures the artifact's bearer and location match across manuscript scenes and volumes.
+- **Cross-Volume Entity Tracking**: `continuity` & `series_continuity` (`arcanum continuity Manuscripts/Book-01`) — Ensures the artifact's bearer and location match across manuscript scenes and volumes.
 - **Lore Provenance & Historical Graph**: Links directly to `timeline_event` notes for historical continuity audits.
+- **Metadata Menu Integration**: Validated against `Templates/fileClasses/Artifact.md`.
 
 ### How to Use for Your Projects:
 1. Specify `current_bearer` and `current_location` to prevent teleportation plot holes in draft audits.
