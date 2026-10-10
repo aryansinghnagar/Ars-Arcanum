@@ -29,12 +29,14 @@ from lib.docx_sync import (
     convert_docx_to_markdown,
     escape_xml,
     extract_docx_comments,
+    generate_docx_studio_report,
     get_file_sha256,
     main,
     open_in_word_processor,
     parse_markdown_to_paragraphs,
     strip_scene_tags_and_frontmatter,
     sync_manuscript_docx,
+    watch_manuscript_docx,
 )
 
 
@@ -500,6 +502,162 @@ Updated prose from word editor.
         comments = extract_docx_comments(corrupted_docx)
         self.assertEqual(comments, [])
 
+    def test_chicago_manual_preset_and_running_headers(self):
+        """Test Chicago Manual of Style preset and OpenXML running headers generation."""
+        presets = list_docx_presets()
+        self.assertIn("chicago-manual", presets)
+        self.assertTrue(set_docx_preset("cmos"))
+        self.assertEqual(get_active_docx_preset_name(), "chicago-manual")
+
+        out_docx = self.root / "Chicago_Test.docx"
+        md = "# Chapter 1: The Inciting Spark\n\nThe bells tolled in the rain.\n"
+        paras = parse_markdown_to_paragraphs(md)
+        cfg = get_docx_config("chicago-manual")
+        self.assertTrue(build_docx_package(out_docx, paras, cfg, title="The Silver Citadel", author="Elandra Swift"))
+        self.assertTrue(out_docx.is_file())
+
+        with zipfile.ZipFile(out_docx, "r") as zf:
+            namelist = zf.namelist()
+            self.assertIn("word/header1.xml", namelist)
+            header_xml = zf.read("word/header1.xml").decode("utf-8")
+            self.assertIn("Swift / The Silver Citadel", header_xml)
+            self.assertIn('<w:fldSimple w:instr="PAGE"/>', header_xml)
+
+            # Check document rels contains header reference
+            doc_rels = zf.read("word/_rels/document.xml.rels").decode("utf-8")
+            self.assertIn('Target="header1.xml"', doc_rels)
+
+            # Check document.xml sectPr has headerReference
+            doc_xml = zf.read("word/document.xml").decode("utf-8")
+            self.assertIn('<w:headerReference w:type="default" r:id="rIdHdr"/>', doc_xml)
+
+    def test_bidirectional_title_sync_from_word(self):
+        """Test that modifying chapter heading in Word updates frontmatter title in Markdown."""
+        ms_dir = self.root / "TitleSyncNovel"
+        draft_dir = ms_dir / "01-Manuscript" / "Book-01" / "Draft-01" / "01_Act_I"
+        draft_dir.mkdir(parents=True, exist_ok=True)
+        (ms_dir / "manuscript.yaml").write_text('title: "Title Sync"\nactive_draft: "Draft-01"\n', encoding="utf-8")
+
+        scene = draft_dir / "01_Chapter_01.md"
+        scene.write_text("""---
+title: "Original Scene Title"
+pov: Kaelen
+status: draft
+---
+@location: High Keep
+
+# Chapter 1: Original Scene Title
+
+The ancient blade gleamed.
+""", encoding="utf-8")
+
+        build_manuscript_docx(ms_dir)
+        sync_manuscript_docx(ms_dir)
+
+        # Edit DOCX with renamed heading
+        ch_docx = draft_dir / "01_Chapter_01.docx"
+        new_md = """# Chapter 1: Renamed In Word
+
+The ancient blade gleamed brightly in the night.
+"""
+        paras = parse_markdown_to_paragraphs(new_md)
+        build_docx_package(ch_docx, paras, get_docx_config(), title="Title Sync", author="Author")
+        future_time = scene.stat().st_mtime + 5.0
+        os.utime(ch_docx, (future_time, future_time))
+
+        res_sync = sync_manuscript_docx(ms_dir)
+        self.assertIn("01-Manuscript/Book-01/Draft-01/01_Act_I/01_Chapter_01.md", res_sync["docx_to_md"])
+
+        updated_md = scene.read_text(encoding="utf-8")
+        self.assertIn('title: "Chapter 1: Renamed In Word"', updated_md)
+        self.assertIn("pov: Kaelen", updated_md)
+        self.assertIn("status: draft", updated_md)
+        self.assertIn("@location: High Keep", updated_md)
+        self.assertIn("The ancient blade gleamed brightly in the night.", updated_md)
+
+    def test_generate_docx_studio_report_and_csp(self):
+        """Test generating offline Visual DOCX Studio report with strict CSP."""
+        ms_dir = self.root / "StudioNovel"
+        draft_dir = ms_dir / "Book-01" / "Draft-01"
+        draft_dir.mkdir(parents=True, exist_ok=True)
+        (ms_dir / "manuscript.yaml").write_text('title: "Studio Novel"\nactive_draft: "Draft-01"\n', encoding="utf-8")
+
+        scene = draft_dir / "01_Chapter.md"
+        scene.write_text("# Chapter 1\nProse content for testing.", encoding="utf-8")
+        build_manuscript_docx(ms_dir)
+
+        out_html = generate_docx_studio_report(ms_dir, open_browser=False)
+        self.assertTrue(out_html.is_file())
+        content = out_html.read_text(encoding="utf-8")
+        self.assertIn("Content-Security-Policy", content)
+        self.assertIn("default-src 'none'", content)
+        self.assertIn("DOCX Studio", content)
+        self.assertIn("Studio Novel", content)
+        self.assertIn("01_Chapter", content)
+        self.assertIn("chicago-manual", content)
+
+    def test_debounced_watcher_and_temporary_file_filtering(self):
+        """Test live watcher debouncing, max_iterations limit, and temporary lockfile filtering."""
+        ms_dir = self.root / "WatchNovel"
+        draft_dir = ms_dir / "Book-01" / "Draft-01"
+        draft_dir.mkdir(parents=True, exist_ok=True)
+        (ms_dir / "manuscript.yaml").write_text('title: "Watch Novel"\n', encoding="utf-8")
+
+        scene = draft_dir / "01_Scene.md"
+        scene.write_text("# Scene 1\nWatch testing content.", encoding="utf-8")
+
+        # Create temporary Word lockfile
+        temp_lock = draft_dir / "~$01_Scene.docx"
+        temp_lock.write_text("temporary lockfile data", encoding="utf-8")
+
+        res = watch_manuscript_docx(
+            ms_dir,
+            poll_interval=0.01,
+            debounce_sec=0.01,
+            max_iterations=3,
+        )
+        self.assertEqual(res["status"], "stopped")
+        self.assertEqual(res["iterations"], 3)
+        # Verify temporary file was NOT parsed into Markdown
+        temp_md = draft_dir / "~$01_Scene.md"
+        self.assertFalse(temp_md.exists())
+
+    def test_cli_studio_and_presets_subcommands(self):
+        """Test CLI subcommands for studio report and presets management."""
+        import io
+
+        ms_dir = self.root / "CliStudioNovel"
+        draft_dir = ms_dir / "Book-01" / "Draft-01"
+        draft_dir.mkdir(parents=True, exist_ok=True)
+        (ms_dir / "manuscript.yaml").write_text('title: "CLI Studio Novel"\n', encoding="utf-8")
+        (draft_dir / "01_Scene.md").write_text("# Scene 1\nProse.", encoding="utf-8")
+
+        # 1. studio subcommand
+        out_studio = self.root / "custom_studio.html"
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["docx_sync.py", "studio", str(ms_dir), "--no-open", "-o", str(out_studio)]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertTrue(out_studio.is_file())
+
+        # 2. presets list
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["docx_sync.py", "presets", "list"]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("chicago-manual", mock_out.getvalue())
+
+        # 3. presets set
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            with patch("sys.argv", ["docx_sync.py", "presets", "set", "chicago-manual"]):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 0)
+                self.assertIn("chicago-manual", mock_out.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -45,6 +45,9 @@ except ImportError:
     except ImportError:
         get_velocity_metrics = None  # type: ignore[assignment]
 
+count_words_prose = count_prose_words
+
+
 logger = logging.getLogger("arcanum.word_counter")
 
 # Regex patterns for CriticMarkup and Dialogue
@@ -287,6 +290,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", "-j", action="store_true", help="Output machine-readable JSON")
     parser.add_argument("--md", "--markdown", action="store_true", help="Output GitHub Markdown")
     parser.add_argument("--html", help="Generate standalone offline HTML5 Velocity Studio to specified output path")
+    parser.add_argument("--open", action="store_true", help="Open generated HTML5 Velocity Studio in default browser")
     parser.add_argument("--pov", action="store_true", help="Display detailed POV distribution")
     parser.add_argument("--dialogue", action="store_true", help="Display detailed dialogue vs narrative analysis")
     parser.add_argument("--draft", "-d", help="Explicit draft name (e.g. Draft-02)")
@@ -296,11 +300,18 @@ def main(argv: list[str] | None = None) -> int:
     try:
         data = analyze_manuscript_words(args.manuscript, draft_name=args.draft)
 
-        if args.html:
+        if args.html or args.open:
+            html_dest = args.html or "dist/velocity_studio.html"
             if render_velocity_html:
                 vel_data = get_velocity_metrics(args.manuscript) if get_velocity_metrics else None
-                render_velocity_html(data, vel_data, args.html)
-                print(f"✓ Standalone Velocity Studio written to: {args.html}")
+                render_velocity_html(data, vel_data, html_dest)
+                print(f"✓ Standalone Velocity Studio written to: {html_dest}")
+                if args.open:
+                    import webbrowser
+                    try:
+                        webbrowser.open(Path(html_dest).resolve().as_uri())
+                    except Exception as exc:
+                        print(f"Warning: Could not open browser: {exc}", file=sys.stderr)
                 return 0
             print("Error: HTML template engine not available.", file=sys.stderr)
             return 1
@@ -323,6 +334,7 @@ def main(argv: list[str] | None = None) -> int:
 __all__ = [
     "analyze_manuscript_words",
     "count_prose_words_advanced",
+    "count_words_prose",
     "format_ansi_velocity",
     "format_words_markdown",
     "format_words_table",

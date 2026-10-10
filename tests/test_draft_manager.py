@@ -108,6 +108,12 @@ class TestDraftManager(unittest.TestCase):
         self.assertIsNotNone(d1)
         d1_path = Path(d1.path)  # type: ignore[union-attr]
 
+        for child in list(d1_path.iterdir()):
+            if child.is_dir():
+                shutil.rmtree(child)
+            elif child.is_file():
+                child.unlink()
+
         (d1_path / "01_Chapter_01.md").write_text("# Chapter 1\nProse 1", encoding="utf-8")
         (d1_path / "02_Chapter_02.md").write_text("# Chapter 2\nProse 2", encoding="utf-8")
         (d1_path / "03_Chapter_03.md").write_text("# Chapter 3\nProse 3", encoding="utf-8")
@@ -271,12 +277,137 @@ class TestDraftManager(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertTrue(html_export.is_file())
 
+        # 10. open flag
+        with patch("webbrowser.open") as mock_open:
+            rc = main([str(self.ms_dir), "--html", str(html_export), "--open"])
+            self.assertEqual(rc, 0)
+            mock_open.assert_called_once()
+
         # Error case: Nonexistent manuscript
         with patch("sys.stderr", new_callable=io.StringIO) as mock_err:
             rc = main([str(self.tmp_dir / "FakeManuscript")])
             self.assertEqual(rc, 1)
             self.assertIn("Error:", mock_err.getvalue())
 
+    def test_nested_folder_structure_preservation_and_forking(self):
+        """Test that any custom nested directory structure is preserved across list and fork operations."""
+        custom_ms_dir = self.univ_base / "CustomStructureMS"
+        draft1_dir = custom_ms_dir / "01-Manuscript" / "Book-01" / "Draft-01"
+        draft1_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create nested folders: 4-act, kishotenketsu, custom parts
+        act1 = draft1_dir / "01_Act_I" / "Part_A"
+        act2 = draft1_dir / "02_Act_II" / "Part_B"
+        deep = draft1_dir / "Deep" / "Custom" / "Branch"
+        act1.mkdir(parents=True, exist_ok=True)
+        act2.mkdir(parents=True, exist_ok=True)
+        deep.mkdir(parents=True, exist_ok=True)
+
+        (act1 / "01_Chapter_01.md").write_text("# Chapter 1\nProse in act 1 part A.\n", encoding="utf-8")
+        (act2 / "02_Chapter_02.md").write_text("# Chapter 2\nProse in act 2 part B.\n", encoding="utf-8")
+        (deep / "03_Chapter_03.md").write_text("# Chapter 3\nDeeply nested custom prose.\n", encoding="utf-8")
+
+        mgr = DraftManager(custom_ms_dir)
+        drafts = mgr.list_drafts()
+        self.assertEqual(len(drafts), 1)
+        d1 = drafts[0]
+        self.assertEqual(d1.chapter_count, 3)
+        self.assertGreater(d1.word_count, 0)
+
+        # Verify relative paths are captured
+        rel_paths = [ch.get("rel_path") for ch in d1.chapters]
+        self.assertTrue(any("Part_A" in p for p in rel_paths if p))
+        self.assertTrue(any("Deep" in p for p in rel_paths if p))
+
+        # Fork to Draft-02
+        res = mgr.fork_draft(new_draft_name="Draft-02", milestone="Alpha-2")
+        self.assertEqual(res["status"], "success")
+
+        draft2_dir = custom_ms_dir / "01-Manuscript" / "Book-01" / "Draft-02"
+        self.assertTrue((draft2_dir / "01_Act_I" / "Part_A" / "01_Chapter_01.md").is_file())
+        self.assertTrue((draft2_dir / "02_Act_II" / "Part_B" / "02_Chapter_02.md").is_file())
+        self.assertTrue((draft2_dir / "Deep" / "Custom" / "Branch" / "03_Chapter_03.md").is_file())
+
+        drafts2 = mgr.list_drafts()
+        self.assertEqual(len(drafts2), 2)
+        d2 = mgr.get_draft("Draft-02")
+        self.assertIsNotNone(d2)
+        if d2:
+            self.assertEqual(d2.chapter_count, 3)
+
+    def test_draft_notes_and_status_defaults(self):
+        """Test setting notes on drafts and querying status without explicit draft name."""
+        mgr = DraftManager(self.ms_dir)
+        res = mgr.set_notes("Draft-01", "Initial draft complete.")
+        self.assertEqual(res["status"], "success")
+        self.assertEqual(res["notes"], "Initial draft complete.")
+
+        stat = mgr.get_draft_status()
+        self.assertEqual(stat["draft"], "Draft-01")
+        self.assertEqual(stat["notes"], "Initial draft complete.")
+
+    def test_multi_act_chapter_sorting_and_scoping(self):
+        """Test that multi-act hierarchical chapters (01_Act_I/01_Chapter_01.md, 01_Act_I/02_Chapter_02.md, 02_Act_II/01_Chapter_03.md) are ordered 1,2,3,4 and sliced correctly."""
+        act_ms_dir = self.univ_base / "MultiActMS"
+        d1_dir = act_ms_dir / "01-Manuscript" / "Book-01" / "Draft-01"
+        (d1_dir / "01_Act_I").mkdir(parents=True, exist_ok=True)
+        (d1_dir / "02_Act_II").mkdir(parents=True, exist_ok=True)
+        (d1_dir / "03_Act_III").mkdir(parents=True, exist_ok=True)
+
+        (d1_dir / "01_Act_I" / "01_Chapter_01.md").write_text("# Chapter 1\nAct 1 Chapter 1\n", encoding="utf-8")
+        (d1_dir / "01_Act_I" / "02_Chapter_02.md").write_text("# Chapter 2\nAct 1 Chapter 2\n", encoding="utf-8")
+        (d1_dir / "02_Act_II" / "01_Chapter_03.md").write_text("# Chapter 3\nAct 2 Chapter 3\n", encoding="utf-8")
+        (d1_dir / "03_Act_III" / "01_Chapter_04.md").write_text("# Chapter 4\nAct 3 Chapter 4\n", encoding="utf-8")
+
+        mgr = DraftManager(act_ms_dir)
+        drafts = mgr.list_drafts()
+        self.assertEqual(len(drafts), 1)
+        ch_list = drafts[0].chapters
+        self.assertEqual(len(ch_list), 4)
+
+        # Confirm sequential ordering across acts: 1, 2, 3, 4
+        ch_titles = [c["title"] for c in ch_list]
+        self.assertEqual(ch_titles, ["Chapter 1", "Chapter 2", "Chapter 3", "Chapter 4"])
+        ch_nums = [c["number"] for c in ch_list]
+        self.assertEqual(ch_nums, [1, 2, 3, 4])
+
+        # Fork with chapter slicing for chapter 3 specifically
+        res_fork = mgr.fork_draft(new_draft_name="Draft-02-ch3", chapters="3")
+        self.assertEqual(res_fork["chapters_copied"], 1)
+
+        d2_slice = mgr.get_draft("Draft-02-ch3")
+        self.assertIsNotNone(d2_slice)
+        if d2_slice:
+            self.assertEqual(len(d2_slice.chapters), 1)
+            self.assertEqual(d2_slice.chapters[0]["title"], "Chapter 3")
+            self.assertEqual(d2_slice.chapters[0]["rel_path"], "02_Act_II/01_Chapter_03.md")
+
+    def test_non_numeric_chapter_slicing(self):
+        """Test that unnumbered chapter files (Prologue, Interlude, Epilogue) are naturally sorted and index-sliceable."""
+        named_ms_dir = self.univ_base / "NamedChaptersMS"
+        d1_dir = named_ms_dir / "01-Manuscript" / "Book-01" / "Draft-01"
+        d1_dir.mkdir(parents=True, exist_ok=True)
+
+        (d1_dir / "01_Prologue.md").write_text("# Prologue\nThe origin.\n", encoding="utf-8")
+        (d1_dir / "02_Interlude.md").write_text("# Interlude\nThe quiet.\n", encoding="utf-8")
+        (d1_dir / "03_Epilogue.md").write_text("# Epilogue\nThe resolution.\n", encoding="utf-8")
+
+        mgr = DraftManager(named_ms_dir)
+        drafts = mgr.list_drafts()
+        self.assertEqual(len(drafts), 1)
+        titles = [c["title"] for c in drafts[0].chapters]
+        self.assertEqual(titles, ["Prologue", "Interlude", "Epilogue"])
+
+        # Slice 1st and 3rd files by index
+        res = mgr.fork_draft(new_draft_name="Draft-02-ends", chapters="1,3")
+        self.assertEqual(res["chapters_copied"], 2)
+
+        d2 = mgr.get_draft("Draft-02-ends")
+        self.assertIsNotNone(d2)
+        if d2:
+            self.assertEqual([c["title"] for c in d2.chapters], ["Prologue", "Epilogue"])
+
 
 if __name__ == "__main__":
     unittest.main()
+

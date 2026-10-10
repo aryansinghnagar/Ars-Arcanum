@@ -140,16 +140,18 @@ class TestWordCounter(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertIn("DragonSong", mock_out.getvalue())
 
-        # Test HTML export flag
+        # Test HTML export flag with --open
         html_out = self.tmp_dir / "test_velocity.html"
         with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
-            rc = main([str(self.ms_dir), "--html", str(html_out)])
-            self.assertEqual(rc, 0)
-            self.assertTrue(html_out.is_file())
-            content = html_out.read_text(encoding="utf-8")
-            self.assertIn("DragonSong", content)
-            self.assertIn("Content-Security-Policy", content)
-            self.assertIn("Pomodoro", content)
+            with patch("webbrowser.open") as mock_open:
+                rc = main([str(self.ms_dir), "--html", str(html_out), "--open"])
+                self.assertEqual(rc, 0)
+                self.assertTrue(html_out.is_file())
+                content = html_out.read_text(encoding="utf-8")
+                self.assertIn("DragonSong", content)
+                self.assertIn("Content-Security-Policy", content)
+                self.assertIn("Pomodoro", content)
+                mock_open.assert_called_once()
 
         # Error case: Nonexistent manuscript
         with patch("sys.stderr", new_callable=io.StringIO) as mock_err:

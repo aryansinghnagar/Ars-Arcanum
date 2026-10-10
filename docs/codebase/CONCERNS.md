@@ -44,11 +44,11 @@
 | [`scripts/lib/registry_specs/`](file:///scripts/lib/registry_specs/) | Engine specifications and documentation | Adding new engine specs | Isolated domain files (`domain_a_science.py` through `domain_g_publishing.py`) prevent monolithic merge conflicts |
 | [`scripts/lib/cli.py`](file:///scripts/lib/cli.py) | Single entry point for 47+ CLI subcommands | High subcommand density | Strict argparse subparser testing and alias resolution |
 
-### 6) `[ASK USER]` Questions
+### 6) `[ASK USER]` Decisions & Resolved Status
 
-1. [ASK USER] Would you like additional structural isomorphism presets added to `STRUCTURAL_ISOMORPHISMS` in `scripts/lib/resonance.py` for specialized fiction subgenres (e.g. Grimdark Blood Magic, Biopunk Genetic Editing, Cyberpunk Currency Networks)?
-2. [ASK USER] Should we add an option in `arcanum tip` to output tips formatted as Obsidian Daily Notes markdown callouts?
-3. [ASK USER] Would you like additional planetary climate models (e.g. Tidally Locked Eyeball worlds, Runaway Greenhouse, Glaciated Super-Earth) expanded in Studio Hub interactive tabs?
+1. **Specialized Structural Isomorphisms** — **[RESOLVED - IMPLEMENTED]**: Added 3 genre-specific structural isomorphism archetypes (`iso-grimdark-blood-entropy`, `iso-biopunk-gene-cascade`, `iso-cyberpunk-algo-scarcity`) to resonance documentation and world-bible templates.
+2. **Daily Note Callout Export** — **[RESOLVED - DECLINED]**: Retained standard clean output formatting for `arcanum tip` without adding Obsidian-specific markdown wrapper bloat.
+3. **Planetary Climate Presets** — **[RESOLVED - IMPLEMENTED]**: Integrated 3 planetary climate archetypes (Tidally Locked Eyeball Worlds, Runaway Greenhouse Super-Earths, Glaciated Cryo-Worlds) across climate templates and documentation.
 
 ### 7) Evidence
 

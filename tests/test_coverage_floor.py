@@ -31,7 +31,7 @@ class TestCoverageFloor(unittest.TestCase):
         cls.pyproject_path = REPO_ROOT / "pyproject.toml"
 
     def test_coverage_config_exists_and_sets_floor(self):
-        """Verify pyproject.toml specifies fail_under >= 65."""
+        """Verify pyproject.toml specifies fail_under >= 80."""
         self.assertTrue(self.pyproject_path.is_file(), "pyproject.toml must exist")
         content = self.pyproject_path.read_text(encoding="utf-8")
 
@@ -39,14 +39,14 @@ class TestCoverageFloor(unittest.TestCase):
             data = tomllib.loads(content)
             cov_report = data.get("tool", {}).get("coverage", {}).get("report", {})
             fail_under = cov_report.get("fail_under", 0)
-            self.assertGreaterEqual(fail_under, 65, "Coverage fail_under must be at least 65%")
+            self.assertGreaterEqual(fail_under, 80, "Coverage fail_under must be at least 80%")
         else:
             import re
             m = re.search(r"fail_under\s*=\s*(\d+)", content)
             self.assertIsNotNone(m, "fail_under must be specified in pyproject.toml")
             if m:
                 fail_under = int(m.group(1))
-                self.assertGreaterEqual(fail_under, 65, "Coverage fail_under must be at least 65%")
+                self.assertGreaterEqual(fail_under, 80, "Coverage fail_under must be at least 80%")
             self.assertIn("[tool.coverage.report]", content)
 
     def test_coverage_run_sources_scripts_lib(self):

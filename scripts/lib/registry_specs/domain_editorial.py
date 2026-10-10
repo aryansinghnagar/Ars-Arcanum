@@ -44,30 +44,41 @@ arcanum compare Manuscript/Draft-01 Manuscript/Draft-02
         name="revision_heatmap",
         category=EngineCategory.CRAFT,
         title="Manuscript Revision Density & Churn Heatmap",
-        description="Snapshot-based revision churn analyzer flagging over-revised and pristine-draft chapters",
+        description="Word-level revision churn analyzer and interactive studio dashboard flagging perfectionist loops, cuts, and dialogue/prose skew across draft lineages",
         module_name="lib.revision_heatmap",
         cli_command="revision-heatmap",
         aliases=["churn", "revision-density", "draft-churn", "heatmap"],
         studio_tab="Diagnostics",
-        logic_documentation="Analyzes historical snapshot diffs to compute sentence-level word churn ratios, distinguishing structural rewrites from polish edits and flagging over-revised vs pristine chapters.",
+        logic_documentation="Analyzes historical snapshot diffs, draft lineages, and folder pairs to compute word-level churn ratios, separating dialogue from narrative exposition and evaluating 6 diagnostic craft rules (REV-101 through REV-106).",
         scientific_logic="""1. Word Churn Ratio & Revision Density Metric:
-   $$\\text{Churn Ratio } R = \\frac{\\text{Words Added} + \\text{Words Deleted}}{\\text{Total Chapter Words}}$$
-   - Churn $> 120\\%$ across 5+ drafts indicates potential perfectionist looping on a single scene.
-   - Churn $< 5\\%$ indicates pristine first-pass prose awaiting developmental review.""",
-        why_this_way="Authors often get stuck endlessly rewriting Chapter 1 without making progress on later chapters. Churn heatmaps provide objective data on where editing effort is truly needed.",
+   $$\\text{Churn Ratio } R = \\frac{W_{\\text{added}} + W_{\\text{deleted}}}{\\max(W_{\\text{current}}, W_{\\text{baseline}}, 1)}$$
+2. Dialogue vs Narrative Exposition Segmentation:
+   Categorizes rewrites into spoken dialogue vs narrative prose to identify voice polishing vs structural rewrites.
+3. 6-Tier Diagnostic Telemetry:
+   - REV-101: Perfectionist High Churn ($R > 3.0 \\times R_{\\text{avg}}$ or $R \\ge 1.20$)
+   - REV-102: Pristine Draft ($W_{\\text{churn}} == 0 \\land W > 50$)
+   - REV-103: Heavy Narrative Cut ($W_{\\text{del}} \\ge 40\\%$)
+   - REV-104: Major Chapter Expansion ($W_{\\text{add}} \\ge 50\\%$)
+   - REV-105: Dialogue vs Narration Imbalance ($>75\\%$ dialogue or $>90\\%$ prose churn)
+   - REV-106: Front-Loading Churn Anomaly (Opening chapters 1-3 over-churned vs rest of book)""",
+        why_this_way="Authors often get trapped in perfectionist loops rewriting Chapter 1 without progressing on later chapters. Interactive churn heatmaps with dialogue breakdowns provide objective telemetry on editing churn.",
         worldbuilding_relevance="Shows which lore sections underwent the heaviest conceptual overhauls.",
-        storytelling_relevance="Identifies 'problem chapters' that have been endlessly rewritten without progress.",
-        writing_relevance="Helps authors step away from perfectionist over-editing and move forward.",
+        storytelling_relevance="Identifies problem chapters, major scene excisions, and dialogue restructuring hotspots across drafts.",
+        writing_relevance="Helps authors step away from perfectionist over-editing, review narrative cuts, and balance manuscript pacing.",
         subfeatures=[
-            {"name": "Chapter Churn Density Matrix", "rule": "Computes historical modification intensity per chapter.", "example": "arcanum revision-heatmap Manuscript/ --html dist/churn.html"},
-            {"name": "Perfectionist Trap Detector", "rule": "Flags chapters with churn >120% across drafts.", "example": "arcanum revision-heatmap Manuscript/ --flag-traps"},
+            {"name": "Interactive Studio Dashboard", "rule": "Generates standalone offline CSP-compliant HTML5 heatmap with sorting, filters, and theme toggle.", "example": "arcanum revision-heatmap Manuscript/ --html dist/heatmap.html --open"},
+            {"name": "Dialogue vs Prose Split", "rule": "Measures spoken character dialogue churn separately from narrative exposition.", "example": "arcanum revision-heatmap Draft-02 Draft-01"},
+            {"name": "6-Tier Telemetry Suite", "rule": "Flags REV-101 to REV-106 with craft advisory guidance.", "example": "arcanum revision-heatmap --threshold 2.5"},
         ],
-        extension_guide="""Run revision heatmap diagnostic:
+        extension_guide="""Run interactive revision heatmap studio:
 ```bash
-arcanum revision-heatmap Manuscript/
+arcanum revision-heatmap Manuscript/ --html heatmap.html --open
+arcanum revision-heatmap Manuscript/Draft-02 Manuscript/Draft-01
 ```""",
         advisory_guidance=[
-            {"pattern": "Chapter flagged with excessive revision churn (>80% word replacement across 5+ drafts)", "option_a": "Perform fresh developmental outline review of the scene's core goal", "option_b": "Lock the chapter and proceed to drafting subsequent chapters", "option_c": "Accept high churn as necessary stylistic exploration"},
+            {"pattern": "REV-101: High Revision Density (>3x average or >120% churn)", "option_a": "Perform fresh developmental outline review of the scene's core goal", "option_b": "Lock the chapter and proceed to drafting subsequent chapters", "option_c": "Accept high churn as necessary stylistic exploration"},
+            {"pattern": "REV-103: Heavy Narrative Cut (>40% baseline deleted)", "option_a": "Verify no unresolved plot threads or dropped character introductions", "option_b": "Archive cut prose chunks in a Scraps/ folder for future recycling", "option_c": "Accept cut as intentional tightening"},
+            {"pattern": "REV-105: Dialogue vs Narration Imbalance (>75% dialogue churn)", "option_a": "Review narrative blocking and sensory details to ensure they match updated character dialogue", "option_b": "Accept as targeted dialogue voice polish pass", "option_c": "Examine if unspoken subtext should replace direct speech"},
         ],
     ),
 

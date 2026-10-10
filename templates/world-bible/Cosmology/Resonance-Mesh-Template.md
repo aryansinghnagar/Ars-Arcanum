@@ -74,3 +74,14 @@ If an author modifies the thermodynamic efficiency of Aether Weaving in `world.y
 2. **Economic Impact**: Silver demand spikes by +140%; silver coin debasement causes rampant merchant riots in High Sanctuary.
 3. **Tactical Impact**: Pike infantry squares replace battle-mage skirmishers as the primary military doctrine.
 4. **Manuscript Pacing Impact**: Climax action sequence must rely on physical swordcraft and terrain rather than continuous spell duels.
+
+---
+
+## 4. Genre-Specific Structural Isomorphism Archetypes
+
+| Archetype ID | Subgenre | Core Isomorphic Loop | Primary Narrative Conflict |
+| :--- | :--- | :--- | :--- |
+| `iso-grimdark-blood-entropy` | Grimdark Fantasy | Somatic Casting Cost $\leftrightarrow$ Cellular Necrosis $\leftrightarrow$ Feudal Blood Tithes $\leftrightarrow$ Serf Labor Extraction | Power is zero-sum; societal decay mirrors personal metabolic rot. |
+| `iso-biopunk-gene-cascade` | Biopunk Sci-Fi | Epigenetic Gene Splices $\leftrightarrow$ Pathogen Vectors $\leftrightarrow$ Corporate Patent Cartels $\leftrightarrow$ Invasive Chimera Food Webs | Living biology is commodified into corporate intellectual property. |
+| `iso-cyberpunk-algo-scarcity` | Cyberpunk Noir | Token Burn $\leftrightarrow$ Orbital Compute Latency $\leftrightarrow$ Municipal Blackout Windows $\leftrightarrow$ Black-Market Barter | Compute bandwidth and energy access dictate physical survival. |
+

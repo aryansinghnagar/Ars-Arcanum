@@ -1983,7 +1983,7 @@ case "${COMMAND}" in
         exec python3 "${PROJECT_ROOT}/scripts/lib/migrate.py" "$@"
         ;;
     report|wordcount|words|count|stats)
-        exec python3 "${PROJECT_ROOT}/scripts/lib/cache.py" wordcounts "$@"
+        exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" words "$@"
         ;;
     pace|pacing)
         exec python3 "${PROJECT_ROOT}/scripts/lib/cli.py" pace "$@"

@@ -18,8 +18,18 @@ from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.ui_theme_engine import (
+        get_theme_control_center_html,
+        get_theme_engine_css,
+        get_theme_engine_js,
+    )
 except ImportError:
-    from _bootstrap import atomic_write
+    from _bootstrap import atomic_write  # type: ignore[no-redef]
+    from ui_theme_engine import (  # type: ignore[no-redef]
+        get_theme_control_center_html,
+        get_theme_engine_css,
+        get_theme_engine_js,
+    )
 
 
 def render_velocity_html(
@@ -136,14 +146,19 @@ def render_velocity_html(
         </div>
         """)
 
+    theme_css = get_theme_engine_css()
+    theme_js = get_theme_engine_js()
+    control_center_html = get_theme_control_center_html()
+
     html_content = f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="sovereign-dark">
 <head>
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ars Arcanum — Word Count & Velocity Studio ({html.escape(title)})</title>
     <style>
+{theme_css}
       :root {{
         --bg-main: #0b0f19;
         --bg-panel: #111827;
@@ -313,9 +328,12 @@ def render_velocity_html(
         <h1>📖 {html.escape(title)}</h1>
         <div class="subtitle">By {html.escape(author)} &bull; Sovereign Drafting & Word Velocity Studio</div>
       </div>
-      <div style="text-align:right;">
-        <div style="font-size:2rem;font-weight:800;color:var(--accent-cyan);">{total_words:,} <span style="font-size:1rem;color:var(--muted);font-weight:400;">/ {target_words:,} words</span></div>
-        <div style="font-size:0.9rem;color:var(--muted);">{percent:.1f}% Target Achieved</div>
+      <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <div style="text-align:right;">
+          <div style="font-size:2rem;font-weight:800;color:var(--accent-cyan);">{total_words:,} <span style="font-size:1rem;color:var(--muted);font-weight:400;">/ {target_words:,} words</span></div>
+          <div style="font-size:0.9rem;color:var(--muted);">{percent:.1f}% Target Achieved</div>
+        </div>
+        {control_center_html}
       </div>
     </div>
 
@@ -418,6 +436,15 @@ def render_velocity_html(
           <label style="font-size:0.85rem;color:var(--muted);">Words Written:</label>
           <input type="number" id="sprint-words-input" class="text-input" placeholder="0" oninput="calculateSprintWpm()">
           <span id="sprint-wpm-calc" style="font-size:0.85rem;font-weight:700;color:var(--accent-emerald);">0.0 WPM</span>
+        </div>
+
+        <!-- Live Zen Drafting Sandbox with Authentic Typewriter Audio -->
+        <div style="margin-top:1.25rem; text-align:left; border-top:1px solid var(--border); padding-top:1rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+            <label style="font-size:0.8rem; color:var(--muted); text-transform:uppercase; font-weight:700;">Zen Drafting Pad</label>
+            <span style="font-size:0.75rem; color:var(--accent-cyan); font-weight:600;">⌨️ Typewriter Sound Active</span>
+          </div>
+          <textarea id="zen-drafting-pad" class="typewriter-target" placeholder="Draft your sprint prose here... Typewriter audio synthesizes live with pitch variance and carriage bell!" style="width:100%; height:110px; background:var(--bg-panel-sub); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:0.75rem; font-family:monospace; font-size:0.9rem; line-height:1.5; resize:vertical; outline:none;" oninput="syncZenDraftWords(this.value)"></textarea>
         </div>
 
       </div>
@@ -652,6 +679,19 @@ def render_velocity_html(
 
   // Initial render
   updateTimerDisplay();
+
+  function syncZenDraftWords(val) {{
+    const words = (val || '').trim().split(/\\s+/).filter(Boolean).length;
+    const input = document.getElementById('sprint-words-input');
+    if (input) {{
+      input.value = words;
+      calculateSprintWpm();
+    }}
+  }}
+</script>
+
+<script>
+{theme_js}
 </script>
 
 </body>

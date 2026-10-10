@@ -111,7 +111,7 @@ class TestExpandedTemplates(unittest.TestCase):
         # Exclude fileClasses and index/start files without engine guidance
         exempt = {"World-Bible-Index.md", "00_START_HERE.md"}
         for tpl in all_templates:
-            if "fileClasses" in tpl.parts or tpl.name in exempt:
+            if any(p.startswith(".") for p in tpl.relative_to(self.repo_root).parts) or "fileClasses" in tpl.parts or tpl.name in exempt:
                 continue
             text = tpl.read_text(encoding="utf-8")
             self.assertIn(
@@ -132,7 +132,7 @@ class TestExpandedTemplates(unittest.TestCase):
             "World-Bible-Index.md",
         }
         for md_file in self.world_bible_dir.rglob("*.md"):
-            if "fileClasses" in md_file.parts or md_file.name in exempt:
+            if any(p.startswith(".") for p in md_file.relative_to(self.repo_root).parts) or "fileClasses" in md_file.parts or md_file.name in exempt:
                 continue
             text = md_file.read_text(encoding="utf-8")
             fm = parse_yaml_frontmatter(text)

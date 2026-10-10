@@ -603,11 +603,13 @@ def main(argv: list[str] | None = None) -> int:
     p_hist.add_argument("--json", action="store_true", help="Output JSON results")
     p_hist.add_argument("--md", action="store_true", help="Output Markdown report")
     p_hist.add_argument("--html", help="Generate standalone offline HTML5 Velocity Studio")
+    p_hist.add_argument("--open", action="store_true", help="Open generated HTML5 Velocity Studio in default browser")
 
     # report
     p_rep = subparsers.add_parser("report", help="Generate standalone HTML5 Velocity & Sprint Studio")
     p_rep.add_argument("manuscript", nargs="?", default=".", help="Manuscript directory")
     p_rep.add_argument("--html", "-o", default="dist/velocity_studio.html", help="Output HTML file path")
+    p_rep.add_argument("--open", action="store_true", help="Open generated HTML5 Velocity Studio in default browser")
     p_rep.add_argument("--json", action="store_true", help="Output JSON results")
 
     args = parser.parse_args(argv)
@@ -675,6 +677,9 @@ def main(argv: list[str] | None = None) -> int:
         if cmd in ("stats", "report"):
             vel = get_velocity_metrics(ms_dir)
             html_out = getattr(args, "html", None)
+            open_browser = getattr(args, "open", False)
+            if not html_out and open_browser:
+                html_out = "dist/velocity_studio.html"
 
             if html_out and render_velocity_html:
                 # Import word counter data for rich studio
@@ -685,6 +690,12 @@ def main(argv: list[str] | None = None) -> int:
                     w_data = {"title": "Manuscript", "total_words": vel.get("total_sprint_words", 0)}
                 render_velocity_html(w_data, vel, html_out)
                 print(f"✓ Standalone Velocity Studio written to: {html_out}")
+                if open_browser:
+                    import webbrowser
+                    try:
+                        webbrowser.open(Path(html_out).resolve().as_uri())
+                    except Exception as exc:
+                        print(f"Warning: Could not open browser: {exc}", file=sys.stderr)
                 return 0
 
             if getattr(args, "json", False):

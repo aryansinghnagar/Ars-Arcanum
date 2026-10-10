@@ -1,75 +1,74 @@
-# Ars Arcanum Agent & Developer Governance Instructions
+# GitHub Copilot & Automated Agent Instructions — Ars Arcanum (Scriptorium)
 
-> **Canonical commands, verification gates, exit-code contracts, branching doctrines, and invariant rules for working on Ars Arcanum.**
-
----
-
-## 1. Project Invariants (Non-Negotiable)
-
-1. **Plain Text & Open Formats First**: All lore, character dossiers, outlines, and manuscript scenes are stored in standard Markdown (`.md`), YAML manifests (`.yaml`), or novelWriter XML (`.nwx`). Never introduce proprietary database formats or mandatory cloud dependencies.
-2. **Separated Universe-Lore-Manuscript Architecture**:
-   - Universes: `~/Universes/<UniverseName>/` (`universe.yaml` + Git repository).
-   - World Lore Vaults: `~/Universes/<UniverseName>/<WorldName>/` (Pure Obsidian Vault + Git repository).
-   - Prose Manuscripts: `~/Manuscripts/<ManuscriptName>/` (`manuscript.yaml` + `Book-*` acts + Git repository).
-3. **Safe Path Handling & Quoting**: All shell scripts must quote variable expansions (`"$VAR"`) and handle whitespace/special characters safely. NUL-delimited streams (`find -print0`) are used for batch processing.
-4. **Transactional Staging & Atomic Writes**: Directory creation, backup extraction, and file generation must stage in temporary directories (`mktemp -d`) with trap cleanups (`trap cleanup EXIT INT TERM`) and use `atomic_write()` from [`scripts/lib/_bootstrap.py`](file:///scripts/lib/_bootstrap.py).
-5. **Fail-Closed Security**: Verification, restore operations, and binary installations must fail closed when digests or checksums do not match.
+> **Sovereign Local-First Authoring Operating System & Craft Studio**  
+> *Authoritative Instructions for Copilot, Claude, Gemini, and Autonomous Agents*
 
 ---
 
-## 2. Exit-Code Contract
+## 1. System Identity & Stack Architecture
 
-All scripts and the CLI facade (`scripts/arcanum` / `scripts/lib/cli.py`) adhere strictly to this 4-value contract:
+Ars Arcanum (*Scriptorium*) is a sovereign, 100% offline, privacy-first authoring platform and worldbuilding operating system for speculative fiction novelists and narrative designers.
 
-| Exit Code | Semantics | Description |
-| :---: | :--- | :--- |
-| `0` | **Success** | Operation completed cleanly without errors. |
-| `1` | **Runtime / Diagnostic Failure** | Execution failed, or diagnostic check identified integrity issues (e.g. broken links, invalid schemas). |
-| `2` | **Usage / Environment Error** | Bad arguments, unknown options, unresolvable paths, or unsupported OS. |
-| `3` | **Nothing to Act On** | Clean working tree (no changes to snapshot), required argument missing in headless mode, or user aborted dialog. |
-
----
-
-## 3. Canonical Commands & Quality Gate
-
-Every proposed change MUST pass the full quality gate in this exact order before opening or merging a pull request:
-
-```bash
-# 1. Full Python Unit & Integration Test Suite (960 tests, 0 failures allowed)
-python -m unittest discover tests
-
-# High-performance multi-core parallel test runner (~20s)
-python scripts/test_parallel.py
-
-# 2. Strict Expanded Ruff Linter Pass (0 violations allowed)
-ruff check .
-
-# 3. Strict Mypy Static Type Checking across all source files (217 files clean)
-mypy --explicit-package-bases scripts tests
-
-# 4. Coverage Threshold Enforcement (fail_under = 80)
-coverage run -m unittest discover tests; coverage report --fail-under=80
-
-# 5. Canonical 7-Stage Integration Verification Harness (POSIX)
-bash scripts/verify.sh
-```
+### The Unified 5-Tier Stack:
+1. **External Tools & 32-Plugin Suite**: Obsidian World Bible vault with 32 pre-configured offline plugins (`manifest.json`), Typst musl binary (`0.14.2`), Pandoc (`3.7.x`), PolyGlot, Gramps, Wonderdraft, Celestia, StarGen, novelWriter.
+2. **Python 3.10+ Stdlib Core Engines**: 17 sovereign craft engines in `scripts/lib/`, pure standard library primitives, zero-pip dependency guarantee, strict Mypy typing, Ruff linting.
+3. **HTML5 / Modern CSS / Vanilla JavaScript**: Air-gapped offline interactive visualizers (`velocity_template.py`, `draft_manager_template.py`, `manuscript_diff_template.py`, `revision_heatmap_template.py`, `portfolio_template.py`, `codex_export_template.py`, `omnibus_template.py`) with strict CSP.
+4. **Django & React Modernization Architecture**: Modular local API and React component system for extended desktop/web studio views.
+5. **Shell & Linux System Integration**: POSIX shell CLI dispatcher (`scripts/arcanum`, `verify.sh`), XDG desktop launchers (`launchers/*.desktop`), systemd background service/timer configs (`configs/`), and POSIX `fcntl.flock` file locking.
 
 ---
 
-## 4. Subsystem, Discovery & Scoping Guidelines
+## 2. Canonical Commands & Verification Inventory
 
-- **Centralized Discovery & Scoping**: Never implement bespoke filesystem scanning or recursive disk crawling. Always utilize [`scripts/lib/scope.py`](file:///scripts/lib/scope.py) (`resolve_engine_scope`, `parse_scope_expression`, `parse_int_ranges`) and [`scripts/lib/worlds.sh`](file:///scripts/lib/worlds.sh) (`discover_universes`, `discover_worlds`, `discover_manuscripts`).
-- **Granular Scoping Invariants**: All craft engines must bind standard scope CLI arguments (`add_scope_arguments(parser)`) and honor chapter ranges (`-c 1-5`, `ch01..ch05`), scene ranges (`--scene 1-3`), book filters (`-b`), and world scopes (`-w`) rather than scanning all files on disk.
-- **Intelligent Context Defaults**: When no target is specified, engines must default to the active project configured in `config.json`, the current working directory, or a single discovered project before falling back to full-vault sweeps.
-- **Headless Safety**: When writing or modifying test suites in `tests/`, always sandbox `$HOME` (`TEST_HOME=$(mktemp -d)`) and unset `$DISPLAY` / `$WAYLAND_DISPLAY` so tests run headlessly.
-- **Python / Shell Boundary**: When executing Python helper commands from shell scripts, pass arguments via `sys.argv` or `stdin` — never interpolate shell variables into `python3 -c` code strings.
-- **GTK Worker Threading**: In [`scripts/arcanum_app.py`](file:///scripts/arcanum_app.py), never execute long-running CLI tools or subprocesses on the GTK main UI thread. Always use `_start_worker(target_func)` with `GLib.idle_add` UI callbacks.
+Before proposing or committing changes, ensure the following commands run cleanly:
+
+| Command | Purpose | Verification Requirement |
+|:---|:---|:---|
+| `pip install -e .` | Package installation in development mode | Must succeed without errors |
+| `python -m unittest discover tests` | Canonical unit & integration test discovery (438 tests, 55 modules) | **0 failures permitted** |
+| `python scripts/test_parallel.py` | High-speed multi-core parallel test runner (~2.5s execution) | **0 failures permitted** |
+| `coverage run -m unittest discover tests; coverage report --fail-under=80` | Measure code coverage | **$\ge 80\%$ floor enforced** |
+| `ruff check .` | Strict linting across 15 rule families | **0 violations permitted** |
+| `mypy --explicit-package-bases scripts tests` | Static type checking with `check_untyped_defs = True` | **0 errors across all source files** |
+| `bash scripts/verify.sh --require-tools` | 7-stage POSIX packaging & integration harness | **Passes all 7 verification stages** |
+| `python scripts/arcanum doctor` | Unified system toolchain & vault health check | **Status: HEALTHY** |
 
 ---
 
-## 5. Modernization & Branching Governance
+## 3. Non-Negotiable Engineering Contracts
 
-- **Branch Isolation**: Cut feature branches directly from trunk (`main`). Use descriptive naming (e.g. `feature/phase-1-packaging`).
-- **No Stacked Branches (Hazard H7)**: Merge PRs to `main` before starting subsequent phases. Never build a new phase upon unmerged sibling branches.
-- **Living Documentation (Hazard H8)**: When adding, renaming, or deprecating CLI flags or directory layouts, update `README.md`, `docs/AUTHOR_MANUAL.md`, `docs/codebase/`, and this file within the same commit/PR.
-- **Regime-Aware Safety**: All subsystems are in the **Post-Testability ("Lit") Regime** at **Safety Rung L4**. Green CI on pull requests is mandatory before merging.
+### 3.1 File Safety & Concurrency
+- **Atomic Writes**: ALL file modifications must use `atomic_write()` from `scripts/lib/_bootstrap.py` (`tempfile` $\to$ `flush` $\to$ `fsync` $\to$ `os.replace` $\to$ parent directory `fsync`). Direct unbuffered file overwrites are strictly prohibited.
+- **Cross-Platform File Locking**: Concurrency-sensitive operations must acquire `ArcanumLock` (`scripts/lib/lockfile.py`), utilizing `fcntl.flock` on POSIX and `msvcrt.locking` on Windows with deterministic seek-to-0 positioning.
+- **Path Traversal Defense**: All user-supplied volume names, draft identifiers, and book targets must be sanitized via regex token validation `^[A-Za-z0-9_-]+$`. Reject Windows reserved device names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`) immediately.
+
+### 3.2 Offline Security & Content Security Policy
+- Every generated HTML report, dashboard, and visualizer must declare strict air-gapped Content Security Policies:
+  ```html
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
+  ```
+- No external CDN scripts, remote fonts, or network telemetry are permitted.
+
+### 3.3 Epistemic Safety & Three Subsystems
+- **Subsystem 1 (Invariant Consistency Engine)**: File safety, atomic locks, SHA-256 validation, broken link checks. Fails builds (`exit 1`) in strict mode.
+- **Subsystem 2 (Selected Craft Lenses)**: Advisory reference overlays (Three-Act, MRU, Save the Cat, Pacing, Economy). Always advisory (`exit 0` default), dismissible via `@intent: deliberate` or `constitution.yaml`.
+- **Subsystem 3 (Creative Ideation & Sparks)**: Combinatorial analogies and generative prompts. Always clearly labeled with `[SPECULATION]` provenance tags.
+
+### 3.4 6-Tier Diagnostic Severity Taxonomy
+- `CANON_ERROR` (Severity 5): Broken links, invalid YAML frontmatter, missing mandatory identifiers.
+- `RULE_CONFLICT` (Severity 4): Contradiction of an author-declared world rule in `constitution.yaml`.
+- `OBSERVATION` (Severity 3): Neutral mathematical or structural telemetry.
+- `LENS_NOTE` (Severity 2): Comparative feedback against an optional craft framework.
+- `SUGGESTION` (Severity 1): Optional creative spark or phrasing prompt.
+- `EXPERIMENT` (Severity 0): Speculative lateral thinking prompts labeled `[SPECULATION]`.
+
+### 3.5 Module Size Contract
+- Every Python source file must strictly remain `< 800 lines/file`. When expanding engines, split presentation templates into `<engine>_template.py` and modularize data/models into dedicated sub-packages.
+
+---
+
+## 4. Branching & PR Governance
+
+1. **Branch per feature/phase**: Always create a feature branch (`git checkout -b feature/<name>`).
+2. **Merge to trunk, never stack**: Each branch is cut from `main` and merged to `main` before dependent work begins.
+3. **Keep living documentation synchronized**: Any architectural or CLI changes must be updated in `docs/codebase/`, `README.md`, and `CHANGELOG.md` within the same pull request.

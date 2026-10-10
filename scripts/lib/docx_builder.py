@@ -263,9 +263,13 @@ def generate_docx_xml_body(parsed_paragraphs: list[dict[str, str]], config: dict
             r_xml = format_runs_xml(ptext, font_family, font_size_half_pt)
             body_xml_parts.append(f'<w:p><w:pPr>{"".join(pPr_parts)}</w:pPr>{r_xml}</w:p>')
 
+    include_header_slug = bool(config.get("include_header_slug", True))
+    header_ref_xml = '<w:headerReference w:type="default" r:id="rIdHdr"/>' if include_header_slug else ''
+
     # Section properties (Page layout, size & margins)
     sect_pr = (
         f'<w:sectPr>'
+        f'{header_ref_xml}'
         f'<w:pgSz w:w="12240" w:h="15840"/>'
         f'<w:pgMar w:top="{margin_dxa}" w:right="{margin_dxa}" w:bottom="{margin_dxa}" w:left="{margin_dxa}" w:header="720" w:footer="720" w:gutter="0"/>'
         f'<w:cols w:space="720"/>'
@@ -275,6 +279,33 @@ def generate_docx_xml_body(parsed_paragraphs: list[dict[str, str]], config: dict
     body_xml_parts.append(sect_pr)
 
     return "".join(body_xml_parts)
+
+
+def extract_docx_heading1(docx_path: Path) -> str | None:
+    """Extracts the first Heading 1 or chapter title from word/document.xml in DOCX archive."""
+    if not docx_path.is_file() or not zipfile.is_zipfile(docx_path):
+        return None
+    try:
+        import xml.etree.ElementTree as ET
+        with zipfile.ZipFile(docx_path, "r") as zf:
+            if "word/document.xml" not in zf.namelist():
+                return None
+            doc_xml = zf.read("word/document.xml")
+        root = ET.fromstring(doc_xml)  # nosec B314 # noqa: S314
+        ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+        for p in root.iter(f"{{{ns['w']}}}p"):
+            pPr = p.find(f"{{{ns['w']}}}pPr")
+            if pPr is not None:
+                pStyle = pPr.find(f"{{{ns['w']}}}pStyle")
+                if pStyle is not None:
+                    s_val = pStyle.attrib.get(f"{{{ns['w']}}}val", "").lower()
+                    if "heading1" in s_val or "heading 1" in s_val:
+                        t_parts = [t.text for t in p.iter(f"{{{ns['w']}}}t") if t.text]
+                        if t_parts:
+                            return "".join(t_parts).strip()
+    except Exception as e:
+        logger.debug("Failed extracting heading1 from %s: %s", docx_path, e)
+    return None
 
 
 def build_docx_package(
@@ -290,14 +321,21 @@ def build_docx_package(
     font_family = config.get("font_family", "Times New Roman")
     font_size_pt = float(config.get("font_size_pt", 12.0))
     font_size_half_pt = pt_to_half_pt(font_size_pt)
+    include_header_slug = bool(config.get("include_header_slug", True))
 
-    content_types_xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    header_override_xml = (
+        '  <Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/>\n'
+        if include_header_slug
+        else ""
+    )
+
+    content_types_xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
   <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
-  <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
+{header_override_xml}  <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
   <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>
 </Types>"""
 
@@ -308,10 +346,42 @@ def build_docx_package(
   <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>
 </Relationships>"""
 
-    word_rels_xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    header_rel_xml = (
+        '  <Relationship Id="rIdHdr" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/>\n'
+        if include_header_slug
+        else ""
+    )
+
+    word_rels_xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
-</Relationships>"""
+{header_rel_xml}</Relationships>"""
+
+    # Running header slug calculation
+    surname = author.strip().split()[-1] if author.strip() else "Author"
+    clean_title = title.strip() if title.strip() else "Manuscript"
+    if len(clean_title) > 28:
+        clean_title = clean_title[:25] + "..."
+    slug_text = f"{surname} / {clean_title}"
+
+    header1_xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:p>
+    <w:pPr>
+      <w:jc w:val="right"/>
+      <w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>
+    </w:pPr>
+    <w:r>
+      <w:rPr>
+        <w:rFonts w:ascii="{escape_xml(font_family)}" w:hAnsi="{escape_xml(font_family)}" w:cs="{escape_xml(font_family)}"/>
+        <w:sz w:val="{font_size_half_pt}"/>
+        <w:szCs w:val="{font_size_half_pt}"/>
+      </w:rPr>
+      <w:t xml:space="preserve">{escape_xml(slug_text)} / </w:t>
+    </w:r>
+    <w:fldSimple w:instr="PAGE"/>
+  </w:p>
+</w:hdr>"""
 
     styles_xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
@@ -390,7 +460,7 @@ def build_docx_package(
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         with zipfile.ZipFile(tmp_zip, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-            entries = [
+            entries: list[tuple[str, str | bytes]] = [
                 ("[Content_Types].xml", content_types_xml),
                 ("_rels/.rels", root_rels_xml),
                 ("word/_rels/document.xml.rels", word_rels_xml),
@@ -399,6 +469,9 @@ def build_docx_package(
                 ("docProps/core.xml", core_props_xml),
                 ("docProps/app.xml", app_props_xml),
             ]
+            if include_header_slug:
+                entries.append(("word/header1.xml", header1_xml))
+
             for entry_name, entry_data in entries:
                 zinfo = zipfile.ZipInfo(filename=entry_name, date_time=zip_dt_tuple)
                 zinfo.compress_type = zipfile.ZIP_DEFLATED
@@ -413,3 +486,4 @@ def build_docx_package(
             tmp_zip.unlink(missing_ok=True)
 
     return False
+

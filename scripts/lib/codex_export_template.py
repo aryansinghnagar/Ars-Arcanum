@@ -15,8 +15,18 @@ from typing import Any
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.ui_theme_engine import (
+        get_theme_control_center_html,
+        get_theme_engine_css,
+        get_theme_engine_js,
+    )
 except ImportError:
-    from _bootstrap import atomic_write
+    from _bootstrap import atomic_write  # type: ignore[no-redef]
+    from ui_theme_engine import (  # type: ignore[no-redef]
+        get_theme_control_center_html,
+        get_theme_engine_css,
+        get_theme_engine_js,
+    )
 
 
 def render_codex_html(
@@ -82,14 +92,19 @@ def render_codex_html(
 
     search_json = json.dumps(search_index).replace("</", "<\\/")
 
+    theme_css = get_theme_engine_css()
+    theme_js = get_theme_engine_js()
+    control_center_html = get_theme_control_center_html()
+
     html_content = f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="sovereign-dark">
 <head>
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; media-src data: blob:;">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ars Arcanum — {html.escape(world_name)} Codex</title>
 <style>
+{theme_css}
   :root {{
     --bg: #0f172a; --panel: #1e293b; --border: #334155;
     --text: #f8fafc; --muted: #94a3b8; --accent: #38bdf8;
@@ -140,9 +155,7 @@ def render_codex_html(
 
 <main id="main">
   <div class="theme-toggle">
-    <button class="btn-theme" onclick="setTheme('dark')">🌙 Dark</button>
-    <button class="btn-theme" onclick="setTheme('light')">☀️ Light</button>
-    <button class="btn-theme" onclick="setTheme('sepia')">📜 Sepia</button>
+    {control_center_html}
   </div>
 
   <div id="homeView" class="home-splash">
@@ -167,10 +180,6 @@ function escapeHtml(str) {{
 
 const index = {search_json};
 let originalNavHtml = '';
-
-function setTheme(theme) {{
-  document.body.setAttribute('data-theme', theme);
-}}
 
 function showArticle(id) {{
   document.getElementById('homeView').style.display = 'none';
@@ -214,6 +223,9 @@ window.addEventListener('load', () => {{
   handleHash();
 }});
 window.addEventListener('hashchange', handleHash);
+</script>
+<script>
+{theme_js}
 </script>
 </body>
 </html>

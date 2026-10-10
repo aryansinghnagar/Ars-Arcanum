@@ -293,6 +293,139 @@ class TestManuscriptDiffEngine(unittest.TestCase):
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
+    def test_moved_paragraph_detection(self):
+        paras_a = [
+            "This is the opening scene paragraph describing the quiet night sky with ancient glowing stars above the citadel.",
+            "This is the middle paragraph that gets removed or changed in the second draft of the manuscript.",
+            "This is the third paragraph concluding the scene with a long descriptive sentence about the ancient gates.",
+        ]
+        # In draft B, paragraph 0 and 2 are flipped
+        paras_b = [
+            "This is the third paragraph concluding the scene with a long descriptive sentence about the ancient gates.",
+            "A completely new intermediate transition inserted in the middle.",
+            "This is the opening scene paragraph describing the quiet night sky with ancient glowing stars above the citadel.",
+        ]
+        moved_a, moved_b, mapping = manuscript_diff.detect_moved_paragraphs(paras_a, paras_b, min_words=10)
+        self.assertIn(0, moved_a)
+        self.assertIn(2, moved_a)
+        self.assertIn(0, moved_b)
+        self.assertIn(2, moved_b)
+        self.assertEqual(mapping[0], 2)
+        self.assertEqual(mapping[2], 0)
+
+    def test_scraps_vault_archiving(self):
+        tmp_dir = Path(tempfile.mkdtemp(prefix="arcanum_test_scraps_"))
+        try:
+            ms_dir = tmp_dir / "ScrapsNovel"
+            d1 = ms_dir / "Draft-01"
+            d2 = ms_dir / "Draft-02"
+            d1.mkdir(parents=True)
+            d2.mkdir(parents=True)
+
+            large_excised_prose = " ".join(["word"] * 60)
+            (d1 / "01_Ch.md").write_text(f"# Chapter 1\n\n{large_excised_prose}\n\nRemaining prose.", encoding="utf-8")
+            (d2 / "01_Ch.md").write_text("# Chapter 1\n\nRemaining prose.", encoding="utf-8")
+
+            comp = manuscript_diff.ManuscriptComparator(
+                d1, d2, "Draft-01", "Draft-02", ms_root=ms_dir, scrap_threshold=50, sync_scraps=True
+            )
+            summary = comp.compare()
+
+            self.assertEqual(len(summary["scraps"]), 1)
+            self.assertEqual(summary["scraps"][0]["word_count"], 60)
+
+            scraps_dir = ms_dir / "Scraps"
+            self.assertTrue(scraps_dir.is_dir())
+            scraps_files = list(scraps_dir.glob("*.md"))
+            self.assertEqual(len(scraps_files), 1)
+
+            scrap_content = scraps_files[0].read_text(encoding="utf-8")
+            self.assertIn("scrap_id:", scrap_content)
+            self.assertIn("chapter: \"Chapter 1\"", scrap_content)
+            self.assertIn("word_count: 60", scrap_content)
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    def test_smart_context_auto_discovery(self):
+        tmp_dir = Path(tempfile.mkdtemp(prefix="arcanum_test_auto_disc_"))
+        try:
+            ms_dir = tmp_dir / "AutoNovel"
+            d1 = ms_dir / "Draft-01"
+            d2 = ms_dir / "Draft-02"
+            d3 = ms_dir / "Draft-03"
+            d1.mkdir(parents=True)
+            d2.mkdir(parents=True)
+            d3.mkdir(parents=True)
+
+            (d1 / "01_Ch.md").write_text("# Ch 1\nDraft 1", encoding="utf-8")
+            (d2 / "01_Ch.md").write_text("# Ch 1\nDraft 2", encoding="utf-8")
+            (d3 / "01_Ch.md").write_text("# Ch 1\nDraft 3", encoding="utf-8")
+
+            # Test resolving with 1 manuscript path
+            pa, pb, la, lb, _ms = manuscript_diff.resolve_comparison_targets([str(ms_dir)])
+            self.assertEqual(la, "Draft-02")
+            self.assertEqual(lb, "Draft-03")
+            self.assertEqual(pa, d2)
+            self.assertEqual(pb, d3)
+
+            # Test auto-discovery with 0 args via get_active_manuscript mock
+            with patch("manuscript_diff.get_active_manuscript", return_value=ms_dir):
+                _pa0, _pb0, la0, lb0, _ms0 = manuscript_diff.resolve_comparison_targets([])
+                self.assertEqual(la0, "Draft-02")
+                self.assertEqual(lb0, "Draft-03")
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    def test_advisory_telemetry_and_constitution(self):
+        tmp_dir = Path(tempfile.mkdtemp(prefix="arcanum_test_adv_"))
+        try:
+            ms_dir = tmp_dir / "AdvisoryNovel"
+            d1 = ms_dir / "Draft-01"
+            d2 = ms_dir / "Draft-02"
+            d1.mkdir(parents=True)
+            d2.mkdir(parents=True)
+
+            # Major cut (>30% and >500 words)
+            big_text = " ".join(["story"] * 1000)
+            (d1 / "01_Ch.md").write_text(f"# Ch 1\n{big_text}", encoding="utf-8")
+            (d2 / "01_Ch.md").write_text("# Ch 1\nShort prose remaining.", encoding="utf-8")
+
+            comp = manuscript_diff.ManuscriptComparator(d1, d2, "Draft-01", "Draft-02", ms_root=ms_dir)
+            comp.compare()
+
+            # Should trigger DIFF-301 massive cut observation
+            self.assertTrue(any(a["rule_id"] == "DIFF-301" for a in comp.advisories))
+
+            # Now test suppression with @intent: deliberate
+            (d1 / "01_Ch.md").write_text(f"---\n@intent: deliberate\n---\n# Ch 1\n{big_text}", encoding="utf-8")
+            comp2 = manuscript_diff.ManuscriptComparator(d1, d2, "Draft-01", "Draft-02", ms_root=ms_dir)
+            comp2.compare()
+            self.assertFalse(any(a["rule_id"] == "DIFF-301" for a in comp2.advisories))
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    def test_multi_tab_html_rendering(self):
+        tmp_dir = Path(tempfile.mkdtemp(prefix="arcanum_test_html_tabs_"))
+        try:
+            f1 = tmp_dir / "d1.md"
+            f2 = tmp_dir / "d2.md"
+            f1.write_text("# Opening Scene\nHe said \"Hello there!\" and walked away.", encoding="utf-8")
+            f2.write_text("# Opening Scene\nHe said \"Greetings, friend!\" and turned back.", encoding="utf-8")
+
+            comp = manuscript_diff.ManuscriptComparator(f1, f2, "Draft-01", "Draft-02")
+            html_out = comp.to_html()
+
+            self.assertIn("tab-unified", html_out)
+            self.assertIn("tab-split", html_out)
+            self.assertIn("tab-scraps", html_out)
+            self.assertIn("tab-churn", html_out)
+            self.assertIn("Content-Security-Policy", html_out)
+            self.assertIn("Editorial Studio", html_out)
+            self.assertIn("data-dialogue=\"true\"", html_out)
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
 
 if __name__ == "__main__":
     unittest.main()
+

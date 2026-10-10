@@ -246,7 +246,139 @@ class TestPortfolioDashboard(unittest.TestCase):
         self.assertEqual(data["chapter_count"], 1)
         self.assertEqual(data["word_count"], 302)
 
+    def test_stage_explicit_manifest_override(self):
+        """Explicit stage in manuscript.yaml overrides inferred heuristic stage."""
+        ms_stage = self.root_dir / "StageOverride_MS"
+        ms_stage.mkdir()
+        (ms_stage / "manuscript.yaml").write_text('title: "Edited Book"\nstage: "Line Polish"\ntarget_words: 80000\n', encoding="utf-8")
+        (ms_stage / "01_Ch1.md").write_text("# Ch 1\n\n" + "Word " * 50, encoding="utf-8")
+
+        data = analyze_manuscript_project(ms_stage)
+        self.assertEqual(data["stage"], "Line Polish")
+
+    def test_deadline_and_daily_words_forecast(self):
+        """Manuscript with deadline computes days_remaining and daily_words_needed."""
+        ms_dl = self.root_dir / "Deadline_MS"
+        ms_dl.mkdir()
+        (ms_dl / "manuscript.yaml").write_text('title: "Paced Novel"\ntarget_words: 10000\ndeadline: "2030-01-01"\n', encoding="utf-8")
+        (ms_dl / "01_Ch1.md").write_text("# Ch 1\n\n" + "Paced " * 2000, encoding="utf-8")
+
+        data = analyze_manuscript_project(ms_dl)
+        self.assertEqual(data["deadline"], "2030-01-01")
+        self.assertIsNotNone(data["days_remaining"])
+        self.assertGreater(data["days_remaining"], 100)
+        self.assertIsNotNone(data["daily_words_needed"])
+        self.assertGreater(data["daily_words_needed"], 0)
+
+    def test_analyze_universe_project_and_lore_telemetry(self):
+        """analyze_universe_project categorizes notes, counts words, and checks wikilinks."""
+        uni_dir = self.root_dir / "Eldoria_Uni"
+        uni_dir.mkdir()
+        (uni_dir / "universe.yaml").write_text('name: "Eldoria Realm"\ndescription: "High Fantasy Lore"\nstatus: "Active"\n', encoding="utf-8")
+        (uni_dir / "Characters").mkdir()
+        (uni_dir / "Characters" / "Valen.md").write_text("# Valen\n\nA mage in [[Aethelgard]].\n" + "Mage " * 100, encoding="utf-8")
+        (uni_dir / "Locations").mkdir()
+        (uni_dir / "Locations" / "Aethelgard.md").write_text("# Aethelgard\n\nCapital city with [[LostCity]].\n" + "City " * 150, encoding="utf-8")
+
+        from lib.portfolio import analyze_universe_project
+        uni_data = analyze_universe_project(uni_dir)
+        self.assertEqual(uni_data["name"], "Eldoria Realm")
+        self.assertEqual(uni_data["total_notes"], 2)
+        self.assertGreater(uni_data["total_words"], 200)
+        self.assertIn("Characters", uni_data["categories"])
+        self.assertIn("Locations", uni_data["categories"])
+        self.assertEqual(uni_data["total_links"], 2)
+        self.assertEqual(uni_data["broken_links"], 1)  # LostCity is broken, Aethelgard exists
+        self.assertEqual(uni_data["link_health_pct"], 50.0)
+
+    def test_portfolio_velocity_and_streak(self):
+        """calculate_portfolio_velocity aggregates sprint logs and computes streaks."""
+        arc_dir = self.ms1 / ".arcanum"
+        arc_dir.mkdir(exist_ok=True)
+        import datetime
+        today_str = datetime.date.today().isoformat()
+        sprint_rec = {
+            "session_id": "test_s1",
+            "timestamp": f"{today_str}T10:00:00",
+            "duration_min": 30.0,
+            "words_written": 600,
+            "wpm": 20.0,
+            "target": 500,
+        }
+        (arc_dir / "sprint_log.jsonl").write_text(json.dumps(sprint_rec) + "\n", encoding="utf-8")
+
+        from lib.portfolio import calculate_portfolio_velocity
+        vel = calculate_portfolio_velocity([self.root_dir])
+        self.assertGreaterEqual(vel["total_sessions"], 1)
+        self.assertGreaterEqual(vel["total_sprint_words"], 600)
+        self.assertGreaterEqual(vel["current_streak"], 1)
+        self.assertEqual(len(vel["history_14d"]), 14)
+
+    def test_cli_tree_flag(self):
+        """CLI --tree prints series and manuscript hierarchy."""
+        with patch.object(sys, "argv", ["portfolio.py", str(self.root_dir), "--tree"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                main()
+                out = mock_stdout.getvalue()
+                self.assertIn("Ars Arcanum Author Portfolio Dashboard", out)
+                self.assertIn("Book Alpha", out)
+
+    def test_cli_json_and_open_flags(self):
+        """CLI --json outputs JSON, and --open triggers browser opening."""
+        with patch.object(sys, "argv", ["portfolio.py", str(self.root_dir), "--json"]):
+            with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+                rc = main()
+                self.assertEqual(rc, 0)
+                parsed = json.loads(mock_stdout.getvalue())
+                self.assertEqual(parsed["total_projects"], 2)
+
+        out_html = self.root_dir / "cli_portfolio.html"
+        with patch("webbrowser.open") as mock_open:
+            rc = main([str(self.root_dir), "--html", str(out_html), "--open"])
+            self.assertEqual(rc, 0)
+            self.assertTrue(out_html.is_file())
+            mock_open.assert_called_once()
+
+    def test_calculate_velocity_with_obsidian_log(self):
+        """Velocity calculation parses Obsidian daily writing log files."""
+        dwl_file = self.root_dir / "Daily-Writing-Log-2026-10-10.md"
+        dwl_file.write_text(
+            "---\nfileClass: WritingLog\ntype: daily_writing_log\ndate: '2026-10-10'\n"
+            "words_written: 1200\nwriting_time_minutes: 45\nwpm_velocity: 26.6\ngoal: 1000\n---\n# Notes",
+            encoding="utf-8",
+        )
+        from lib.portfolio import calculate_portfolio_velocity
+        vel = calculate_portfolio_velocity([self.root_dir])
+        self.assertGreaterEqual(vel["total_sprint_words"], 1200)
+
+    def test_analyze_universe_project(self):
+        """analyze_universe_project parses lore notes and calculates link health."""
+        from lib.portfolio import analyze_universe_project
+        u_dir = self.root_dir / "Universes" / "TestCosmos"
+        (u_dir / "Characters").mkdir(parents=True, exist_ok=True)
+        (u_dir / "universe.yaml").write_text("name: TestCosmos\n", encoding="utf-8")
+        (u_dir / "Characters" / "Hero.md").write_text("# Hero\nA brave warrior with [[Villain]].", encoding="utf-8")
+        u_data = analyze_universe_project(u_dir)
+        self.assertEqual(u_data["name"], "TestCosmos")
+        self.assertEqual(u_data["total_notes"], 1)
+        self.assertGreater(u_data["total_words"], 0)
+
+    def test_html_visual_studio_features(self):
+        """Generated HTML portfolio includes SVG velocity chart, filter pills, search input, and chapter drawer."""
+        report = scan_portfolio(self.root_dir)
+        out_html = self.root_dir / "studio_portfolio.html"
+        generate_portfolio_html(report, out_html)
+        content = out_html.read_text(encoding="utf-8")
+        self.assertIn("Ars Arcanum Portfolio Studio", content)
+        self.assertIn("14-Day Drafting Velocity & Sprint Distribution", content)
+        self.assertIn("<svg", content)
+        self.assertIn("searchInput", content)
+        self.assertIn("filter-pill", content)
+        self.assertIn("arcanumThemeLauncher", content)
+        self.assertIn("default-src 'none'", content)
+
 
 if __name__ == "__main__":
     unittest.main()
+
 

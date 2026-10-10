@@ -240,7 +240,53 @@ class TestPurePythonBackupRestore(unittest.TestCase):
         ret_snap = snapshot_main([str(self.project_dir), "-m", "CLI snapshot", "--json"])
         self.assertEqual(ret_snap, 0)
 
+    def test_is_safe_tar_member_edge_cases(self):
+        """Test is_safe_tar_member against symlink escapes, absolute paths, and character/block devices."""
+        import tarfile
+        from lib.restore import is_safe_tar_member
+
+        dest = self.root / "SafeCheckDir"
+        dest.mkdir()
+
+        # Regular valid file
+        ti_valid = tarfile.TarInfo(name="Project/chapter.md")
+        ti_valid.type = tarfile.REGTYPE
+        self.assertTrue(is_safe_tar_member(ti_valid, dest))
+
+        # Absolute path attack
+        ti_abs = tarfile.TarInfo(name="/etc/passwd")
+        ti_abs.type = tarfile.REGTYPE
+        self.assertFalse(is_safe_tar_member(ti_abs, dest))
+
+        # Windows absolute drive path attack
+        ti_win_abs = tarfile.TarInfo(name="C:/Windows/System32/calc.exe")
+        ti_win_abs.type = tarfile.REGTYPE
+        self.assertFalse(is_safe_tar_member(ti_win_abs, dest))
+
+        # Relative traversal
+        ti_trav = tarfile.TarInfo(name="../escape.txt")
+        ti_trav.type = tarfile.REGTYPE
+        self.assertFalse(is_safe_tar_member(ti_trav, dest))
+
+        # Symlink escaping dest
+        ti_sym_bad = tarfile.TarInfo(name="Project/sym_out")
+        ti_sym_bad.type = tarfile.SYMTYPE
+        ti_sym_bad.linkname = "../../outside"
+        self.assertFalse(is_safe_tar_member(ti_sym_bad, dest))
+
+        # Symlink inside dest
+        ti_sym_ok = tarfile.TarInfo(name="Project/sym_in")
+        ti_sym_ok.type = tarfile.SYMTYPE
+        ti_sym_ok.linkname = "chapter.md"
+        self.assertTrue(is_safe_tar_member(ti_sym_ok, dest))
+
+        # Block/char device or FIFO
+        ti_dev = tarfile.TarInfo(name="Project/dev_node")
+        ti_dev.type = tarfile.CHRTYPE
+        self.assertFalse(is_safe_tar_member(ti_dev, dest))
+
 
 if __name__ == "__main__":
     unittest.main()
+
 

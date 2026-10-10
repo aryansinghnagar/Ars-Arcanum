@@ -164,10 +164,13 @@ role: "<b>Archon</b>"
         (self.world_dir / "Characters" / "Lyra.md").write_text("# Lyra\nChronomancer.", encoding="utf-8")
         out_file = Path(self.temp_dir.name) / "out" / "codex.html"
 
-        exit_code = main([str(self.world_dir), "-o", str(out_file)])
-        self.assertEqual(exit_code, 0)
-        self.assertTrue(out_file.exists())
-        self.assertIn("Lyra", out_file.read_text(encoding="utf-8"))
+        from unittest.mock import patch
+        with patch("webbrowser.open") as mock_open:
+            exit_code = main([str(self.world_dir), "-o", str(out_file), "--open"])
+            self.assertEqual(exit_code, 0)
+            self.assertTrue(out_file.exists())
+            self.assertIn("Lyra", out_file.read_text(encoding="utf-8"))
+            mock_open.assert_called_once()
 
 
 if __name__ == "__main__":

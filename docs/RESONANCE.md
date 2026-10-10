@@ -95,6 +95,24 @@ In prose analysis, recurring thematic motifs $M$ (e.g. "Broken Mirrors", "Ash", 
 
 $$\text{Resonance}(M, t) = \sum_{k=1}^{K} \text{Salience}(M, k) \cdot \exp\left( -\frac{(t - t_k)^2}{2\sigma_{\text{memory}}^2} \right)$$
 
+### 2.6 Specialized Structural Isomorphisms & Cross-Genre Archetypes
+The engine formalizes structural isomorphisms that enforce cross-domain coherence across specialized speculative fiction subgenres:
+
+1. **Grimdark Blood Magic & Metabolic Entropy (`iso-grimdark-blood-entropy`)**:
+   - **Isomorphism Core**: Somatic Cast Cost $\longleftrightarrow$ Cellular Tissue Necrosis $\longleftrightarrow$ Aristocratic Feudal Extraction $\longleftrightarrow$ Agrarian Serf Labor Debt $\longleftrightarrow$ Visceral Staccato Sensory Cadence.
+   - **Causal Constraint**: Every spell cast degrades bodily stamina ($W = -0.90$), mandating an economic underclass of blood-tithe serfs to fuel high-tier aristocracy wards.
+   - **Narrative Archetype**: Power is directly zero-sum and non-renewable; political corruption mirrors physical biological decay.
+
+2. **Biopunk Genetic Editing & Ecological Splicing (`iso-biopunk-gene-cascade`)**:
+   - **Isomorphism Core**: Synthetic Epigenetic Splices $\longleftrightarrow$ Pathogen Vector Resistance $\longleftrightarrow$ Corporate Intellectual Property Cartels $\longleftrightarrow$ Invasive Chimera Food-Web Cascades $\longleftrightarrow$ Synthetic Tactile Sensory Palette.
+   - **Causal Constraint**: Organism enhancements carry hereditary vector mutations ($W = +0.85$), triggering localized trophic collapse in native predator-prey chains.
+   - **Narrative Archetype**: The boundary between living biology and corporate proprietary technology dissolves; ecology acts as the battlefield.
+
+3. **Cyberpunk High-Frequency Currency & Algorithmic Scarcity (`iso-cyberpunk-algo-scarcity`)**:
+   - **Isomorphism Core**: Cryptographic Token Burn $\longleftrightarrow$ Orbital Compute Latency $\longleftrightarrow$ Black-Market Barter Networks $\longleftrightarrow$ Autonomous Corporate Strike Teams $\longleftrightarrow$ Neon Staccato Dialogue Rhythm.
+   - **Causal Constraint**: High-frequency financial transactions consume localized power grids ($W = -0.80$), causing rolling municipal blackouts that dictate urban heist timelines.
+   - **Narrative Archetype**: Information speed and compute bandwidth directly determine physical survival and social caste mobility.
+
 ---
 
 ## 3. Subfeatures Matrix & Diagnostic Codes

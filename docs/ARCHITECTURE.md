@@ -36,6 +36,7 @@ All prose manuscripts, character dossiers, lore bibles, and timelines are stored
 | **Portfolio Catalog Tracking** | Multi-Manuscript Portfolio Engine (`portfolio.py`) | Cross-manuscript velocity tracking, word counts, target completion progress, and standalone HTML dashboard | [`scripts/lib/portfolio.py#L1-L150`](file:///scripts/lib/portfolio.py#L1-L150), [`scripts/lib/portfolio_template.py`](file:///scripts/lib/portfolio_template.py) |
 | **Bidirectional DOCX Engine** | Native OpenXML Generator & Sync Engine (`docx_sync.py`, `docx_builder.py`, `docx_presets.py`) | Two-way Markdown $\leftrightarrow$ DOCX roundtripping, track changes deletion discarding, and comment sidecar extraction | [`scripts/lib/docx_sync.py#L1-L150`](file:///scripts/lib/docx_sync.py#L1-L150), [`scripts/lib/docx_builder.py#L1-L120`](file:///scripts/lib/docx_builder.py#L1-L120), [`scripts/lib/docx_presets.py`](file:///scripts/lib/docx_presets.py) |
 | **Publication & Typesetting** | Typst CLI (`>=0.11.0`, pinned `0.14.2`), Pandoc (`>=2.19.x`), Publisher Engine (`publisher.py`) | Sub-second commercial PDF book typesetting, EPUB3 packaging, submission formatting, static codex generation, and omnibus compilation | [`scripts/lib/publisher.py`](file:///scripts/lib/publisher.py), [`scripts/lib/omnibus.py#L1-L120`](file:///scripts/lib/omnibus.py#L1-L120), [`scripts/lib/preflight.py#L1-L100`](file:///scripts/lib/preflight.py#L1-L100), [`scripts/lib/codex_export.py#L1-L120`](file:///scripts/lib/codex_export.py#L1-L120) |
+| **UI Presets & Audio Synth** | Pure Web Audio API & CSS Custom Properties (`ui_theme_engine.py`, `ui_theme_studio.py`) | 11 visual presets, zero-asset 10-generation procedural typewriter sound synthesis, and interactive Theme Studio | [`scripts/lib/ui_theme_engine.py`](file:///scripts/lib/ui_theme_engine.py), [`scripts/lib/ui_theme_studio.py`](file:///scripts/lib/ui_theme_studio.py), [`docs/THEME_STUDIO.md`](file:///docs/THEME_STUDIO.md) |
 | **Backup, Restore & Migration** | Pure-Python Verified Archive Engine (`backup.py`, `restore.py`, `snapshot.py`, `migrate.py`) | SHA-256 stream-verified `.tar.gz` archives, path-traversal defended restoration, Git snapshots, and schema migrations | [`scripts/lib/backup.py#L1-L120`](file:///scripts/lib/backup.py#L1-L120), [`scripts/lib/restore.py#L1-L120`](file:///scripts/lib/restore.py#L1-L120), [`scripts/lib/snapshot.py#L1-L80`](file:///scripts/lib/snapshot.py#L1-L80), [`scripts/lib/migrate.py#L1-L100`](file:///scripts/lib/migrate.py#L1-L100) |
 | **Unified Diagnostics Doctor** | System Health, Toolchain & Lore Integrity Doctor (`diagnostics.py`) | Environment verification (Python, Git, Pandoc, Typst, Ruff), broken link detection, and orphan node diagnosis | [`scripts/lib/diagnostics.py#L1-L150`](file:///scripts/lib/diagnostics.py#L1-L150) |
 | **External Toolchain & Obsidian Vault** | Obsidian (32 pre-configured offline plugins), PolyGlot, Gramps, Wonderdraft, Celestia, StarGen | Full external creative toolchain, Markdown World Bible vault interface, and distraction-free novel project drafting | [`templates/world-bible/.obsidian/plugins/manifest.json`](file:///templates/world-bible/.obsidian/plugins/manifest.json), [`docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md`](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md) |
@@ -59,18 +60,19 @@ All prose manuscripts, character dossiers, lore bibles, and timelines are stored
 | Command | Purpose | Verification Source / Evidence | Trigger / CI Enforcement Status |
 |:---|:---|:---|:---|
 | `pip install -e .` | Standard development package installation and entry point registration (`arcanum`, `ars-arcanum`) | [`pyproject.toml#L1-L20`](file:///pyproject.toml#L1-L20) | **Enforced in CI** ([`.github/workflows/ci.yml#L100-L108`](file:///.github/workflows/ci.yml#L100-L108)) |
-| `python -m unittest discover tests` | Full repository Python unit & integration test suite (404 tests across 55 modules, 0 failures) | [`tests/test_*.py`](file:///tests/) | **Enforced in CI** ([`.github/workflows/ci.yml#L76-L81`](file:///.github/workflows/ci.yml#L76-L81)) |
-| `python scripts/test_parallel.py` | High-speed multi-core parallel test runner (~2.5s-7s execution across worker processes) | [`scripts/test_parallel.py`](file:///scripts/test_parallel.py) | Local Developer / Fast Test Loop |
-| `python -m unittest tests/test_<module>.py` | Isolated single module unit test execution (e.g. `tests/test_word_counter.py`) | [`tests/`](file:///tests/) | Developer Rapid Feedback Loop |
+| `python -m unittest discover tests` | Full repository Python unit & integration test suite (486 tests across 56 modules, 0 failures) | [`tests/test_*.py`](file:///tests/) | **Enforced in CI** ([`.github/workflows/ci.yml#L76-L81`](file:///.github/workflows/ci.yml#L76-L81)) |
+| `python scripts/test_parallel.py` | High-speed multi-core parallel test runner (~2.5s-9.5s execution across 12 worker processes) | [`scripts/test_parallel.py`](file:///scripts/test_parallel.py) | Local Developer / Fast Test Loop |
+| `python -m unittest tests/test_<module>.py` | Isolated single module unit test execution (e.g. `tests/test_ui_theme_engine.py`) | [`tests/`](file:///tests/) | Developer Rapid Feedback Loop |
 | `ruff check .` | Strict linting across 15 rule sets (`E`, `W`, `F`, `B`, `S`, `UP`, `SIM`, `I`, `RUF`, `C901`, `C4`, `PIE`, `RET`, `RSE`, `FLY`) | [`pyproject.toml#L20-L49`](file:///pyproject.toml#L20-L49) | **Enforced in CI** ([`.github/workflows/ci.yml#L56-L60`](file:///.github/workflows/ci.yml#L56-L60)) |
-| `mypy --explicit-package-bases scripts tests` | Strict static type checking with `check_untyped_defs = True` (112 source files clean) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25) | **Enforced in CI** ([`.github/workflows/ci.yml#L61-L65`](file:///.github/workflows/ci.yml#L61-L65)) |
+| `mypy --explicit-package-bases scripts tests` | Strict static type checking with `check_untyped_defs = True` (117 source files clean) | [`mypy.ini#L1-L25`](file:///mypy.ini#L1-L25) | **Enforced in CI** ([`.github/workflows/ci.yml#L61-L65`](file:///.github/workflows/ci.yml#L61-L65)) |
 | `bandit -r scripts/lib -ll -ii` | Python AST Security Static Analysis (SAST) for high/medium severity vulnerabilities | [`.github/workflows/ci.yml#L66-L70`](file:///.github/workflows/ci.yml#L66-L70) | **Enforced in CI** ([`.github/workflows/ci.yml#L66-L70`](file:///.github/workflows/ci.yml#L66-L70)) |
-| `coverage run -m unittest discover tests; coverage report --fail-under=80` | Measure and enforce aggregate test code coverage threshold ($\ge 80\%$, currently 81%) | [`pyproject.toml#L50-L71`](file:///pyproject.toml#L50-L71) | **Enforced in CI** ([`.github/workflows/ci.yml#L76-L81`](file:///.github/workflows/ci.yml#L76-L81)) |
+| `coverage run -m unittest discover tests; coverage report --fail-under=80` | Measure and enforce aggregate test code coverage threshold ($\ge 80\%$, currently 80%+) | [`pyproject.toml#L50-L71`](file:///pyproject.toml#L50-L71) | **Enforced in CI** ([`.github/workflows/ci.yml#L76-L81`](file:///.github/workflows/ci.yml#L76-L81)) |
 | `bash -n scripts/*.sh scripts/arcanum scripts/ars-arcanum` | POSIX shell script syntax validation across all bash entry points | [`.github/workflows/ci.yml#L82-L95`](file:///.github/workflows/ci.yml#L82-L95) | **Enforced in CI** ([`.github/workflows/ci.yml#L82-L95`](file:///.github/workflows/ci.yml#L82-L95)) |
 | `shellcheck -S warning scripts/*.sh scripts/arcanum scripts/ars-arcanum` | Static analysis for POSIX shell scripts | [`.github/workflows/ci.yml#L96-L99`](file:///.github/workflows/ci.yml#L96-L99) | **Enforced in CI** ([`.github/workflows/ci.yml#L96-L99`](file:///.github/workflows/ci.yml#L96-L99)) |
 | `gitleaks detect` | Automated secret and credential leakage scanning | [`.github/workflows/ci.yml#L51-L55`](file:///.github/workflows/ci.yml#L51-L55) | **Enforced in CI** ([`.github/workflows/ci.yml#L51-L55`](file:///.github/workflows/ci.yml#L51-L55)) |
 | `bash scripts/verify.sh --require-tools` | Canonical 7-stage master quality and packaging integration verification harness (POSIX) | [`scripts/verify.sh#L1-L150`](file:///scripts/verify.sh#L1-L150) | **Enforced in CI** ([`.github/workflows/ci.yml#L125-L128`](file:///.github/workflows/ci.yml#L125-L128)) |
 | `python scripts/arcanum doctor` | Unified system toolchain inspection, Python environment doctor & vault consistency audit | [`scripts/lib/diagnostics.py#L1-L150`](file:///scripts/lib/diagnostics.py#L1-L150) | Local Author Health Diagnostic |
+| `python scripts/arcanum theme-studio --open` | Standalone interactive UI theme presets and multi-generation typewriter sound studio | [`scripts/lib/ui_theme_studio.py`](file:///scripts/lib/ui_theme_studio.py) | Interactive Immersion Studio |
 
 > [!NOTE]
 > **CI Enforcement & Status Checks**: All CI workflows are defined in [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) and trigger on all pushes and pull requests targeting the `main` branch, alongside a weekly automated drift detection schedule (`cron: '23 4 * * 1'`). Branch protection rules requiring these jobs to pass prior to merging must be configured in GitHub repository settings.
@@ -138,6 +140,8 @@ All prose manuscripts, character dossiers, lore bibles, and timelines are stored
 │       ├── codex_export_template.py # Presentation HTML/CSS template for static codex site
 │       ├── omnibus.py         # Multi-volume series omnibus compiler (MD, EPUB, PDF)
 │       ├── omnibus_template.py # Presentation HTML/CSS template for omnibus reader
+│       ├── ui_theme_engine.py # Centralized 11 visual presets, procedural Web Audio typewriter synth & control center
+│       ├── ui_theme_studio.py # Standalone offline HTML5 Theme & Sound Showcase Studio visualizer
 │       ├── migrate.py         # Schema and directory migration engine with automated backup
 │       ├── backup.py          # Pure-Python standalone verified .tar.gz archive engine
 │       ├── restore.py         # Pure-Python verified archive restoration with path traversal defense
@@ -150,7 +154,7 @@ All prose manuscripts, character dossiers, lore bibles, and timelines are stored
 │   ├── manuscript/            # Multi-volume book manuscript & craft blueprints (18 templates & chapter files)
 │   ├── typst/                 # Print-ready Typst typesetting templates and 5 genre presets
 │   └── demo-cosmos/           # Fully hydrated multi-volume universe reference (Eldoria-Cosmos)
-└── tests/                     # Comprehensive unittest suite across all domain engines (404 tests in 55 modules)
+└── tests/                     # Comprehensive unittest suite across all domain engines (486 tests in 56 modules)
 ```
 
 ---
@@ -446,7 +450,7 @@ flowchart TD
 1. **Automated Multi-Platform CI Matrix**: GitHub Actions ([`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml)) tests all commits across Ubuntu 24.04, Windows, macOS, and 4 containerized Linux distributions (Ubuntu 22.04/24.04, Debian 12/13).
 2. **Strict Static Analysis Gates**:
    - `ruff check .` with 15 rule sets.
-   - `mypy --explicit-package-bases scripts tests` across all 112 source files.
+   - `mypy --explicit-package-bases scripts tests` across all 114 source files.
    - `bandit -r scripts/lib -ll -ii` for automated security scanning.
    - `coverage report --fail-under=80` enforcing 80%+ test coverage (currently 81%).
 3. **Canonical 7-Stage Integration Harness**: [`scripts/verify.sh`](file:///scripts/verify.sh) validates syntax, linting, typing, unit tests, coverage, wheel packaging, and CLI symlink dispatch.
@@ -562,7 +566,7 @@ flowchart TD
 
 | Architectural Domain | Confidence Rating | Verification Method & Justification |
 |:---|:---|:---|
-| **Zero-Pip Guarantee & Stdlib Execution** | **High** | 100% verified via 404 unit tests running in clean Python standard library environments without pip packages. |
+| **Zero-Pip Guarantee & Stdlib Execution** | **High** | 100% verified via 438 unit tests running in clean Python standard library environments without pip packages. |
 | **Word Counter & Velocity Engine** | **High** | Verified in `tests/test_word_counter.py` and `tests/test_writing_sprint.py` with CriticMarkup, dialogue ratios, and sprint state locking. |
 | **Draft Branching & Lineage Management** | **High** | Verified in `tests/test_draft_manager.py` covering branching, locking, and visual tree exports. |
 | **Atomic File Safety & Locking** | **High** | Verified across Linux and Windows in `tests/test_atomic_write.py`, `tests/test_lockfile.py`, and `tests/test_path_traversal_defense.py`. |

@@ -76,8 +76,30 @@ class DraftInfo:
         return asdict(self)
 
 
+def _natural_path_sort_key(p: Path, base_dir: Path) -> list[tuple[int, Any]]:
+    """Returns safe natural sort key for hierarchical relative paths with mixed int/str tokens."""
+    try:
+        rel = p.relative_to(base_dir)
+    except ValueError:
+        rel = p
+    key: list[tuple[int, Any]] = []
+    for part in rel.parts:
+        tokens = re.split(r"(\d+)", part)
+        for t in tokens:
+            if not t:
+                continue
+            if t.isdigit():
+                key.append((0, int(t)))
+            else:
+                key.append((1, t.lower()))
+    return key
+
+
 def _extract_chapter_number(filename: str) -> int | None:
-    """Extracts integer chapter number from filename like '01_Chapter_01.md' or 'ch02.md'."""
+    """Extracts integer chapter number from filename like '01_Chapter_03.md' or 'ch02.md'."""
+    m_ch = re.search(r"(?:chapter|ch|ep|episode)[_\s-]*(\d+)", filename, re.IGNORECASE)
+    if m_ch:
+        return int(m_ch.group(1))
     m = re.search(r"(\d+)", filename)
     return int(m.group(1)) if m else None
 
@@ -162,10 +184,10 @@ class DraftManager:
             if not isinstance(meta, dict):
                 meta = {}
 
-            # Read chapters
+            # Read chapters recursively (preserving subfolder structure like Acts/Parts)
             ch_files = sorted(
-                [f for f in d_dir.glob("*.md") if not f.name.startswith((".", "_"))],
-                key=lambda p: (_extract_chapter_number(p.name) or 9999, p.name),
+                [f for f in d_dir.rglob("*.md") if not any(part.startswith((".", "_")) for part in f.relative_to(d_dir).parts)],
+                key=lambda p: _natural_path_sort_key(p, d_dir),
             )
             ch_list: list[dict[str, Any]] = []
             total_words = 0
@@ -176,8 +198,10 @@ class DraftManager:
                     title = _extract_title_from_content(cf, content)
                     num = _extract_chapter_number(cf.name)
                     total_words += w_count
+                    rel_p = str(cf.relative_to(d_dir)).replace("\\", "/")
                     ch_list.append({
                         "filename": cf.name,
+                        "rel_path": rel_p,
                         "title": title,
                         "number": num,
                         "words": w_count,
@@ -328,15 +352,15 @@ class DraftManager:
             exclude_nums = set(parse_number_ranges(exclude)) if exclude else set()
 
             src_files = sorted(
-                [f for f in src_draft_dir.glob("*.md") if not f.name.startswith((".", "_"))],
-                key=lambda p: (_extract_chapter_number(p.name) or 9999, p.name),
+                [f for f in src_draft_dir.rglob("*.md") if not any(part.startswith((".", "_")) for part in f.relative_to(src_draft_dir).parts)],
+                key=lambda p: _natural_path_sort_key(p, src_draft_dir),
             )
 
-            for sf in src_files:
+            for ch_idx, sf in enumerate(src_files, 1):
                 ch_num = _extract_chapter_number(sf.name)
-                if include_nums is not None and (ch_num is None or ch_num not in include_nums):
+                if include_nums is not None and (ch_num not in include_nums and ch_idx not in include_nums):
                     continue
-                if ch_num is not None and ch_num in exclude_nums:
+                if (ch_num is not None and ch_num in exclude_nums) or (ch_idx in exclude_nums):
                     continue
 
                 content = sf.read_text(encoding="utf-8", errors="replace")
@@ -348,7 +372,9 @@ class DraftManager:
                         fm.pop("revision_notes", None)
                         content = f"---\n{serialize_yaml_document(fm)}---\n\n{body.lstrip()}"
 
-                df = dest_draft_dir / sf.name
+                rel_p = sf.relative_to(src_draft_dir)
+                df = dest_draft_dir / rel_p
+                df.parent.mkdir(parents=True, exist_ok=True)
                 atomic_write(df, content)
                 copied_chapters += 1
                 total_words += count_prose_words(content)
@@ -609,7 +635,10 @@ class DraftManager:
 
     def render_html(self, output_path: Path | str | None = None, volume_name: str | None = None) -> str:
         """Generates standalone offline HTML visual dashboard."""
-        from lib.draft_manager_template import generate_draft_dashboard_html
+        try:
+            from lib.draft_manager_template import generate_draft_dashboard_html
+        except ImportError:
+            from draft_manager_template import generate_draft_dashboard_html  # type: ignore[no-redef]
 
         manifest = self._load_manifest()
         title = manifest.get("title", self.ms_path.name)
@@ -711,6 +740,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--list", "-l", action="store_true", help="List all drafts")
     parser.add_argument("--tree", action="store_true", help="Render ANSI draft lineage tree")
     parser.add_argument("--html", help="Export visual HTML dashboard to specified file path")
+    parser.add_argument("--open", action="store_true", help="Open visual HTML dashboard in default browser")
     parser.add_argument("--force", "-f", action="store_true", help="Force unlock or overwrite")
 
     # Parse args
@@ -772,10 +802,16 @@ def main(argv: list[str] | None = None) -> int:
         mgr = DraftManager(target_dir)
 
         # 1. HTML Visual Dashboard Export
-        if args.html or subaction in ("visual", "dashboard"):
+        if args.html or getattr(args, "open", False) or subaction in ("visual", "dashboard"):
             out_p = Path(args.html) if args.html else (mgr.ms_path / "drafts_dashboard.html")
             mgr.render_html(output_path=out_p, volume_name=args.volume)
             print(f"✓ Draft Manager Visual Dashboard generated: {out_p}")
+            if getattr(args, "open", False):
+                import webbrowser
+                try:
+                    webbrowser.open(out_p.resolve().as_uri())
+                except Exception as exc:
+                    print(f"Warning: Could not open browser: {exc}", file=sys.stderr)
             return 0
 
         # 2. Tree view

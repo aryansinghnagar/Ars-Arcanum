@@ -18,8 +18,18 @@ logger = logging.getLogger("arcanum.draft_manager_template")
 
 try:
     from lib._bootstrap import atomic_write
+    from lib.ui_theme_engine import (
+        get_theme_control_center_html,
+        get_theme_engine_css,
+        get_theme_engine_js,
+    )
 except ImportError:
     from _bootstrap import atomic_write  # type: ignore[no-redef]
+    from ui_theme_engine import (  # type: ignore[no-redef]
+        get_theme_control_center_html,
+        get_theme_engine_css,
+        get_theme_engine_js,
+    )
 
 _CSP = (
     "default-src 'none'; "
@@ -208,15 +218,19 @@ def generate_draft_dashboard_html(
         act_lock_text = "None"
         act_parent = "None"
 
+    theme_css = get_theme_engine_css()
+    theme_js = get_theme_engine_js()
+    control_center_html = get_theme_control_center_html()
 
     html_content = f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="sovereign-dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="{_CSP}">
     <title>{safe_title} — Manuscript Draft Manager | Ars Arcanum</title>
     <style>
+{theme_css}
         :root {{
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
@@ -634,6 +648,7 @@ def generate_draft_dashboard_html(
                 <span class="pill">📁 {total_drafts} Total Drafts</span>
                 <span class="pill">🔒 {locked_count} Locked</span>
                 <span class="pill">📝 {total_words:,} Lifetime Words</span>
+                {control_center_html}
             </div>
         </header>
 
@@ -706,6 +721,9 @@ def generate_draft_dashboard_html(
                 }}
             }});
         }}
+    </script>
+    <script>
+{theme_js}
     </script>
 </body>
 </html>

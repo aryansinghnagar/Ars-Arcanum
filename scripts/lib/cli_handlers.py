@@ -123,10 +123,17 @@ DISPATCH_TABLE: dict[str, tuple[str, ...]] = {
     "series-overview": ("module", "lib.portfolio"), "author-stats": ("module", "lib.portfolio"),
     "docx": ("module", "lib.docx_sync"), "docx-sync": ("module", "lib.docx_sync"),
     "sync-docx": ("module", "lib.docx_sync"),
+    "docx-studio": ("module", "lib.docx_sync", "studio"), "word-studio": ("module", "lib.docx_sync", "studio"),
+    "docx-watch": ("module", "lib.docx_sync", "watch"), "watch-docx": ("module", "lib.docx_sync", "watch"),
     "word": ("module", "lib.docx_sync", "open"), "writer": ("module", "lib.docx_sync", "open"),
     "word-processor": ("module", "lib.docx_sync", "open"),
     "import": ("module", "lib.importer"), "importer": ("module", "lib.importer"),
     "import-manuscript": ("module", "lib.importer"), "scrivener-import": ("module", "lib.importer"),
+    "theme-studio": ("module", "lib.ui_theme_studio"), "theme": ("module", "lib.ui_theme_studio"),
+    "themes": ("module", "lib.ui_theme_studio"), "visuals": ("module", "lib.ui_theme_studio"),
+    "presets": ("module", "lib.ui_theme_studio"), "sound": ("module", "lib.ui_theme_studio"),
+    "typewriter": ("module", "lib.ui_theme_studio"), "sound-studio": ("module", "lib.ui_theme_studio"),
+    "audio-studio": ("module", "lib.ui_theme_studio"),
 
     # --- Retained Core Engines: Publishing Pipeline (Native Pure-Python) ---
     "publish": ("module", "lib.publisher"), "export": ("module", "lib.publisher"),

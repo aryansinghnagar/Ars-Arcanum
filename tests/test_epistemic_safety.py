@@ -17,6 +17,7 @@ Validates core creative autonomy contracts across retained engines:
 
 from __future__ import annotations
 
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -43,8 +44,14 @@ class TestEpistemicSafety(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         self.root = Path(self.temp_dir.name)
+        self.old_config_dir = os.environ.get("ARCANUM_CONFIG_DIR")
+        os.environ["ARCANUM_CONFIG_DIR"] = str(self.root / "config")
 
     def tearDown(self) -> None:
+        if self.old_config_dir is None:
+            os.environ.pop("ARCANUM_CONFIG_DIR", None)
+        else:
+            os.environ["ARCANUM_CONFIG_DIR"] = self.old_config_dir
         self.temp_dir.cleanup()
 
     def test_invariant_1_diagnostic_severity_taxonomy(self) -> None:

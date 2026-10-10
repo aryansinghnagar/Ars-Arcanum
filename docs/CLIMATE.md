@@ -194,6 +194,28 @@ The engine assigns biomes via the standard three-letter Köppen-Geiger taxonomy 
 | **ET** | Polar Tundra | $0^\circ\text{C} \le T_{\text{warmest}} < 10^\circ\text{C}$ | Permafrost, dwarf shrubs, moss | Arctic coasts, Land of Always Winter |
 | **EF** | Perpetual Ice Cap | $T_{\text{warmest}} < 0^\circ\text{C}$ | Permanent glacial ice sheets | Antarctica, Central Greenland |
 
+### 6.1 Planetary Climate Archetypes & Exoplanetary Presets
+
+The Climate Engine provides parameterized presets for distinct exoplanetary and speculative terrestrial regimes:
+
+1. **Tidally Locked Eyeball World (`preset: tidally_locked`)**:
+   - **Orbital Dynamics**: $P_{\text{rot}} = P_{\text{orb}}$ around an M-Dwarf ($L_* \sim 0.05 L_\odot$).
+   - **Atmospheric Morphology**: Single direct Day-to-Night circulation cell with perpetual substellar upwelling and antistellar downwelling.
+   - **Zonal Biomes**:
+     - *Substellar Point ($0^\circ$)*: Boiling sea / hyper-arid convective desert (`BWh`/`Af` super-thermal).
+     - *Terminator Ring ($80^\circ\text{–}100^\circ$ Zenith)*: Habitable twilight ring with perpetual gale-force westerlies and temperate maritime microclimates (`Cfb`/`Dfb`).
+     - *Nightside ($180^\circ$)*: Perpetual cryogenic ice sheets with temperatures below $-100^\circ\text{C}$ (`EF`).
+
+2. **Runaway Greenhouse Super-Earth (`preset: runaway_greenhouse`)**:
+   - **Radiation Budget**: Stellar flux $S > 1.4 S_0$, high atmospheric scale height ($H \approx 14\text{ km}$), massive $\text{CO}_2/\text{H}_2\text{O}$ vapor blanket ($P_{\text{surf}} > 35\text{ atm}$).
+   - **Thermal & Wind Profile**: Surface temperatures uniformly exceeding $280^\circ\text{C}\text{–}380^\circ\text{C}$; hyper-cyclonic equatorial super-rotation with wind velocities $> 150\text{ m/s}$.
+   - **Narrative Hazard**: Unshielded surface exploration instantly crushes and vaporizes standard mechanical equipment; colonies restricted to high-altitude aerostat cloud cities at $z = 55\text{ km}$ ($P \sim 1\text{ atm}$, $T \sim 25^\circ\text{C}$).
+
+3. **Glaciated Cryo-World / Snowball Planet (`preset: snowball_cryo`)**:
+   - **Albedo & Energy Balance**: High Bond albedo ($A > 0.65$), stellar flux $S \sim 0.75 S_0$, weak greenhouse effect ($\Delta T_g < 10\text{ K}$).
+   - **Glaciology & Biomes**: Global ocean ice pack extending from poles to equator ($z_{\text{ice}} > 150\text{ m}$).
+   - **Ecosystem Seams**: Life is entirely geothermal and benthic, clustered around sub-glacial hydrothermal vents and volcanic rift valleys.
+
 ---
 
 ## 7. Worked Step-by-Step Climate Calculation

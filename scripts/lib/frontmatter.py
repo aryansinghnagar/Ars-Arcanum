@@ -441,6 +441,9 @@ def serialize_yaml_frontmatter(data: dict[str, Any], body: str = "") -> str:
     return f"---\n{yaml_str}\n---\n"
 
 
+dump_frontmatter = serialize_yaml_frontmatter
+
+
 def extract_frontmatter_and_body(content: str) -> tuple[dict[str, Any], str]:
     """Splits markdown content into frontmatter metadata dictionary and body text."""
     fm_match = FRONTMATTER_REGEX.match(content)
@@ -458,6 +461,7 @@ __all__ = [
     "_coerce_scalar",
     "_parse_yaml_lines",
     "_serialize_scalar",
+    "dump_frontmatter",
     "extract_frontmatter_and_body",
     "parse_frontmatter",
     "parse_yaml_document",
@@ -465,3 +469,4 @@ __all__ = [
     "serialize_yaml_document",
     "serialize_yaml_frontmatter",
 ]
+

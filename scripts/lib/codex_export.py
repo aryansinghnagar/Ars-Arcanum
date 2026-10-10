@@ -167,6 +167,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("world", nargs="?", help="World Lore Vault directory path")
     parser.add_argument("-o", "--output", help="Output file path (default: <world_name>_codex.html)")
     parser.add_argument("--html", help="Generate HTML codex export at path")
+    parser.add_argument("--open", action="store_true", help="Open generated codex in default browser")
     parser.add_argument("--json", action="store_true", help="Output JSON vault taxonomy index")
     add_scope_arguments(parser, include_manuscript=False, target_pos_arg=False)
     args = parser.parse_args(argv)
@@ -198,6 +199,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"World:          {world_path.name}")
     print(f"Total Articles: {total_articles} across {len(categories)} categories")
     print(f"Generated:      {out_file} ({out_file.stat().st_size:,} bytes)")
+    if getattr(args, "open", False):
+        import webbrowser
+        try:
+            webbrowser.open(out_file.resolve().as_uri())
+        except Exception as exc:
+            print(f"Warning: Could not open browser: {exc}", file=sys.stderr)
     return 0
 
 

@@ -64,7 +64,18 @@ flowchart LR
     - Integrated external toolchain (PolyGlot, Gramps, Wonderdraft, Celestia, StarGen, Pandoc, Typst, novelWriter, Vale, LanguageTool).
     - Converted craft guides into mastercraft references (`CONLANG.md`, `GENEALOGY.md`, `CARTOGRAPHY.md`, `ASTROPHYSICS.md`, `PACING.md`, `TYPOGRAPHY.md`).
     - Published comprehensive guides: [`docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md`](file:///docs/guides/EXTERNAL_TOOLS_AND_PLUGINS.md), [`docs/guides/OBSIDIAN_PLUGINS.md`](file:///docs/guides/OBSIDIAN_PLUGINS.md), and [`docs/guides/SOFTWARE_CATALOG.md`](file:///docs/guides/SOFTWARE_CATALOG.md).
-  - [x] **Verification Gate**: Passed 100% verification across test suite (958 tests discovered, 0 failures), Ruff strict linting (0 violations across 211 files), Mypy static typing (211 source files clean), and Coverage threshold (`fail_under = 80`).
+  - [x] **UI Visual Presets & Procedural Typewriter Sound Engine**:
+    - Implemented 11 atmospheric visual presets (`Retro`, `Futuristic`, `Retrofuturistic`, `Fantastical`, `Grim`, `Edgy`, `Cozy`, `SciFi`, `Horror`, `Sovereign Dark`, `Classic Light`) in pure CSS (`ui_theme_engine.py`).
+    - Engineered 10-generation procedural Web Audio API typewriter sound synthesizer (`remington_1890`, `royal_1930`, `selectric_1960`, `smith_corona_1980`, `cherry_blue`, `thock`, `cyber_terminal`, `steampunk`, `scribe_quill`, `gothic_relic`) with zero audio file downloads or external assets.
+    - Added interactive standalone Theme & Sound Showcase Studio (`ui_theme_studio.py` / `arcanum theme-studio`) and universal modal switcher across all 7 HTML visualizers.
+    - Integrated real-time typewriter keystroke audio feedback into Velocity & Zen Drafting Studio.
+  - [x] **Non-Prescriptive Structure & Lineage Preservation**:
+    - Added 6 novel structure presets (`three_act`, `four_act`, `five_act`, `heros_journey`, `kishotenketsu`, `flat`) and custom structure definitions to `project_scaffold.py`.
+    - Hardened `draft_manager.py` with recursive chapter discovery and directory hierarchy preservation across draft forks.
+  - [x] **Platform Hardening & XML Schema Parity**:
+    - Resolved Windows `arcanum.cmd` generation in `setup_arcanum.ps1`.
+    - Synchronized novelWriter XML generation to `fileVersion="1.5"` with `<title>`.
+  - [x] **Verification Gate**: Passed 100% verification across test suite (486 tests discovered, 0 failures), Ruff strict linting (0 violations across 117 files), Mypy static typing (117 source files clean), and Coverage threshold (`fail_under = 80`).
 
 ### `next` (Ready Backlog)
 - **Zen Studio In-Situ Outlines**:

@@ -179,21 +179,26 @@ class TestWritingSprint(unittest.TestCase):
             parsed = json.loads(mock_out.getvalue())
             self.assertEqual(parsed["status"], "logged")
 
-        # CLI stats
+        # CLI stats with --html and --open
+        stats_html = self.tmp_dir / "stats_hub.html"
         with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
-            rc = main(["stats", str(self.ms_dir)])
-            self.assertEqual(rc, 0)
-            self.assertIn("Drafting Velocity & Sprint Telemetry", mock_out.getvalue())
+            with patch("webbrowser.open") as mock_open:
+                rc = main(["stats", str(self.ms_dir), "--html", str(stats_html), "--open"])
+                self.assertEqual(rc, 0)
+                self.assertTrue(stats_html.is_file())
+                mock_open.assert_called_once()
 
-        # CLI report --html
+        # CLI report --html with --open
         html_file = self.tmp_dir / "sprint_hub.html"
         with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
-            rc = main(["report", str(self.ms_dir), "--html", str(html_file)])
-            self.assertEqual(rc, 0)
-            self.assertTrue(html_file.is_file())
-            content = html_file.read_text(encoding="utf-8")
-            self.assertIn("Starfall", content)
-            self.assertIn("Content-Security-Policy", content)
+            with patch("webbrowser.open") as mock_open:
+                rc = main(["report", str(self.ms_dir), "--html", str(html_file), "--open"])
+                self.assertEqual(rc, 0)
+                self.assertTrue(html_file.is_file())
+                content = html_file.read_text(encoding="utf-8")
+                self.assertIn("Starfall", content)
+                self.assertIn("Content-Security-Policy", content)
+                mock_open.assert_called_once()
 
         # CLI cancel
         start_sprint(self.ms_dir, target_words=200, minutes=10, interactive=False)

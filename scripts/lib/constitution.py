@@ -57,6 +57,9 @@ DEFAULT_AUTHORIAL_POLICY: dict[str, Any] = {
         "default_severity": "advisory",
         "suppressed_rules": [],
     },
+    "ui_visual_preset": "sovereign-dark",
+    "typewriter_sound_preset": "remington_1890",
+    "crt_fx_enabled": False,
 }
 
 

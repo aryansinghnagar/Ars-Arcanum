@@ -43,28 +43,33 @@ arcanum docx sync Manuscript/
         name="importer",
         category=EngineCategory.CORE,
         title="Batch Manuscript & Vault Importer",
-        description="Batch importer for Scrivener, Word (.docx), Google Docs, and unstructured Markdown trees",
+        description="Batch importer for Scrivener (.scriv), EPUB, Word (.docx), and unstructured Markdown trees",
         module_name="lib.importer",
         cli_command="import",
-        aliases=["importer", "import-manuscript", "scrivener-import"],
+        aliases=["importer", "import-manuscript", "scrivener-import", "migration-studio"],
         studio_tab="Tools",
-        logic_documentation="Converts external Scrivener projects, Word (.docx) documents, Google Docs, and raw Markdown folders into sovereign Ars Arcanum manuscript vaults with manifest metadata and novelWriter project files.",
-        scientific_logic="""1. OpenXML / Scrivener XML AST Extraction:
-   Parses Scrivener binder XML (`project.scrivx`) and Word OpenXML DOM structures, reconstructing hierarchical chapter trees and preserving synopsis cards and annotations.""",
-        why_this_way="Migrating out of closed writing platforms is tedious and error-prone. The importer auto-splits monolithic manuscripts into clean, numbered chapter files.",
-        worldbuilding_relevance="Auto-seeds initial world dossiers from imported character and location names.",
-        storytelling_relevance="Splits large monolithic documents into clean, manageable scene and chapter files.",
-        writing_relevance="Eliminates the friction of migrating existing books into Ars Arcanum.",
+        logic_documentation="Converts external Scrivener projects, EPUB books, Word (.docx) documents, and raw Markdown folders into sovereign Ars Arcanum manuscript vaults with dual-vault lore routing, novelWriter project manifests, and interactive offline Visual Migration Studios.",
+        scientific_logic="""1. Multi-Format AST Ingestion & Dual-Vault Routing:
+   Parses Scrivener binder XML (`project.scrivx`), EPUB container/spine packages, and Word OpenXML DOM structures. Automatically routes narrative chapters to `Book-01/Draft-01/` with index-card synopses in YAML frontmatter, while routing Characters, Places, and Research to structured `World/` dossiers.
+2. Strict Heading 1 Splitting & Non-Destructive Invariants:
+   Splits monolithic prose deterministically on explicit `# Heading 1` boundaries without probabilistic hallucination. Non-destructively increments target drafts (`Draft-02`, `Draft-03`) upon existing directory detection.""",
+        why_this_way="Migrating out of closed writing platforms is tedious and error-prone. The importer auto-splits manuscripts into clean, numbered chapter files, captures lore dossiers, and provides an offline visual migration studio.",
+        worldbuilding_relevance="Auto-seeds initial world dossiers (`World/Characters`, `World/Locations`) from Scrivener binder hierarchies.",
+        storytelling_relevance="Splits large monolithic books into clean, manageable scene and chapter files with canonical frontmatter.",
+        writing_relevance="Eliminates the friction of migrating existing books into Ars Arcanum with visual inspection dashboards.",
         subfeatures=[
-            {"name": "Scrivener Project Importer", "rule": "Extracts chapters and notes from .scriv binder files.", "example": "arcanum import scrivener ~/MyBook.scriv"},
-            {"name": "Monolithic DOCX Splitter", "rule": "Splits single .docx novel file by Heading 1 chapter breaks.", "example": "arcanum import docx ~/Novel.docx -m Manuscript/"},
+            {"name": "Scrivener Dual-Vault Importer", "rule": "Extracts chapters and notes from .scriv binder files into Manuscript and World vaults.", "example": "arcanum import ~/MyBook.scriv"},
+            {"name": "EPUB Spine Extractor", "rule": "Parses OPF spine and converts XHTML to Markdown chapters with Asset extraction.", "example": "arcanum import ~/Novel.epub"},
+            {"name": "Monolithic DOCX Splitter", "rule": "Splits single .docx novel file by Heading 1 chapter breaks.", "example": "arcanum import ~/Novel.docx"},
+            {"name": "Visual Migration Studio", "rule": "Generates standalone offline HTML5 interactive migration dashboard.", "example": "arcanum import ~/MyBook.scriv --html studio.html"},
         ],
-        extension_guide="""Import external manuscript:
+        extension_guide="""Import external manuscript with visual studio:
 ```bash
-arcanum import docx ~/MyDraft.docx -m ~/Manuscripts/MyBook/
+arcanum import ~/MyBook.scriv --html import_studio.html
 ```""",
         advisory_guidance=[
-            {"pattern": "Monolithic document has no Heading 1 tags", "option_a": "Split chapters using regex pattern 'Chapter [0-9]+'", "option_b": "Import as single continuous chapter file", "option_c": "Prompt author for custom chapter separator string"},
+            {"pattern": "Monolithic document has no Heading 1 tags", "option_a": "Import as single continuous chapter file", "option_b": "Add Heading 1 (#) tags in source before importing", "option_c": "Split chapters using custom script"},
+            {"pattern": "Target draft directory already exists", "option_a": "Allow automatic sequential draft resolution (Draft-02)", "option_b": "Supply --overwrite flag to replace with automated backup", "option_c": "Specify custom --draft name"},
         ],
     ),
 

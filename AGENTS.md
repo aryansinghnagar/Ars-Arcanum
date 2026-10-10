@@ -132,6 +132,8 @@ scripts/
 │   ├── codex_export_template.py # Presentation HTML/CSS template for static codex site
 │   ├── omnibus.py             # Multi-volume series omnibus compiler (MD, EPUB, PDF)
 │   ├── omnibus_template.py    # Presentation HTML/CSS template for omnibus reader
+│   ├── ui_theme_engine.py     # Centralized 11 visual presets, procedural Web Audio typewriter synth & control center
+│   ├── ui_theme_studio.py     # Standalone offline HTML5 Theme & Sound Showcase Studio visualizer
 │   ├── migrate.py             # Schema and directory migration engine with automated backup
 │   ├── backup.py              # Pure-Python standalone verified .tar.gz archive engine
 │   ├── restore.py             # Pure-Python verified archive restoration with path traversal defense
@@ -148,19 +150,19 @@ scripts/
 Before any milestone or phase is marked complete, the following quality gates must pass with 100% compliance:
 
 ```bash
-# 1. Full Python Test Suite Discovery (404 tests across 55 modules, 0 failures permitted)
+# 1. Full Python Test Suite Discovery (486 tests across 56 modules, 0 failures permitted)
 python -m unittest discover tests
 
-# High-performance parallel test runner (~2.5s-7s execution)
+# High-performance parallel test runner (~2.5s-9.5s execution)
 python scripts/test_parallel.py
 
 # 2. Strict Expanded Ruff Linter Pass (0 violations permitted)
 ruff check .
 
-# 3. Strict Mypy Static Type Checking across all source files (112 source files)
+# 3. Strict Mypy Static Type Checking across all source files (117 source files)
 mypy --explicit-package-bases scripts tests
 
-# 4. Coverage Threshold Enforcement (fail_under = 80, currently 81%)
+# 4. Coverage Threshold Enforcement (fail_under = 80, currently 80%+)
 coverage run -m unittest discover tests; coverage report --fail-under=80
 
 # 5. Canonical 7-Stage Integration Verification Harness (POSIX)

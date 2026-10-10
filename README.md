@@ -5,8 +5,8 @@
 
 [![Release: v0.1.0](https://img.shields.io/badge/Release-v0.1.0-blue.svg)](CHANGELOG.md)
 [![Status: Sovereign Craft Studio](https://img.shields.io/badge/Status-Sovereign%20Studio-brightgreen.svg)](#)
-[![Tests: 404](https://img.shields.io/badge/Tests-404%20Passing%20(100%25)-brightgreen.svg)](#)
-[![Coverage: 81%](https://img.shields.io/badge/Coverage-81%25-brightgreen.svg)](#)
+[![Tests: 486](https://img.shields.io/badge/Tests-486%20Passing%20(100%25)-brightgreen.svg)](#)
+[![Coverage: 80%](https://img.shields.io/badge/Coverage-80%25-brightgreen.svg)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero-Pip](https://img.shields.io/badge/Dependencies-Zero--Pip%20(100%25%20Stdlib)-success.svg)](#)
 
@@ -28,8 +28,9 @@ All manuscripts and lore vaults are stored in **standard CommonMark Markdown** (
 |:--|:--|
 | **🎯 Altitude-Aware Scoping** | Execute craft engines on exact slices: scenes (`--scenes 1-3`), chapters (`-c 1-5`, `ch01..ch05`), books (`-b 1-2`), lore categories, or worlds without whole-vault overhead. |
 | **🪐 World Bible Ecosystem** | Obsidian-compatible vault architecture with 32 pre-configured offline community plugins and structured schemas for characters, cultures, pantheons, genealogies, and magic systems. |
-| **⚡ Word Count & Velocity Studio** | Unicode prose tokenization with CriticMarkup removal, spoken dialogue vs. narrative ratio, reading times, stateful Pomodoro sprint timers, rolling WPM velocity meters, and standalone offline HTML5 Velocity Studio (`arcanum words`, `arcanum sprint`). |
-| **🌿 Draft Branching & Lineage** | Multi-draft branching, immutable milestone snapshots, and interactive visual HTML draft lineage tree visualizer (`arcanum draft`). |
+| **🎨 UI Presets & Typewriter Audio** | 11 atmospheric visual presets (`Retro`, `Futuristic`, `Grim`, `Cozy`, `Fantastical`, `Horror`, etc.) and procedural Web Audio multi-generation typewriter sound synthesizer (10 acoustic models from 1890s Remington to IBM Selectric & Thock) with interactive showcase studio (`arcanum theme-studio`). |
+| **⚡ Word Count & Velocity Studio** | Unicode prose tokenization with CriticMarkup removal, spoken dialogue vs. narrative ratio, reading times, stateful Pomodoro sprint timers, rolling WPM velocity meters, real-time typewriter keystroke audio, and standalone offline HTML5 Velocity Studio (`arcanum words`, `arcanum sprint`). |
+| **🌿 Draft Branching & Lineage** | Multi-draft branching, immutable milestone snapshots, flexible non-prescriptive novel structures (`three_act`, `four_act`, `five_act`, `heros_journey`, `kishotenketsu`, `flat`, or custom), and interactive visual HTML draft lineage tree visualizer (`arcanum draft`). |
 | **✍️ Editorial & Churn Telemetry** | Structural markdown diffs (`arcanum diff`), editing density heatmaps (`arcanum heatmap`), and multi-manuscript catalog portfolio dashboards (`arcanum portfolio`). |
 | **🔄 Bidirectional Sync** | Seamless roundtrip Markdown ↔ DOCX synchronization (`arcanum sync`) and zero-dependency standard manuscript submission builder (`arcanum docx`). |
 | **🔮 Sovereign Core Engines & Toolchain** | 17 sovereign core Python engines alongside an integrated toolchain (PolyGlot, Gramps, Wonderdraft, Celestia, StarGen, Typst) across Linguistics, Genealogy, Cartography, Astrophysics, Pacing, Economy, and Narrative Geometry. |
@@ -221,16 +222,16 @@ python scripts/arcanum backup --tag milestone-1
 Ars Arcanum enforces strict deterministic quality gates across POSIX and Windows:
 
 ```bash
-# 1. Full 55-module parallel test discovery (404 tests, 0 failures)
+# 1. Full 56-module parallel test discovery (486 tests, 0 failures)
 python scripts/test_parallel.py
 
 # 2. Strict Ruff linter pass (0 violations)
 ruff check .
 
-# 3. Strict Mypy static type checking across all 112 source files
+# 3. Strict Mypy static type checking across all 117 source files
 mypy --explicit-package-bases scripts tests
 
-# 4. Coverage Threshold Enforcement (>= 80%, currently 81%)
+# 4. Coverage Threshold Enforcement (>= 80%, currently 80%+)
 coverage run -m unittest discover tests; coverage report --fail-under=80
 
 # 5. Canonical POSIX Integration Verification Harness

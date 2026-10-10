@@ -142,7 +142,7 @@ if ($DryRun) {
 # 4. Generate Windows CLI Wrapper
 Write-Host "`n[3/5] Configuring Windows CLI Wrappers..." -ForegroundColor Green
 $CmdWrapper = Join-Path $ScriptDir "arcanum.cmd"
-$CmdContent = "@echo off`r`npython `"%~dp0arcanum`" %*`r`n"
+$CmdContent = "@echo off`r`npython `"%~dp0lib\cli.py`" %*`r`n"
 
 if ($DryRun) {
     Write-Host "  [DRY-RUN] Would create command wrapper: $CmdWrapper" -ForegroundColor Gray
@@ -159,19 +159,28 @@ $ArcanumProgramsDir = Join-Path $StartMenuPath "Ars Arcanum"
 
 $Shortcuts = @(
     @{
-        Name = "Ars Arcanum Studio Hub"
-        Args = "scripts/lib/cli.py hub"
-        Desc = "Sovereign Studio Desktop Hub and Authoring Cockpit"
+        Name = "Ars Arcanum Portfolio Studio"
+        Script = "scripts/lib/cli.py"
+        Args = "portfolio --html dist/portfolio_studio.html --open"
+        Desc = "Sovereign Author Portfolio, Project Catalog & Multi-Book Dashboard"
     },
     @{
-        Name = "Ars Arcanum Zen Studio"
-        Args = "scripts/lib/cli.py studio"
-        Desc = "Distraction-Free Offline Typewriter Drafting Cockpit"
+        Name = "Ars Arcanum Velocity Studio"
+        Script = "scripts/lib/cli.py"
+        Args = "words --html dist/velocity_studio.html --open"
+        Desc = "Drafting Velocity, Sprint Analytics & Pomodoro Cockpit"
     },
     @{
-        Name = "Ars Arcanum Story Canvas"
-        Args = "scripts/lib/cli.py canvas"
-        Desc = "Interactive Visual Story and Pacing Canvas"
+        Name = "Ars Arcanum Revision Heatmap"
+        Script = "scripts/lib/cli.py"
+        Args = "revision-heatmap --html dist/revision_heatmap.html --open"
+        Desc = "Interactive Manuscript Revision Density & Churn Visualizer"
+    },
+    @{
+        Name = "Ars Arcanum Draft Lineage Studio"
+        Script = "scripts/lib/cli.py"
+        Args = "draft --html dist/drafts_dashboard.html --open"
+        Desc = "Visual Draft Lineage Tree & Milestone State Visualizer"
     }
 )
 
@@ -194,13 +203,14 @@ if ($DryRun) {
             }
 
             $PyPath = (Get-Command $TargetPy).Source
-            $ScriptArg = Join-Path $ProjectRoot $sc.Args
+            $ScriptPath = Join-Path $ProjectRoot $sc.Script
+            $ScriptArg = "`"$ScriptPath`" $($sc.Args)"
 
             # Desktop Shortcut
             $DeskLnkPath = Join-Path $DesktopPath "$($sc.Name).lnk"
             $Shortcut = $WScriptShell.CreateShortcut($DeskLnkPath)
             $Shortcut.TargetPath = $PyPath
-            $Shortcut.Arguments = "`"$ScriptArg`""
+            $Shortcut.Arguments = $ScriptArg
             $Shortcut.WorkingDirectory = $ProjectRoot
             $Shortcut.Description = $sc.Desc
             $Shortcut.Save()
@@ -209,7 +219,7 @@ if ($DryRun) {
             $ProgLnkPath = Join-Path $ArcanumProgramsDir "$($sc.Name).lnk"
             $ProgShortcut = $WScriptShell.CreateShortcut($ProgLnkPath)
             $ProgShortcut.TargetPath = $PyPath
-            $ProgShortcut.Arguments = "`"$ScriptArg`""
+            $ProgShortcut.Arguments = $ScriptArg
             $ProgShortcut.WorkingDirectory = $ProjectRoot
             $ProgShortcut.Description = $sc.Desc
             $ProgShortcut.Save()

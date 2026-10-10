@@ -44,6 +44,7 @@ Usage:
   compare <MS> [D_NEW] [D_OLD] Visual Redline changelog comparison between drafts (alias: diff, redline)
   revision-heatmap [MS]        Manuscript revision density & prose churn heatmap (alias: churn, heatmap)
   portfolio [DIR] [--html]     Multi-manuscript catalog dashboard & drafting velocity (alias: author-stats)
+  theme-studio [opts]          Atmospheric visual presets & procedural typewriter audio studio (alias: themes, sound)
   word [MS]                    Open manuscript in Microsoft Word / LibreOffice (alias: writer)
   docx <build|sync|import|open> Manage Word .docx manuscript synchronization & comment extraction
   import <SOURCE> [options]    Import Scrivener, Word (.docx), or Markdown into sovereign vault
@@ -265,13 +266,17 @@ def handle_doc_command(argv: list[str]) -> int:
         spec = get_engine(cleaned_args[0].strip().lower())
 
     if not spec:
-        for candidate in [
-            PROJECT_ROOT / "docs" / f"{target_full.upper()}.md",
-            PROJECT_ROOT / "docs" / f"{target_full.lower()}.md",
-            PROJECT_ROOT / "docs" / f"{target_full}.md",
-            PROJECT_ROOT / "docs" / "guides" / f"{target_full.upper()}.md",
-            PROJECT_ROOT / "docs" / "guides" / f"{target_full}.md",
-        ]:
+        variants = {target_full, target_full.replace("-", "_"), target_full.replace("_", "-")}
+        candidate_paths = []
+        for v in variants:
+            candidate_paths.extend([
+                PROJECT_ROOT / "docs" / f"{v.upper()}.md",
+                PROJECT_ROOT / "docs" / f"{v.lower()}.md",
+                PROJECT_ROOT / "docs" / f"{v}.md",
+                PROJECT_ROOT / "docs" / "guides" / f"{v.upper()}.md",
+                PROJECT_ROOT / "docs" / "guides" / f"{v}.md",
+            ])
+        for candidate in candidate_paths:
             if candidate.is_file():
                 content = candidate.read_text(encoding="utf-8", errors="replace")
                 if is_json:
@@ -363,8 +368,6 @@ def main(argv: list[str] | None = None) -> int:
     if dispatch_type == "handler":
         handler_key = entry[1]
         handler_fn = handlers[handler_key]
-        if handler_key in ("resonance", "conlang"):
-            return handler_fn(cmd, rest)
         return handler_fn(rest)
 
     if dispatch_type == "module":

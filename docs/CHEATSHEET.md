@@ -66,20 +66,21 @@ arcanum zen [MS] [-w WORLD]          # Standalone offline Zen drafting studio & 
 arcanum canvas [MS]                  # Interactive visual story canvas & drag-and-drop corkboard
 arcanum hub [TARGET] [--port PORT]   # Sovereign Studio Desktop Hub — unified offline telemetry cockpit
 arcanum portfolio [ROOT] [--html]    # Author portfolio dashboard, catalog velocity & progress rollups
+arcanum theme-studio [--open|--html] # Standalone Theme & Typewriter Audio Studio (alias: presets, typewriter)
 arcanum typography [TARGET] [-i]     # Smart typography normalizer (curly quotes, em/en-dashes, ellipses)
 arcanum corpus <export|restore> [TARGET] # Universal structured corpus (JSONL/SQLite) and vault restore
 arcanum word [MS]                    # Open manuscript in Microsoft Word / LibreOffice (alias: writer)
 arcanum docx sync [MS]               # Bidirectional synchronization between Word (.docx) & Markdown
-arcanum new <manuscript|world|universe|volume> <NAME>  # Scaffold new project components
-arcanum draft <MS> [DRAFT_NAME]      # Fork discrete revision draft (e.g. Draft-02)
+arcanum new manuscript <NAME> [--structure <preset>] # Scaffold novel (presets: three_act, four_act, five_act, heros_journey, kishotenketsu, flat, custom)
+arcanum draft <MS> [DRAFT_NAME]      # Fork discrete revision draft preserving Act/folder subtrees (e.g. Draft-02)
 arcanum compare <MS> [NEW] [OLD]     # Visual Redline changelog comparison in browser
 arcanum save [TARGET] -m "Note"      # Save Git version milestone snapshot (alias: snapshot)
-arcanum words [MS] [--pov|--json]    # Live word count report and POV balance breakdown
+arcanum words [MS] [--pov|--json]    # Live word count report, dialogue % breakdown & reading times
 
 # Sovereign Local Retrieval & Deterministic Craft Engines
 arcanum search <QUERY> [-d DB]       # Zero-dependency local TF-IDF & SQLite FTS5 semantic lore retrieval
 arcanum ambient [PROFILE]            # Sine-wave binaural beat focus soundscape generator (alpha, theta)
-arcanum sprint <start|stop|status|stats|report> # Writing sprint timer, WPM velocity analytics & dashboard
+arcanum sprint <start|stop|stats>    # Writing sprint timer, WPM velocity analytics & live typewriter clicking audio
 arcanum revision-heatmap [MS] [--html] # Snapshot revision churn heatmap & over-revised chapter detector
 arcanum causality [MS] [-w WORLD]     # Causal DAG builder, Novikov self-consistency & loop detector
 arcanum prophecy [MS] [-w WORLD]      # Prophecy resolution matrix & clause cross-validation

@@ -79,3 +79,14 @@ insolation_wm2: 1310
 
 ### Winter (The Long Dark)
 - **Meteorological Profile**: Persistent katabatic downdrafts rushing down from the glacier field; snowdrifts accumulate up to 4 meters along north-facing ramparts.
+
+---
+
+## 3. Exoplanetary & Planetary Climate Archetypes
+
+| Preset Identifier | Planetary Archetype | Atmospheric Regime | Key Biome & Survival Zone |
+| :--- | :--- | :--- | :--- |
+| `preset-tidally-locked` | Tidally Locked Eyeball World | 1-Cell Day-to-Night circulation; perpetual substellar upwelling | Twilight Terminator Ring (`Cfb`/`Dfb` microclimates with perpetual gale winds) |
+| `preset-runaway-greenhouse` | Super-Earth Greenhouse | Dense $\text{CO}_2/\text{H}_2\text{O}$ vapor blanket ($P_{\text{surf}} > 35\text{ atm}$, $T > 300^\circ\text{C}$) | Aerostat Cloud Cities at $z = 55\text{ km}$ ($P \sim 1\text{ atm}$, $T \sim 25^\circ\text{C}$) |
+| `preset-snowball-cryo` | Glaciated Snowball World | High Bond albedo ($A > 0.65$), global sea ice ($z > 150\text{ m}$) | Sub-Glacial Hydrothermal Vents and volcanic rift ecosystems |
+

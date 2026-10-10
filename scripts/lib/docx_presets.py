@@ -13,6 +13,18 @@ from typing import Any
 logger = logging.getLogger("arcanum.docx_presets")
 
 DOCX_PRESETS: dict[str, dict[str, Any]] = {
+    "chicago-manual": {
+        "name": "Chicago Manual of Style (CMOS)",
+        "description": "Chicago Manual of Style (17th/18th ed.) author manuscript guidelines. Times New Roman 12pt, double-spaced, 1-inch margins, 0.5-inch indent, '#' scene breaks, running header (Surname / Short Title / Page #).",
+        "font_family": "Times New Roman",
+        "font_size_pt": 12.0,
+        "line_spacing": 2.0,
+        "margin_inches": 1.0,
+        "first_line_indent_inches": 0.5,
+        "scene_break_symbol": "#",
+        "page_break_chapters": True,
+        "include_header_slug": True,
+    },
     "standard-submission": {
         "name": "Standard Submission (Shunn / Industry)",
         "description": "William Shunn standard manuscript format. Times New Roman 12pt, double-spaced, 1-inch margins, 0.5-inch indent, '#' scene breaks.",
@@ -64,6 +76,22 @@ DOCX_PRESETS: dict[str, dict[str, Any]] = {
 }
 
 
+PRESET_ALIASES: dict[str, str] = {
+    "cmos": "chicago-manual",
+    "chicago": "chicago-manual",
+    "shunn": "standard-submission",
+    "industry": "standard-submission",
+    "modern": "modern-manuscript",
+    "trade": "classic-trade",
+    "classic": "classic-trade",
+}
+
+
+def _normalize_preset_name(preset_name: str) -> str:
+    norm = preset_name.strip().lower().replace("_", "-")
+    return PRESET_ALIASES.get(norm, norm)
+
+
 def get_active_docx_preset_name() -> str:
     """Returns the name of the currently active DOCX preset."""
     try:
@@ -73,7 +101,7 @@ def get_active_docx_preset_name() -> str:
 
     cfg = load_config()
     docx_cfg = cfg.get("docx_formatting", {})
-    preset = docx_cfg.get("active_preset", "standard-submission")
+    preset = _normalize_preset_name(docx_cfg.get("active_preset", "standard-submission"))
     if preset not in DOCX_PRESETS:
         preset = "standard-submission"
     return preset
@@ -82,7 +110,7 @@ def get_active_docx_preset_name() -> str:
 def get_docx_config(preset_name: str | None = None) -> dict[str, Any]:
     """Returns the resolved DOCX formatting dictionary."""
     if preset_name:
-        norm_name = preset_name.replace("_", "-")
+        norm_name = _normalize_preset_name(preset_name)
         if norm_name in DOCX_PRESETS:
             return dict(DOCX_PRESETS[norm_name])
 
@@ -93,7 +121,7 @@ def get_docx_config(preset_name: str | None = None) -> dict[str, Any]:
 
     cfg = load_config()
     docx_cfg = cfg.get("docx_formatting", {})
-    active = docx_cfg.get("active_preset", "standard-submission")
+    active = _normalize_preset_name(docx_cfg.get("active_preset", "standard-submission"))
     base = dict(DOCX_PRESETS.get(active, DOCX_PRESETS["standard-submission"]))
     base["active_preset"] = active
     # Merge custom overrides if custom preset or explicit overrides present
@@ -109,7 +137,7 @@ def get_docx_preset_names() -> list[str]:
 
 def set_docx_preset(preset_name: str) -> bool:
     """Sets the active DOCX formatting preset."""
-    norm_name = preset_name.replace("_", "-")
+    norm_name = _normalize_preset_name(preset_name)
     if norm_name not in DOCX_PRESETS:
         logger.error("Unknown DOCX preset: %s", preset_name)
         return False

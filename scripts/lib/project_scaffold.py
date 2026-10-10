@@ -196,6 +196,153 @@ CONSTITUTION_PRESETS: dict[str, dict[str, Any]] = {
     },
 }
 
+# Flexible Novel Structural Paradigms & Folder Layouts
+STRUCTURE_PRESETS: dict[str, dict[str, Any]] = {
+    "three_act": {
+        "name": "Three-Act Structure",
+        "description": "Standard 3-Act dramatic arc: Setup, Confrontation, Resolution.",
+        "folders": ["01_Act_I", "02_Act_II", "03_Act_III"],
+        "chapters": [
+            ("01_Act_I/01_Chapter_01.md", "Chapter 1", "Act I", "The Inciting Spark", "Begin drafting the opening scene here..."),
+            ("01_Act_I/02_Chapter_02.md", "Chapter 2", "Act I", "The Threshold", "The journey expands..."),
+            ("02_Act_II/01_Chapter_03.md", "Chapter 3", "Act II", "Into the Crucible", "Complications and stakes escalate..."),
+            ("03_Act_III/01_Chapter_04.md", "Chapter 4", "Act III", "The Climax & Resolution", "The decisive confrontation unfolds..."),
+        ],
+    },
+    "four_act": {
+        "name": "Four-Act Structure",
+        "description": "4-Act structure with midpoint split: Act I, Act IIA, Act IIB, Act III.",
+        "folders": ["01_Act_I", "02_Act_IIA", "03_Act_IIB", "04_Act_III"],
+        "chapters": [
+            ("01_Act_I/01_Chapter_01.md", "Chapter 1", "Act I", "Setup & Inciting Incident", "Establish status quo and catalyst..."),
+            ("02_Act_IIA/01_Chapter_02.md", "Chapter 2", "Act IIA", "Rising Action to Midpoint", "Proactive pursuit leading to midpoint..."),
+            ("03_Act_IIB/01_Chapter_03.md", "Chapter 3", "Act IIB", "Crisis & Dark Night", "Consequences escalate to lowest point..."),
+            ("04_Act_III/01_Chapter_04.md", "Chapter 4", "Act III", "Climax & Resolution", "Final push and resolution..."),
+        ],
+    },
+    "five_act": {
+        "name": "Five-Act Dramatic Structure (Freytag's Pyramid)",
+        "description": "Classical 5-Act structure: Exposition, Rising Action, Climax, Falling Action, Resolution.",
+        "folders": ["01_Exposition", "02_Rising_Action", "03_Climax", "04_Falling_Action", "05_Resolution"],
+        "chapters": [
+            ("01_Exposition/01_Chapter_01.md", "Chapter 1", "Exposition", "The Ordinary World", "Establish characters and world..."),
+            ("02_Rising_Action/01_Chapter_02.md", "Chapter 2", "Rising Action", "The Gathering Storm", "Obstacles and rising tension..."),
+            ("03_Climax/01_Chapter_03.md", "Chapter 3", "Climax", "The Zenith", "The pivotal turning point..."),
+            ("04_Falling_Action/01_Chapter_04.md", "Chapter 4", "Falling Action", "The Repercussions", "Unraveling consequences..."),
+            ("05_Resolution/01_Chapter_05.md", "Chapter 5", "Resolution", "The New Normal", "Denouement and new equilibrium..."),
+        ],
+    },
+    "kishotenketsu": {
+        "name": "Kishōtenketsu (4-Part Non-Conflict Structure)",
+        "description": "East Asian narrative structure: Ki (Intro), Sho (Development), Ten (Twist), Ketsu (Conclusion).",
+        "folders": ["01_Ki_Introduction", "02_Sho_Development", "03_Ten_Twist", "04_Ketsu_Conclusion"],
+        "chapters": [
+            ("01_Ki_Introduction/01_Chapter_01.md", "Chapter 1", "Ki", "The Foundation", "Introduce topic, character, setting..."),
+            ("02_Sho_Development/01_Chapter_02.md", "Chapter 2", "Sho", "The Development", "Expand upon and deepen the scene..."),
+            ("03_Ten_Twist/01_Chapter_03.md", "Chapter 3", "Ten", "The Unexpected Turn", "Sudden twist or unrelated element introduces new perspective..."),
+            ("04_Ketsu_Conclusion/01_Chapter_04.md", "Chapter 4", "Ketsu", "The Synthesis", "Connect the twist back to the foundation..."),
+        ],
+    },
+    "heros_journey": {
+        "name": "Hero's Journey (Monomyth)",
+        "description": "Campbell / Vogler 3-Phase Monomyth: Departure, Initiation, Return.",
+        "folders": ["01_Departure", "02_Initiation", "03_Return"],
+        "chapters": [
+            ("01_Departure/01_Chapter_01.md", "Chapter 1", "Departure", "The Call to Adventure", "Ordinary world and crossing the first threshold..."),
+            ("02_Initiation/01_Chapter_02.md", "Chapter 2", "Initiation", "The Road of Trials & Ordeal", "Trials, allies, and central ordeal in the abyss..."),
+            ("03_Return/01_Chapter_03.md", "Chapter 3", "Return", "The Master of Two Worlds", "Resurrection and return with the elixir..."),
+        ],
+    },
+    "flat": {
+        "name": "Flat Chapter List",
+        "description": "Simple flat numbered chapters directly inside draft without subfolders.",
+        "folders": [],
+        "chapters": [
+            ("01_Chapter_01.md", "Chapter 1", "", "The Beginning", "Begin drafting chapter 1..."),
+            ("02_Chapter_02.md", "Chapter 2", "", "The Continuation", "Begin drafting chapter 2..."),
+            ("03_Chapter_03.md", "Chapter 3", "", "The Furtherance", "Begin drafting chapter 3..."),
+        ],
+    },
+}
+
+
+def resolve_structure_layout(
+    structure: str | list[str] | None,
+) -> tuple[str, list[str], list[tuple[str, str, str, str, str]]]:
+    """
+    Resolves novel structure preset or custom user partition into folders and chapter tuples.
+
+    Returns:
+        (structure_key, folder_list, chapter_specs)
+        chapter_specs tuple format: (relative_file_path, chapter_title, act_label, subtitle, default_prompt)
+    """
+    if not structure:
+        s_norm = "three_act"
+    elif isinstance(structure, list):
+        # List of custom acts/parts
+        custom_parts = [sanitize_identifier(p.strip()) for p in structure if p.strip()]
+        if not custom_parts:
+            s_norm = "three_act"
+        else:
+            folders = [f"{i + 1:02d}_{p}" for i, p in enumerate(custom_parts)]
+            ch_specs = [
+                (
+                    f"{f}/01_Chapter_{i + 1:02d}.md",
+                    f"Chapter {i + 1}",
+                    custom_parts[i].replace("_", " "),
+                    "The Journey Continues",
+                    "Begin drafting here...",
+                )
+                for i, f in enumerate(folders)
+            ]
+            return "custom", folders, ch_specs
+    else:
+        s_norm = structure.lower().strip().replace("-", "_").replace(" ", "_")
+
+    # Map aliases
+    alias_map = {
+        "3_act": "three_act",
+        "3act": "three_act",
+        "threeact": "three_act",
+        "4_act": "four_act",
+        "4act": "four_act",
+        "fouract": "four_act",
+        "5_act": "five_act",
+        "5act": "five_act",
+        "fiveact": "five_act",
+        "kisho": "kishotenketsu",
+        "hero": "heros_journey",
+        "hero_journey": "heros_journey",
+        "monomyth": "heros_journey",
+    }
+    s_key = alias_map.get(s_norm, s_norm)
+
+    if s_key in STRUCTURE_PRESETS:
+        spec = STRUCTURE_PRESETS[s_key]
+        return s_key, list(spec["folders"]), list(spec["chapters"])
+
+    # If comma-separated custom structure passed as string (e.g. "Part 1, Part 2, Part 3")
+    if "," in str(structure):
+        parts = [p.strip() for p in str(structure).split(",") if p.strip()]
+        if parts:
+            clean_parts = [sanitize_identifier(p) for p in parts]
+            folders = [f"{i + 1:02d}_{p}" for i, p in enumerate(clean_parts)]
+            ch_specs = [
+                (
+                    f"{f}/01_Chapter_{i + 1:02d}.md",
+                    f"Chapter {i + 1}",
+                    parts[i],
+                    "The Journey Continues",
+                    "Begin drafting here...",
+                )
+                for i, f in enumerate(folders)
+            ]
+            return "custom", folders, ch_specs
+
+    # Fallback to standard 3-act
+    spec = STRUCTURE_PRESETS["three_act"]
+    return "three_act", list(spec["folders"]), list(spec["chapters"])
+
 
 def get_constitution_preset(preset_name: str) -> dict[str, Any]:
     """Retrieves normalized Authorial Constitution policy preset dictionary."""
@@ -364,10 +511,11 @@ def scaffold_manuscript(
     target_words: int = 80000,
     author: str = "Author",
     preset: str = "epic-fantasy",
+    structure: str = "three_act",
     template_source: Path | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
-    """Scaffolds a novel manuscript with 3-Act structure, Outlines, and novelWriter scaffolding."""
+    """Scaffolds a novel manuscript with flexible structural paradigms, Outlines, and novelWriter scaffolding."""
     clean_name = sanitize_identifier(name)
     target = (base_dir / clean_name) if base_dir else (get_manuscripts_base() / clean_name)
     if target.exists() and not dry_run:
@@ -383,71 +531,28 @@ def scaffold_manuscript(
 
     draft_base = target / "01-Manuscript" / "Book-01" / "Draft-01"
 
-    # Novel Structure: Act I, Act II, Act III
-    act1_dir = draft_base / "01_Act_I"
-    act2_dir = draft_base / "02_Act_II"
-    act3_dir = draft_base / "03_Act_III"
+    # Resolve structure paradigm and create directories & chapter templates
+    struct_key, folders, ch_specs = resolve_structure_layout(structure)
 
-    ch1_content = """---
-title: Chapter 1
-act: Act I
-pov: Protagonist
-timeline: Day 1
+    for folder in folders:
+        if not dry_run:
+            (draft_base / folder).mkdir(parents=True, exist_ok=True)
+
+    for rel_path, title, act_tag, subtitle, prompt in ch_specs:
+        act_line = f"act: {act_tag}\n" if act_tag else ""
+        ch_text = f"""---
+title: {title}
+{act_line}pov: Protagonist
+timeline: Scene
 target_words: 3000
 status: draft
 ---
 
-# Chapter 1: The Inciting Spark
+# {title}: {subtitle}
 
-Begin drafting the opening scene here...
+{prompt}
 """
-
-    ch2_content = """---
-title: Chapter 2
-act: Act I
-pov: Protagonist
-timeline: Day 2
-target_words: 3000
-status: draft
----
-
-# Chapter 2: The Threshold
-
-The journey expands...
-"""
-
-    ch3_content = """---
-title: Chapter 3
-act: Act II
-pov: Protagonist
-timeline: Day 5
-target_words: 3500
-status: draft
----
-
-# Chapter 3: Into the Crucible
-
-Complications and stakes escalate...
-"""
-
-    ch4_content = """---
-title: Chapter 4
-act: Act III
-pov: Protagonist
-timeline: Day 10
-target_words: 4000
-status: draft
----
-
-# Chapter 4: The Climax & Resolution
-
-The decisive confrontation unfolds...
-"""
-
-    _safe_write(act1_dir / "01_Chapter_01.md", ch1_content, dry_run, created_files)
-    _safe_write(act1_dir / "02_Chapter_02.md", ch2_content, dry_run, created_files)
-    _safe_write(act2_dir / "01_Chapter_03.md", ch3_content, dry_run, created_files)
-    _safe_write(act3_dir / "01_Chapter_04.md", ch4_content, dry_run, created_files)
+        _safe_write(draft_base / rel_path, ch_text, dry_run, created_files)
 
     # Scaffolding Outlines directory
     outlines_dir = target / "Outlines"
@@ -457,7 +562,7 @@ The decisive confrontation unfolds...
     else:
         # Fallback in-memory Master Outline
         master_outline = f"""# Master Outline: {clean_name.replace('_', ' ')}
-**Author:** {author} | **Universe:** {universe} | **World:** {world} | **Target Words:** {target_words:,}
+**Author:** {author} | **Universe:** {universe} | **World:** {world} | **Target Words:** {target_words:,} | **Structure:** {struct_key}
 
 ## Narrative Arc Overview
 - **Premise / High Concept**: [One-sentence logline]
@@ -487,6 +592,7 @@ The decisive confrontation unfolds...
         "author": author,
         "universe": universe,
         "world": world,
+        "structure": struct_key,
         "target_words": int(target_words),
         "active_draft": "Draft-01",
         "active_volume": "Book-01",
@@ -498,11 +604,11 @@ The decisive confrontation unfolds...
     constitution_data = get_constitution_preset(preset)
     _safe_write(target / "constitution.yaml", serialize_yaml_document(constitution_data), dry_run, created_files)
 
-    # novelWriter project XML
+    # novelWriter project XML (v1.5 with <title>)
     nwx_content = f"""<?xml version="1.0" encoding="utf-8"?>
-<novelWriterXML appVersion="2.0" fileVersion="1.3">
+<novelWriterXML appVersion="2.0" fileVersion="1.5">
   <project>
-    <name>{clean_name.replace('_', ' ')}</name>
+    <title>{clean_name.replace('_', ' ')}</title>
     <author>{author}</author>
   </project>
 </novelWriterXML>
@@ -515,6 +621,7 @@ The decisive confrontation unfolds...
         "type": "manuscript",
         "archetype": archetype,
         "name": clean_name,
+        "structure": struct_key,
         "path": str(target),
         "manifest": manifest_data,
         "created_files": created_files,
@@ -816,6 +923,32 @@ def run_interactive_wizard() -> int:
         if w_in.isdigit():
             words_val = int(w_in)
 
+    # Structure choice for novel manuscripts
+    structure_choice = "three_act"
+    if selected_type == "novel":
+        print("\nSelect Novel Structure Layout:")
+        print("  [1] three_act     (3-Act dramatic arc: Setup, Confrontation, Resolution)")
+        print("  [2] four_act      (4-Act structure with midpoint split: I, IIA, IIB, III)")
+        print("  [3] five_act      (5-Act classical dramatic structure / Freytag's Pyramid)")
+        print("  [4] kishotenketsu (4-Part non-conflict structure: Ki, Sho, Ten, Ketsu)")
+        print("  [5] heros_journey (Hero's Journey Monomyth: Departure, Initiation, Return)")
+        print("  [6] flat          (Flat numbered chapter list without subfolders)")
+        print("  [7] custom        (Custom comma-separated acts/parts)")
+        s_in = input("\nStructure [1-7] (default: 1): ").strip()
+        s_map = {
+            "1": "three_act",
+            "2": "four_act",
+            "3": "five_act",
+            "4": "kishotenketsu",
+            "5": "heros_journey",
+            "6": "flat",
+        }
+        if s_in == "7":
+            custom_parts = input("Enter comma-separated act/part names (e.g. Part 1, Part 2, Part 3): ").strip()
+            structure_choice = custom_parts or "three_act"
+        else:
+            structure_choice = s_map.get(s_in, "three_act")
+
     # Constitution preset
     preset_choice = "unconstrained"
     if selected_type in ("novel", "novella", "serial", "world"):
@@ -843,7 +976,7 @@ def run_interactive_wizard() -> int:
 
     print("\n" + "-" * 70)
     print(f"Scaffolding {selected_type.upper()}: '{name_input}' by {author_input}")
-    print(f"Preset: {preset_choice} | Destination: {target_base or 'Standard Base'}")
+    print(f"Preset: {preset_choice} | Structure: {structure_choice} | Destination: {target_base or 'Standard Base'}")
     print("-" * 70)
 
     if selected_type == "universe":
@@ -855,7 +988,17 @@ def run_interactive_wizard() -> int:
     elif selected_type == "serial":
         res = scaffold_serial(name_input, universe=u_name, world=w_name, base_dir=target_base, target_words=words_val, author=author_input, preset=preset_choice)
     else:
-        res = scaffold_manuscript(name_input, archetype="novel", universe=u_name, world=w_name, base_dir=target_base, target_words=words_val, author=author_input, preset=preset_choice)
+        res = scaffold_manuscript(
+            name_input,
+            archetype="novel",
+            universe=u_name,
+            world=w_name,
+            base_dir=target_base,
+            target_words=words_val,
+            author=author_input,
+            preset=preset_choice,
+            structure=structure_choice,
+        )
 
     print(f"✓ Successfully created {res['type'].capitalize()}: {res['name']} at {res['path']}")
     return 0
@@ -870,6 +1013,7 @@ def main(argv: list[str] | None = None) -> int:
     new_p.add_argument("type", nargs="?", choices=["manuscript", "novel", "book", "world", "lore", "vault", "universe", "cosmos", "novella", "short", "serial", "webserial", "volume"])
     new_p.add_argument("name", nargs="?", help="Name of the project or volume")
     new_p.add_argument("--preset", "-p", default="unconstrained", choices=list(CONSTITUTION_PRESETS.keys()), help="Constitution craft preset")
+    new_p.add_argument("--structure", "-s", default="three_act", help="Novel structure preset (flat, three_act, four_act, five_act, kishotenketsu, heros_journey, or custom)")
     new_p.add_argument("--author", "-a", default="Author", help="Author name")
     new_p.add_argument("--universe", "-u", default="Default-Universe", help="Universe name")
     new_p.add_argument("--world", "-w", default="Default-World", help="World name")
@@ -903,6 +1047,7 @@ def main(argv: list[str] | None = None) -> int:
     m_p.add_argument("name", nargs="?", help="Manuscript name to create")
     m_p.add_argument("--author", "-a", default="Author", help="Author name")
     m_p.add_argument("--preset", "-p", default="epic-fantasy", choices=list(CONSTITUTION_PRESETS.keys()), help="Constitution preset")
+    m_p.add_argument("--structure", "-s", default="three_act", help="Novel structure preset (flat, three_act, four_act, five_act, kishotenketsu, heros_journey, or custom)")
     m_p.add_argument("--universe", "-u", default="Default-Universe", help="Universe")
     m_p.add_argument("--world", "-w", default="Default-World", help="World")
     m_p.add_argument("--target-words", "-t", type=int, default=80000, help="Target word count")
@@ -960,6 +1105,9 @@ def main(argv: list[str] | None = None) -> int:
         print("🏛️ Ars Arcanum — Curated Authorial Constitution Presets:\n")
         for k, v in CONSTITUTION_PRESETS.items():
             print(f"  • {k:<22} : {v['name']} — {v['description']}")
+        print("\n🏛️ Ars Arcanum — Flexible Novel Structural Layouts:\n")
+        for k, v in STRUCTURE_PRESETS.items():
+            print(f"  • {k:<22} : {v['name']} — {v['description']}")
         return 0
 
     try:
@@ -995,6 +1143,7 @@ def main(argv: list[str] | None = None) -> int:
                     target_words=args.target_words,
                     author=args.author,
                     preset=args.preset,
+                    structure=getattr(args, "structure", "three_act"),
                     dry_run=dry,
                 )
                 type_label = "Novel Manuscript"
@@ -1069,6 +1218,7 @@ def main(argv: list[str] | None = None) -> int:
                 target_words=args.target_words,
                 author=args.author,
                 preset=args.preset,
+                structure=getattr(args, "structure", "three_act"),
                 dry_run=bool(args.dry_run),
             )
             if getattr(args, "json", False):
@@ -1135,6 +1285,7 @@ def main(argv: list[str] | None = None) -> int:
 
 __all__ = [
     "CONSTITUTION_PRESETS",
+    "STRUCTURE_PRESETS",
     "get_constitution_preset",
     "get_manuscripts_base",
     "get_universes_base",
@@ -1142,6 +1293,7 @@ __all__ = [
     "list_universes",
     "list_worlds",
     "main",
+    "resolve_structure_layout",
     "run_interactive_wizard",
     "scaffold_manuscript",
     "scaffold_novella",

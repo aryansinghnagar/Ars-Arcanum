@@ -189,3 +189,12 @@ zen_studio:
 - **George R.R. Martin's Air-Gapped WordStar 4.0 Machine**: The legendary sovereign writing setup running on DOS with zero internet connection, protecting ASOIAF from distraction and telemetry.
 - **Neil Gaiman's Fountain Pen Notebooks**: Drafting complete novels (*Stardust*, *The Graveyard Book*) entirely by hand in leather-bound notebooks to preserve flow before digital typesetting.
 - **Cormac McCarthy's Olivetti Lettera 32 Typewriter**: The composition of *Blood Meridian* and *The Road* on a purely mechanical typewriter, demonstrating the timeless power of focused physical prose generation.
+
+---
+
+## 8. Atmospheric Visual Presets & Procedural Typewriter Sound Immersion
+
+Zen Studio and the Velocity Sprint Studio embed the **Ars Arcanum UI Theme & Procedural Sound Engine** (`scripts/lib/ui_theme_engine.py`):
+- **11 Visual Presets**: `Retro` (Amber CRT), `Futuristic` (Neon Cyan), `Retrofuturistic` (Synthwave), `Fantastical` (Parchment & Gold), `Grim` (Ash & Iron), `Edgy` (Acid Cyberpunk), `Cozy` (Warm Sage & Latte), `SciFi` (Laser Blue HUD), `Horror` (Abyssal Crimson), `Sovereign Dark` (Starfield Navy), and `Classic Light` (Editorial Linen).
+- **10 Procedural Typewriter Sound Models**: Synthesized on-the-fly in pure JavaScript via the Web Audio API with zero external audio files. Keystrokes generate acoustic micro-transients, pitch jitter ($\pm 4\%$), deep spacebar chassis resonance, and carriage return brass bell chimes on `Enter`.
+- **Keyboard Shortcuts**: Press `Ctrl+Alt+T` or click the floating palette icon to open the **Theme & Sound Control Center Modal**. Press `Ctrl+Alt+M` to quickly mute/unmute typing audio.

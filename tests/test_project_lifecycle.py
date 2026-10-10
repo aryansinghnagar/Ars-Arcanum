@@ -308,7 +308,7 @@ class TestProjectLifecycle(unittest.TestCase):
             self.assertIn("already exists", mock_err.getvalue())
 
     def test_interactive_wizard_flow(self):
-        # Mock inputs: [1: novel, Title, Author, Universe, World, Words, Preset (1: epic-fantasy), Dir]
+        # Mock inputs: [1: novel, Title, Author, Universe, World, Words, Structure (1: three_act), Preset (1: epic-fantasy), Dir]
         mock_inputs = [
             "1",
             "WizardNovel",
@@ -317,6 +317,7 @@ class TestProjectLifecycle(unittest.TestCase):
             "WizardWorld",
             "90000",
             "1",
+            "1",
             str(self.ms_base),
         ]
         with patch("builtins.input", side_effect=mock_inputs), patch("sys.stdout", new_callable=io.StringIO) as mock_out:
@@ -324,6 +325,88 @@ class TestProjectLifecycle(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertIn("Successfully created", mock_out.getvalue())
             self.assertTrue((self.ms_base / "WizardNovel" / "manuscript.yaml").is_file())
+
+    def test_flexible_novel_structure_presets(self):
+        """Verify all flexible novel structure presets scaffold correctly."""
+        presets_to_test = ["flat", "three_act", "four_act", "five_act", "kishotenketsu", "heros_journey"]
+        for struct in presets_to_test:
+            ms_name = f"Novel_{struct}"
+            res = scaffold_manuscript(
+                ms_name,
+                structure=struct,
+                base_dir=self.ms_base,
+            )
+            self.assertEqual(res["status"], "success")
+            self.assertEqual(res["structure"], struct)
+
+            ms_path = Path(res["path"])
+            draft_path = ms_path / "01-Manuscript" / "Book-01" / "Draft-01"
+            self.assertTrue(draft_path.is_dir())
+
+            # Verify chapters were created
+            ch_files = list(draft_path.rglob("*.md"))
+            self.assertGreaterEqual(len(ch_files), 3)
+
+            # Verify manuscript.yaml contains structure field
+            man_content = (ms_path / "manuscript.yaml").read_text(encoding="utf-8")
+            self.assertIn(f"structure: {struct}", man_content)
+
+    def test_custom_novel_structure_comma_separated(self):
+        """Verify custom comma-separated section structures scaffold properly."""
+        res = scaffold_manuscript(
+            "CustomNovel",
+            structure="Prologue, Part_One, Part_Two, Epilogue",
+            base_dir=self.ms_base,
+        )
+        self.assertEqual(res["status"], "success")
+        self.assertEqual(res["structure"], "custom")
+
+        ms_path = Path(res["path"])
+        draft_path = ms_path / "01-Manuscript" / "Book-01" / "Draft-01"
+        self.assertTrue((draft_path / "01_Prologue").is_dir())
+        self.assertTrue((draft_path / "02_Part_One").is_dir())
+        self.assertTrue((draft_path / "03_Part_Two").is_dir())
+        self.assertTrue((draft_path / "04_Epilogue").is_dir())
+
+    def test_nwx_schema_file_version_1_5(self):
+        """Verify novelWriter XML schema uses fileVersion='1.5' with <title>."""
+        res = scaffold_manuscript("NwxTestNovel", base_dir=self.ms_base)
+        nwx_file = Path(res["path"]) / "nwProject.nwx"
+        self.assertTrue(nwx_file.is_file())
+        nwx_text = nwx_file.read_text(encoding="utf-8")
+        self.assertIn('fileVersion="1.5"', nwx_text)
+        self.assertIn("<title>NwxTestNovel</title>", nwx_text)
+
+    def test_cli_structure_option(self):
+        """Verify CLI --structure / -s flag scaffolds chosen layout."""
+        with patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            rc = main(["new", "novel", "KishoCliNovel", "--structure", "kishotenketsu", "--dir", str(self.ms_base)])
+            self.assertEqual(rc, 0)
+            self.assertIn("Created Novel Manuscript: KishoCliNovel", mock_out.getvalue())
+
+        draft_path = self.ms_base / "KishoCliNovel" / "01-Manuscript" / "Book-01" / "Draft-01"
+        self.assertTrue((draft_path / "01_Ki_Introduction").is_dir())
+        self.assertTrue((draft_path / "03_Ten_Twist").is_dir())
+
+    def test_interactive_wizard_flow_custom_structure(self):
+        """Verify wizard with custom structure input prompt."""
+        mock_inputs = [
+            "1",
+            "CustomWizNovel",
+            "WizAuthor",
+            "WizUniv",
+            "WizWorld",
+            "75000",
+            "7",
+            "Part_One, Part_Two",
+            "1",
+            str(self.ms_base),
+        ]
+        with patch("builtins.input", side_effect=mock_inputs), patch("sys.stdout", new_callable=io.StringIO) as mock_out:
+            rc = run_interactive_wizard()
+            self.assertEqual(rc, 0)
+            self.assertIn("Successfully created", mock_out.getvalue())
+            self.assertTrue((self.ms_base / "CustomWizNovel" / "manuscript.yaml").is_file())
 
 
 if __name__ == "__main__":

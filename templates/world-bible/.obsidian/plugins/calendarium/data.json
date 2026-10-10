@@ -5,5 +5,12 @@
   "showEventsOnCalendarView": true,
   "eventFrontmatterKey": "fc-date",
   "displayWeeks": true,
-  "parseDates": true
+  "parseDates": true,
+  "autoParse": true,
+  "version": {
+    "major": 2,
+    "minor": 1,
+    "patch": 0,
+    "beta": null
+  }
 }
