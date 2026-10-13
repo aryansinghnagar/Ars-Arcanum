@@ -11,6 +11,7 @@ Validates:
 import json
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -62,6 +63,8 @@ class TestBackupEncryption(unittest.TestCase):
         """If GPG and Bash are installed, test actual encrypted backup and restore."""
         if not (self.has_bash and self.has_gpg):
             self.skipTest("Bash and/or GPG not available in environment")
+        if not sys.platform.startswith("linux"):
+            self.skipTest("Bash harness requires Linux")
 
         arcanum_script = (self.project_root / "scripts" / "arcanum").as_posix()
         dest_dir = self.temp_dir / "Backups"

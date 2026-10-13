@@ -5,6 +5,7 @@ Unit tests for Pure-Python Backup, Restore, and Snapshot Engines
 """
 
 import os
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -44,6 +45,8 @@ class TestPurePythonBackupRestore(unittest.TestCase):
         self.temp_dir.cleanup()
 
     def test_save_snapshot_git_milestone(self):
+        if shutil.which("git") is None:
+            self.skipTest("git not available in environment")
         res = save_snapshot(self.project_dir, message="Initial chapter draft")
         self.assertEqual(res["status"], "success")
         self.assertTrue(res["commit_hash"])
@@ -212,6 +215,8 @@ class TestPurePythonBackupRestore(unittest.TestCase):
             restore_archive(missing_tar, target_dir=self.root / "out")
 
     def test_cli_main_entry_points(self):
+        if shutil.which("git") is None:
+            self.skipTest("git not available in environment")
         from lib.backup import main as backup_main
         from lib.restore import main as restore_main
         from lib.snapshot import main as snapshot_main

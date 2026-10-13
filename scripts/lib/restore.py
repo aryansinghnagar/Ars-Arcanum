@@ -83,6 +83,8 @@ def is_safe_tar_member(member: tarfile.TarInfo, dest_dir: Path) -> bool:
     norm = os.path.normpath(member.name)
     if norm.startswith(("..", "/", "\\")):
         return False
+    if len(norm) >= 2 and norm[1] == ":" and norm[0].isalpha():
+        return False
     target_path = (dest_dir / norm).resolve()
     dest_resolved = dest_dir.resolve()
     if not (dest_resolved in target_path.parents or target_path == dest_resolved):
@@ -92,6 +94,8 @@ def is_safe_tar_member(member: tarfile.TarInfo, dest_dir: Path) -> bool:
     if member.issym() or member.islnk():
         link_target = member.linkname
         if link_target.startswith(("/", "\\")):
+            return False
+        if len(link_target) >= 2 and link_target[1] == ":" and link_target[0].isalpha():
             return False
         member_parent = (dest_dir / norm).parent
         resolved_link = (member_parent / link_target).resolve()
