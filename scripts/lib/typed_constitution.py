@@ -122,7 +122,7 @@ def resolve_constitution_cascade(
     ):
         if not layer:
             continue
-        if "scope_name" in layer and layer["scope_name"]:
+        if layer.get("scope_name"):
             scope_name = str(layer["scope_name"])
         elif scope_name == base.scope_name:
             scope_name = tier_name
